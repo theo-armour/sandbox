@@ -20,10 +20,12 @@
 
 * Ensure the content is suitable for...
 
-## Format
+## Format ~ Output
 
-* Format: [structure - bullets, table, essay]
+* Format: [structure - bullets, table, essay.json, list]
 * Length: [specific word/paragraph count]
+* Max words: [number]
+* markdown
 
 ## Constraints
 
@@ -43,6 +45,9 @@
 * Apply [methodology/framework]
 * Validate using [criteria]
 * Stop when [success criteria met]
+* Begin with **one** diagnostic question.
+* Record my answer, respond with short feedback, then ask the next single question (max 5 total).
+* For *any* clarification or follow-up, pose one pointed question, wait for my reply, then resume.
 
 ## Uncertainty Handling
 
