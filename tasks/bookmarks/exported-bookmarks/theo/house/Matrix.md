@@ -1,0 +1,20 @@
+# Matrix
+
+**URL:** https://twinkly.com/en-us/products/matrix
+
+**Created:** 2024-01-14T20:05:46.449Z
+
+**Tags:** 
+
+**Favorite:** false
+
+## Excerpt
+
+Step into a new dimension of smart LED technology with the Matrix light curtain, featuring the highest LED density in its class with precise LED positioning for fluid-effect graphics. 
+The ready-to-use format paired with a lightweight, premium design allows it to seamlessly fit into any setting with ease.
+Matrix is app-controlled and fully customizable with unlimited effects and animations. Screen mirroring options (for Windows only) and gaming integrations create immersive and reactive live experiences.
+
+## Cover Image
+
+![Cover](https://twinkly.com/cdn/shop/files/Matrix_Pack_500_Front_V2.png?v=1703064847)
+
