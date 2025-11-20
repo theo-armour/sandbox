@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     :root {
-      font-family: monospace;
+      font: 100% monospace;
       --bg-color: #fff;
       --text-color: #000;
       --link-color: green;
@@ -32,7 +32,7 @@
     a {
       color: var(--link-color);
       text-decoration: none;
-      font-size: 1.5rem;
+      font-size: 200%;
     }
 
     a:hover {
@@ -43,13 +43,13 @@
       display: flex;
       flex-wrap: wrap;
       padding: 10px;
-      gap: 10px;
+      gap: 4px;
     }
 
     .box {
       border: 1px solid var(--box-border);
-      flex: 1 1 300px;
-      padding: 10px;
+      flex: 0 1 22ch;
+      padding: 2px;
       overflow: auto;
       max-height: 80vh;
     }
@@ -292,6 +292,9 @@
         const text = await res.text();
         txtContent.value = text;
         dlgEdit.showModal();
+        txtContent.setSelectionRange( 0, 0 );
+        txtContent.scrollTop = 0;
+        txtContent.focus();
       } catch ( e ) {
         alert( 'Could not load content for editing' );
       }
