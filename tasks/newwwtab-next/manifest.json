@@ -7,14 +7,14 @@
       "title": "Theo"
     },
     {
-      "id": "box-news",
-      "source": "data/news.md",
-      "title": "News"
-    },
-    {
       "id": "box-reads",
       "source": "data/reads.md",
       "title": "Reads"
+    },
+    {
+      "id": "box-news",
+      "source": "data/news.md",
+      "title": "News"
     },
     {
       "id": "box-mr-softy",
