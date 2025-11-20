@@ -1,0 +1,258 @@
+﻿<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>new-tab</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=contain">
+	<meta name="description"
+		content="File wrangler. Default index.html file. Opens HTML or Markdown files. Passes location.hash.">
+	<meta name="keywords" content="ShowDown,Markdown,AJAX,JavaScript,HTML,CSS,GitHub,FOSS">
+	<meta name="version" content="2024-01-09">
+
+	<style>
+		/* Copyright 2022 Theo Armour. MIT License */
+
+		:root {
+			font: 100% monospace;
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			margin: 0;
+			/*max-width: 80ch; */
+		}
+
+		a {
+			color: green;
+			text-decoration: none;
+			font-size: 200%;
+		}
+
+		a:hover,
+		a:focus,
+		a:active {
+			text-decoration: underline;
+		}
+
+		aside {
+			border: 1px solid lightgray;
+			margin-top: 15px;
+			padding: 2px;
+		}
+
+		button,
+		input[type=button] {
+			background-color: #eee;
+			border: 2px #eee solid;
+			color: #888;
+		}
+
+		blockquote {
+			background-color: #ddd;
+			padding: 1rem;
+		}
+
+		code {
+			background-color: #eee;
+		}
+
+		pre {
+			background-color: #eee;
+			padding: 0.5rem;
+		}
+
+		::-webkit-scrollbar {
+			background: forestgreen;
+		}
+
+		::-webkit-scrollbar-thumb {
+			background: darkgreen;
+		}
+
+		.aDingbat {
+			text-decoration: none;
+			font-size: 2rem;
+		}
+
+		.iframe-resize {
+			height: 400px;
+			overflow: hidden;
+			resize: both;
+			width: 100%;
+		}
+
+
+		details {
+			border: 0px red solid;
+		}
+
+		summary {
+			cursor: pointer;
+			font-size: 1.8rem;
+			font-weight: bold;
+			margin: 0;
+			outline: none;
+		}
+
+		h3 {
+			margin: 0;
+			padding: 0;
+		}
+
+		p {
+			margin: 0;
+		}
+
+		.parent {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: left;
+		}
+
+		.box {
+			border: 1px solid #ffdddd;
+			flex: 1 1 150px;
+			/*  Stretchng: */
+
+			flex: 0 1 150px;
+			/* No stretching: */
+			margin: 5px;
+			resize: both;
+			overflow: auto;
+		}
+
+		.tooltip {
+			display: inline-block;
+			border-bottom: 0px dotted black;
+		}
+
+		.tooltip .tooltiptext {
+			background-color: white;
+			border: 0.1rem solid black;
+			border-radius: 0.5rem;
+			/* color: #fff; */
+			display: block;
+			font-size: 1rem;
+			padding: 1rem;
+			position: absolute;
+			visibility: hidden;
+			z-index: 10;
+			opacity: 0;
+			transition: .3s opacity;
+		}
+
+		.tooltip:hover .tooltiptext {
+			visibility: visible;
+			opacity: 100;
+			transition: .1s opacity;
+		}
+
+		#divClock {
+			color: #888;
+			font-size: 5rem;
+			font-weight: bold;
+
+			margin: 0;
+			padding: 0;
+			position: fixed;
+			right: 1rem;
+			bottom: 0rem;
+		}
+	</style>
+
+</head>
+
+<body>
+	<!-- https://github.com/showdownjs/showdown -->
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+
+	<div id=divContent class="parent"></div>
+
+	<div id="divClock">XXX</div>
+
+	<script>
+
+const menuThingy = `
+&#164; &curren; &times; &deg; &bull; &middot; &mdash; &copy; &euro; &hellip; &vellip;
+&#x1801; ❦ &#x2766; ❧ &#x2767; &phone;
+&#x2261; ≡
+&spades; &starf; &bigstar; &xcirc;
+&block; &marker; &FilledSmallSquare;
+&mdash; &ndash;<br>
+&amp;mdash; &amp;ndash; &amp;euro; &amp;nbsp; ❧❧❧
+<br>
+<a href="https://tabatkins.github.io/symbols/" target="_blank">Symbololology</a>
+<a href="https://docx.new" target="_blank">new docx</a>
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Cheatsheet" target="_blank">regex</a>
+<a href=javascript:void(document.body.style.backgroundColor='#fee' title="Make it Pink!") >background</a>
+<a href=javascript:delSha(); title="delSha">delSha</a>
+`;
+
+		// https://github.com/showdownjs/showdown
+		// Canonical version: https://github.com/pushme-pullyou/templates-01/tree/master/open-markdown-or-html
+
+		let defaultFile = "#new-tab-content.md";
+		//location.hash = "../../../pushme-pullyou/tootoo14/pages/markdown-help.md"
+		//location.hash = "new-tab-content.md";
+
+		let contents, converter;
+
+		init();
+
+		function init () {
+
+			showdown.setFlavor( "github" );
+			converter = new showdown.Converter( { "simpleLineBreaks": true } );
+			converter.setOption( "simplifiedAutoLink", true );
+			converter.setOption( "simpleLineBreaks", true );
+			converter.setOption( "backslashEscapesHTMLTags", true );
+
+			location.hash.endsWith( ".md" ) ? onHashChange() : window.location.href = defaultFile + location.hash;
+
+			window.addEventListener( "hashchange", onHashChange, false );
+
+			divClock.innerHTML = new Date().toLocaleTimeString().slice( 0, -6 );
+
+			setInterval( () => divClock.innerHTML = new Date().toLocaleTimeString().slice( 0, -6 ), 60000 );
+
+		}
+
+		const delSha = () => {
+			localStorage.setItem( "githubAccessToken", "" );
+			const x = localStorage.getItem( "githubAccessToken" )
+			console.log( "x", x );
+		};
+
+		function onHashChange () {
+
+			const url = location.hash.slice( 1 );
+			document.title = url.split( "/" ).pop();
+			//const options = { openLinksInNewWindow: false, excludeTrailingPunctuationFromURLs: true, ghMention: true, simplifiedAutoLink: true, simpleLineBreaks: true, emoji: true };
+
+			const xhr = new XMLHttpRequest();
+			xhr.open( "get", url, true );
+			xhr.onload = () => {
+				let txt = xhr.responseText;
+				txt = txt.replace( /\<!--@@@/, "" ).replace( /\@@@-- >/, "" );
+
+				divContent.innerHTML = converter.makeHtml( xhr.responseText );
+				//divContent.innerHTML = new showdown.Converter( options ).makeHtml( txt );
+				window.scrollTo( 0, 0 );
+
+				spnMenuThingy.innerHTML = menuThingy;
+			};
+			xhr.send( null );
+
+		}
+
+
+	</script>
+</body>
+
+</html>

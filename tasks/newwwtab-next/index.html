@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>NewwwTab 2.0</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      font-family: monospace;
+      --bg-color: #fff;
+      --text-color: #000;
+      --link-color: green;
+      --box-border: #ffdddd;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-color: #222;
+        --text-color: #eee;
+        --link-color: lightgreen;
+        --box-border: #444;
+      }
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+
+    a {
+      color: var(--link-color);
+      text-decoration: none;
+      font-size: 1.5rem;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      padding: 10px;
+      gap: 10px;
+    }
+
+    .box {
+      border: 1px solid var(--box-border);
+      flex: 1 1 300px;
+      padding: 10px;
+      overflow: auto;
+      max-height: 80vh;
+    }
+
+    details {
+      margin-bottom: 1rem;
+    }
+
+    summary {
+      cursor: pointer;
+      font-size: 1.5rem;
+      font-weight: bold;
+      outline: none;
+    }
+
+    /* Loading state */
+    .loading {
+      opacity: 0.5;
+    }
+
+    /* New UI Styles */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background-color: #f0f0f0;
+      border-bottom: 1px solid #ccc;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      header {
+        background-color: #333;
+        border-bottom: 1px solid #555;
+      }
+    }
+
+    button {
+      cursor: pointer;
+      padding: 5px 10px;
+    }
+
+    .box-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .drag-handle {
+      cursor: move;
+      margin-right: 10px;
+      color: #888;
+    }
+
+    dialog {
+      background: var(--bg-color);
+      color: var(--text-color);
+      border: 1px solid var(--box-border);
+      padding: 20px;
+      max-width: 80vw;
+      width: 600px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 300px;
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-family: monospace;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1 style="margin:0; font-size: 1.2rem;">NewwwTab 2.0</h1>
+    <button id="btnSettings">Settings</button>
+  </header>
+
+  <div id="app" class="container"></div>
+
+  <dialog id="dlgSettings">
+    <h3>Settings</h3>
+    <label>
+      GitHub Personal Access Token (PAT):<br>
+      <input type="password" id="inpToken" style="width: 100%;">
+    </label>
+    <br><br>
+    <label>
+      Repository (owner/repo):<br>
+      <input type="text" id="inpRepo" placeholder="username/repo" style="width: 100%;">
+    </label>
+    <br><br>
+    <label>
+      Base Path (folder in repo):<br>
+      <input type="text" id="inpBasePath" placeholder="tasks/newwwtab-next/" style="width: 100%;">
+    </label>
+    <br><br>
+    <button id="btnSaveSettings">Save & Close</button>
+    <button onclick="dlgSettings.close()">Cancel</button>
+  </dialog>
+
+  <dialog id="dlgEdit">
+    <h3>Edit Content</h3>
+    <textarea id="txtContent"></textarea>
+    <br><br>
+    <button id="btnSaveContent">Save to GitHub</button>
+    <button onclick="dlgEdit.close()">Cancel</button>
+  </dialog>
+
+  <!-- Showdown for Markdown rendering -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+  <!-- SortableJS for Drag and Drop -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+
+  <script>
+    const app = document.getElementById( 'app' );
+    const converter = new showdown.Converter( {
+      simpleLineBreaks: true,
+      simplifiedAutoLink: true,
+      openLinksInNewWindow: true
+    } );
+
+    // State
+    let manifest = { layout: [] };
+    let currentEditItem = null;
+
+    // DOM Elements
+    const dlgSettings = document.getElementById( 'dlgSettings' );
+    const dlgEdit = document.getElementById( 'dlgEdit' );
+    const inpToken = document.getElementById( 'inpToken' );
+    const inpRepo = document.getElementById( 'inpRepo' );
+    const inpBasePath = document.getElementById( 'inpBasePath' );
+    const txtContent = document.getElementById( 'txtContent' );
+
+    // --- Initialization ---
+
+    async function init () {
+      // Load settings
+      inpToken.value = localStorage.getItem( 'githubToken' ) || '';
+      inpRepo.value = localStorage.getItem( 'githubRepo' ) || '';
+      inpBasePath.value = localStorage.getItem( 'githubBasePath' ) || 'tasks/newwwtab-next/';
+
+      // Setup Event Listeners
+      document.getElementById( 'btnSettings' ).onclick = () => dlgSettings.showModal();
+      document.getElementById( 'btnSaveSettings' ).onclick = saveSettings;
+      document.getElementById( 'btnSaveContent' ).onclick = saveContent;
+
+      // Initialize Sortable
+      new Sortable( app, {
+        handle: '.drag-handle',
+        animation: 150,
+        onEnd: onDragEnd
+      } );
+
+      await loadManifest();
+    }
+
+    async function loadManifest () {
+      try {
+        const response = await fetch( 'manifest.json' );
+        if ( !response.ok ) throw new Error( 'Failed to load manifest' );
+        manifest = await response.json();
+        document.title = manifest.title || "NewwwTab";
+        renderDashboard();
+      } catch ( error ) {
+        app.innerHTML = `<h1>Error loading dashboard</h1><p>${ error.message }</p>`;
+      }
+    }
+
+    function renderDashboard () {
+      app.innerHTML = ''; // Clear existing
+
+      manifest.layout.forEach( item => {
+        const box = createBox( item );
+        app.appendChild( box );
+        loadBoxContent( item, box.querySelector( '.content' ) );
+      } );
+    }
+
+    function createBox ( item ) {
+      const boxDiv = document.createElement( 'div' );
+      boxDiv.className = 'box';
+      boxDiv.id = item.id;
+      boxDiv.dataset.id = item.id; // For Sortable
+
+      // Header with Drag Handle and Edit Button
+      const header = document.createElement( 'div' );
+      header.className = 'box-header';
+      header.innerHTML = `
+        <div>
+          <span class="drag-handle">☰</span>
+          <strong>${ item.title }</strong>
+        </div>
+        <button onclick="openEdit('${ item.id }')">Edit</button>
+      `;
+      boxDiv.appendChild( header );
+
+      // Content Area
+      const contentDiv = document.createElement( 'div' );
+      contentDiv.className = 'content loading';
+      contentDiv.innerText = 'Loading...';
+      boxDiv.appendChild( contentDiv );
+
+      return boxDiv;
+    }
+
+    async function loadBoxContent ( item, container ) {
+      try {
+        const res = await fetch( item.source + '?t=' + Date.now() ); // Cache bust
+        if ( !res.ok ) throw new Error( 'Failed to load' );
+        const text = await res.text();
+        container.innerHTML = converter.makeHtml( text );
+        container.classList.remove( 'loading' );
+      } catch ( err ) {
+        container.innerHTML = `<p style="color:red">Error</p>`;
+      }
+    }
+
+    // --- Actions ---
+
+    function saveSettings () {
+      localStorage.setItem( 'githubToken', inpToken.value );
+      localStorage.setItem( 'githubRepo', inpRepo.value );
+      localStorage.setItem( 'githubBasePath', inpBasePath.value );
+      dlgSettings.close();
+      alert( 'Settings saved!' );
+    }
+
+    // Expose to window for onclick
+    window.openEdit = async function ( id ) {
+      const item = manifest.layout.find( i => i.id === id );
+      if ( !item ) return;
+      currentEditItem = item;
+
+      try {
+        const res = await fetch( item.source + '?t=' + Date.now() );
+        const text = await res.text();
+        txtContent.value = text;
+        dlgEdit.showModal();
+      } catch ( e ) {
+        alert( 'Could not load content for editing' );
+      }
+    };
+
+    async function saveContent () {
+      if ( !currentEditItem ) return;
+      const newContent = txtContent.value;
+      const path = currentEditItem.source; // e.g. "data/theo.md"
+
+      const basePath = localStorage.getItem( 'githubBasePath' ) || 'tasks/newwwtab-next/';
+      const safeBasePath = ( basePath && !basePath.endsWith( '/' ) ) ? basePath + '/' : basePath;
+      const repoPath = safeBasePath + path;
+
+      const success = await githubUpload( repoPath, newContent, `Update ${ currentEditItem.title }` );
+      if ( success ) {
+        dlgEdit.close();
+        // Reload just this box
+        const box = document.getElementById( currentEditItem.id );
+        const container = box.querySelector( '.content' );
+        container.innerHTML = converter.makeHtml( newContent );
+      }
+    }
+
+    async function onDragEnd () {
+      // Update manifest order based on DOM
+      const newOrderIds = Array.from( app.children ).map( el => el.dataset.id );
+
+      // Reorder layout array
+      const newLayout = newOrderIds.map( id => manifest.layout.find( i => i.id === id ) );
+      manifest.layout = newLayout;
+
+      // Save to GitHub
+      const jsonString = JSON.stringify( manifest, null, 2 );
+
+      const basePath = localStorage.getItem( 'githubBasePath' ) || 'tasks/newwwtab-next/';
+      const safeBasePath = ( basePath && !basePath.endsWith( '/' ) ) ? basePath + '/' : basePath;
+      const repoPath = safeBasePath + "manifest.json";
+
+      await githubUpload( repoPath, jsonString, 'Update layout order' );
+    }
+
+    // --- GitHub API Helper ---
+
+    async function githubUpload ( path, content, message ) {
+      const token = localStorage.getItem( 'githubToken' );
+      const repo = localStorage.getItem( 'githubRepo' );
+
+      if ( !token || !repo ) {
+        alert( 'Please configure GitHub Token and Repo in Settings first.' );
+        return false;
+      }
+
+      try {
+        // 1. Get current SHA (needed for update)
+        const apiUrl = `https://api.github.com/repos/${ repo }/contents/${ path }`;
+        const getRes = await fetch( apiUrl, {
+          headers: { 'Authorization': `token ${ token }` }
+        } );
+
+        let sha = null;
+        if ( getRes.ok ) {
+          const data = await getRes.json();
+          sha = data.sha;
+        } else if ( getRes.status !== 404 ) {
+          // If it's not 404, it's a real error (like 401 Unauthorized)
+          const err = await getRes.json();
+          throw new Error( `GET ${ getRes.status }: ${ err.message }` );
+        }
+
+        // 2. PUT update
+        const body = {
+          message: message,
+          content: btoa( unescape( encodeURIComponent( content ) ) ), // Base64 encode
+          sha: sha
+        };
+
+        const putRes = await fetch( apiUrl, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${ token }`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify( body )
+        } );
+
+        if ( !putRes.ok ) {
+          const err = await putRes.json();
+          throw new Error( `PUT ${ putRes.status }: ${ err.message }` );
+        }
+
+        console.log( 'Saved to GitHub:', path );
+        return true;
+
+      } catch ( error ) {
+        alert( `GitHub Error: ${ error.message }` );
+        console.error( error );
+        return false;
+      }
+    }
+
+    init();
+  </script>
+</body>
+
+</html>
