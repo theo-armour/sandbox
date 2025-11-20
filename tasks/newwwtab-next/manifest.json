@@ -2,14 +2,14 @@
   "title": "NewwwTab 2.0",
   "layout": [
     {
-      "id": "box-theo",
-      "source": "data/theo.md",
-      "title": "Theo"
-    },
-    {
       "id": "box-news",
       "source": "data/news.md",
       "title": "News"
+    },
+    {
+      "id": "box-theo",
+      "source": "data/theo.md",
+      "title": "Theo"
     }
   ]
 }
