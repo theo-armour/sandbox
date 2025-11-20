@@ -1,5 +1,7 @@
 [l]( file:///c%3A/Users/tarmo/OneDrive/Documents/GitHub/theo-armour-qdata/apps/newww-tab/2024-01-05/newww-tab.html#new-tab-content.md) <a href="https://github.com/theo-armour/qdata/edit/main/apps/newww-tab/2024-01-05/new-tab-content.md" target="_blank">content</a>
 
+try
+
 [g]( https://github.com/theo-armour/pages/blob/main/00-snippets/ai-prompt-decorators.md )&nbsp;[decortr]( https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/ai-prompt-decorators.md )
 [g]( https://github.com/pushme-pullyou/tootoo-2025/ ) [tt2025]( https://pushme-pullyou.github.io/tootoo-2025/ ) [e]( https://pushme-pullyou.github.io/tootoo-2025/tootoo/edit/ )
 [g]( https://github.com/theo-armour/pages) [pages]( https://theo-armour.github.io/pages/ ) [e]( https://theo-armour.github.io/pages/tootoo/edit )
