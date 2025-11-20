@@ -2,14 +2,39 @@
   "title": "NewwwTab 2.0",
   "layout": [
     {
+      "id": "box-theo",
+      "source": "data/theo.md",
+      "title": "Theo"
+    },
+    {
       "id": "box-news",
       "source": "data/news.md",
       "title": "News"
     },
     {
-      "id": "box-theo",
-      "source": "data/theo.md",
-      "title": "Theo"
+      "id": "box-reads",
+      "source": "data/reads.md",
+      "title": "Reads"
+    },
+    {
+      "id": "box-mr-softy",
+      "source": "data/mr-softy.md",
+      "title": "Mr Softy"
+    },
+    {
+      "id": "box-apps",
+      "source": "data/apps.md",
+      "title": "Apps"
+    },
+    {
+      "id": "box-groups",
+      "source": "data/groups.md",
+      "title": "Groups"
+    },
+    {
+      "id": "box-orgs",
+      "source": "data/orgs.md",
+      "title": "Orgs"
     }
   ]
 }

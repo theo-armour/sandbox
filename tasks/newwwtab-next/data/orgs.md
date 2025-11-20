@@ -1,0 +1,26 @@
+[g]( https://github.com/theo-armour/qdata/tree/master/apps/notesy ) [notesy](https://theo-armour.github.io/qdata/apps/notesy)
+[read me]( https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/README.md )
+[AxisOrdinry]( https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/axis-of-ordinary.md )
+[Art2Write]( https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/articles-to-write-video.md )
+[Inspiration]( https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/inspirations-sources.md )
+
+[jokes]( https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/jokes-quotes.md )
+[lingo]( https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/lingo.md )
+[location]( https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/location-marina.md )
+[shortcuts]( https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/shortcuts.md )
+[iforget]( https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/things-i-forget.md )
+[ilike]( https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/things-i-like.md )
+[tips]( https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/tips.md )
+<br>
+[poem-otd]( https://poets.org/poem-a-day)
+[Jaanga]( http://jaanga.github.io/ ) [gh]( https://github.com/jaanga/jaanga.github.io/)
+[> demo]( https://jaanga.github.io/demo/ )
+[konturno]( https://konturno.github.io/ ) [gh]( https://github.com/konturno/konturno.github.io/ )
+[2023]( https://konturno.github.io/2023 ) [gh]( https://github.com/konturno/konturno.github.io/2023 )
+[eel 19]( https://evereverland.github.io/2019) [gh]( https://github.com/evereverland/2019 )
+[eel 22]( https://evereverland.github.io ) [gh]( https://github.com/evereverland/evereverland.github.io )
+[plainJS]( https://plain-javascript.github.io ) [gh]( https://github.com/plain-JavaScript/plain-JavaScript.github.io)
+[> awesome] ( https://plain-javascript.github.io/awesome-list/ ) [gh]( https://github.com/plain-JavaScript/awesome-list )
+
+books
+[DoE]( file:///C:/Users/tarmo/OneDrive/Documents/GitHub/theo-armour-reference/books/The-Dawn-of-Everything-by-David-Graeber-David-Wengrow-z-lib.-zmbbo.pdf )
