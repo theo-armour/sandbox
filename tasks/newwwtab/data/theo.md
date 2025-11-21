@@ -2,7 +2,7 @@
 
 [l]( file:///c%3A/Users/tarmo/OneDrive/Documents/GitHub/theo-armour-qdata/apps/newww-tab/2024-01-05/newww-tab.html#new-tab-content.md) <a href="https://github.com/theo-armour/qdata/edit/main/apps/newww-tab/2024-01-05/new-tab-content.md" target="_blank">content</a>
 
-[example.com](https://example.com/)
+[example](https://example.com/)
 
 [g]( https://github.com/theo-armour/sandbox/) [sandbox]( https://theo-armour.github.io/sandbox/ )
 
@@ -44,4 +44,5 @@
 [&gt;TooToo23]( https://vscode.dev/github/pushme-pullyou/assets/ )
 
 </details>
+
 
