@@ -51,7 +51,7 @@
       flex: 0 1 22ch;
       padding: 2px;
       overflow: auto;
-      max-height: 80vh;
+      height: calc(100vh - 25px);
     }
 
     details {
@@ -70,23 +70,6 @@
       opacity: 0.5;
     }
 
-    /* New UI Styles */
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 20px;
-      background-color: #f0f0f0;
-      border-bottom: 1px solid #ccc;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      header {
-        background-color: #333;
-        border-bottom: 1px solid #555;
-      }
-    }
-
     button {
       cursor: pointer;
       padding: 5px 10px;
@@ -96,7 +79,12 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 2px;
+      margin-bottom: 0;
+      font-size: 150%;
+    }
+
+    .content> :first-child {
+      margin-top: 0;
     }
 
     .box-header button {
@@ -131,11 +119,6 @@
 </head>
 
 <body>
-
-  <header>
-    <h1 style="margin:0; font-size: 1.2rem;">NewwwTab 2.0</h1>
-    <button id="btnSettings">Settings</button>
-  </header>
 
   <div id="app" class="container"></div>
 
@@ -202,7 +185,7 @@
       inpBasePath.value = localStorage.getItem( 'githubBasePath' ) || 'tasks/newwwtab-next/';
 
       // Setup Event Listeners
-      document.getElementById( 'btnSettings' ).onclick = () => dlgSettings.showModal();
+      // document.getElementById( 'btnSettings' ).onclick = () => dlgSettings.showModal(); // Moved to createBox
       document.getElementById( 'btnSaveSettings' ).onclick = saveSettings;
       document.getElementById( 'btnSaveContent' ).onclick = saveContent;
 
@@ -231,14 +214,14 @@
     function renderDashboard () {
       app.innerHTML = ''; // Clear existing
 
-      manifest.layout.forEach( item => {
-        const box = createBox( item );
+      manifest.layout.forEach( ( item, index ) => {
+        const box = createBox( item, index );
         app.appendChild( box );
         loadBoxContent( item, box.querySelector( '.content' ) );
       } );
     }
 
-    function createBox ( item ) {
+    function createBox ( item, index ) {
       const boxDiv = document.createElement( 'div' );
       boxDiv.className = 'box';
       boxDiv.id = item.id;
@@ -247,14 +230,27 @@
       // Header with Drag Handle and Edit Button
       const header = document.createElement( 'div' );
       header.className = 'box-header';
+
+      let leftContent = `<span class="drag-handle">☰</span>`;
+
+      if ( index === 0 ) {
+        leftContent += `<button id="btnSettings" title="Settings" style="margin-right:8px">⚙️</button>`;
+      }
+
+      leftContent += `<strong>${ item.title }</strong>`;
+
       header.innerHTML = `
         <div>
-          <span class="drag-handle">☰</span>
-          <strong>${ item.title }</strong>
+          ${ leftContent }
         </div>
         <button onclick="openEdit('${ item.id }')">Edit</button>
       `;
       boxDiv.appendChild( header );
+
+      if ( index === 0 ) {
+        const btn = header.querySelector( '#btnSettings' );
+        if ( btn ) btn.onclick = () => document.getElementById( 'dlgSettings' ).showModal();
+      }
 
       // Content Area
       const contentDiv = document.createElement( 'div' );
