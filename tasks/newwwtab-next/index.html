@@ -29,6 +29,26 @@
       color: var(--text-color);
     }
 
+    /* Scrollbar Styling */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #e0ffe0 var(--bg-color);
+    }
+
+    ::-webkit-scrollbar {
+      width: 12px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-color);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background-color: #e0ffe0;
+      border-radius: 6px;
+      border: 3px solid var(--bg-color);
+    }
+
     a {
       color: var(--link-color);
       text-decoration: none;
