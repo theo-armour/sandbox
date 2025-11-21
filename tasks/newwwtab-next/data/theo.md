@@ -1,19 +1,12 @@
-[qData](https://theo-armour.github.io/qdata/)
+[g]( https://github.com/theo-armour/agenda) [agenda]( https://theo-armour.github.io/agenda/ )
+[g]( https://github.com/theo-armour/qdata/) [qData]( https://theo-armour.github.io/qdata/ )
+[g]( https://github.com/theo-armour/pages) [pages]( https://theo-armour.github.io/pages/ )
 
-[l]( file:///c%3A/Users/tarmo/OneDrive/Documents/GitHub/theo-armour-qdata/apps/newww-tab/2024-01-05/newww-tab.html#new-tab-content.md) <a href="https://github.com/theo-armour/qdata/edit/main/apps/newww-tab/2024-01-05/new-tab-content.md" target="_blank">content</a>
-
-[example](https://example.com/)
-
+[g]( https://github.com/theo-armour/2025/) [t2025]( https://theo-armour.github.io/2025 )
 [g]( https://github.com/theo-armour/sandbox/) [sandbox]( https://theo-armour.github.io/sandbox/ )
+[g]( https://github.com/theo-armour/genealogy/) [genalogy]( https://theo-armour.github.io/genealogy/ )
+[g]( https://github.com/theo-armour/wikitheo/) [wikitheo]( https://theo-armour.github.io/wikitheo/ )
 
-[g]( https://github.com/theo-armour/pages/blob/main/00-snippets/ai-prompt-decorators.md )&nbsp;[decortr]( https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/ai-prompt-decorators.md )
-[g]( https://github.com/pushme-pullyou/tootoo-2025/ ) [tt2025]( https://pushme-pullyou.github.io/tootoo-2025/ ) [e]( https://pushme-pullyou.github.io/tootoo-2025/tootoo/edit/ )
-[g]( https://github.com/theo-armour/pages) [pages]( https://theo-armour.github.io/pages/ ) [e]( https://theo-armour.github.io/pages/tootoo/edit )
-[g]( https://github.com/theo-armour/reference) [ta-refer]( https://theo-armour.github.io/reference/ )
-[g]( https://github.com/theo-armour/2025/) [t2025]( https://theo-armour.github.io/2025 ) [e]( https://theo-armour.github.io/2025/tootoo/edit/)
-[g]( https://github.com/theo-armour/2024/) [2024]( https://theo-armour.github.io/2024 )
-[g]( https://github.com/theo-armour/agenda) [agenda]( https://theo-armour.github.io/agenda/ ) [e]( https://theo-armour.github.io/agenda/tootoo/edit/)
-[g]( https://github.com/theo-armour/qdata/) [qData]( https://theo-armour.github.io/qdata/ ) [e]( https://theo-armour.github.io/qdata/tootoo/edit/ )
 &nbsp;
 [g]( https://github.com/theo-armour/qdata/blob/main/apps/iframe-stuff/2023-05-02/iframe-stuff.html ) [ifrStuff](https://theo-armour.github.io/qdata/apps/iframe-stuff)
 [g]( https://github.com/theo-armour/qdata/tree/master/apps/newww-tab ) [newTab]( https://theo-armour.github.io/qdata/apps/newww-tab/ )
