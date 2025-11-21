@@ -276,57 +276,57 @@
       const contentDiv = document.createElement( 'div' );
       contentDiv.className = 'content loading';
       contentDiv.innerText = 'Loading...';
-      
+
       // Drag and Drop for Links
-      boxDiv.addEventListener('dragover', (e) => {
+      boxDiv.addEventListener( 'dragover', ( e ) => {
         e.preventDefault();
         boxDiv.style.borderColor = 'green';
-      });
-      
-      boxDiv.addEventListener('dragleave', (e) => {
-        boxDiv.style.borderColor = '';
-      });
+      } );
 
-      boxDiv.addEventListener('drop', async (e) => {
+      boxDiv.addEventListener( 'dragleave', ( e ) => {
+        boxDiv.style.borderColor = '';
+      } );
+
+      boxDiv.addEventListener( 'drop', async ( e ) => {
         e.preventDefault();
         boxDiv.style.borderColor = '';
-        
+
         // Check if it's a file or text/link
-        const url = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain');
-        
-        if (url && (url.startsWith('http') || url.startsWith('https'))) {
+        const url = e.dataTransfer.getData( 'text/uri-list' ) || e.dataTransfer.getData( 'text/plain' );
+
+        if ( url && ( url.startsWith( 'http' ) || url.startsWith( 'https' ) ) ) {
           // Try to get title from HTML if available, else use URL
           let title = url;
-          const html = e.dataTransfer.getData('text/html');
-          if (html) {
+          const html = e.dataTransfer.getData( 'text/html' );
+          if ( html ) {
             const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const anchor = doc.querySelector('a');
-            if (anchor && anchor.textContent) {
+            const doc = parser.parseFromString( html, 'text/html' );
+            const anchor = doc.querySelector( 'a' );
+            if ( anchor && anchor.textContent ) {
               title = anchor.textContent;
             }
           }
-          
-          const newLink = `[${title}](${url})`;
-          
+
+          const newLink = `[${ title }](${ url })`;
+
           // Append to top
-          if (item.rawContent !== undefined) {
+          if ( item.rawContent !== undefined ) {
             const newContent = newLink + '\n\n' + item.rawContent;
             item.rawContent = newContent; // Update local state
-            
+
             // Update UI immediately
-            contentDiv.innerHTML = converter.makeHtml(newContent);
-            
+            contentDiv.innerHTML = converter.makeHtml( newContent );
+
             // Save to GitHub
             const path = item.source;
             const basePath = localStorage.getItem( 'githubBasePath' ) || 'tasks/newwwtab/';
             const safeBasePath = ( basePath && !basePath.endsWith( '/' ) ) ? basePath + '/' : basePath;
             const repoPath = safeBasePath + path;
-            
-            await githubUpload(repoPath, newContent, `Add link: ${title}`);
+
+            await githubUpload( repoPath, newContent, `Add link: ${ title }` );
           }
         }
-      });
+      } );
 
       boxDiv.appendChild( contentDiv );
 
