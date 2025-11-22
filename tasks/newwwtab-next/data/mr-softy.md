@@ -1,9 +1,3 @@
-[trayo](https://theo-armour.github.io/qdata/apps/trayo/)
-
-<div class="tooltip"><h1 style="margin:0;">thingy</h1>
-<span id=spnMenuThingy class="tooltiptext"></span>
-</div>
-&nbsp;
 [perplexity]( https://www.perplexity.ai/ )
 [gemini]( https://gemini.google.com )
 [chatGPT]( https://chat.openai.com/chat ) [ai]( https://openai.com/ )
