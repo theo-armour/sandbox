@@ -1,24 +1,18 @@
 <div class="tooltip"><h1 style="margin:0;">thingy</h1>
 <span id=spnMenuThingy class="tooltiptext"></span>
 </div>
-&nbsp;
+[jules]( https://jules.google/)
 [perplexity]( https://www.perplexity.ai/ )
 [gemini]( https://gemini.google.com )
 [chatGPT]( https://chat.openai.com/chat ) [ai]( https://openai.com/ )
 [claude]( https://claude.ai/chats )
 
-[jules](https://jules.google/)
-
-<details>
-
-<summary>more ai</summary>
 [copilotp]( https://copilot.microsoft.com/ )
 [grok]( https://x.ai/grok )
 
 [ms365]( https://office.com )
 [onedrv]( https://onedrive.live.com )
 [outlook]( https://outlook.live.com )
-</details>
 
 <details open><summary>google</summary>
 
