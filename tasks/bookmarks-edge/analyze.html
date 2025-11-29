@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookmark Analyzer</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      line-height: 1.5;
+      color: #333;
+    }
+
+    h1,
+    h2 {
+      border-bottom: 1px solid #eee;
+      padding-bottom: 0.5rem;
+    }
+
+    .upload-area {
+      border: 2px dashed #ccc;
+      padding: 2rem;
+      text-align: center;
+      margin-bottom: 2rem;
+      border-radius: 8px;
+      background: #f9f9f9;
+      cursor: pointer;
+    }
+
+    .upload-area:hover {
+      border-color: #666;
+      background: #f0f0f0;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: #f5f5f5;
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #007acc;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    /* Bar Chart Styles */
+    .chart-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 4px;
+      font-size: 0.9rem;
+    }
+
+    .chart-label {
+      width: 50px;
+      text-align: right;
+      padding-right: 10px;
+      color: #666;
+    }
+
+    .chart-bar-container {
+      flex-grow: 1;
+      background: #eee;
+      height: 20px;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .chart-bar {
+      height: 100%;
+      background: #007acc;
+      transition: width 0.5s ease;
+    }
+
+    .chart-value {
+      width: 50px;
+      padding-left: 10px;
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .domain-col {
+      font-family: monospace;
+    }
+
+    #results {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Bookmark Analyzer</h1>
+
+  <div class="upload-area" id="dropZone">
+    <p>Drag & drop your <strong>favorites_...html</strong> file here</p>
+    <p>or</p>
+    <input type="file" id="fileInput" accept=".html">
+  </div>
+
+  <div id="results">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="totalCount">0</div>
+        <div class="stat-label">Total Bookmarks</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="duplicateCount">0</div>
+        <div class="stat-label">Duplicates</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="domainCount">0</div>
+        <div class="stat-label">Unique Domains</div>
+      </div>
+    </div>
+
+    <h2>Activity by Year</h2>
+    <div id="yearChart"></div>
+
+    <h2>Top 20 Domains</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Domain</th>
+          <th>Count</th>
+        </tr>
+      </thead>
+      <tbody id="topDomains"></tbody>
+    </table>
+
+    <h2>Timeline Extremes</h2>
+    <p><strong>Oldest:</strong> <span id="oldestBookmark"></span></p>
+    <p><strong>Newest:</strong> <span id="newestBookmark"></span></p>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById( 'fileInput' );
+    const dropZone = document.getElementById( 'dropZone' );
+    const results = document.getElementById( 'results' );
+
+    // Handle File Selection
+    fileInput.addEventListener( 'change', handleFile );
+
+    // Handle Drag & Drop
+    dropZone.addEventListener( 'dragover', ( e ) => { e.preventDefault(); dropZone.style.borderColor = '#007acc'; } );
+    dropZone.addEventListener( 'dragleave', ( e ) => { e.preventDefault(); dropZone.style.borderColor = '#ccc'; } );
+    dropZone.addEventListener( 'drop', ( e ) => {
+      e.preventDefault();
+      dropZone.style.borderColor = '#ccc';
+      if ( e.dataTransfer.files.length ) processFile( e.dataTransfer.files[ 0 ] );
+    } );
+
+    function handleFile ( e ) {
+      if ( e.target.files.length ) processFile( e.target.files[ 0 ] );
+    }
+
+    function processFile ( file ) {
+      const reader = new FileReader();
+      reader.onload = ( e ) => analyzeBookmarks( e.target.result );
+      reader.readAsText( file );
+    }
+
+    function analyzeBookmarks ( html ) {
+      const bookmarks = [];
+      // Regex to extract URL, ADD_DATE, and Title
+      const regex = /<A HREF="([^"]+)"[^>]*ADD_DATE="(\d+)"[^>]*>(.*?)<\/A>/gi;
+      let match;
+
+      while ( ( match = regex.exec( html ) ) !== null ) {
+        bookmarks.push( {
+          url: match[ 1 ],
+          date: new Date( parseInt( match[ 2 ] ) * 1000 ),
+          title: match[ 3 ].replace( /&amp;/g, '&' ).replace( /&lt;/g, '<' ).replace( /&gt;/g, '>' )
+        } );
+      }
+
+      if ( bookmarks.length === 0 ) {
+        alert( "No bookmarks found! Make sure it's a valid Netscape Bookmark HTML file." );
+        return;
+      }
+
+      // 1. Basic Stats
+      document.getElementById( 'totalCount' ).textContent = bookmarks.length.toLocaleString();
+
+      // 2. Duplicates
+      const urlCounts = {};
+      bookmarks.forEach( b => urlCounts[ b.url ] = ( urlCounts[ b.url ] || 0 ) + 1 );
+      const duplicates = Object.values( urlCounts ).filter( c => c > 1 ).length;
+      document.getElementById( 'duplicateCount' ).textContent = duplicates.toLocaleString();
+
+      // 3. Domains
+      const domains = {};
+      bookmarks.forEach( b => {
+        try {
+          let hostname = new URL( b.url ).hostname.replace( /^www\./, '' );
+          if ( hostname ) domains[ hostname ] = ( domains[ hostname ] || 0 ) + 1;
+        } catch ( e ) { }
+      } );
+      document.getElementById( 'domainCount' ).textContent = Object.keys( domains ).length.toLocaleString();
+
+      // Render Top Domains
+      const sortedDomains = Object.entries( domains ).sort( ( a, b ) => b[ 1 ] - a[ 1 ] ).slice( 0, 20 );
+      const domainTable = document.getElementById( 'topDomains' );
+      domainTable.innerHTML = sortedDomains.map( ( d, i ) => `
+                <tr>
+                    <td>${ i + 1 }</td>
+                    <td class="domain-col">${ d[ 0 ] }</td>
+                    <td>${ d[ 1 ] }</td>
+                </tr>
+            `).join( '' );
+
+      // 4. Timeline (Years)
+      const byYear = {};
+      bookmarks.forEach( b => {
+        const year = b.date.getFullYear();
+        if ( !isNaN( year ) ) byYear[ year ] = ( byYear[ year ] || 0 ) + 1;
+      } );
+
+      const years = Object.keys( byYear ).sort();
+      const maxCount = Math.max( ...Object.values( byYear ) );
+      const chartContainer = document.getElementById( 'yearChart' );
+
+      chartContainer.innerHTML = years.map( year => {
+        const count = byYear[ year ];
+        const percentage = ( count / maxCount ) * 100;
+        return `
+                    <div class="chart-row">
+                        <div class="chart-label">${ year }</div>
+                        <div class="chart-bar-container">
+                            <div class="chart-bar" style="width: ${ percentage }%"></div>
+                        </div>
+                        <div class="chart-value">${ count }</div>
+                    </div>
+                `;
+      } ).join( '' );
+
+      // 5. Extremes
+      const sortedByDate = [ ...bookmarks ].sort( ( a, b ) => a.date - b.date );
+      const oldest = sortedByDate[ 0 ];
+      const newest = sortedByDate[ sortedByDate.length - 1 ];
+
+      document.getElementById( 'oldestBookmark' ).innerHTML = `${ oldest.date.toLocaleDateString() } - <a href="${ oldest.url }" target="_blank">${ oldest.title || oldest.url }</a>`;
+      document.getElementById( 'newestBookmark' ).innerHTML = `${ newest.date.toLocaleDateString() } - <a href="${ newest.url }" target="_blank">${ newest.title || newest.url }</a>`;
+
+      results.style.display = 'block';
+    }
+  </script>
+</body>
+
+</html>

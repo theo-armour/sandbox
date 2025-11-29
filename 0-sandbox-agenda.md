@@ -1,4 +1,4 @@
-# Sandxox Agenda
+# Sandbox Agenda
 
 
 ## Idea: Newsletter

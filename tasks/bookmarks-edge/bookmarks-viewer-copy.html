@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookmarks JSON Viewer</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      line-height: 1.5;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+
+    .controls {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid #eee;
+    }
+
+    /* Tree View Styles */
+    .tree-view {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .tree-view ul {
+      list-style: none;
+      padding-left: 1.5rem;
+      display: none;
+      /* Hidden by default */
+    }
+
+    .tree-view ul.open {
+      display: block;
+    }
+
+    .tree-view li {
+      margin: 0.25rem 0;
+    }
+
+    /* Folder Styles */
+    .folder-toggle {
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+      color: #444;
+    }
+
+    .folder-toggle:hover {
+      background-color: #f0f0f0;
+    }
+
+    .folder-toggle::before {
+      content: '▶';
+      display: inline-block;
+      font-size: 0.7em;
+      transition: transform 0.2s;
+      color: #888;
+    }
+
+    .folder-toggle.open::before {
+      transform: rotate(90deg);
+    }
+
+    .folder-icon {
+      color: #f7d774;
+      /* Folder yellow */
+    }
+
+    /* Bookmark Styles */
+    .bookmark-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.25rem 0.5rem;
+      margin-left: 1.2rem;
+      /* Indent to align with folder text */
+      text-decoration: none;
+      color: #0066cc;
+      border-radius: 4px;
+    }
+
+    .bookmark-item:hover {
+      background-color: #eef6ff;
+      text-decoration: underline;
+    }
+
+    .bookmark-icon {
+      width: 16px;
+      height: 16px;
+      object-fit: contain;
+    }
+
+    .default-icon {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      background-color: #ddd;
+      border-radius: 50%;
+    }
+
+    /* Search */
+    #searchBox {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .highlight {
+      background-color: #fff3cd;
+    }
+
+    /* Analysis Styles */
+    #analyzeBtn {
+      padding: 0.5rem 1rem;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 1rem;
+    }
+
+    #analyzeBtn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    #analysis {
+      background: white;
+      padding: 1rem;
+      border: 1px solid #ddd;
+      margin-top: 1rem;
+      border-radius: 4px;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 4px;
+      text-align: center;
+      border: 1px solid #eee;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #007bff;
+    }
+
+    .stat-label {
+      color: #666;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    #closeAnalysis {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      background: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #ddd;
+      margin-bottom: 1rem;
+    }
+
+    .tab-button {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      font-weight: 600;
+      color: #666;
+      font-size: 1rem;
+    }
+
+    .tab-button:hover {
+      background-color: #f8f9fa;
+    }
+
+    .tab-button.active {
+      border-bottom-color: #007bff;
+      color: #007bff;
+    }
+
+    .tab-button:disabled {
+      color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Duplicates */
+    .duplicate-list {
+      max-height: 500px;
+      overflow-y: auto;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      padding: 0.5rem;
+    }
+
+    .duplicate-item {
+      border-bottom: 1px solid #eee;
+      padding: 0.75rem 0.5rem;
+    }
+
+    .duplicate-item:last-child {
+      border-bottom: none;
+    }
+
+    .duplicate-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .duplicate-count {
+      background: #dc3545;
+      color: white;
+      padding: 0.1rem 0.5rem;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+
+    .duplicate-url {
+      color: #0066cc;
+      text-decoration: none;
+      word-break: break-all;
+      font-size: 0.9rem;
+      flex: 1;
+    }
+
+    .duplicate-url:hover {
+      text-decoration: underline;
+    }
+
+    .duplicate-titles {
+      font-size: 0.85rem;
+      color: #666;
+      margin-left: 2.5rem;
+      margin-top: 0.25rem;
+    }
+
+    /* Action Buttons */
+    .analysis-actions {
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      gap: 1rem;
+    }
+
+    .action-btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .action-btn.warning {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    .action-btn.warning:hover {
+      background-color: #c82333;
+    }
+
+    .action-btn.primary {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .action-btn.primary:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>Bookmarks Viewer</h1>
+    <div class="controls">
+      <p>Select the JSON file generated by the converter tool.</p>
+      <input type="file" id="fileInput" accept=".json">
+      <input type="text" id="searchBox" placeholder="Search bookmarks..." disabled>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-button active" data-tab="view-bookmarks">Bookmarks</button>
+      <button class="tab-button" id="tabAnalysis" data-tab="view-analysis" disabled>Analysis</button>
+    </div>
+
+    <div id="view-bookmarks" class="tab-content active">
+      <div id="content"></div>
+    </div>
+
+    <div id="view-analysis" class="tab-content">
+      <h2>Analysis Report</h2>
+      <div class="analysis-actions">
+        <button id="removeDuplicatesBtn" class="action-btn warning">Remove All Duplicates</button>
+        <button id="downloadJsonBtn" class="action-btn primary">Download JSON</button>
+      </div>
+      <div id="analysisContent"></div>
+    </div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById( 'fileInput' );
+    const contentDiv = document.getElementById( 'content' );
+    const searchBox = document.getElementById( 'searchBox' );
+    const tabAnalysis = document.getElementById( 'tabAnalysis' );
+    const analysisContent = document.getElementById( 'analysisContent' );
+    const removeDuplicatesBtn = document.getElementById( 'removeDuplicatesBtn' );
+    const downloadJsonBtn = document.getElementById( 'downloadJsonBtn' );
+    const tabButtons = document.querySelectorAll( '.tab-button' );
+    const tabContents = document.querySelectorAll( '.tab-content' );
+
+    let bookmarksData = [];
+
+    // Tab Switching Logic
+    tabButtons.forEach( button => {
+      button.addEventListener( 'click', () => {
+        if ( button.disabled ) return;
+
+        // Deactivate all
+        tabButtons.forEach( btn => btn.classList.remove( 'active' ) );
+        tabContents.forEach( content => content.classList.remove( 'active' ) );
+
+        // Activate clicked
+        button.classList.add( 'active' );
+        const tabId = button.getAttribute( 'data-tab' );
+        document.getElementById( tabId ).classList.add( 'active' );
+
+        // If switching to analysis, render it
+        if ( tabId === 'view-analysis' ) {
+          const stats = calculateStats( bookmarksData );
+          renderAnalysis( stats );
+        }
+      } );
+    } );
+
+    fileInput.addEventListener( 'change', ( event ) => {
+      const file = event.target.files[ 0 ];
+      if ( !file ) return;
+
+      const reader = new FileReader();
+      reader.onload = ( e ) => {
+        try {
+          bookmarksData = JSON.parse( e.target.result );
+          renderBookmarks( bookmarksData );
+          searchBox.disabled = false;
+          tabAnalysis.disabled = false;
+        } catch ( err ) {
+          alert( 'Error parsing JSON file: ' + err.message );
+        }
+      };
+      reader.readAsText( file );
+    } );
+
+    removeDuplicatesBtn.addEventListener( 'click', () => {
+      if ( !confirm( 'Are you sure you want to remove all duplicate bookmarks? The oldest version of each bookmark will be kept.' ) ) return;
+
+      bookmarksData = removeDuplicates( bookmarksData );
+
+      // Re-calculate and re-render
+      const stats = calculateStats( bookmarksData );
+      renderAnalysis( stats );
+      renderBookmarks( bookmarksData ); // Update tree view as well
+
+      alert( 'Duplicates removed.' );
+    } );
+
+    downloadJsonBtn.addEventListener( 'click', () => {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent( JSON.stringify( bookmarksData, null, 2 ) );
+      const downloadAnchorNode = document.createElement( 'a' );
+      downloadAnchorNode.setAttribute( "href", dataStr );
+      downloadAnchorNode.setAttribute( "download", "bookmarks_cleaned.json" );
+      document.body.appendChild( downloadAnchorNode ); // required for firefox
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+    } );
+
+    function removeDuplicates ( data ) {
+      // Flatten all bookmarks to find duplicates
+      const allBookmarks = [];
+
+      function traverseAndCollect ( items ) {
+        for ( const item of items ) {
+          if ( item.type === 'bookmark' ) {
+            allBookmarks.push( item );
+          } else if ( item.type === 'folder' && item.children ) {
+            traverseAndCollect( item.children );
+          }
+        }
+      }
+
+      const rootItems = Array.isArray( data ) ? data : [ data ];
+      traverseAndCollect( rootItems );
+
+      // Group by URL
+      const groups = {};
+      for ( const bm of allBookmarks ) {
+        if ( !groups[ bm.url ] ) groups[ bm.url ] = [];
+        groups[ bm.url ].push( bm );
+      }
+
+      // Identify items to remove (all except oldest in each group)
+      const itemsToRemove = new Set();
+
+      for ( const url in groups ) {
+        const group = groups[ url ];
+        if ( group.length > 1 ) {
+          // Sort: Oldest (smallest timestamp) first
+          group.sort( ( a, b ) => {
+            const tA = parseInt( a.addDate || Number.MAX_SAFE_INTEGER );
+            const tB = parseInt( b.addDate || Number.MAX_SAFE_INTEGER );
+            return tA - tB;
+          } );
+
+          // Mark all except the first one for removal
+          for ( let i = 1; i < group.length; i++ ) {
+            itemsToRemove.add( group[ i ] );
+          }
+        }
+      }
+
+      // Reconstruct tree excluding removed items
+      function filterItems ( items ) {
+        return items.filter( item => {
+          if ( item.type === 'bookmark' ) {
+            return !itemsToRemove.has( item );
+          }
+          if ( item.type === 'folder' && item.children ) {
+            item.children = filterItems( item.children );
+            return true;
+          }
+          return true;
+        } );
+      }
+
+      if ( Array.isArray( data ) ) {
+        return filterItems( data );
+      } else {
+        // If root is single folder
+        if ( data.children ) data.children = filterItems( data.children );
+        return data;
+      }
+    }
+
+    function calculateStats ( data ) {
+      let totalBookmarks = 0;
+      let totalFolders = 0;
+      let domains = {};
+      let duplicates = {};
+      let earliest = null;
+      let latest = null;
+
+      function traverse ( items ) {
+        items.forEach( item => {
+          if ( item.type === 'folder' ) {
+            totalFolders++;
+            if ( item.children ) traverse( item.children );
+          } else if ( item.type === 'bookmark' ) {
+            totalBookmarks++;
+
+            // Domain
+            try {
+              const url = new URL( item.url );
+              const domain = url.hostname.replace( /^www\./, '' );
+              domains[ domain ] = ( domains[ domain ] || 0 ) + 1;
+            } catch ( e ) { }
+
+            // Duplicates
+            if ( duplicates[ item.url ] ) {
+              duplicates[ item.url ].count++;
+              duplicates[ item.url ].titles.push( item.title );
+            } else {
+              duplicates[ item.url ] = {
+                count: 1,
+                titles: [ item.title ]
+              };
+            }
+
+            // Dates (addDate is unix timestamp string)
+            if ( item.addDate ) {
+              const date = parseInt( item.addDate );
+              if ( !earliest || date < earliest ) earliest = date;
+              if ( !latest || date > latest ) latest = date;
+            }
+          }
+        } );
+      }
+
+      const items = Array.isArray( data ) ? data : [ data ];
+      traverse( items );
+
+      // Process domains
+      const sortedDomains = Object.entries( domains )
+        .sort( ( a, b ) => b[ 1 ] - a[ 1 ] )
+        .slice( 0, 10 );
+
+      // Process duplicate bookmarks
+      const duplicateList = Object.entries( duplicates )
+        .filter( ( [ url, data ] ) => data.count > 1 )
+        .sort( ( a, b ) => b[ 1 ].count - a[ 1 ].count );
+
+      return {
+        totalBookmarks,
+        totalFolders,
+        sortedDomains,
+        duplicateCount: duplicateList.length,
+        duplicateList,
+        earliest,
+        latest
+      };
+    }
+
+    function renderAnalysis ( stats ) {
+      const earliestDate = stats.earliest ? new Date( stats.earliest * 1000 ).toLocaleDateString() : 'N/A';
+      const latestDate = stats.latest ? new Date( stats.latest * 1000 ).toLocaleDateString() : 'N/A';
+
+      let html = `
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-value">${ stats.totalBookmarks }</div>
+                    <div class="stat-label">Total Bookmarks</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${ stats.totalFolders }</div>
+                    <div class="stat-label">Total Folders</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${ stats.duplicateCount }</div>
+                    <div class="stat-label">Duplicate URLs</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 2rem;">
+                <div style="flex: 1; min-width: 300px;">
+                    <h3>Top 10 Domains</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr><th style="text-align: left; border-bottom: 2px solid #eee; padding-bottom: 8px;">Domain</th><th style="text-align: right; border-bottom: 2px solid #eee; padding-bottom: 8px;">Count</th></tr>
+                        ${ stats.sortedDomains.map( ( [ domain, count ] ) => `
+                            <tr>
+                                <td style="border-bottom: 1px solid #eee; padding: 8px 0;">${ domain }</td>
+                                <td style="text-align: right; border-bottom: 1px solid #eee; padding: 8px 0;">${ count }</td>
+                            </tr>
+                        ` ).join( '' ) }
+                    </table>
+                </div>
+
+                <div style="flex: 1; min-width: 300px;">
+                    <h3>Date Range</h3>
+                    <p><strong>First Bookmark:</strong> ${ earliestDate }</p>
+                    <p><strong>Last Bookmark:</strong> ${ latestDate }</p>
+                </div>
+            </div>
+
+            <h3>Duplicate Bookmarks Details</h3>
+            <div class="duplicate-list">
+                ${ stats.duplicateList.length === 0 ? '<p style="padding:1rem; color:#666;">No duplicates found.</p>' : '' }
+                ${ stats.duplicateList.map( ( [ url, info ] ) => `
+                    <div class="duplicate-item">
+                        <div class="duplicate-header">
+                            <span class="duplicate-count">${ info.count }x</span>
+                            <a href="${ url }" target="_blank" class="duplicate-url">${ url }</a>
+                        </div>
+                        <div class="duplicate-titles">
+                            Saved as: ${ info.titles.map( t => `"${ escapeHtml( t ) }"` ).join( ', ' ) }
+                        </div>
+                    </div>
+                ` ).join( '' ) }
+            </div>
+        `;
+
+      analysisContent.innerHTML = html;
+    }
+
+    searchBox.addEventListener( 'input', ( e ) => {
+      const term = e.target.value.toLowerCase();
+      if ( !term ) {
+        // Reset view
+        renderBookmarks( bookmarksData );
+        return;
+      }
+      filterBookmarks( term );
+    } );
+
+    function renderBookmarks ( data ) {
+      contentDiv.innerHTML = '';
+      const ul = document.createElement( 'ul' );
+      ul.className = 'tree-view';
+
+      // If data is an array (root level items), iterate.
+      // If it's a single object (root folder), wrap in array.
+      const items = Array.isArray( data ) ? data : [ data ];
+
+      items.forEach( item => {
+        ul.appendChild( createNode( item ) );
+      } );
+
+      contentDiv.appendChild( ul );
+    }
+
+    function createNode ( item ) {
+      const li = document.createElement( 'li' );
+
+      if ( item.type === 'folder' ) {
+        const toggle = document.createElement( 'div' );
+        toggle.className = 'folder-toggle';
+        toggle.innerHTML = `<span class="folder-icon">📁</span> ${ escapeHtml( item.title ) }`;
+
+        const childrenUl = document.createElement( 'ul' );
+
+        if ( item.children && item.children.length > 0 ) {
+          item.children.forEach( child => {
+            childrenUl.appendChild( createNode( child ) );
+          } );
+        } else {
+          const emptyLi = document.createElement( 'li' );
+          emptyLi.style.paddingLeft = '1.5rem';
+          emptyLi.style.color = '#999';
+          emptyLi.style.fontStyle = 'italic';
+          emptyLi.textContent = '(Empty)';
+          childrenUl.appendChild( emptyLi );
+        }
+
+        toggle.addEventListener( 'click', () => {
+          toggle.classList.toggle( 'open' );
+          childrenUl.classList.toggle( 'open' );
+        } );
+
+        li.appendChild( toggle );
+        li.appendChild( childrenUl );
+
+      } else if ( item.type === 'bookmark' ) {
+        const a = document.createElement( 'a' );
+        a.className = 'bookmark-item';
+        a.href = item.url;
+        a.target = '_blank';
+
+        let iconHtml = '<span class="default-icon"></span>';
+        if ( item.icon ) {
+          iconHtml = `<img src="${ item.icon }" class="bookmark-icon" alt="">`;
+        }
+
+        a.innerHTML = `${ iconHtml } ${ escapeHtml( item.title ) }`;
+        li.appendChild( a );
+      }
+
+      return li;
+    }
+
+    function escapeHtml ( text ) {
+      if ( !text ) return '';
+      return text
+        .replace( /&/g, "&amp;" )
+        .replace( /</g, "&lt;" )
+        .replace( />/g, "&gt;" )
+        .replace( /"/g, "&quot;" )
+        .replace( /'/g, "&#039;" );
+    }
+
+    // Simple client-side search implementation
+    // Re-renders the tree but expands paths to matching items
+    function filterBookmarks ( term ) {
+      contentDiv.innerHTML = '';
+      const ul = document.createElement( 'ul' );
+      ul.className = 'tree-view';
+
+      const items = Array.isArray( bookmarksData ) ? bookmarksData : [ bookmarksData ];
+
+      let hasResults = false;
+      items.forEach( item => {
+        const node = createFilteredNode( item, term );
+        if ( node ) {
+          ul.appendChild( node );
+          hasResults = true;
+        }
+      } );
+
+      if ( !hasResults ) {
+        contentDiv.innerHTML = '<p>No results found.</p>';
+      } else {
+        contentDiv.appendChild( ul );
+      }
+    }
+
+    function createFilteredNode ( item, term ) {
+      if ( item.type === 'bookmark' ) {
+        const titleMatch = item.title && item.title.toLowerCase().includes( term );
+        const urlMatch = item.url && item.url.toLowerCase().includes( term );
+
+        if ( titleMatch || urlMatch ) {
+          return createNode( item ); // Return normal node
+        }
+        return null;
+      }
+
+      if ( item.type === 'folder' ) {
+        // Check if folder matches OR if any children match
+        const folderMatch = item.title && item.title.toLowerCase().includes( term );
+
+        const matchingChildren = [];
+        if ( item.children ) {
+          item.children.forEach( child => {
+            const childNode = createFilteredNode( child, term );
+            if ( childNode ) matchingChildren.push( childNode );
+          } );
+        }
+
+        if ( folderMatch || matchingChildren.length > 0 ) {
+          const li = document.createElement( 'li' );
+
+          const toggle = document.createElement( 'div' );
+          toggle.className = 'folder-toggle open'; // Always open in search results
+          toggle.innerHTML = `<span class="folder-icon">📁</span> ${ escapeHtml( item.title ) }`;
+          if ( folderMatch ) toggle.classList.add( 'highlight' );
+
+          const childrenUl = document.createElement( 'ul' );
+          childrenUl.className = 'open'; // Always open
+
+          if ( matchingChildren.length > 0 ) {
+            matchingChildren.forEach( node => childrenUl.appendChild( node ) );
+          } else if ( folderMatch ) {
+            // If folder matches but no children match (or empty), show all children?
+            // Or just show folder? Let's show all children if folder matches.
+            // Actually, for simplicity in this filter function, if folder matches,
+            // we might want to show it, but maybe not expand everything.
+            // Let's just show the folder itself if it matches.
+          }
+
+          li.appendChild( toggle );
+          if ( matchingChildren.length > 0 ) {
+            li.appendChild( childrenUl );
+          }
+          return li;
+        }
+      }
+
+      return null;
+    }
+  </script>
+
+</body>
+
+</html>

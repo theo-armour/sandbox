@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookmarks to JSON Converter</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      line-height: 1.5;
+    }
+
+    .container {
+      border: 1px solid #ccc;
+      padding: 2rem;
+      border-radius: 8px;
+      background: #f9f9f9;
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+
+    .controls {
+      margin-bottom: 1rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    #output {
+      width: 100%;
+      height: 400px;
+      font-family: monospace;
+      margin-top: 1rem;
+      white-space: pre;
+      overflow: auto;
+      border: 1px solid #ddd;
+      padding: 1rem;
+      background: white;
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    button:hover:not(:disabled) {
+      background: #0056b3;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>Bookmarks to JSON Converter</h1>
+    <p>Select a Netscape Bookmark HTML file (exported from Chrome, Edge, Firefox, etc.) to convert it to JSON.</p>
+
+    <div class="controls">
+      <input type="file" id="fileInput" accept=".html">
+      <button id="downloadBtn" disabled>Download JSON</button>
+    </div>
+
+    <div id="stats"></div>
+    <textarea id="output" readonly placeholder="JSON output will appear here..."></textarea>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById( 'fileInput' );
+    const downloadBtn = document.getElementById( 'downloadBtn' );
+    const output = document.getElementById( 'output' );
+    const stats = document.getElementById( 'stats' );
+
+    let jsonResult = null;
+    let fileName = 'bookmarks.json';
+
+    fileInput.addEventListener( 'change', ( event ) => {
+      const file = event.target.files[ 0 ];
+      if ( !file ) return;
+
+      fileName = file.name.replace( '.html', '.json' );
+      const reader = new FileReader();
+
+      reader.onload = ( e ) => {
+        const content = e.target.result;
+        processHTML( content );
+      };
+
+      reader.readAsText( file );
+    } );
+
+    function processHTML ( htmlContent ) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString( htmlContent, 'text/html' );
+
+      // The root DL usually contains the top-level items
+      // Sometimes the structure is nested inside a body/dt/dl
+      let rootDl = doc.querySelector( 'dl' );
+
+      // If the first DL is inside a DT which is inside a DL, we might want the outer one,
+      // but usually the first DL found is the main container or the one immediately after H1.
+
+      const bookmarks = parseDL( rootDl );
+
+      jsonResult = JSON.stringify( bookmarks, null, 2 );
+      output.value = jsonResult;
+
+      const count = countBookmarks( bookmarks );
+      stats.textContent = `Found ${ count } bookmarks.`;
+
+      downloadBtn.disabled = false;
+    }
+
+    function parseDL ( dl ) {
+      const items = [];
+      if ( !dl ) return items;
+
+      const children = Array.from( dl.children );
+
+      // Flatten P tags if present to handle structure like <DL><p><DT>...</p></DL>
+      let nodes = [];
+      for ( let child of children ) {
+        if ( child.tagName === 'P' ) {
+          nodes.push( ...Array.from( child.children ) );
+        } else {
+          nodes.push( child );
+        }
+      }
+
+      for ( let i = 0; i < nodes.length; i++ ) {
+        let node = nodes[ i ];
+
+        if ( node.tagName === 'DT' ) {
+          const item = parseDT( node );
+          if ( item ) {
+            if ( item.type === 'folder' ) {
+              // If no children found inside DT, check if the next sibling is a DL
+              // This handles the case where DL is a sibling of DT rather than a child
+              if ( item.children.length === 0 ) {
+                let nextNode = nodes[ i + 1 ];
+                if ( nextNode && nextNode.tagName === 'DL' ) {
+                  item.children = parseDL( nextNode );
+                  // Skip the DL in the main loop since we consumed it
+                  i++;
+                }
+              }
+            }
+            items.push( item );
+          }
+        }
+      }
+
+      return items;
+    }
+
+    function parseDT ( dt ) {
+      // Check for Folder (H3)
+      const h3 = dt.querySelector( 'h3' );
+      if ( h3 ) {
+        const folder = {
+          type: 'folder',
+          title: h3.textContent,
+          addDate: h3.getAttribute( 'add_date' ),
+          lastModified: h3.getAttribute( 'last_modified' ),
+          children: []
+        };
+
+        // The DL containing the folder items usually follows the H3 immediately
+        // or is the next sibling of the DT (depending on browser export format).
+        // In the provided example: <DT><H3>...</H3><DL>...</DL>
+
+        const dl = dt.querySelector( 'dl' );
+        if ( dl ) {
+          folder.children = parseDL( dl );
+        } else {
+          // Sometimes the DL is a sibling of the DT in malformed HTML,
+          // but standard Netscape format nests it or puts it after H3 within DT.
+          // Let's check next sibling of H3
+          let next = h3.nextElementSibling;
+          while ( next ) {
+            if ( next.tagName === 'DL' ) {
+              folder.children = parseDL( next );
+              break;
+            }
+            next = next.nextElementSibling;
+          }
+        }
+        return folder;
+      }
+
+      // Check for Bookmark (A)
+      const a = dt.querySelector( 'a' );
+      if ( a ) {
+        return {
+          type: 'bookmark',
+          title: a.textContent,
+          url: a.getAttribute( 'href' ),
+          addDate: a.getAttribute( 'add_date' ),
+          icon: a.getAttribute( 'icon' )
+        };
+      }
+
+      return null;
+    }
+
+    function countBookmarks ( items ) {
+      let count = 0;
+      for ( const item of items ) {
+        if ( item.type === 'bookmark' ) {
+          count++;
+        } else if ( item.type === 'folder' && item.children ) {
+          count += countBookmarks( item.children );
+        }
+      }
+      return count;
+    }
+
+    downloadBtn.addEventListener( 'click', () => {
+      if ( !jsonResult ) return;
+
+      const blob = new Blob( [ jsonResult ], { type: 'application/json' } );
+      const url = URL.createObjectURL( blob );
+      const a = document.createElement( 'a' );
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild( a );
+      a.click();
+      document.body.removeChild( a );
+      URL.revokeObjectURL( url );
+    } );
+  </script>
+
+</body>
+
+</html>
