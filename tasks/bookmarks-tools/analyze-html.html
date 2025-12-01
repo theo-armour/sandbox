@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookmark Analyzer</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 1rem;
+      line-height: 1.4;
+      color: #333;
+    }
+
+    h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.5rem;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 0.5rem;
+      cursor: pointer;
+    }
+
+    h2 {
+      border-bottom: 1px solid #eee;
+      padding-bottom: 0.5rem;
+    }
+
+    .upload-area {
+      border: 2px dashed #ccc;
+      padding: 1rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      background: #f9f9f9;
+      cursor: pointer;
+    }
+
+    .upload-area:hover {
+      border-color: #666;
+      background: #f0f0f0;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .stat-card {
+      background: #f5f5f5;
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #007acc;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    /* Bar Chart Styles */
+    .chart-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 4px;
+      font-size: 0.9rem;
+    }
+
+    .chart-label {
+      width: 50px;
+      text-align: right;
+      padding-right: 10px;
+      color: #666;
+    }
+
+    .chart-bar-container {
+      flex-grow: 1;
+      background: #eee;
+      height: 20px;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .chart-bar {
+      height: 100%;
+      background: #007acc;
+      transition: width 0.5s ease;
+    }
+
+    .chart-value {
+      width: 50px;
+      padding-left: 10px;
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .domain-col {
+      font-family: monospace;
+    }
+
+    #results {
+      display: none;
+    }
+
+    .controls {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      background: #f5f5f5;
+      border-radius: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .controls input {
+      flex: 1;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    .controls button {
+      padding: 0.5rem 1rem;
+      background: #007acc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .controls button:hover {
+      background: #005999;
+    }
+
+    .dashboard-row {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .dashboard-col {
+      flex: 1;
+      min-width: 300px;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 1.2rem;
+    }
+
+    .bookmarks-list {
+      margin-top: 1rem;
+      border-top: 1px solid #eee;
+    }
+
+    .bookmark-item {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #f5f5f5;
+      font-size: 0.9rem;
+    }
+
+    .bookmark-item a {
+      color: #007acc;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .bookmark-item a:hover {
+      text-decoration: underline;
+    }
+
+    .bookmark-meta {
+      color: #666;
+      font-size: 0.8rem;
+      margin-top: 0.2rem;
+    }
+
+    /* Tree View Styles */
+    .tree-view {
+      font-family: monospace;
+      font-size: 0.95rem;
+      margin-top: 0;
+      border: 1px solid #eee;
+      padding: 1rem;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .tree-view details {
+      margin-left: 1.5rem;
+    }
+
+    .tree-view summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 4px 0;
+      font-weight: 600;
+      color: #444;
+    }
+
+    .tree-view summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .tree-view summary::before {
+      content: '▶ ';
+      display: inline-block;
+      width: 1.2em;
+      transition: transform 0.2s;
+    }
+
+    .tree-view details[open]>summary::before {
+      content: '▶ ';
+      transform: rotate(90deg);
+    }
+
+    .tree-view summary::after {
+      content: ' 📁';
+    }
+
+    .tree-view details[open]>summary::after {
+      content: ' 📂';
+    }
+
+    .tree-file {
+      margin-left: 1.5rem;
+      padding: 2px 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .tree-file a {
+      text-decoration: none;
+      color: #007acc;
+    }
+
+    .tree-file a:hover {
+      text-decoration: underline;
+    }
+
+    .file-icon {
+      width: 16px;
+      height: 16px;
+      margin-right: 0.5rem;
+      object-fit: contain;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 0.2rem;
+      margin-top: 0.5rem;
+    }
+
+    .header-row h2 {
+      border-bottom: none;
+      padding-bottom: 0;
+      margin: 0;
+    }
+
+    .header-row button {
+      padding: 0.3rem 0.8rem;
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .header-row button:hover {
+      background: #e0e0e0;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #ccc;
+      margin-bottom: 1rem;
+    }
+
+    .tab-btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 1rem;
+      border-bottom: 2px solid transparent;
+      color: #666;
+    }
+
+    .tab-btn:hover {
+      color: #333;
+    }
+
+    .tab-btn.active {
+      border-bottom-color: #007acc;
+      color: #007acc;
+      font-weight: bold;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Tag Cloud */
+    .tag-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f9f9f9;
+      border-radius: 8px;
+    }
+
+    .tag-item {
+      cursor: pointer;
+      color: #007acc;
+      transition: color 0.2s;
+    }
+
+    .tag-item:hover {
+      color: #005999;
+      text-decoration: underline;
+    }
+
+    /* Duplicates */
+    .duplicate-group {
+      background: #fff;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      padding: 1rem;
+    }
+
+    .duplicate-header {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      word-break: break-all;
+      color: #d32f2f;
+    }
+
+    .duplicate-header a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .duplicate-header a:hover {
+      text-decoration: underline;
+    }
+
+    .duplicate-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-top: 1px solid #f5f5f5;
+      font-size: 0.9rem;
+    }
+
+    .duplicate-info {
+      flex-grow: 1;
+      margin-right: 1rem;
+    }
+
+    .duplicate-path {
+      color: #666;
+      font-size: 0.8rem;
+      display: block;
+    }
+
+    .delete-btn {
+      background: #ffebee;
+      color: #c62828;
+      border: 1px solid #ffcdd2;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      white-space: nowrap;
+    }
+
+    .delete-btn:hover {
+      background: #ffcdd2;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1 id="appTitle" title="Click to reload">Bookmark Analyzer</h1>
+
+  <div class="upload-area" id="dropZone">
+    <p>Drag & drop your <strong>favorites_...html</strong> file here</p>
+    <p>or</p>
+    <input type="file" id="fileInput" accept=".html">
+  </div>
+
+  <div id="controls" class="controls" style="display: none;">
+    <input type="text" id="searchInput" placeholder="Search by title, URL, or folder...">
+    <button id="exportBtn">Export JSON</button>
+    <button id="exportHtmlBtn">Export HTML</button>
+  </div>
+
+  <div id="results">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="search">Search Results</button>
+      <button class="tab-btn" data-tab="analysis">Analysis</button>
+      <button class="tab-btn" data-tab="duplicates">Duplicates</button>
+    </div>
+
+    <div id="analysis" class="tab-content">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="totalCount">0</div>
+          <div class="stat-label">Total Bookmarks</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="duplicateCount">0</div>
+          <div class="stat-label">Duplicates</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="domainCount">0</div>
+          <div class="stat-label">Unique Domains</div>
+        </div>
+      </div>
+
+      <div class="dashboard-row">
+        <div class="dashboard-col">
+          <h2>Activity by Year</h2>
+          <div id="yearChart"></div>
+        </div>
+
+        <div class="dashboard-col">
+          <h2>Top 20 Domains</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Domain</th>
+                <th>Count</th>
+              </tr>
+            </thead>
+            <tbody id="topDomains"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <h2>Timeline Extremes</h2>
+      <p><strong>Oldest:</strong> <span id="oldestBookmark"></span></p>
+      <p><strong>Newest:</strong> <span id="newestBookmark"></span></p>
+
+      <h2>Tag Cloud</h2>
+      <div id="tagCloud" class="tag-cloud"></div>
+    </div>
+
+    <div id="duplicates" class="tab-content">
+      <div class="dashboard-row">
+        <div class="dashboard-col">
+          <h2>Duplicate Links</h2>
+          <p style="color:#666; font-size:0.9rem; margin-bottom:1rem;">Deleting a link removes it from the list. Export
+            HTML to save changes.</p>
+          <div id="duplicateLinksList"></div>
+        </div>
+        <div class="dashboard-col">
+          <h2>Duplicate Folders (by Name)</h2>
+          <div id="duplicateFoldersList"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="search" class="tab-content active">
+      <div class="header-row">
+        <h2>Search Results <span id="resultCount" style="font-weight:normal; font-size: 0.9em; color:#666;"></span></h2>
+        <button id="toggleCollapseBtn" title="Toggle collapse/expand all folders">Collapse All</button>
+      </div>
+      <div id="treeView" class="tree-view"></div>
+    </div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById( 'fileInput' );
+    const dropZone = document.getElementById( 'dropZone' );
+    const results = document.getElementById( 'results' );
+    let allBookmarks = [];
+
+    // --- Event Listeners ---
+
+    // Reload on Title Click
+    document.getElementById( 'appTitle' ).addEventListener( 'click', () => location.reload() );
+
+    // File Inputs
+    fileInput.addEventListener( 'change', handleFile );
+    dropZone.addEventListener( 'dragover', ( e ) => { e.preventDefault(); dropZone.style.borderColor = '#007acc'; } );
+    dropZone.addEventListener( 'dragleave', ( e ) => { e.preventDefault(); dropZone.style.borderColor = '#ccc'; } );
+    dropZone.addEventListener( 'drop', ( e ) => {
+      e.preventDefault();
+      dropZone.style.borderColor = '#ccc';
+      if ( e.dataTransfer.files.length ) processFile( e.dataTransfer.files[ 0 ] );
+    } );
+
+    // Search (Debounced)
+    const handleSearch = debounce( ( e ) => {
+      const term = e.target.value.toLowerCase();
+      const filtered = allBookmarks.filter( b =>
+        b.title.toLowerCase().includes( term ) ||
+        b.url.toLowerCase().includes( term ) ||
+        b.pathString.toLowerCase().includes( term )
+      );
+      updateUI( filtered );
+    }, 300 );
+
+    document.getElementById( 'searchInput' ).addEventListener( 'input', handleSearch );
+
+    // Export JSON
+    document.getElementById( 'exportBtn' ).addEventListener( 'click', () => {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent( JSON.stringify( allBookmarks, null, 2 ) );
+      const downloadAnchorNode = document.createElement( 'a' );
+      downloadAnchorNode.setAttribute( "href", dataStr );
+      downloadAnchorNode.setAttribute( "download", "bookmarks_export.json" );
+      document.body.appendChild( downloadAnchorNode );
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+    } );
+
+    // Export HTML
+    document.getElementById( 'exportHtmlBtn' ).addEventListener( 'click', () => {
+      const root = buildTree( allBookmarks );
+      const htmlContent = generateNetscapeHTML( root );
+      const blob = new Blob( [ htmlContent ], { type: "text/html;charset=utf-8" } );
+      const url = URL.createObjectURL( blob );
+      const downloadAnchorNode = document.createElement( 'a' );
+      downloadAnchorNode.href = url;
+      downloadAnchorNode.download = "bookmarks_export.html";
+      document.body.appendChild( downloadAnchorNode );
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+      URL.revokeObjectURL( url );
+    } );
+
+    // Toggle Collapse
+    document.getElementById( 'toggleCollapseBtn' ).addEventListener( 'click', ( e ) => {
+      const btn = e.target;
+      const isCollapsing = btn.textContent === 'Collapse All';
+      document.querySelectorAll( '#treeView details' ).forEach( d => d.open = !isCollapsing );
+      btn.textContent = isCollapsing ? 'Expand All' : 'Collapse All';
+      btn.title = isCollapsing ? 'Expand all folders' : 'Collapse all folders';
+    } );
+
+    // Domain Click
+    document.getElementById( 'topDomains' ).addEventListener( 'click', ( e ) => {
+      if ( e.target.classList.contains( 'domain-link' ) ) {
+        e.preventDefault();
+        triggerSearch( e.target.textContent );
+      }
+    } );
+
+    // Tag Cloud Click
+    document.getElementById( 'tagCloud' ).addEventListener( 'click', ( e ) => {
+      if ( e.target.classList.contains( 'tag-item' ) ) {
+        e.preventDefault();
+        triggerSearch( e.target.dataset.word );
+      }
+    } );
+
+    // Delete Bookmark Click (Delegation)
+    document.getElementById( 'duplicateLinksList' ).addEventListener( 'click', ( e ) => {
+      if ( e.target.classList.contains( 'delete-btn' ) ) {
+        const id = e.target.dataset.id;
+        deleteBookmark( id );
+      }
+    } );
+
+    // Tab Switching
+    document.querySelectorAll( '.tab-btn' ).forEach( btn => {
+      btn.addEventListener( 'click', () => {
+        document.querySelectorAll( '.tab-btn' ).forEach( b => b.classList.remove( 'active' ) );
+        document.querySelectorAll( '.tab-content' ).forEach( c => c.classList.remove( 'active' ) );
+        btn.classList.add( 'active' );
+        document.getElementById( btn.dataset.tab ).classList.add( 'active' );
+      } );
+    } );
+
+    // --- Core Functions ---
+
+    function handleFile ( e ) {
+      if ( e.target.files.length ) processFile( e.target.files[ 0 ] );
+    }
+
+    function processFile ( file ) {
+      const reader = new FileReader();
+      reader.onload = ( e ) => analyzeBookmarks( e.target.result );
+      reader.readAsText( file );
+    }
+
+    function analyzeBookmarks ( html ) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString( html, "text/html" );
+      const links = doc.querySelectorAll( 'a' );
+
+      if ( links.length === 0 ) {
+        alert( "No bookmarks found! Make sure it's a valid Netscape Bookmark HTML file." );
+        return;
+      }
+
+      allBookmarks = Array.from( links ).map( a => {
+        const dateStr = a.getAttribute( 'add_date' );
+        const date = dateStr ? new Date( parseInt( dateStr ) * 1000 ) : new Date( 0 );
+
+        let path = [];
+        let current = a;
+        while ( current.parentElement ) {
+          if ( current.tagName === 'DL' ) {
+            const header = current.previousElementSibling;
+            if ( header && ( /^H[1-6]$/ ).test( header.tagName ) ) {
+              path.unshift( header.textContent.trim() );
+            }
+          }
+          current = current.parentElement;
+        }
+
+        if ( path.length > 0 && path[ 0 ].toLowerCase() === 'bookmarks' ) {
+          path.shift();
+        }
+
+        return {
+          id: 'bm-' + Math.random().toString( 36 ).substr( 2, 9 ),
+          url: a.href,
+          title: a.textContent.trim() || a.href,
+          icon: a.getAttribute( 'icon' ),
+          date: date,
+          pathArray: path,
+          pathString: path.join( ' > ' )
+        };
+      } );
+
+      document.getElementById( 'controls' ).style.display = 'flex';
+      updateUI( allBookmarks );
+    }
+
+    function updateUI ( bookmarks ) {
+      renderDashboard( bookmarks );
+      renderTreeView( bookmarks );
+      renderDuplicates( bookmarks );
+      results.style.display = 'block';
+    }
+
+    function triggerSearch ( term ) {
+      const searchInput = document.getElementById( 'searchInput' );
+      searchInput.value = term;
+      searchInput.dispatchEvent( new Event( 'input' ) );
+      document.querySelector( '.tab-btn[data-tab="search"]' ).click();
+    }
+
+    // --- Dashboard Rendering ---
+
+    function renderDashboard ( bookmarks ) {
+      // Basic Stats
+      document.getElementById( 'totalCount' ).textContent = bookmarks.length.toLocaleString();
+
+      // Duplicates
+      const urlCounts = {};
+      bookmarks.forEach( b => urlCounts[ b.url ] = ( urlCounts[ b.url ] || 0 ) + 1 );
+      const duplicates = Object.values( urlCounts ).filter( c => c > 1 ).length;
+      document.getElementById( 'duplicateCount' ).textContent = duplicates.toLocaleString();
+
+      // Domains
+      const domains = {};
+      bookmarks.forEach( b => {
+        try {
+          let hostname = new URL( b.url ).hostname.replace( /^www\./, '' );
+          if ( hostname ) domains[ hostname ] = ( domains[ hostname ] || 0 ) + 1;
+        } catch ( e ) { }
+      } );
+      document.getElementById( 'domainCount' ).textContent = Object.keys( domains ).length.toLocaleString();
+
+      // Top Domains Table
+      const sortedDomains = Object.entries( domains ).sort( ( a, b ) => b[ 1 ] - a[ 1 ] ).slice( 0, 20 );
+      document.getElementById( 'topDomains' ).innerHTML = sortedDomains.map( ( d, i ) => `
+        <tr>
+            <td>${ i + 1 }</td>
+            <td class="domain-col"><a href="#" class="domain-link">${ d[ 0 ] }</a></td>
+            <td>${ d[ 1 ] }</td>
+        </tr>
+      ` ).join( '' );
+
+      // Timeline Chart
+      const byYear = {};
+      bookmarks.forEach( b => {
+        const year = b.date.getFullYear();
+        if ( !isNaN( year ) && year > 1970 ) byYear[ year ] = ( byYear[ year ] || 0 ) + 1;
+      } );
+
+      const years = Object.keys( byYear ).sort();
+      const maxCount = Math.max( ...Object.values( byYear ) );
+      document.getElementById( 'yearChart' ).innerHTML = years.map( year => {
+        const count = byYear[ year ];
+        const percentage = ( count / maxCount ) * 100;
+        return `
+            <div class="chart-row">
+                <div class="chart-label">${ year }</div>
+                <div class="chart-bar-container">
+                    <div class="chart-bar" style="width: ${ percentage }%"></div>
+                </div>
+                <div class="chart-value">${ count }</div>
+            </div>
+        `;
+      } ).join( '' );
+
+      // Extremes
+      if ( bookmarks.length > 0 ) {
+        const sortedByDate = [ ...bookmarks ].filter( b => b.date.getFullYear() > 1970 ).sort( ( a, b ) => a.date - b.date );
+        if ( sortedByDate.length > 0 ) {
+          const oldest = sortedByDate[ 0 ];
+          const newest = sortedByDate[ sortedByDate.length - 1 ];
+          document.getElementById( 'oldestBookmark' ).innerHTML = `${ oldest.date.toLocaleDateString() } - <a href="${ oldest.url }" target="_blank">${ oldest.title }</a>`;
+          document.getElementById( 'newestBookmark' ).innerHTML = `${ newest.date.toLocaleDateString() } - <a href="${ newest.url }" target="_blank">${ newest.title }</a>`;
+        } else {
+          document.getElementById( 'oldestBookmark' ).textContent = "N/A";
+          document.getElementById( 'newestBookmark' ).textContent = "N/A";
+        }
+      }
+
+      renderTagCloud( bookmarks );
+    }
+
+    function renderTagCloud ( bookmarks ) {
+      const stopWords = new Set( [
+        'the', 'and', 'for', 'that', 'this', 'with', 'from', 'your', 'what', 'how',
+        'about', 'more', 'page', 'home', 'site', 'web', 'website', 'online', 'free',
+        'new', 'best', 'top', 'guide', 'tutorial', 'login', 'sign', 'account', 'profile',
+        'dashboard', 'settings', 'search', 'help', 'support', 'contact', 'about', 'news',
+        'blog', 'forum', 'community', 'docs', 'documentation', 'api', 'reference',
+        'download', 'install', 'setup', 'config', 'configuration', 'version', 'release',
+        'update', 'upgrade', 'changelog', 'notes', 'features', 'pricing', 'plans',
+        'video', 'image', 'photo', 'music', 'audio', 'podcast', 'book', 'article',
+        'post', 'comment', 'review', 'rating', 'user', 'group', 'team', 'project',
+        'code', 'source', 'github', 'gitlab', 'bitbucket', 'stackoverflow', 'medium',
+        'youtube', 'twitter', 'facebook', 'linkedin', 'instagram', 'reddit', 'google',
+        'microsoft', 'apple', 'amazon', 'netflix', 'spotify', 'wikipedia', 'quora',
+        'yahoo', 'bing', 'duckduckgo', 'gmail', 'outlook', 'slack', 'discord', 'zoom',
+        'trello', 'asana', 'jira', 'notion', 'figma', 'canva', 'adobe', 'wordpress',
+        'shopify', 'wix', 'squarespace', 'godaddy', 'namecheap', 'cloudflare', 'aws',
+        'azure', 'heroku', 'digitalocean', 'vercel', 'netlify', 'firebase', 'mongodb',
+        'mysql', 'postgresql', 'sqlite', 'redis', 'docker', 'kubernetes', 'linux',
+        'windows', 'macos', 'android', 'ios', 'iphone', 'ipad', 'samsung', 'huawei',
+        'xiaomi', 'sony', 'nintendo', 'playstation', 'xbox', 'steam', 'twitch', 'tiktok',
+        'snapchat', 'pinterest', 'tumblr', 'flickr', 'vimeo', 'dailymotion', 'soundcloud',
+        'bandcamp', 'mixcloud', 'lastfm', 'imdb', 'rottentomatoes', 'metacritic', 'ign',
+        'gamespot', 'polygon', 'kotaku', 'pcgamer', 'eurogamer', 'rockpapershotgun',
+        'techcrunch', 'theverge', 'engadget', 'wired', 'arstechnica', 'mashable', 'cnet',
+        'gizmodo', 'lifehacker', 'zdnet', 'venturebeat', 'forbes', 'bloomberg', 'reuters',
+        'cnn', 'bbc', 'nytimes', 'wsj', 'washingtonpost', 'guardian', 'huffpost', 'buzzfeed',
+        'vice', 'vox', 'slate', 'salon', 'politico', 'axios', 'npr', 'pbs', 'cspan',
+        'ted', 'coursera', 'edx', 'udemy', 'udacity', 'khanacademy', 'codecademy',
+        'pluralsight', 'lynda', 'skillshare', 'masterclass', 'duolingo', 'babbel',
+        'rosetta', 'stone', 'memrise', 'anki', 'quizlet', 'chegg', 'coursehero',
+        'scribd', 'slideshare', 'issuu', 'calameo', 'yumpu', 'joomag', 'flipsnack',
+        'pubhtml5', 'anyflip', 'fliphtml5', 'lucidpress', 'canva', 'piktochart',
+        'infogram', 'venngage', 'visme', 'prezi', 'haiku', 'deck', 'slides', 'google',
+        'slides', 'powerpoint', 'keynote', 'libreoffice', 'impress', 'wps', 'presentation',
+        'zoho', 'show', 'beautiful', 'ai', 'pitch', 'ludus', 'slidebean', 'emaze',
+        'powtoon', 'animaker', 'vyond', 'moovly', 'biteable', 'renderforest', 'wideo',
+        'toonly', 'doodly', 'explaindio', 'videoscribe', 'rawshorts', 'mysimpleshow',
+        'simpleshow', 'kaltura', 'panopto', 'echo360', 'mediasite', 'yuja', 'vbrick',
+        'rev', 'qubit', 'optimizely', 'vwo', 'google', 'optimize', 'adobe', 'target',
+        'monetate', 'kameleoon', 'sitegainer', 'convert', 'abtasty', 'dynamic', 'yield',
+        'qubit', 'segment', 'tealium', 'mparticle', 'lytics', 'blueconic', 'actioniq',
+        'simon', 'data', 'treasure', 'data', 'arm', 'box', 'evergage', 'exponea',
+        'insider', 'moengage', 'clevertap', 'leanplum', 'braze', 'iterable', 'customer',
+        'io', 'klaviyo', 'mailchimp', 'constant', 'contact', 'aweber', 'getresponse',
+        'campaign', 'monitor', 'activecampaign', 'drip', 'convertkit', 'mailerlite',
+        'sendinblue', 'sendgrid', 'mailgun', 'postmark', 'sparkpost', 'amazon', 'ses',
+        'google', 'cloud', 'platform', 'ibm', 'cloud', 'oracle', 'cloud', 'alibaba',
+        'cloud', 'tencent', 'cloud', 'salesforce', 'sap', 'servicenow', 'workday',
+        'adp', 'paychex', 'gusto', 'zenefits', 'bamboo', 'hr', 'namely', 'rippling',
+        'justworks', 'trinet', 'insperity', 'paycor', 'paylocity', 'ukg', 'ceridian',
+        'cornerstone', 'ondemand', 'saba', 'sumtotal', 'successfactors', 'taleo',
+        'greenhouse', 'lever', 'jobvite', 'icims', 'smartrecruiters', 'workable',
+        'breezy', 'hr', 'jazzhr', 'recruitee', 'zoho', 'recruit', 'bullhorn', 'avionté',
+        'erecruit', 'jobdiva', 'akkencloud', 'crelate', 'vincere', 'tracker', 'rms',
+        'jobadder', 'firefish', 'software', 'adapt', 'bond', 'rdb', 'pro', 'microdec',
+        'profile', 'voyager', 'infinity', 'colleague', 'influence', 'itris', 'matchmaker',
+        'evolve', 'primepro', 'tempaid', 'merit', 'payroll', 'qtac', 'moneysoft',
+        'brightpay', 'iris', 'sage', 'xero', 'quickbooks', 'freshbooks', 'wave',
+        'zoho', 'books', 'kashoo', 'freeagent', 'clearbooks', 'crunch', 'pandle',
+        'bokio', 'gnucash', 'manager', 'akaunting', 'odoo', 'dolibarr', 'erpnext',
+        'tryton', 'ledger', 'hledger', 'beancount', 'money', 'manager', 'ex',
+        'homebank', 'kmymoney', 'skrooge', 'grisbi', 'moneydance', 'banktivity',
+        'quicken', 'mint', 'personal', 'capital', 'ynab', 'everydollar', 'goodbudget',
+        'mvelopes', 'pocketguard', 'wally', 'spendee', 'bluecoins', 'money', 'lover',
+        'wallet', 'mobills', 'prism', 'clarity', 'money', 'albert', 'chime', 'varos',
+        'current', 'n26', 'revolut', 'monzo', 'starling', 'monese', 'bunq', 'curve',
+        'transferwise', 'worldremit', 'remitly', 'azimo', 'western', 'union', 'moneygram',
+        'paypal', 'venmo', 'cash', 'app', 'zelle', 'google', 'pay', 'apple', 'pay',
+        'samsung', 'pay', 'fitbit', 'pay', 'garmin', 'pay', 'stripe', 'square',
+        'braintree', 'adyen', 'worldpay', 'authorize', 'net', '2checkout', 'bluesnap',
+        'cleverbridge', 'digital', 'river', 'fastspring', 'paddle', 'recurly',
+        'chargify', 'zuora', 'aria', 'systems', 'vindicia', 'killbill', 'chargebee',
+        'fusebill', 'invoiced', 'bill', 'com', 'tipalti', 'avidXchange', 'coupa',
+        'ariba', 'basware', 'tradeshift', 'jaggaer', 'ivalua', 'gep', 'zycus',
+        'synertrade', 'determine', 'proactis', 'wax', 'digital', 'market', 'dojo',
+        'market', 'opensea', 'rarible', 'superrare', 'foundation', 'knownorigin',
+        'makersplace', 'nifty', 'gateway', 'zora', 'async', 'art', 'portion',
+        'cargo', 'mintable', 'bakeryswap', 'pancakeswap', 'uniswap', 'sushiswap',
+        'curve', 'finance', 'balancer', 'bancor', 'kyber', 'network', '0x', '1inch',
+        'compound', 'aave', 'makerdao', 'synthetix', 'yearn', 'finance', 'badger',
+        'dao', 'harvest', 'finance', 'alpha', 'homora', 'cream', 'finance', 'pickle',
+        'finance', 'yam', 'finance', 'sushi', 'uni', 'comp', 'aave', 'mkr', 'snx',
+        'yfi', 'badger', 'farm', 'alpha', 'cream', 'pickle', 'yam', 'btc', 'eth',
+        'ltc', 'bch', 'xrp', 'ada', 'dot', 'link', 'bnb', 'xlm', 'usdt', 'usdc',
+        'dai', 'busd', 'ust', 'doge', 'shib', 'sol', 'matic', 'avax', 'luna',
+        'ftm', 'atom', 'algo', 'xtz', 'eos', 'trx', 'neo', 'iota', 'etc', 'zec',
+        'xmr', 'dash', 'dcr', 'waves', 'omg', 'bat', 'zrx', 'knc', 'rep', 'gno',
+        'ant', 'cvc', 'snt', 'fun', 'mana', 'enj', 'sand', 'axs', 'chz', 'hot',
+        'win', 'dent', 'sc', 'dgb', 'xvg', 'btt', 'rvn', 'nano', 'qtum', 'lsk',
+        'steem', 'bts', 'ardr', 'kmd', 'ark', 'pivx', 'sys', 'strat', 'game',
+        'name', 'ppc', 'nmc', 'blk', 'emc', 'grc', 'pot', 'cure', 'xpm', 'ftc',
+        'trc', 'mec', 'zet', 'dgc', 'ifc', 'anc', 'frc', 'ixc', 'wdc', 'dvc',
+        'cnc', 'yac', 'nvc', 'gld', 'jkc', 'ryc', 'elc', 'cap', 'nbl', 'osc',
+        'ezc', 'glc', 'cgc', 'sxc', 'dem', 'mrc', 'orb', 'red', 'lky', 'tix',
+        'buk', 'spt', 'tag', 'hbn', 'net', 'dmd', 'sac', 'msc', 'gdc', 'dgc',
+        'src', 'btb', 'fst', 'gme', 'mnc', 'bqc', 'ppc', 'nmc', 'ixc', 'dvc',
+        'mem', 'sxc', 'wdc', 'dgc', 'anc', 'ryc', 'pwc', 'tix', 'cap', 'nbl',
+        'gld', 'jkc', 'elc', 'am', 'pm', 'jan', 'feb', 'mar', 'apr', 'may', 'jun',
+        'jul', 'aug', 'sep', 'oct', 'nov', 'dec', 'mon', 'tue', 'wed', 'thu',
+        'fri', 'sat', 'sun', 'one', 'two', 'three', 'four', 'five', 'six',
+        'seven', 'eight', 'nine', 'ten', 'first', 'second', 'third', 'last',
+        'next', 'prev', 'previous', 'back', 'forward', 'up', 'down', 'left',
+        'right', 'top', 'bottom', 'center', 'middle', 'start', 'end', 'begin',
+        'finish', 'open', 'close', 'save', 'load', 'edit', 'delete', 'remove',
+        'add', 'create', 'new', 'old', 'copy', 'paste', 'cut', 'undo', 'redo',
+        'print', 'export', 'import', 'share', 'send', 'receive', 'get', 'post',
+        'put', 'patch', 'options', 'head', 'connect', 'trace', 'all', 'any',
+        'some', 'none', 'each', 'every', 'map', 'filter', 'reduce', 'find',
+        'sort', 'reverse', 'split', 'join', 'slice', 'splice', 'push', 'pop',
+        'shift', 'unshift', 'concat', 'includes', 'indexOf', 'lastIndexOf',
+        'keys', 'values', 'entries', 'assign', 'create', 'defineProperty',
+        'defineProperties', 'freeze', 'seal', 'preventExtensions', 'isFrozen',
+        'isSealed', 'isExtensible', 'getPrototypeOf', 'setPrototypeOf',
+        'prototype', 'constructor', '__proto__', 'toString', 'toLocaleString',
+        'valueOf', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable',
+        'length', 'name', 'arguments', 'caller', 'apply', 'call', 'bind',
+        'eval', 'parseInt', 'parseFloat', 'isNaN', 'isFinite', 'encodeURI',
+        'encodeURIComponent', 'decodeURI', 'decodeURIComponent', 'escape',
+        'unescape', 'Object', 'Function', 'Boolean', 'Symbol', 'Error',
+        'EvalError', 'InternalError', 'RangeError', 'ReferenceError',
+        'SyntaxError', 'TypeError', 'URIError', 'Number', 'Math', 'Date',
+        'String', 'RegExp', 'Array', 'Int8Array', 'Uint8Array',
+        'Uint8ClampedArray', 'Int16Array', 'Uint16Array', 'Int32Array',
+        'Uint32Array', 'Float32Array', 'Float64Array', 'Map', 'Set', 'WeakMap',
+        'WeakSet', 'Promise', 'Generator', 'GeneratorFunction', 'AsyncFunction',
+        'Reflect', 'Proxy', 'Intl', 'WebAssembly', 'window', 'document',
+        'navigator', 'screen', 'history', 'location', 'console', 'alert',
+        'confirm', 'prompt', 'setTimeout', 'clearTimeout', 'setInterval',
+        'clearInterval', 'requestAnimationFrame', 'cancelAnimationFrame',
+        'fetch', 'XMLHttpRequest', 'Headers', 'Request', 'Response', 'Body',
+        'Blob', 'File', 'FileList', 'FileReader', 'FormData', 'URL',
+        'URLSearchParams', 'TextEncoder', 'TextDecoder', 'Worker',
+        'SharedWorker', 'ServiceWorker', 'WebSocket', 'EventSource',
+        'MessageChannel', 'MessagePort', 'BroadcastChannel', 'Notification',
+        'Storage', 'sessionStorage', 'localStorage', 'indexedDB', 'IDBFactory',
+        'IDBOpenDBRequest', 'IDBDatabase', 'IDBTransaction', 'IDBObjectStore',
+        'IDBIndex', 'IDBCursor', 'IDBKeyRange', 'DOMParser', 'XMLSerializer',
+        'Node', 'Element', 'HTMLElement', 'HTMLDivElement', 'HTMLSpanElement',
+        'HTMLImageElement', 'HTMLAnchorElement', 'HTMLButtonElement',
+        'HTMLInputElement', 'HTMLFormElement', 'HTMLLabelElement',
+        'HTMLSelectElement', 'HTMLOptionElement', 'HTMLTextAreaElement',
+        'HTMLTableElement', 'HTMLTableRowElement', 'HTMLTableCellElement',
+        'HTMLUListElement', 'HTMLOListElement', 'HTMLLIElement',
+        'HTMLStyleElement', 'HTMLLinkElement', 'HTMLMetaElement',
+        'HTMLScriptElement', 'HTMLHeadElement', 'HTMLBodyElement',
+        'HTMLHtmlElement', 'Event', 'CustomEvent', 'MouseEvent',
+        'KeyboardEvent', 'TouchEvent', 'FocusEvent', 'WheelEvent', 'InputEvent',
+        'CompositionEvent', 'UIEvent', 'ProgressEvent', 'ErrorEvent',
+        'AnimationEvent', 'TransitionEvent', 'ClipboardEvent', 'DragEvent',
+        'PointerEvent', 'MutationObserver', 'IntersectionObserver',
+        'ResizeObserver', 'Performance', 'PerformanceEntry', 'PerformanceMark',
+        'PerformanceMeasure', 'PerformanceObserver', 'PerformanceResourceTiming',
+        'PerformanceNavigationTiming', 'Crypto', 'SubtleCrypto', 'CanvasRenderingContext2D',
+        'WebGLRenderingContext', 'AudioContext', 'OfflineAudioContext',
+        'MediaStream', 'MediaStreamTrack', 'RTCPeerConnection', 'RTCSessionDescription',
+        'RTCIceCandidate', 'RTCDataChannel', 'SpeechSynthesis', 'SpeechRecognition'
+      ] );
+
+      const wordCounts = {};
+      bookmarks.forEach( b => {
+        const words = b.title.toLowerCase().replace( /[^a-z0-9\s]/g, '' ).split( /\s+/ );
+        words.forEach( w => {
+          if ( w.length > 2 && !stopWords.has( w ) && isNaN( w ) ) {
+            wordCounts[ w ] = ( wordCounts[ w ] || 0 ) + 1;
+          }
+        } );
+      } );
+
+      const sortedWords = Object.entries( wordCounts )
+        .sort( ( a, b ) => b[ 1 ] - a[ 1 ] )
+        .slice( 0, 50 );
+
+      const maxFreq = sortedWords.length ? sortedWords[ 0 ][ 1 ] : 1;
+      const container = document.getElementById( 'tagCloud' );
+
+      container.innerHTML = sortedWords.map( ( [ word, count ] ) => {
+        const size = 0.8 + ( count / maxFreq ) * 1.5; // Scale between 0.8rem and 2.3rem
+        return `<span class="tag-item" style="font-size: ${ size }rem" data-word="${ word }" title="${ count } occurrences">${ word }</span>`;
+      } ).join( '' );
+    }
+
+    // --- Duplicates Rendering ---
+
+    function renderDuplicates ( bookmarks ) {
+      const linksContainer = document.getElementById( 'duplicateLinksList' );
+      const foldersContainer = document.getElementById( 'duplicateFoldersList' );
+
+      // 1. Duplicate Links
+      const urlGroups = {};
+      bookmarks.forEach( b => {
+        if ( !urlGroups[ b.url ] ) urlGroups[ b.url ] = [];
+        urlGroups[ b.url ].push( b );
+      } );
+
+      const duplicates = Object.entries( urlGroups ).filter( ( [ url, group ] ) => group.length > 1 );
+
+      if ( duplicates.length === 0 ) {
+        linksContainer.innerHTML = '<p>No duplicate links found.</p>';
+      } else {
+        linksContainer.innerHTML = duplicates.map( ( [ url, group ] ) => `
+          <div class="duplicate-group">
+            <div class="duplicate-header"><a href="${ url }" target="_blank">${ url }</a></div>
+            ${ group.map( b => `
+              <div class="duplicate-item">
+                <div class="duplicate-info">
+                  <strong><a href="${ b.url }" target="_blank" style="color: #007acc; text-decoration: none;">${ b.title }</a></strong>
+                  <span class="duplicate-path">${ b.pathString }</span>
+                </div>
+                <button class="delete-btn" data-id="${ b.id }">Delete</button>
+              </div>
+            ` ).join( '' ) }
+          </div>
+        ` ).join( '' );
+      }
+
+      // 2. Duplicate Folders (by Name)
+      const folderCounts = {};
+      bookmarks.forEach( b => {
+        b.pathArray.forEach( ( folder, index ) => {
+          // Create a unique key for the specific folder instance to avoid counting the same folder multiple times for files inside it
+          // Actually, we just want to know if the folder NAME appears in different paths.
+          // So we collect all unique paths first.
+        } );
+      } );
+
+      // Better approach for folders:
+      // Collect all unique folder paths first
+      const uniquePaths = new Set();
+      bookmarks.forEach( b => {
+        // Add every sub-path
+        let currentPath = "";
+        b.pathArray.forEach( folder => {
+          currentPath = currentPath ? currentPath + " > " + folder : folder;
+          uniquePaths.add( currentPath );
+        } );
+      } );
+
+      // Now count occurrences of the last segment (folder name)
+      const folderNameCounts = {};
+      uniquePaths.forEach( pathStr => {
+        const parts = pathStr.split( ' > ' );
+        const name = parts[ parts.length - 1 ];
+        if ( !folderNameCounts[ name ] ) folderNameCounts[ name ] = [];
+        folderNameCounts[ name ].push( pathStr );
+      } );
+
+      const duplicateFolders = Object.entries( folderNameCounts ).filter( ( [ name, paths ] ) => paths.length > 1 );
+
+      if ( duplicateFolders.length === 0 ) {
+        foldersContainer.innerHTML = '<p>No duplicate folder names found.</p>';
+      } else {
+        foldersContainer.innerHTML = duplicateFolders.map( ( [ name, paths ] ) => `
+          <div class="duplicate-group">
+            <div class="duplicate-header">📁 ${ name }</div>
+            ${ paths.map( path => `
+              <div class="duplicate-item">
+                <span class="duplicate-path">${ path }</span>
+              </div>
+            ` ).join( '' ) }
+          </div>
+        ` ).join( '' );
+      }
+    }
+
+    function deleteBookmark ( id ) {
+      if ( !confirm( "Are you sure you want to delete this bookmark?" ) ) return;
+      allBookmarks = allBookmarks.filter( b => b.id !== id );
+      updateUI( allBookmarks );
+    }
+
+    // --- Tree View Rendering ---
+
+    function renderTreeView ( bookmarks ) {
+      const treeContainer = document.getElementById( 'treeView' );
+      const countSpan = document.getElementById( 'resultCount' );
+
+      countSpan.textContent = `(${ bookmarks.length.toLocaleString() })`;
+      treeContainer.innerHTML = '';
+
+      if ( bookmarks.length === 0 ) {
+        treeContainer.innerHTML = '<div style="padding:1rem; color:#666;">No bookmarks found matching your criteria.</div>';
+        return;
+      }
+
+      const root = buildTree( bookmarks );
+      calculateNodeCounts( root );
+
+      const isFiltered = bookmarks.length < allBookmarks.length;
+      const expand = isFiltered;
+
+      const btn = document.getElementById( 'toggleCollapseBtn' );
+      btn.textContent = expand ? 'Collapse All' : 'Expand All';
+      btn.title = expand ? 'Collapse all folders' : 'Expand all folders';
+
+      treeContainer.appendChild( renderTreeDOM( root, true, expand ) );
+    }
+
+    function buildTree ( bookmarks ) {
+      const root = { name: "Root", folders: {}, files: [] };
+      bookmarks.forEach( b => {
+        let current = root;
+        const path = b.pathArray;
+        path.forEach( folderName => {
+          if ( !current.folders[ folderName ] ) {
+            current.folders[ folderName ] = { name: folderName, folders: {}, files: [] };
+          }
+          current = current.folders[ folderName ];
+        } );
+        current.files.push( b );
+      } );
+      return root;
+    }
+
+    function calculateNodeCounts ( node ) {
+      let count = node.files.length;
+      for ( const key in node.folders ) {
+        count += calculateNodeCounts( node.folders[ key ] );
+      }
+      node.totalCount = count;
+      return count;
+    }
+
+    function renderTreeDOM ( node, isRoot = false, expand = false ) {
+      const fragment = document.createDocumentFragment();
+
+      // Folders
+      const folderNames = Object.keys( node.folders ).sort();
+      folderNames.forEach( name => {
+        const folder = node.folders[ name ];
+        const details = document.createElement( 'details' );
+        details.open = expand;
+
+        const summary = document.createElement( 'summary' );
+        summary.textContent = `${ name } (${ folder.totalCount })`;
+
+        details.appendChild( summary );
+        details.appendChild( renderTreeDOM( folder, false, expand ) );
+        fragment.appendChild( details );
+      } );
+
+      // Files
+      node.files.forEach( file => {
+        const div = document.createElement( 'div' );
+        div.className = 'tree-file';
+
+        if ( file.icon ) {
+          const img = document.createElement( 'img' );
+          img.className = 'file-icon';
+          img.src = file.icon;
+          div.appendChild( img );
+        } else {
+          const span = document.createElement( 'span' );
+          span.className = 'file-icon';
+          span.textContent = '📄';
+          div.appendChild( span );
+        }
+
+        const a = document.createElement( 'a' );
+        a.href = file.url;
+        a.target = '_blank';
+        a.textContent = file.title;
+        div.appendChild( a );
+        fragment.appendChild( div );
+      } );
+
+      return fragment;
+    }
+
+    function generateNetscapeHTML ( root ) {
+      let html = `<!DOCTYPE NETSCAPE-Bookmark-file-1>
+<!-- This is an automatically generated file.
+     It will be read and overwritten.
+     DO NOT EDIT! -->
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Bookmarks</TITLE>
+<H1>Bookmarks</H1>
+<DL><p>
+`;
+      html += traverseForHTML( root );
+      html += `</DL><p>`;
+      return html;
+    }
+
+    function traverseForHTML ( node ) {
+      let html = '';
+
+      // Folders
+      const folderNames = Object.keys( node.folders ).sort();
+      folderNames.forEach( name => {
+        const folder = node.folders[ name ];
+        html += `    <DT><H3 ADD_DATE="${ Math.floor( Date.now() / 1000 ) }">${ name }</H3>\n`;
+        html += `    <DL><p>\n`;
+        html += traverseForHTML( folder );
+        html += `    </DL><p>\n`;
+      } );
+
+      // Files
+      node.files.forEach( file => {
+        const date = file.date ? Math.floor( file.date.getTime() / 1000 ) : 0;
+        const iconAttr = file.icon ? ` ICON="${ file.icon }"` : '';
+        html += `    <DT><A HREF="${ file.url }" ADD_DATE="${ date }"${ iconAttr }>${ file.title }</A>\n`;
+      } );
+
+      return html;
+    }
+
+    // --- Utilities ---
+
+    function debounce ( func, wait ) {
+      let timeout;
+      return function ( ...args ) {
+        clearTimeout( timeout );
+        timeout = setTimeout( () => func.apply( this, args ), wait );
+      };
+    }
+  </script>
+</body>
+
+</html>
