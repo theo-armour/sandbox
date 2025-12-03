@@ -45,14 +45,14 @@
 
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 0.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
       margin-bottom: 1rem;
     }
 
     .stat-card {
       background: #f5f5f5;
-      padding: 0.75rem;
+      padding: 1rem;
       border-radius: 8px;
       text-align: center;
     }
@@ -456,16 +456,8 @@
           <div class="stat-label">Total Bookmarks</div>
         </div>
         <div class="stat-card">
-          <div class="stat-value" id="folderCount">0</div>
-          <div class="stat-label">Total Folders</div>
-        </div>
-        <div class="stat-card">
           <div class="stat-value" id="duplicateCount">0</div>
-          <div class="stat-label">Duplicate Links</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="duplicateFolderCount">0</div>
-          <div class="stat-label">Duplicate Folders</div>
+          <div class="stat-label">Duplicates</div>
         </div>
         <div class="stat-card">
           <div class="stat-value" id="domainCount">0</div>
@@ -711,28 +703,6 @@
       bookmarks.forEach( b => urlCounts[ b.url ] = ( urlCounts[ b.url ] || 0 ) + 1 );
       const duplicates = Object.values( urlCounts ).filter( c => c > 1 ).length;
       document.getElementById( 'duplicateCount' ).textContent = duplicates.toLocaleString();
-
-      // Duplicate Folders
-      const uniquePaths = new Set();
-      bookmarks.forEach( b => {
-        let currentPath = "";
-        b.pathArray.forEach( folder => {
-          currentPath = currentPath ? currentPath + " > " + folder : folder;
-          uniquePaths.add( currentPath );
-        } );
-      } );
-
-      document.getElementById( 'folderCount' ).textContent = uniquePaths.size.toLocaleString();
-
-      const folderNameCounts = {};
-      uniquePaths.forEach( pathStr => {
-        const parts = pathStr.split( ' > ' );
-        const name = parts[ parts.length - 1 ];
-        folderNameCounts[ name ] = ( folderNameCounts[ name ] || 0 ) + 1;
-      } );
-
-      const duplicateFolders = Object.values( folderNameCounts ).filter( count => count > 1 ).length;
-      document.getElementById( 'duplicateFolderCount' ).textContent = duplicateFolders.toLocaleString();
 
       // Domains
       const domains = {};
