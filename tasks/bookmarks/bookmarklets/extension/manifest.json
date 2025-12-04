@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Bookmark Folder Exporter",
+  "version": "1.0",
+  "description": "Export a specific bookmark folder to a standard Netscape HTML file.",
+  "permissions": [
+    "bookmarks"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Export Bookmarks"
+  }
+}

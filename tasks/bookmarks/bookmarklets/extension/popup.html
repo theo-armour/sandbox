@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Export Bookmarks</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      width: 300px;
+      padding: 1rem;
+    }
+
+    h1 {
+      font-size: 1.2rem;
+      margin-top: 0;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    /* Tree View Styles */
+    #treeContainer {
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      height: 300px;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      background: #fff;
+    }
+
+    details {
+      margin-left: 10px;
+    }
+
+    summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 2px 4px;
+      border-radius: 3px;
+      user-select: none;
+    }
+
+    summary:hover {
+      background-color: #f0f0f0;
+    }
+
+    summary.selected {
+      background-color: #e0eaff;
+      color: #007acc;
+      font-weight: bold;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::before {
+      content: '▶ ';
+      display: inline-block;
+      width: 12px;
+      font-size: 0.8em;
+      transition: transform 0.1s;
+    }
+
+    details[open]>summary::before {
+      transform: rotate(90deg);
+    }
+
+    /* Hide arrow for leaf nodes (empty folders in this context) */
+    details.empty>summary::before {
+      visibility: hidden;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.5rem;
+      background-color: #007acc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      background-color: #005999;
+    }
+
+    #status {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #666;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Export Folder</h1>
+  <label>Select a folder to export:</label>
+  <div id="treeContainer">Loading folders...</div>
+  <button id="exportBtn" disabled>Export to HTML</button>
+  <div id="status"></div>
+  <script src="popup.js"></script>
+</body>
+
+</html>
