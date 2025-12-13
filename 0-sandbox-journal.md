@@ -1,6 +1,31 @@
 # Sandbox Journal
 
 
+## 2025-12-12
+
+ChatGPT 5.2 !?!
+
+Try #15
+
+* https://natesnewsletter.substack.com/p/new-chatgpt-52-complete-teardowni
+
+Try Nate's
+
+* https://www.heypresto.ai/
+
+Things to do
+
+* Raindrop or another bookmark manager?
+* Repair or make operable old broken Jaanga repos
+* Create interesting ancestor narrative
+* Prepare for February "offsite"
+* Fix TooToo
+* Fix NewwwTab
+* Define my JavaScript skill markdown file
+* Fix Dreamquest
+* Analyze Lorenzo article
+* Simplify android phone
+
 ## 2025-11-29
 
 What coding tools to rely on primarily?
