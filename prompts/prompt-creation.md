@@ -1,5 +1,10 @@
 # Prompt creation
 
+## 2025-12-13 ~ The Reverse Prompt Trick:
+
+* https://blog.howtoprofitai.com/the-reverse-prompt-trick-the-ai-hack-nobody-is-talking-about-yet-f1201ea94506
+* “Write the prompt someone would use to generate content like this.”
+
 ## Single sentence
 
 * https://ai.plainenglish.io/stanford-just-ended-prompt-engineering-with-a-single-sentence-9bfe702eb82c

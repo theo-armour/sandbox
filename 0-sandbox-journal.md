@@ -8,6 +8,7 @@ ChatGPT 5.2 !?!
 Try #15
 
 * https://natesnewsletter.substack.com/p/new-chatgpt-52-complete-teardowni
+* https://www.notion.so/product-templates/ChatGPT-5-2-Prompt-Pack-2c75a2ccb5268017861cd6b7930743c9?source=copy_link
 
 Try Nate's
 
