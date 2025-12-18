@@ -1,3 +1,5 @@
+[quanta](https://www.quantamagazine.org/)
+
 [feedly](https://feedly.com/)
 
 [aeon](https://aeon.co/)
