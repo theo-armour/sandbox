@@ -1,3 +1,5 @@
+[feedly](https://feedly.com/)
+
 [aeon](https://aeon.co/)
 
 [substack](https://substack.com/inbox)
