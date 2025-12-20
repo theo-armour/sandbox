@@ -1,8 +1,4 @@
-[quanta](https://www.quantamagazine.org/)
-
-[feedly](https://feedly.com/)
-
-[aeon](https://aeon.co/)
+[substack](https://substack.com/inbox)
 
 [substack](https://substack.com/inbox)
 [medium]( https://medium.com/ )
