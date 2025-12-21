@@ -1,4 +1,4 @@
-# Extensions Agenda
+# Extension Bookmarks to HTML Agenda
 
 * Add all the parent folder names as tags to each bookmark.
 
