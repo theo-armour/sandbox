@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Countdown Timer</title>
+  <style>
+    :root {
+      --bg-color: #f0f2f5;
+      --text-color: #333;
+      --accent-color: #007bff;
+      --danger-color: #dc3545;
+      --success-color: #28a745;
+      --button-bg: #fff;
+      --button-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      /* Prevent scrolling */
+      transition: background-color 0.3s;
+    }
+
+    body.alert {
+      background-color: #ffcccc;
+      animation: flash 1s infinite;
+    }
+
+    @keyframes flash {
+
+      0%,
+      100% {
+        background-color: #ffcccc;
+      }
+
+      50% {
+        background-color: #ff9999;
+      }
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 400px;
+      height: 100%;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    #display {
+      font-size: 5rem;
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+      margin-bottom: 20px;
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .controls-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex-grow: 0;
+      flex-shrink: 0;
+    }
+
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    button {
+      background-color: var(--button-bg);
+      border: none;
+      border-radius: 10px;
+      width: 100%;
+      aspect-ratio: 1.5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0;
+      font-size: 2rem;
+      cursor: pointer;
+      box-shadow: var(--button-shadow);
+      transition: transform 0.1s, background-color 0.2s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:active {
+      transform: scale(0.95);
+    }
+
+    .keypad button {
+      color: var(--text-color);
+      font-weight: bold;
+      font-size: 2.5rem;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .actions button {
+      color: white;
+      font-weight: bold;
+    }
+
+    #btn-start {
+      background-color: var(--success-color);
+    }
+
+    #btn-pause {
+      background-color: var(--accent-color);
+    }
+
+    #btn-reset {
+      background-color: var(--danger-color);
+    }
+
+    /* Responsive adjustments for small screens/landscape */
+    @media (max-height: 600px) {
+      #display {
+        font-size: 5rem;
+        margin-bottom: 10px;
+      }
+
+      button {
+        font-size: 1.5rem;
+        aspect-ratio: 2;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="app">
+    <div id="display" role="timer" aria-live="polite" aria-label="Countdown Timer">00:00</div>
+
+    <div class="controls-container">
+      <div class="keypad">
+        <button onclick="handleInput(1)">1</button>
+        <button onclick="handleInput(2)">2</button>
+        <button onclick="handleInput(3)">3</button>
+        <button onclick="handleInput(4)">4</button>
+        <button onclick="handleInput(5)">5</button>
+        <button onclick="handleInput(6)">6</button>
+        <button onclick="handleInput(7)">7</button>
+        <button onclick="handleInput(8)">8</button>
+        <button onclick="handleInput(9)">9</button>
+        <button onclick="handleInput('00')">00</button>
+        <button onclick="handleInput(0)">0</button>
+        <button onclick="clearInput()" aria-label="Clear last digit">⌫</button>
+      </div>
+
+      <div class="actions">
+        <button id="btn-start" onclick="startTimer()" aria-label="Start Timer">Start</button>
+        <button id="btn-pause" onclick="pauseTimer()" aria-label="Pause Timer">Pause</button>
+        <button id="btn-reset" onclick="resetTimer()" aria-label="Reset Timer">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let inputStr = "";
+    let totalSeconds = 0;
+    let intervalId = null;
+    let isRunning = false;
+    let isPaused = false;
+    let audioCtx;
+
+    const displayEl = document.getElementById( 'display' );
+
+    function playBeep () {
+      if ( !audioCtx ) audioCtx = new ( window.AudioContext || window.webkitAudioContext )();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect( gain );
+      gain.connect( audioCtx.destination );
+      osc.type = 'sine';
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime( 0.1, audioCtx.currentTime );
+      gain.gain.exponentialRampToValueAtTime( 0.00001, audioCtx.currentTime + 0.5 );
+      osc.start();
+      osc.stop( audioCtx.currentTime + 0.5 );
+    }
+
+    function updateDisplay ( str ) {
+      const padded = str.padStart( 4, '0' );
+      displayEl.textContent = `${ padded.slice( 0, 2 ) }:${ padded.slice( 2 ) }`;
+    }
+
+    function formatTime ( sec ) {
+      const m = Math.floor( sec / 60 ).toString().padStart( 2, '0' );
+      const s = ( sec % 60 ).toString().padStart( 2, '0' );
+      return `${ m }:${ s }`;
+    }
+
+    function handleInput ( num ) {
+      if ( isRunning || isPaused || inputStr.length >= 4 ) return;
+      inputStr = ( inputStr + num ).replace( /^0+/, '' ); // Append and strip leading zeros
+      if ( inputStr.length > 4 ) inputStr = inputStr.slice( -4 ); // Safety cap
+      updateDisplay( inputStr );
+    }
+
+    function clearInput () {
+      if ( isRunning || isPaused ) return;
+      inputStr = inputStr.slice( 0, -1 );
+      updateDisplay( inputStr );
+    }
+
+    function startTimer () {
+      if ( isRunning ) return;
+      if ( !isPaused ) {
+        if ( !inputStr ) return;
+        const padded = inputStr.padStart( 4, '0' );
+        totalSeconds = parseInt( padded.slice( 0, 2 ) ) * 60 + parseInt( padded.slice( 2 ) );
+        if ( totalSeconds <= 0 ) return;
+      }
+
+      isRunning = true;
+      isPaused = false;
+      if ( !audioCtx ) audioCtx = new ( window.AudioContext || window.webkitAudioContext )();
+      if ( audioCtx.state === 'suspended' ) audioCtx.resume();
+
+      displayEl.textContent = formatTime( totalSeconds );
+
+      intervalId = setInterval( () => {
+        totalSeconds--;
+        if ( totalSeconds < 0 ) {
+          clearInterval( intervalId );
+          isRunning = false;
+          totalSeconds = 0;
+          displayEl.textContent = "00:00";
+          document.body.classList.add( 'alert' );
+
+          // Play 3 beeps
+          let beeps = 0;
+          const beepInterval = setInterval( () => {
+            playBeep();
+            beeps++;
+            if ( beeps >= 3 ) clearInterval( beepInterval );
+          }, 600 );
+          playBeep(); // First one immediately
+
+          setTimeout( () => document.body.classList.remove( 'alert' ), 3000 );
+        } else {
+          displayEl.textContent = formatTime( totalSeconds );
+        }
+      }, 1000 );
+    }
+
+    function pauseTimer () {
+      if ( !isRunning ) return;
+      clearInterval( intervalId );
+      isRunning = false;
+      isPaused = true;
+    }
+
+    function resetTimer () {
+      clearInterval( intervalId );
+      isRunning = false;
+      isPaused = false;
+      inputStr = "";
+      totalSeconds = 0;
+      displayEl.textContent = "00:00";
+      document.body.classList.remove( 'alert' );
+    }
+  </script>
+</body>
+
+</html>

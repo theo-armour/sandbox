@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Countdown Timer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['"Roboto Mono"', 'monospace'],
+                        body: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        'body-bg': '#282c34',
+                        'container-bg': '#3a404a',
+                        'timer-bg': '#21252b',
+                        'timer-text': '#61afef',
+                        'keypad-btn-bg': '#5c6370',
+                        'text-primary': '#abb2bf',
+                        'start-green': '#98c379',
+                        'start-green-hover': '#86b06b',
+                        'pause-yellow': '#e5c07b',
+                        'pause-yellow-hover': '#cfac6a',
+                        'reset-red': '#e06c75',
+                        'reset-red-hover': '#c95e68',
+                        'alert-red-bg': '#e06c75', // For body alert
+                    },
+                    boxShadow: {
+                        'custom-inner': 'inset 0 2px 4px rgba(0, 0, 0, 0.6), 0 0 15px rgba(97, 175, 239, 0.2)',
+                        'button-glow': '0 0 10px rgba(97, 175, 239, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            body {
+                @apply bg-body-bg text-text-primary font-body flex items-center justify-center min-h-screen select-none transition-colors duration-500 ease-in-out;
+            }
+            body.alert {
+                @apply bg-alert-red-bg;
+            }
+        }
+
+        @layer components {
+            .btn {
+                @apply flex-1 py-4 px-6 rounded-lg text-2xl font-semibold text-white cursor-pointer 
+                       shadow-lg hover:shadow-xl active:shadow-md 
+                       transform transition-all duration-200 ease-in-out 
+                       hover:-translate-y-1 active:translate-y-0 
+                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-75;
+            }
+            .keypad-btn {
+                @apply flex items-center justify-center w-full aspect-square 
+                       bg-keypad-btn-bg text-text-primary text-3xl font-semibold 
+                       rounded-lg shadow-md hover:shadow-lg active:shadow-sm 
+                       transform transition-all duration-200 ease-in-out 
+                       hover:bg-opacity-90 active:bg-opacity-100 
+                       hover:-translate-y-1 active:translate-y-0 
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-container-bg;
+            }
+            .keypad-btn:active {
+                @apply bg-gray-600; /* Darker background on active */
+            }
+        }
+    </style>
+</head>
+<body class="bg-body-bg text-text-primary font-body flex items-center justify-center min-h-screen user-select-none">
+    <div class="container bg-container-bg p-8 rounded-xl shadow-2xl flex flex-col items-center justify-center gap-8 md:gap-10 transition-all duration-300 max-w-lg mx-auto w-11/12">
+        <!-- Digital Clock Display -->
+        <div id="countdown-display" class="bg-timer-bg text-timer-text font-display text-8xl md:text-9xl font-bold tracking-widest min-w-[300px] md:min-w-[400px] text-center p-6 rounded-lg shadow-custom-inner select-none transition-colors duration-300">
+            00:00
+        </div>
+
+        <!-- Keypad Area -->
+        <div class="keypad grid grid-cols-3 gap-4 md:gap-5 w-full max-w-sm">
+            <button class="keypad-btn" data-digit="7">7</button>
+            <button class="keypad-btn" data-digit="8">8</button>
+            <button class="keypad-btn" data-digit="9">9</button>
+            <button class="keypad-btn" data-digit="4">4</button>
+            <button class="keypad-btn" data-digit="5">5</button>
+            <button class="keypad-btn" data-digit="6">6</button>
+            <button class="keypad-btn" data-digit="1">1</button>
+            <button class="keypad-btn" data-digit="2">2</button>
+            <button class="keypad-btn" data-digit="3">3</button>
+            <button class="keypad-btn opacity-0 cursor-default pointer-events-none" aria-hidden="true"></button> <!-- Placeholder -->
+            <button class="keypad-btn" data-digit="0">0</button>
+            <button class="keypad-btn opacity-0 cursor-default pointer-events-none" aria-hidden="true"></button> <!-- Placeholder -->
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="controls flex justify-center gap-4 md:gap-6 w-full max-w-md">
+            <button id="startButton" class="btn bg-start-green hover:bg-start-green-hover focus:ring-start-green">Start</button>
+            <button id="pauseButton" class="btn bg-pause-yellow hover:bg-pause-yellow-hover focus:ring-pause-yellow">Pause</button>
+            <button id="resetButton" class="btn bg-reset-red hover:bg-reset-red-hover focus:ring-reset-red">Reset</button>
+        </div>
+    </div>
+
+    <script>
+        // State Variables
+        let totalSeconds = 0;
+        let timerInterval = null;
+        let paused = false;
+        let inputBuffer = []; // Stores up to 4 digits for input
+
+        // DOM Elements
+        const countdownDisplay = document.getElementById('countdown-display');
+        const keypad = document.querySelector('.keypad');
+        const startButton = document.getElementById('startButton');
+        const pauseButton = document.getElementById('pauseButton');
+        const resetButton = document.getElementById('resetButton');
+        const body = document.body;
+
+        // Helper Functions
+        function padZero(num) {
+            return num < 10 ? '0' + num : '' + num;
+        }
+
+        function updateDisplay(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            countdownDisplay.textContent = `${padZero(minutes)}:${padZero(remainingSeconds)}`;
+        }
+
+        // Core Timer Logic
+        function handleDigitInput(digit) {
+            if (timerInterval !== null && !paused) {
+                // Ignore input if timer is running and not paused
+                return;
+            }
+
+            // If timer finished and alert is active, clear it first
+            if (body.classList.contains('alert')) {
+                body.classList.remove('alert');
+            }
+
+            inputBuffer.push(digit);
+            if (inputBuffer.length > 4) {
+                inputBuffer.shift(); // Remove the oldest digit
+            }
+
+            // Ensure buffer is always 4 digits for parsing MMSS
+            const paddedInput = inputBuffer.join('').padStart(4, '0');
+
+            let minutes = parseInt(paddedInput.substring(0, 2));
+            let seconds = parseInt(paddedInput.substring(2, 4));
+
+            // Cap minutes and seconds
+            minutes = Math.min(minutes, 99); // Max 99 minutes
+            seconds = Math.min(seconds, 59); // Max 59 seconds
+
+            totalSeconds = (minutes * 60) + seconds;
+            updateDisplay(totalSeconds);
+        }
+
+        function startTimer() {
+            // If totalSeconds is 0 and input buffer is also empty, do nothing
+            if (totalSeconds === 0 && inputBuffer.length === 0) {
+                return;
+            }
+
+            // If totalSeconds is 0 but inputBuffer has a value, re-evaluate totalSeconds
+            if (totalSeconds === 0 && inputBuffer.length > 0) {
+                const paddedInput = inputBuffer.join('').padStart(4, '0');
+                let minutes = parseInt(paddedInput.substring(0, 2));
+                let seconds = parseInt(paddedInput.substring(2, 4));
+                minutes = Math.min(minutes, 99);
+                seconds = Math.min(seconds, 59);
+                totalSeconds = (minutes * 60) + seconds;
+                if (totalSeconds === 0) { // If input was e.g., "0000"
+                    return;
+                }
+            }
+            
+            clearInterval(timerInterval);
+            paused = false;
+            body.classList.remove('alert'); // Remove alert if starting a new timer or resuming
+            timerInterval = setInterval(tick, 1000);
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            paused = true;
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            totalSeconds = 0;
+            inputBuffer = [];
+            paused = false;
+            updateDisplay(totalSeconds);
+            body.classList.remove('alert'); // Ensure alert class is removed
+        }
+
+        function tick() {
+            if (totalSeconds > 0) {
+                totalSeconds--;
+                updateDisplay(totalSeconds);
+            } else {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                body.classList.add('alert'); // Add alert class to body
+                alert("Time's up!");
+                paused = false; // Timer has finished, not just paused
+                inputBuffer = []; // Clear buffer after timer ends
+            }
+        }
+
+        // Event Listeners
+        keypad.addEventListener('click', (event) => {
+            const digit = event.target.dataset.digit;
+            if (digit !== undefined) {
+                handleDigitInput(digit);
+            }
+        });
+
+        startButton.addEventListener('click', startTimer);
+        pauseButton.addEventListener('click', pauseTimer);
+        resetButton.addEventListener('click', resetTimer);
+
+        // Initial Setup
+        updateDisplay(totalSeconds); // Set initial display to "00:00"
+    </script>
+</body>
+</html>

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Countdown Timer</title>
+  <style>
+    :root {
+      --bg-color: #f4f4f9;
+      --text-color: #333;
+      --accent-color: #007bff;
+      --accent-hover: #0056b3;
+      --alert-bg: #ff4d4d;
+      --alert-text: #fff;
+      --btn-bg: #e0e0e0;
+      --btn-hover: #d0d0d0;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      /* Prevent scrolling */
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    body.alert {
+      background-color: var(--alert-bg);
+      color: var(--alert-text);
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-evenly;
+      width: 90%;
+      max-width: 400px;
+      height: 95vh;
+      gap: 1rem;
+    }
+
+    #display {
+      font-size: 15vh;
+      font-weight: 700;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+      user-select: none;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      width: 100%;
+      flex-grow: 1;
+      max-height: 50vh;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      background-color: var(--btn-bg);
+      color: #333;
+      font-size: 2rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      touch-action: manipulation;
+      padding: 0;
+    }
+
+    button:active {
+      transform: scale(0.96);
+    }
+
+    button:hover {
+      background-color: var(--btn-hover);
+    }
+
+    button:focus-visible {
+      outline: 3px solid var(--accent-color);
+      outline-offset: 2px;
+    }
+
+    /* Control buttons area */
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      width: 100%;
+      height: 10vh;
+      min-height: 60px;
+    }
+
+    .control-btn {
+      background-color: var(--accent-color);
+      color: white;
+      font-size: 1.2rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .control-btn:hover {
+      background-color: var(--accent-hover);
+    }
+
+    /* Alert state button styling adjustments */
+    body.alert button {
+      background-color: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+
+    body.alert button:hover {
+      background-color: rgba(255, 255, 255, 0.3);
+    }
+
+    body.alert .control-btn {
+      background-color: white;
+      color: var(--alert-bg);
+    }
+
+    @media (max-width: 400px) {
+      #display {
+        font-size: 12vh;
+      }
+
+      button {
+        font-size: 1.5rem;
+      }
+
+      .control-btn {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="app">
+    <div id="display" role="timer" aria-live="polite" aria-label="Timer Display">00:00</div>
+
+    <div class="grid-container" role="group" aria-label="Numeric Keypad">
+      <button onclick="handleInput('1')" aria-label="1">1</button>
+      <button onclick="handleInput('2')" aria-label="2">2</button>
+      <button onclick="handleInput('3')" aria-label="3">3</button>
+      <button onclick="handleInput('4')" aria-label="4">4</button>
+      <button onclick="handleInput('5')" aria-label="5">5</button>
+      <button onclick="handleInput('6')" aria-label="6">6</button>
+      <button onclick="handleInput('7')" aria-label="7">7</button>
+      <button onclick="handleInput('8')" aria-label="8">8</button>
+      <button onclick="handleInput('9')" aria-label="9">9</button>
+      <button onclick="handleInput('00')" aria-label="Double Zero">00</button>
+      <button onclick="handleInput('0')" aria-label="0">0</button>
+      <button onclick="handleClear()" aria-label="Clear last digit">⌫</button>
+    </div>
+
+    <div class="controls" role="group" aria-label="Timer Controls">
+      <button class="control-btn" onclick="startTimer()" aria-label="Start Timer">Start</button>
+      <button class="control-btn" onclick="pauseTimer()" aria-label="Pause Timer">Pause</button>
+      <button class="control-btn" onclick="resetTimer()" aria-label="Reset Timer">Reset</button>
+    </div>
+  </div>
+
+  <script>
+    let inputBuffer = "";
+    let totalSeconds = 0;
+    let intervalId = null;
+    let isRunning = false;
+    let isPaused = false;
+    let audioCtx;
+
+    const displayEl = document.getElementById( 'display' );
+    const bodyEl = document.body;
+
+    function updateDisplay ( mm, ss ) {
+      const mStr = String( mm ).padStart( 2, '0' );
+      const sStr = String( ss ).padStart( 2, '0' );
+      displayEl.textContent = `${ mStr }:${ sStr }`;
+      document.title = isRunning ? `${ mStr }:${ sStr } - Timer` : "Countdown Timer";
+    }
+
+    function formatInputBuffer () {
+      // Microwave logic: Pad buffer to 4 digits (e.g., "1" -> "0001", "123" -> "0123")
+      const padded = inputBuffer.padStart( 4, '0' );
+      const mm = padded.substring( 0, 2 );
+      const ss = padded.substring( 2, 4 );
+      return { mm, ss };
+    }
+
+    function handleInput ( val ) {
+      if ( isRunning || isPaused ) return; // Must reset to edit
+      if ( bodyEl.classList.contains( 'alert' ) ) resetTimer();
+      if ( inputBuffer.length + val.length > 4 ) return; // Max 4 digits
+
+      inputBuffer += val;
+      const { mm, ss } = formatInputBuffer();
+      displayEl.textContent = `${ mm }:${ ss }`;
+    }
+
+    function handleClear () {
+      if ( isRunning || isPaused ) return;
+      if ( bodyEl.classList.contains( 'alert' ) ) resetTimer();
+
+      inputBuffer = inputBuffer.slice( 0, -1 );
+      const { mm, ss } = formatInputBuffer();
+      displayEl.textContent = `${ mm }:${ ss }`;
+    }
+
+    function startTimer () {
+      if ( isRunning ) return;
+
+      // Initialize AudioContext on user interaction
+      if ( !audioCtx ) audioCtx = new ( window.AudioContext || window.webkitAudioContext )();
+      if ( audioCtx.state === 'suspended' ) audioCtx.resume();
+
+      if ( !isPaused ) {
+        const { mm, ss } = formatInputBuffer();
+        totalSeconds = parseInt( mm, 10 ) * 60 + parseInt( ss, 10 );
+        if ( totalSeconds === 0 ) return;
+
+        // Normalize display immediately (e.g., 90s -> 01:30)
+        const displayMin = Math.floor( totalSeconds / 60 );
+        const displaySec = totalSeconds % 60;
+        updateDisplay( displayMin, displaySec );
+      }
+
+      isRunning = true;
+      isPaused = false;
+      intervalId = setInterval( tick, 1000 );
+    }
+
+    function tick () {
+      totalSeconds--;
+
+      if ( totalSeconds < 0 ) {
+        triggerAlert();
+        return;
+      }
+
+      const displayMin = Math.floor( totalSeconds / 60 );
+      const displaySec = totalSeconds % 60;
+      updateDisplay( displayMin, displaySec );
+
+      if ( totalSeconds === 0 ) {
+        triggerAlert();
+      }
+    }
+
+    function pauseTimer () {
+      if ( !isRunning ) return;
+      clearInterval( intervalId );
+      isRunning = false;
+      isPaused = true;
+    }
+
+    function resetTimer () {
+      clearInterval( intervalId );
+      isRunning = false;
+      isPaused = false;
+      inputBuffer = "";
+      totalSeconds = 0;
+      bodyEl.classList.remove( 'alert' );
+      updateDisplay( 0, 0 );
+    }
+
+    function triggerAlert () {
+      clearInterval( intervalId );
+      isRunning = false;
+      isPaused = false;
+      inputBuffer = "";
+      bodyEl.classList.add( 'alert' );
+      playAlertSound();
+    }
+
+    function playAlertSound () {
+      if ( !audioCtx ) return;
+
+      const now = audioCtx.currentTime;
+
+      // Create a sequence of beeps
+      for ( let i = 0; i < 4; i++ ) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'square';
+        osc.frequency.setValueAtTime( 880, now + i * 0.6 ); // A5
+
+        gain.gain.setValueAtTime( 0.1, now + i * 0.6 );
+        gain.gain.exponentialRampToValueAtTime( 0.001, now + i * 0.6 + 0.4 );
+
+        osc.connect( gain );
+        gain.connect( audioCtx.destination );
+
+        osc.start( now + i * 0.6 );
+        osc.stop( now + i * 0.6 + 0.4 );
+      }
+    }
+  </script>
+</body>
+
+</html>
