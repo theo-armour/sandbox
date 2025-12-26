@@ -4,8 +4,10 @@
 
 * https://www.google.com/search >> AI Mode
 * https://gemini.google.com/app
-* https://gemini.google.com/saved-info
-
+* https://github.com/google-gemini/cookbook
+* https://ai.google.dev/gemini-api/docs
+* https://codeassist.google/
+* https://support.google.com/gemini#topic=15280100
 
 ## Gemini Tips and Tricks
 

@@ -1,4 +1,4 @@
-[hacker_new](https://news.ycombinator.com/)
+[twitter](https://twitter.com/)
 
 [nytimes]( https://nytimes.com/ )
 [chronic]( https://www.sfchronicle.com/ )
