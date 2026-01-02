@@ -1,4 +1,4 @@
-[twitter](https://twitter.com/)
+[lifehacker](https://lifehacker.com/)
 
 [nytimes]( https://nytimes.com/ )
 [chronic]( https://www.sfchronicle.com/ )
