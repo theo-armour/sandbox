@@ -1,6 +1,8 @@
 # 2026-01-01 Nate Jones Reference
 
-## https://www.notion.so/product-templates/The-Chief-of-Staff-Prompt-Suite-2d85a2ccb52680c898b6fcf5509d4352
+## https://natesnewsletter.substack.com/p/grab-the-delegation-kit-i-use-to
+
+* https://www.notion.so/product-templates/The-Chief-of-Staff-Prompt-Suite-2d85a2ccb52680c898b6fcf5509d4352
 
 ### 1. The Intention Clarifier
 
