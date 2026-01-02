@@ -64,6 +64,24 @@
       transform: translateY(0);
     }
 
+    .counter {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      font-size: 1rem;
+      color: white;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      animation: fadeInUp 1.2s ease-out;
+    }
+
+    .counter-number {
+      font-weight: bold;
+      font-size: 1.5rem;
+    }
+
     .sparkle {
       position: absolute;
       width: 4px;
@@ -122,6 +140,10 @@
 </head>
 
 <body>
+  <div class="counter">
+    Clicks: <span class="counter-number">0</span>
+  </div>
+
   <div class="container">
     <h1>Hello World <span class="emoji">👋</span></h1>
     <button onclick="createSparkles()">Click Me!</button>
@@ -130,8 +152,12 @@
   <script>
     const messages = [ 'Awesome! 🎉', 'You Rock! 🌟', 'Amazing! 🚀', 'Fantastic! ✨', 'Brilliant! 💫' ];
     let messageIndex = 0;
+    let clickCount = 0;
 
     const createSparkles = () => {
+      // Update counter
+      clickCount++;
+      document.querySelector( '.counter-number' ).textContent = clickCount;
       const colors = [ '#fff', '#ffd700', '#ff69b4', '#00ffff', '#98fb98' ];
       const h1 = document.querySelector( 'h1' );
       const btn = document.querySelector( 'button' );
@@ -162,6 +188,14 @@
 
     // Sparkle on load - wait longer so "Hello World" stays visible
     setTimeout( createSparkles, 3000 );
+
+    // Keyboard interaction - spacebar triggers sparkles
+    document.addEventListener( 'keydown', ( e ) => {
+      if ( e.code === 'Space' || e.key === ' ' ) {
+        e.preventDefault(); // Prevent page scroll
+        createSparkles();
+      }
+    } );
   </script>
 </body>
 
