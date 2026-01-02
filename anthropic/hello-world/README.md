@@ -10,13 +10,16 @@ A zippy, interactive "Hello World" demo with animations and sparkle effects.
 - **Sparkle explosion** - Colorful particles fly across the screen
 - **Message rotation** - Heading cycles through fun messages
 - **Button feedback** - Visual pulse on click
+- **Click counter** - Displays total number of clicks in top-right corner
+- **Keyboard support** - Press spacebar to trigger effects (no mouse needed!)
 
 ## How to Use
 
-Open `hello-world.html` in any modern browser. Click the "Click Me!" button to see:
+Open `hello-world.html` in any modern browser. Click the "Click Me!" button (or press spacebar) to see:
 - Heading text changes to random encouraging messages
 - Button pulses/scales
 - 20 colorful sparkles animate across the screen
+- Click counter increments in the top-right corner
 
 ## Tech Stack
 
@@ -40,12 +43,13 @@ Open `hello-world.html` in any modern browser. Click the "Click Me!" button to s
 ## Possible Enhancements
 
 - Add sound effects
-- Keyboard interaction (spacebar to click)
 - Mobile touch optimizations
 - Theme switcher (dark/light)
-- Counter showing total clicks
 
 ## Changelog
+
+### 2026-01-02
+- **v1.3** - Added click counter display and keyboard interaction (spacebar support)
 
 ### 2025-12-28
 - **v1.2** - Increased initial delay to 3 seconds so "Hello World" stays visible longer
