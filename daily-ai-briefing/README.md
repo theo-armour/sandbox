@@ -2,6 +2,8 @@
 
 A clean, mobile-responsive website for daily AI news and updates.
 
+**🌐 Live Site:** [https://theo-armour.github.io/sandbox/daily-ai-briefing/](https://theo-armour.github.io/sandbox/daily-ai-briefing/)
+
 ## Features
 
 - **Home Page**: Introduction to Daily AI Briefing and its target audience
