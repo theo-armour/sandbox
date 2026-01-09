@@ -1,13 +1,11 @@
-# [![](https://pushme-pullyou.github.io/assets/svg/octicon.svg )](https://github.com/theo-armour/sandbox/ "Source code on GitHub" ) [Theo Armour Sandbox]( https://theo-armour.github.io/sandbox/ "Home page" ) / [Templates Folder Read Me]( https://github.com/theo-armour/sandbox/tree/main/templates/folder/ "2026-01-09" )
+# [![](https://pushme-pullyou.github.io/assets/svg/octicon.svg )](https://github.com/theo-armour/sandbox/ "Source code on GitHub" ) [Theo Armour Sandbox]( https://theo-armour.github.io/sandbox/ "Home page" ) / [Templates/Folder Read Me]( https://github.com/theo-armour/sandbox/tree/main/templates/folder/ "2026-01-09" )
 
-_This file describes the template files. The files to copy are in dated sub-folders_
-
-<!-- @@@
+<!--@@@
 <div class=iframe-resize ><iframe src=https://pushme-pullyou.github.io/assets/templates/folder/ height=100% width=100% ></iframe></div>
 _"Templates Read Me" in a resizable window_
-@@@ -->
+@@@-->
 
-## Full Screen: [Templates]( https://pushme-pullyou.github.io/assets/templates/folder/ )
+## Full Screen: [Templates/Folder ]( https://pushme-pullyou.github.io/assets/templates/folder/ )
 
 
 ## Concept
@@ -32,7 +30,6 @@ _"Templates Read Me" in a resizable window_
 
 ## Issues
 
-
 ## Links of Interest
 
 
@@ -41,14 +38,16 @@ _"Templates Read Me" in a resizable window_
 
 ### 2026-01-09
 
-* Remove all password functionality
-* Clean up and simplify readme.html
-* Update repository references to theo-armour/sandbox
+* Remove password functionality - no longer needed
+* Remove BOM character from HTML files
+* Simplify showdown options to essentials only
+* Update copyright to 2026
+* Update repository links to theo-armour/sandbox
 
 ### 2025-01-09
 
 * First commit
-* Update to today's read me
+
 
 ***
 

@@ -12,7 +12,6 @@
   <meta name="author" content="Theo Armour">
   <meta name="creator" content="https://github.com/theo-armour/sandbox/tree/main/templates/folder">
 
-
   <style>
     /* Copyright 2026 Theo Armour. MIT License */
 
@@ -116,34 +115,28 @@
 
     showdown.setFlavor( "github" );
 
-    // If there's no hash in the URL, set it to the default file
     if ( !location.hash ) {
       location.hash = defaultFile;
     }
 
-    // If the hash ends with ".md", call onHashChange. Otherwise, navigate to the URL specified by the hash
     if ( location.hash.endsWith( ".md" ) ) {
       onHashChange();
     } else {
       window.location.href = location.hash.slice( 1 );
     }
 
-    // Listen for changes to the hash in the URL
     window.addEventListener( "hashchange", onHashChange, false );
 
-    // If the page is loaded over HTTPS, remove the hash from the URL
     if ( location.protocol === "https:" ) {
       window.history.pushState( "", "", "./" + location.hash );
     }
 
     function onHashChange () {
 
-      // If the hash doesn't include a ".", it's probably an internal link, so do nothing
       if ( !location.hash.includes( "." ) ) {
         return;
       }
 
-      // Get the URL from the hash and update the document title
       const url = location.hash.slice( 1 );
 
       setDocumentTitle( url );
@@ -158,7 +151,6 @@
         tasklists: true,
       };
 
-      // Fetch the file and update the page content
       fetchFile( url, options );
 
     }
