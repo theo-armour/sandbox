@@ -1,4 +1,4 @@
-# [![](https://pushme-pullyou.github.io/assets/svg/octicon.svg )](https://github.com/theo-armour/sandbox/ "Source code on GitHub" ) [Theo Armour Sandbox]( https://theo-armour.github.io/sandbox/ "Home page" ) / [Templates Folder Read Me]( https://github.com/theo-armour/sandbox/tree/main/templates/folder/ "2026-01-09" )
+# [![](https://pushme-pullyou.github.io/assets/svg/octicon.svg )](https://github.com/pushme-pullyou/assets/ "Source code on GitHub" ) [PushMe PullYou Assets]( https://pushme-pullyou.github.io/assets/ "Home page" ) / [Templates Folder Read Me]( https://github.com/pushme-pullyou/assets/tree/main/templates-folder/ "2025-01-09" )
 
 _This file describes the template files. The files to copy are in dated sub-folders_
 
@@ -43,7 +43,7 @@ _"Templates Read Me" in a resizable window_
 
 * Remove all password functionality
 * Clean up and simplify readme.html
-* Update repository references to theo-armour/sandbox
+
 
 ### 2025-01-09
 
