@@ -1,21 +1,23 @@
 # Notesy: GitHub-Integrated Text Editor
 
 ## Overview
-Browser-based text editor that reads/writes files directly to GitHub repositories. Single HTML file, no backend, no build process. Multiple instances can run simultaneously.
+Browser-based text editor that reads/writes files directly to GitHub repositories. Single HTML file, no backend, no build process. Multiple instances can run simultaneously. Runs locally and remotely. Each instance loads a single file. Multiple instances may be run in iframes in a single window.
 
 ## Core Features
 
 ### GitHub Integration
 - Use GitHub API with personal access tokens (stored in localStorage)
 - Fetch and save files from any accessible repository (public or private)
-- Use `location.hash` for file navigation—when hash changes, load that file
+- Use `location.hash` for file navigation
+— When hash changes, load that file
 - Auto-commit changes with generated commit messages
 - Handle base64 encoding/decoding and SHA hashes for version control
 
 ### File Management
 - Hash-based navigation: `#filename.md` loads that file
-- Quick access buttons for common files
+- Quick access buttons for test files
 - Display file metadata (size, last modified)
+- When the app is run locally, assume files are relative to current HTML file location
 
 ### Auto-Save
 - Save automatically every 15 seconds when content changes
@@ -29,12 +31,11 @@ Browser-based text editor that reads/writes files directly to GitHub repositorie
 - Main content area: `contenteditable` or `textarea` div
 - Visual feedback for save states (loading/success/error)
 - Responsive, mobile-friendly
-- Simple color scheme (dark blue headers, maroon h3)
-- Max-width container for readability
+- Adjusts to window size updates
+- Simple color scheme
+- 30rem max-width container for readability
 
 ### Smart Link Handling
-- HTML → Markdown: if link text equals URL, output plain URL only
-- Markdown → HTML: if text equals URL, leave as plain text
 - Preserve complex URLs and special characters
 
 ## Technical Specs
@@ -51,16 +52,20 @@ Browser-based text editor that reads/writes files directly to GitHub repositorie
 <!DOCTYPE html>
 - viewport meta tag
 - inline CSS
-- fixed header (GitHub logo, nav, save button)
-- main content area (contenteditable/textarea)
-- control buttons
+- fixed header with:
+  - GitHub logo links to GitHub source code for current file
+  - current file title
+  - Save status indicator
+- main content area (contenteditable/textarea) resizing with window
+- control buttons and test file buttons
 ```
 
 ### Key Behaviors
 - Event-driven architecture
-- Track editing state (text/Markdown mode)
+- Track editing state
 - Monitor content changes for auto-save
 - Handle API rate limits across multiple instances
+- Configuration defaults for GitHub user, repo, branch and test files are set in `XGP` object
 
 ### Security
 - GitHub token in localStorage only
