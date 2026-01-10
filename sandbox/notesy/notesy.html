@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notesy - GitHub Text Editor</title>
+    <title>Notesy - Text Editor</title>
     <style>
         * {
             margin: 0;
@@ -55,6 +55,14 @@
             font-size: 14px;
             font-weight: normal;
             color: rgba(255,255,255,0.9);
+        }
+
+        .mode-indicator {
+            font-size: 10px;
+            padding: 2px 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            margin-left: 8px;
         }
 
         .header-right {
@@ -125,10 +133,6 @@
             font-size: 16px;
         }
 
-        .token-setup p {
-            margin-bottom: 12px;
-        }
-
         .token-setup input {
             font-family: 'Courier New', Courier, monospace;
             width: 100%;
@@ -137,10 +141,6 @@
             border: 1px solid #ccc;
             border-radius: 3px;
             font-size: 13px;
-        }
-
-        .token-setup button {
-            margin-top: 10px;
         }
 
         .quick-links {
@@ -229,8 +229,9 @@
 <body>
     <header>
         <div class="header-left">
-            <a href="#" id="githubLink" class="github-link" title="View on GitHub" target="_blank">⚙️</a>
+            <a href="#" id="githubLink" class="github-link" title="View source" target="_blank">⚙️</a>
             <span class="file-title" id="fileTitle">Notesy</span>
+            <span class="mode-indicator" id="modeIndicator">...</span>
         </div>
         <div class="header-right">
             <span class="status" id="status">Ready</span>
@@ -239,25 +240,35 @@
     </header>
 
     <main>
-        <div class="token-setup" id="tokenSetup">
+        <div class="token-setup" id="tokenSetup" style="display: none;">
             <h3>GitHub Setup</h3>
-            <p>Enter your GitHub personal access token and repository details:</p>
+            <p>One-time configuration - enter your GitHub repository details:</p>
             <input type="password" id="tokenInput" placeholder="GitHub Token (ghp_...)" />
-            <input type="text" id="ownerInput" placeholder="Repository Owner (e.g., pushme-pullyou)" />
-            <input type="text" id="repoInput" placeholder="Repository Name (e.g., assets)" />
+            <input type="text" id="ownerInput" placeholder="Repository Owner" />
+            <input type="text" id="repoInput" placeholder="Repository Name" />
             <input type="text" id="branchInput" placeholder="Branch (default: main)" value="main" />
             <button onclick="XGP.saveConfig()">Save Config</button>
             <p style="font-size: 11px; margin-top: 12px; color: #666;">
-                Token needs repo access. Create at: <a href="https://github.com/settings/tokens" target="_blank">github.com/settings/tokens</a>
+                Create token with repo access at: <a href="https://github.com/settings/tokens" target="_blank">github.com/settings/tokens</a>
             </p>
         </div>
 
+        <div id="localFileSelect" style="display: none;">
+            <div style="background: white; padding: 20px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 20px;">
+                <h3 style="color: maroon; margin-bottom: 12px; font-size: 16px;">Select Local File</h3>
+                <p style="margin-bottom: 12px;">Choose a file to edit from your local filesystem:</p>
+                <button onclick="XGP.selectLocalFile()" style="width: 100%;">📁 Open File</button>
+                <p style="font-size: 11px; margin-top: 12px; color: #666;">
+                    The file will be opened and you can save changes directly back to it.
+                </p>
+            </div>
+        </div>
+
         <div id="editorArea" style="display: none;">
-            <div class="quick-links">
-                <button onclick="XGP.loadFileByHash('test-cases/text.txt')">text.txt</button>
-                <button onclick="XGP.loadFileByHash('test-cases/markdown.md')">markdown.md</button>
-                <button onclick="XGP.loadFileByHash('test-cases/markdown-help.md')">markdown-help.md</button>
-                <button onclick="XGP.loadFileByHash('test-cases/sample.md')">sample.md</button>
+            <div class="quick-links" id="quickLinks">
+                <button onclick="XGP.loadFileByHash('README.md')">README.md</button>
+                <button onclick="XGP.loadFileByHash('test.md')">test.md</button>
+                <button onclick="XGP.loadFileByHash('test.txt')">test.txt</button>
             </div>
 
             <div class="file-info" id="fileInfo">No file loaded</div>
@@ -267,18 +278,21 @@
     </main>
 
     <script>
-        // Global namespace
         const XGP = {
-            // Configuration defaults
+            // Mode detection
+            isLocalMode: false,
+
+            // GitHub config
             token: '',
-            owner: 'pushme-pullyou',
-            repo: 'assets',
+            owner: '',
+            repo: '',
             branch: 'main',
 
             // File state
             currentFile: '',
             currentSHA: '',
             originalContent: '',
+            fileHandle: null,
 
             // Auto-save state
             autoSaveTimer: null,
@@ -286,7 +300,9 @@
             saveThrottle: 3000,
 
             init() {
+                this.detectMode();
                 this.loadConfig();
+
                 window.addEventListener('hashchange', () => this.handleHashChange());
                 window.addEventListener('resize', () => this.adjustEditorHeight());
 
@@ -297,25 +313,46 @@
                 this.handleHashChange();
             },
 
+            detectMode() {
+                const hostname = window.location.hostname;
+                const protocol = window.location.protocol;
+
+                this.isLocalMode = (
+                    hostname === 'localhost' ||
+                    hostname === '127.0.0.1' ||
+                    hostname === '' ||
+                    protocol === 'file:'
+                );
+
+                const indicator = document.getElementById('modeIndicator');
+                indicator.textContent = this.isLocalMode ? 'LOCAL' : 'GITHUB';
+
+                console.log('Mode:', this.isLocalMode ? 'Local' : 'GitHub');
+            },
+
             loadConfig() {
-                const token = localStorage.getItem('github_token');
-                const owner = localStorage.getItem('github_owner') || this.owner;
-                const repo = localStorage.getItem('github_repo') || this.repo;
-                const branch = localStorage.getItem('github_branch') || this.branch;
-
-                if (token && owner && repo) {
-                    this.token = token;
-                    this.owner = owner;
-                    this.repo = repo;
-                    this.branch = branch;
-
-                    document.getElementById('tokenSetup').style.display = 'none';
-                    document.getElementById('editorArea').style.display = 'block';
+                if (this.isLocalMode) {
+                    // Local mode - show file selector
+                    document.getElementById('localFileSelect').style.display = 'block';
                 } else {
-                    document.getElementById('tokenInput').value = token || '';
-                    document.getElementById('ownerInput').value = owner;
-                    document.getElementById('repoInput').value = repo;
-                    document.getElementById('branchInput').value = branch;
+                    // GitHub mode - check for token
+                    const token = localStorage.getItem('github_token');
+                    const owner = localStorage.getItem('github_owner');
+                    const repo = localStorage.getItem('github_repo');
+                    const branch = localStorage.getItem('github_branch') || 'main';
+
+                    if (token && owner && repo) {
+                        this.token = token;
+                        this.owner = owner;
+                        this.repo = repo;
+                        this.branch = branch;
+                        document.getElementById('editorArea').style.display = 'block';
+                    } else {
+                        document.getElementById('tokenSetup').style.display = 'block';
+                        document.getElementById('tokenInput').value = token || '';
+                        document.getElementById('ownerInput').value = owner || '';
+                        document.getElementById('repoInput').value = repo || '';
+                    }
                 }
             },
 
@@ -348,10 +385,16 @@
 
             handleHashChange() {
                 const hash = window.location.hash.slice(1);
-                if (hash && this.token) {
-                    this.loadFile(hash);
-                } else if (hash) {
-                    document.getElementById('fileTitle').textContent = hash;
+                if (hash) {
+                    if (this.isLocalMode) {
+                        // In local mode, hash is ignored - user must select file
+                        // This prevents trying to fetch which would fail
+                        console.log('Local mode: Use file picker to select file');
+                    } else if (this.token) {
+                        this.loadFileGitHub(hash);
+                    } else {
+                        document.getElementById('fileTitle').textContent = hash;
+                    }
                 }
             },
 
@@ -367,7 +410,7 @@
 
             updateGitHubLink() {
                 const link = document.getElementById('githubLink');
-                if (this.currentFile) {
+                if (!this.isLocalMode && this.currentFile && this.owner && this.repo) {
                     link.href = `https://github.com/${this.owner}/${this.repo}/blob/${this.branch}/${this.currentFile}`;
                 }
             },
@@ -378,9 +421,72 @@
                 editor.style.minHeight = minHeight + 'px';
             },
 
-            loadFile(path) {
-                if (!this.token) return;
+            // LOCAL MODE: Select file using File System Access API
+            async selectLocalFile() {
+                try {
+                    if (!('showOpenFilePicker' in window)) {
+                        alert('File System Access API not supported in this browser. Please use Chrome, Edge, or another Chromium-based browser.');
+                        return;
+                    }
 
+                    const [fileHandle] = await window.showOpenFilePicker({
+                        types: [{
+                            description: 'Text Files',
+                            accept: {
+                                'text/plain': ['.txt', '.md', '.markdown', '.text'],
+                                'text/markdown': ['.md', '.markdown']
+                            }
+                        }],
+                        multiple: false
+                    });
+
+                    this.fileHandle = fileHandle;
+                    await this.loadFileLocal();
+
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        console.error('File selection error:', error);
+                        this.setStatus('Error selecting file', 'error');
+                    }
+                }
+            },
+
+            // LOCAL MODE: Load file from file handle
+            async loadFileLocal() {
+                if (!this.fileHandle) return;
+
+                this.setStatus('Loading...', 'loading');
+
+                try {
+                    const file = await this.fileHandle.getFile();
+                    const content = await file.text();
+
+                    this.currentFile = file.name;
+                    this.originalContent = content;
+
+                    document.getElementById('fileTitle').textContent = file.name;
+                    document.getElementById('editor').innerText = content;
+
+                    const size = (file.size / 1024).toFixed(2);
+                    const modified = new Date(file.lastModified).toLocaleString();
+                    document.getElementById('fileInfo').textContent = `${file.name} • ${size} KB • Modified: ${modified}`;
+
+                    document.getElementById('localFileSelect').style.display = 'none';
+                    document.getElementById('editorArea').style.display = 'block';
+
+                    this.setStatus('Loaded', 'success');
+                    setTimeout(() => this.setStatus('Ready'), 2000);
+
+                    this.adjustEditorHeight();
+
+                } catch (error) {
+                    this.setStatus('Error loading', 'error');
+                    console.error('Load error:', error);
+                }
+            },
+
+            // GITHUB MODE: Load file from GitHub API
+            loadFileGitHub(path) {
                 this.currentFile = path;
                 this.setStatus('Loading...', 'loading');
 
@@ -399,11 +505,10 @@
                         const data = JSON.parse(xhr.responseText);
                         this.currentSHA = data.sha;
 
-                        // Decode base64 content
                         const content = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
                         this.originalContent = content;
 
-                        document.getElementById('editor').textContent = content;
+                        document.getElementById('editor').innerText = content;
 
                         const size = (data.size / 1024).toFixed(2);
                         document.getElementById('fileInfo').textContent =
@@ -415,7 +520,6 @@
                         this.adjustEditorHeight();
                     } else if (xhr.status === 404) {
                         this.setStatus('File not found', 'error');
-                        document.getElementById('editor').textContent = '';
                         document.getElementById('fileInfo').textContent = `File not found: ${path}`;
                     } else {
                         this.setStatus('Error loading', 'error');
@@ -431,12 +535,21 @@
             },
 
             saveFile() {
-                if (!this.token || !this.currentFile) {
+                if (this.isLocalMode) {
+                    this.saveFileLocal();
+                } else {
+                    this.saveFileGitHub();
+                }
+            },
+
+            // LOCAL MODE: Save using FileSystem Access API
+            async saveFileLocal() {
+                if (!this.fileHandle) {
                     this.setStatus('No file', 'error');
                     return;
                 }
 
-                const content = document.getElementById('editor').textContent;
+                const content = document.getElementById('editor').innerText;
 
                 if (content === this.originalContent) {
                     this.setStatus('No changes', '');
@@ -444,7 +557,56 @@
                     return;
                 }
 
-                // Throttle saves
+                const now = Date.now();
+                if (now - this.lastSaveTime < this.saveThrottle) {
+                    console.log('Save throttled');
+                    return;
+                }
+                this.lastSaveTime = now;
+
+                this.setStatus('Saving...', 'loading');
+
+                try {
+                    // Write directly to the file handle we already have
+                    const writable = await this.fileHandle.createWritable();
+                    await writable.write(content);
+                    await writable.close();
+
+                    this.originalContent = content;
+
+                    const size = (new Blob([content]).size / 1024).toFixed(2);
+                    const now = new Date().toLocaleString();
+                    document.getElementById('fileInfo').textContent =
+                        `${this.currentFile} • ${size} KB • Saved: ${now}`;
+
+                    this.setStatus('Saved ✓', 'success');
+                    setTimeout(() => this.setStatus('Ready'), 2000);
+
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        this.setStatus('Save cancelled', '');
+                    } else {
+                        this.setStatus('Save failed', 'error');
+                        console.error('Save error:', error);
+                    }
+                }
+            },
+
+            // GITHUB MODE: Save to GitHub
+            saveFileGitHub() {
+                if (!this.token || !this.currentFile) {
+                    this.setStatus('No file', 'error');
+                    return;
+                }
+
+                const content = document.getElementById('editor').innerText;
+
+                if (content === this.originalContent) {
+                    this.setStatus('No changes', '');
+                    setTimeout(() => this.setStatus('Ready'), 1500);
+                    return;
+                }
+
                 const now = Date.now();
                 if (now - this.lastSaveTime < this.saveThrottle) {
                     console.log('Save throttled');
@@ -484,7 +646,6 @@
                     } else {
                         this.setStatus('Save failed', 'error');
                         console.error('Save error:', xhr.responseText);
-                        alert('Save failed: ' + xhr.status);
                     }
                 };
 
@@ -496,7 +657,7 @@
             },
 
             saveIfChanged() {
-                const content = document.getElementById('editor').textContent;
+                const content = document.getElementById('editor').innerText;
                 if (content !== this.originalContent) {
                     this.saveFile();
                 }

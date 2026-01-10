@@ -1,24 +1,38 @@
-# Notesy: GitHub-Integrated Text Editor
+# Notesy: Dual-Mode Text Editor
 
 ## Overview
-Browser-based text editor that reads/writes files directly to GitHub repositories. Single HTML file, no backend, no build process.
+Browser-based text editor that works in two modes:
+- **GitHub Mode**: Reads/writes files to GitHub repositories via API
+- **Local Mode**: Reads/writes files from local filesystem
+
+Single HTML file, no backend, no build process. Automatically detects environment and switches modes.
 
 **Multi-Instance Support**: Multiple instances can run simultaneously in separate tabs, windows, or iframes. Each instance loads a single file independently.
 
 ## Core Features
 
-### GitHub Integration
+### Mode Detection
+- **GitHub Mode**: Detected when hostname is NOT `localhost`, `127.0.0.1`, or `file://`
+- **Local Mode**: Detected when hostname IS `localhost`, `127.0.0.1`, or protocol is `file://`
+- Mode detection happens automatically on page load
+
+### GitHub Mode
 - Use GitHub API with personal access tokens (stored in localStorage)
 - Fetch and save files from any accessible repository (public or private)
-- Use `location.hash` for file navigation—when hash changes, load that file
 - Auto-commit changes with generated commit messages
 - Handle base64 encoding/decoding and SHA hashes for version control
 
-### File Management
+### Local Mode
+- Fetch files from same directory using relative URLs (`fetch('./filename.md')`)
+- Save files using FileSystem Access API (writes directly back to original file)
+- User grants permission once per session to write to files
+- No GitHub API calls
+
+### File Management (Both Modes)
 - Hash-based navigation: `#filename.md` loads that file
-- Quick access buttons for test files
-- Display file metadata (size, last modified, SHA)
-- When run locally, files are relative to current HTML file location
+- Quick access buttons for test files (README.md, test.md, test.txt)
+- Display file metadata (size, last modified)
+- Files are relative to HTML file location
 
 ### Auto-Save
 - Save automatically every 15 seconds when content changes
@@ -57,8 +71,8 @@ Browser-based text editor that reads/writes files directly to GitHub repositorie
   </head>
   <body>
     - fixed header:
-      - GitHub logo (links to source on GitHub)
-      - current file title
+      - GitHub logo (links to current source of file being edited on GitHub)
+      - currently edited file title
       - save status indicator
       - save button
     - main content area:
@@ -71,9 +85,11 @@ Browser-based text editor that reads/writes files directly to GitHub repositorie
 
 ### Key Behaviors
 - Event-driven architecture
+- Automatic mode detection on page load
 - Track editing state and content changes for auto-save
-- Handle API rate limits across multiple instances
+- Handle API rate limits across multiple instances (GitHub mode)
 - Configuration defaults (GitHub user, repo, branch, test files) set in `XGP` object
+- FileSystem Access API for local file writing (Local mode)
 
 ### Security
 - GitHub token in localStorage only
@@ -82,10 +98,19 @@ Browser-based text editor that reads/writes files directly to GitHub repositorie
 - No server dependencies
 
 ## User Flow
+
+### GitHub Mode
 1. Enter GitHub personal access token (one-time setup)
 2. Navigate to file via URL hash (`#filename.md`) or quick access buttons
-3. Edit content—auto-saves every 15 seconds or on blur
+3. Edit content—auto-saves every 15 seconds or on blur to GitHub
 4. Visual feedback shows save status (ready/loading/success/error)
+
+### Local Mode
+1. Navigate to file via URL hash (`#filename.md`) or quick access buttons
+2. App fetches file from local directory
+3. Edit content—auto-saves every 15 seconds or on blur
+4. FileSystem Access API writes directly back to original file
+5. Visual feedback shows save status (ready/loading/success/error)
 
 ## Error Handling
 - Minimal—assume things work
