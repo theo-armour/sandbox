@@ -329,7 +329,7 @@
                 this.currentFile = path;
                 this.setStatus('Loading...', 'loading');
 
-                const url = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${path}?ref=${this.branch}`;
+                const url = `https://api.github.com/repos/${this.owner}/${this.repo}/${path}?ref=${this.branch}`;
 
                 const xhr = new XMLHttpRequest();
                 xhr.open('GET', url);
