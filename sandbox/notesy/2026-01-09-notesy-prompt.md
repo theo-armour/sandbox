@@ -1,23 +1,24 @@
 # Notesy: GitHub-Integrated Text Editor
 
 ## Overview
-Browser-based text editor that reads/writes files directly to GitHub repositories. Single HTML file, no backend, no build process. Multiple instances can run simultaneously. Runs locally and remotely. Each instance loads a single file. Multiple instances may be run in iframes in a single window.
+Browser-based text editor that reads/writes files directly to GitHub repositories. Single HTML file, no backend, no build process.
+
+**Multi-Instance Support**: Multiple instances can run simultaneously in separate tabs, windows, or iframes. Each instance loads a single file independently.
 
 ## Core Features
 
 ### GitHub Integration
 - Use GitHub API with personal access tokens (stored in localStorage)
 - Fetch and save files from any accessible repository (public or private)
-- Use `location.hash` for file navigation
-— When hash changes, load that file
+- Use `location.hash` for file navigation—when hash changes, load that file
 - Auto-commit changes with generated commit messages
 - Handle base64 encoding/decoding and SHA hashes for version control
 
 ### File Management
 - Hash-based navigation: `#filename.md` loads that file
 - Quick access buttons for test files
-- Display file metadata (size, last modified)
-- When the app is run locally, assume files are relative to current HTML file location
+- Display file metadata (size, last modified, SHA)
+- When run locally, files are relative to current HTML file location
 
 ### Auto-Save
 - Save automatically every 15 seconds when content changes
@@ -27,16 +28,15 @@ Browser-based text editor that reads/writes files directly to GitHub repositorie
 
 ### User Interface
 - Monospace font throughout
-- Fixed header with save button and status
-- Main content area: `contenteditable` or `textarea` div
+- Fixed header with save button and status indicator
+- Main content area: `contenteditable` or `textarea` div that adjusts to window size
 - Visual feedback for save states (loading/success/error)
-- Responsive, mobile-friendly
-- Adjusts to window size updates
-- Simple color scheme
-- 30rem max-width container for readability
+- Responsive, mobile-friendly layout
+- Simple color scheme (dark blue header, minimal styling)
+- Max-width: 30rem for readability
 
 ### Smart Link Handling
-- Preserve complex URLs and special characters
+- Preserve complex URLs and special characters properly
 
 ## Technical Specs
 
@@ -48,24 +48,32 @@ Browser-based text editor that reads/writes files directly to GitHub repositorie
 - **Communication**: XMLHttpRequest
 
 ### HTML Structure
-```
+```html
 <!DOCTYPE html>
-- viewport meta tag
-- inline CSS
-- fixed header with:
-  - GitHub logo links to GitHub source code for current file
-  - current file title
-  - Save status indicator
-- main content area (contenteditable/textarea) resizing with window
-- control buttons and test file buttons
+<html>
+  <head>
+    - viewport meta tag
+    - inline CSS
+  </head>
+  <body>
+    - fixed header:
+      - GitHub logo (links to source on GitHub)
+      - current file title
+      - save status indicator
+      - save button
+    - main content area:
+      - contenteditable/textarea div (resizes with window)
+      - quick access buttons for test files
+      - control buttons
+  </body>
+</html>
 ```
 
 ### Key Behaviors
 - Event-driven architecture
-- Track editing state
-- Monitor content changes for auto-save
+- Track editing state and content changes for auto-save
 - Handle API rate limits across multiple instances
-- Configuration defaults for GitHub user, repo, branch and test files are set in `XGP` object
+- Configuration defaults (GitHub user, repo, branch, test files) set in `XGP` object
 
 ### Security
 - GitHub token in localStorage only
@@ -74,10 +82,10 @@ Browser-based text editor that reads/writes files directly to GitHub repositorie
 - No server dependencies
 
 ## User Flow
-1. Provide GitHub personal access token
-2. Navigate to file via URL hash or buttons
-3. Edit content (auto-saves every 15s)
-4. Visual feedback on save status
+1. Enter GitHub personal access token (one-time setup)
+2. Navigate to file via URL hash (`#filename.md`) or quick access buttons
+3. Edit content—auto-saves every 15 seconds or on blur
+4. Visual feedback shows save status (ready/loading/success/error)
 
 ## Error Handling
 - Minimal—assume things work
@@ -92,33 +100,17 @@ Browser-based text editor that reads/writes files directly to GitHub repositorie
 ## Testing
 
 ### Test Case Files
-Use these files from https://github.com/pushme-pullyou/assets/tree/main/test-cases:
+These files are all in the same folder as the app:
+- README.md
+- test.md
+- test.txt
 
-**Markdown files:**
-- `markdown.md` - Standard markdown syntax
-- `markdown-help.md` - Comprehensive markdown examples
-- `sample.md` - General sample content
-
-**Text files:**
-- `text.txt` - Plain text baseline
-- `file-names.txt` - Special characters in filenames
-- `snippets.txt` - Code snippets, mixed content
-
-**HTML/Security:**
-- `style-sample.html` - HTML with various links
-- `text-to-hack` files - HTML injection prevention tests
-
-**Edge cases:**
-- `us-county-state-latlon-pop.csv` - Large file performance test
-- `ca_cs.xls` - Binary file handling
-- `Photo Album_Example Auckland.pdf` - Non-text file handling
-
-### Testing Workflow
-1. **Basic**: Load `text.txt`, edit, save, reload
-2. **Markdown**: Test link handling with `markdown.md` and `markdown-help.md`
-3. **Multiple instances**: Open same file in 2+ tabs, edit simultaneously
-4. **Auto-save**: Type, wait 15s; type and blur; verify throttling
-5. **Hash navigation**: Change hash, use buttons, test browser back/forward
-6. **Security**: Load `text-to-hack` files, verify safe HTML handling
-7. **Performance**: Load large CSV, verify responsiveness
-8. **Error cases**: Invalid hash, no permissions, rate limits
+## Testing Workflow
+1. **Basic**: Load `text.txt` → edit → save → reload → verify persistence
+2. **Markdown**: Test link handling with `README.md` and `test.md`
+3. **Multiple instances**: Open same file in 2+ tabs → edit simultaneously → verify last save wins
+4. **Auto-save**: Type, wait 15s → verify auto-save; type and blur → verify immediate save; rapid edits → verify throttling
+5. **Hash navigation**: Change hash in URL → verify file loads; use buttons → verify hash updates; browser back/forward → verify navigation
+6. **Security**: Load `text-to-hack` files → verify safe HTML handling (no XSS)
+7. **Performance**: Load `us-county-state-latlon-pop.csv` → verify responsiveness with large file
+8. **Error cases**: Invalid hash → verify error message; no write permissions → verify error handling; rate limits → verify graceful degradation
