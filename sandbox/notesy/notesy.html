@@ -643,6 +643,15 @@
 
                         this.setStatus('Saved ✓', 'success');
                         setTimeout(() => this.setStatus('Ready'), 2000);
+                    } else if (xhr.status === 409) {
+                        // Conflict - file was modified elsewhere
+                        this.setStatus('Conflict - reloading', 'error');
+                        console.warn('File conflict detected - reloading to get latest version');
+
+                        // Reload the file to get the latest SHA
+                        setTimeout(() => {
+                            this.loadFileGitHub(this.currentFile);
+                        }, 1000);
                     } else {
                         this.setStatus('Save failed', 'error');
                         console.error('Save error:', xhr.responseText);
