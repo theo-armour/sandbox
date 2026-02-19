@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walk Timer</title>
+    <style>
+        :root {
+            --bg: #1a1a2e;
+            --card-bg: #16213e;
+            --card-shadow: rgba(0, 0, 0, 0.4);
+            --text: #ccd6f6;
+            --text-muted: #8892b0;
+            --text-preset: #a0a8c0;
+            --accent: #64ffda;
+            --btn-bg: #1a1a2e;
+            --btn-border: #555;
+            --btn-hover-bg: #2a2a4e;
+            --preset-border: #3a3a5e;
+            --slider-bg: #333;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg: #f0f2f5;
+                --card-bg: #ffffff;
+                --card-shadow: rgba(0, 0, 0, 0.12);
+                --text: #1a1a2e;
+                --text-muted: #5a6077;
+                --text-preset: #5a6077;
+                --accent: #0a8a6a;
+                --btn-bg: #f5f6f8;
+                --btn-border: #c0c4cc;
+                --btn-hover-bg: #e8eaf0;
+                --preset-border: #d0d3da;
+                --slider-bg: #ccc;
+            }
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: clamp(6px, 2vmin, 16px);
+            padding: clamp(6px, 2.5vmin, 24px);
+            width: min(96vw, 96vh * 0.7, 360px);
+            min-width: 200px;
+            max-height: 98vh;
+            box-shadow: 0 8px 32px var(--card-shadow);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: clamp(2px, 1.2vmin, 12px);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            font-size: clamp(10px, 2.5vmin, 16px);
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .timer-display {
+            font-size: clamp(24px, 10vmin, 64px);
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--text);
+            line-height: 1.1;
+        }
+
+        .status {
+            font-size: clamp(10px, 2vmin, 16px);
+            font-weight: 700;
+            color: var(--accent);
+            min-height: 1.2em;
+            transition: color 0.3s;
+        }
+
+        .status.music-on {
+            color: #ff6b6b;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .row {
+            display: flex;
+            gap: clamp(4px, 1.2vmin, 8px);
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        button {
+            background: var(--btn-bg);
+            color: var(--text);
+            border: 2px solid var(--btn-border);
+            border-radius: clamp(6px, 1.5vmin, 10px);
+            padding: clamp(5px, 1.2vmin, 12px) clamp(10px, 2.5vmin, 24px);
+            font-size: clamp(13px, 2.8vmin, 20px);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            background: var(--btn-hover-bg);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button.stop-music {
+            background: #ff6b6b22;
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+            font-size: clamp(14px, 3vmin, 22px);
+        }
+
+        button.stop-music:hover {
+            background: #ff6b6b44;
+        }
+
+        .presets button {
+            padding: clamp(4px, 1vmin, 8px) clamp(8px, 2vmin, 16px);
+            border-radius: clamp(8px, 2vmin, 16px);
+            color: var(--text-preset);
+            border-color: var(--preset-border);
+            font-size: clamp(11px, 2.2vmin, 16px);
+            font-weight: 700;
+        }
+
+        .presets button:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .interval-control button {
+            width: clamp(26px, 4.5vmin, 40px);
+            height: clamp(26px, 4.5vmin, 40px);
+            padding: 0;
+            font-size: clamp(14px, 3vmin, 22px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .interval-label {
+            font-size: clamp(13px, 2.8vmin, 20px);
+            font-weight: 700;
+            color: var(--text-muted);
+            min-width: clamp(36px, 8vmin, 70px);
+            text-align: center;
+        }
+
+        .interval-label span {
+            color: var(--text);
+        }
+
+        .volume-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(4px, 1.2vmin, 10px);
+            width: 100%;
+        }
+
+        .volume-icon {
+            font-size: clamp(14px, 2.8vmin, 22px);
+            color: var(--text-muted);
+            cursor: pointer;
+            user-select: none;
+            flex-shrink: 0;
+        }
+
+        .volume-icon:hover {
+            color: var(--accent);
+        }
+
+        .volume-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: clamp(50px, 45vw, 180px);
+            height: clamp(4px, 0.8vmin, 6px);
+            border-radius: 3px;
+            background: var(--slider-bg);
+            outline: none;
+            cursor: pointer;
+            flex-shrink: 1;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: clamp(14px, 2.5vmin, 20px);
+            height: clamp(14px, 2.5vmin, 20px);
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+
+        .volume-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.3);
+        }
+
+        .volume-slider::-moz-range-thumb {
+            width: clamp(14px, 2.5vmin, 20px);
+            height: clamp(14px, 2.5vmin, 20px);
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: none;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Walk Timer</h1>
+        <div class="timer-display" id="timerDisplay">18:00</div>
+        <div class="status" id="status">Ready</div>
+
+        <div class="row" id="timerControls">
+            <button id="startPauseBtn" onclick="toggleTimer()">Start</button>
+            <button onclick="resetTimer()">Reset</button>
+        </div>
+
+        <div class="row hidden" id="musicControls">
+            <button class="stop-music" onclick="stopMusic()">Stop</button>
+        </div>
+
+        <div class="row presets">
+            <button onclick="setPreset(5, true)">5 sec</button>
+            <button onclick="setPreset(5)">5 min</button>
+            <button onclick="setPreset(8)">8 min</button>
+            <button onclick="setPreset(18)">18 min</button>
+        </div>
+
+        <div class="row interval-control">
+            <button onclick="adjustInterval(-1)">-</button>
+            <div class="interval-label"><span id="intervalValue">18</span> <span id="intervalUnit">min</span></div>
+            <button onclick="adjustInterval(1)">+</button>
+        </div>
+
+        <div class="volume-row">
+            <span class="volume-icon" id="volumeIcon" onclick="toggleMute()">&#128264;</span>
+            <input type="range" class="volume-slider" id="volumeSlider"
+                min="0" max="100" value="80"
+                oninput="onVolumeChange(this.value)"
+            >
+        </div>
+    </div>
+
+    <script>
+        let intervalMinutes = 18;
+        let intervalIsSeconds = false;
+        let remainingSeconds = intervalMinutes * 60;
+        let timerInterval = null;
+        let isRunning = false;
+        let audio = null;
+        // Restore saved volume
+        const savedVolume = localStorage.getItem("walkTimerVolume");
+        let currentVolume = savedVolume !== null ? parseFloat(savedVolume) : 0.8;
+        let isMuted = false;
+        let musicIsPlaying = false;
+
+        const timerDisplay = document.getElementById("timerDisplay");
+        const statusEl = document.getElementById("status");
+        const startPauseBtn = document.getElementById("startPauseBtn");
+        const timerControls = document.getElementById("timerControls");
+        const musicControls = document.getElementById("musicControls");
+        const intervalValue = document.getElementById("intervalValue");
+        const volumeSlider = document.getElementById("volumeSlider");
+        const volumeIcon = document.getElementById("volumeIcon");
+        const intervalUnit = document.getElementById("intervalUnit");
+
+        // Format seconds as MM:SS
+        const formatTime = (seconds) => {
+            const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+            const s = (seconds % 60).toString().padStart(2, "0");
+            return `${m}:${s}`;
+        };
+
+        const updateDisplay = () => {
+            timerDisplay.textContent = formatTime(remainingSeconds);
+        };
+
+        const updateVolumeIcon = () => {
+            if (isMuted || currentVolume === 0) {
+                volumeIcon.innerHTML = "&#128263;";
+            } else if (currentVolume < 0.5) {
+                volumeIcon.innerHTML = "&#128264;";
+            } else {
+                volumeIcon.innerHTML = "&#128266;";
+            }
+        };
+
+        const tick = () => {
+            remainingSeconds--;
+            updateDisplay();
+            if (remainingSeconds <= 0) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                isRunning = false;
+                playMusic();
+            }
+        };
+
+        const toggleTimer = () => {
+            if (isRunning) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                isRunning = false;
+                startPauseBtn.textContent = "Resume";
+                statusEl.textContent = "Paused";
+                statusEl.className = "status";
+            } else {
+                if (remainingSeconds <= 0) {
+                    remainingSeconds = intervalIsSeconds ? intervalMinutes : intervalMinutes * 60;
+                    updateDisplay();
+                }
+                timerInterval = setInterval(tick, 1000);
+                isRunning = true;
+                startPauseBtn.textContent = "Pause";
+                statusEl.textContent = "Counting down...";
+                statusEl.className = "status";
+            }
+        };
+
+        const resetTimer = () => {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            isRunning = false;
+            remainingSeconds = intervalIsSeconds ? intervalMinutes : intervalMinutes * 60;
+            updateDisplay();
+            startPauseBtn.textContent = "Start";
+            statusEl.textContent = "Ready";
+            statusEl.className = "status";
+        };
+
+        const setPreset = (value, isSeconds = false) => {
+            if (musicIsPlaying) stopMusic();
+            clearInterval(timerInterval);
+            timerInterval = null;
+            isRunning = false;
+
+            intervalMinutes = value;
+            intervalIsSeconds = isSeconds;
+
+            if (isSeconds) {
+                remainingSeconds = value;
+                intervalValue.textContent = value;
+                intervalUnit.textContent = "sec";
+            } else {
+                remainingSeconds = value * 60;
+                intervalValue.textContent = value;
+                intervalUnit.textContent = "min";
+            }
+            updateDisplay();
+            startPauseBtn.textContent = "Start";
+            statusEl.textContent = "Ready";
+            statusEl.className = "status";
+        };
+
+        // Play SomaFM Groove Salad stream
+        const playMusic = () => {
+            audio = new Audio("https://ice1.somafm.com/groovesalad-128-mp3");
+            audio.volume = isMuted ? 0 : currentVolume;
+            audio.play();
+            musicIsPlaying = true;
+            statusEl.textContent = "Time to walk!";
+            statusEl.className = "status music-on";
+            timerControls.classList.add("hidden");
+            musicControls.classList.remove("hidden");
+        };
+
+        // Stop music and reset timer
+        const stopMusic = () => {
+            if (audio) {
+                audio.pause();
+                audio.src = "";
+                audio = null;
+            }
+            musicIsPlaying = false;
+            musicControls.classList.add("hidden");
+            timerControls.classList.remove("hidden");
+            remainingSeconds = intervalIsSeconds ? intervalMinutes : intervalMinutes * 60;
+            updateDisplay();
+            startPauseBtn.textContent = "Start";
+            statusEl.textContent = "Ready";
+            statusEl.className = "status";
+        };
+
+        // Save volume to localStorage
+        const saveVolume = () => {
+            localStorage.setItem("walkTimerVolume", currentVolume);
+        };
+
+        // Volume slider adjusts live; does not stop music
+        const onVolumeChange = (value) => {
+            currentVolume = value / 100;
+            isMuted = currentVolume === 0;
+            updateVolumeIcon();
+            saveVolume();
+            if (audio) {
+                audio.volume = currentVolume;
+            }
+        };
+
+        const toggleMute = () => {
+            if (isMuted) {
+                isMuted = false;
+                currentVolume = currentVolume === 0 ? 0.8 : currentVolume;
+                volumeSlider.value = currentVolume * 100;
+            } else {
+                isMuted = true;
+                volumeSlider.value = 0;
+            }
+            if (audio) {
+                audio.volume = isMuted ? 0 : currentVolume;
+            }
+            updateVolumeIcon();
+        };
+
+        const adjustInterval = (delta) => {
+            intervalIsSeconds = false;
+            intervalMinutes = Math.max(1, Math.min(60, intervalMinutes + delta));
+            intervalValue.textContent = intervalMinutes;
+            intervalUnit.textContent = "min";
+            if (!isRunning && !musicIsPlaying) {
+                remainingSeconds = intervalMinutes * 60;
+                updateDisplay();
+            }
+        };
+
+        // Init slider to saved volume
+        volumeSlider.value = currentVolume * 100;
+        updateDisplay();
+        updateVolumeIcon();
+
+        // Auto-start timer on page load
+        toggleTimer();
+    </script>
+</body>
+</html>
