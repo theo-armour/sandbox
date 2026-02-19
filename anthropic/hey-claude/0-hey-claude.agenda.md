@@ -1,3 +1,4 @@
+# Walk-Timer
 
 ## Prompt 2026-02-18 20:06
 
@@ -14,3 +15,4 @@ Can you help me do this? The system, Windows 11, should be listening all the tim
 * Buttons and their text are bold, large and easy to read
 * Adjust the size and position of the app so it fits in window of any height and width down to very small sizes, and up to full screen
 * Timer is started upon opening
+* Midway through the timer, the app plays a pleasant random chime sound
