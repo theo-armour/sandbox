@@ -212,6 +212,28 @@ iframe {
 </div>
 
 <script>
+const DEFAULT_URLS = [
+    "https://en.wikipedia.org",
+    "https://archive.org",
+    "https://www.gutenberg.org",
+    "https://www.openstreetmap.org/export/embed.html"
+];
+
+const SUGGESTED_URLS = [
+    "https://en.wikipedia.org",
+    "https://archive.org",
+    "https://www.gutenberg.org",
+    "https://www.openstreetmap.org/export/embed.html",
+    "https://text.npr.org",
+    "https://wiby.me",
+    "https://www.wikidata.org",
+    "https://commons.wikimedia.org",
+    "https://www.openlibrary.org",
+    "https://creativecommons.org",
+    "https://librivox.org",
+    "https://mathworld.wolfram.com"
+];
+
 function getPos(e, axis) {
     if (e.touches) return axis === "x" ? e.touches[0].clientX : e.touches[0].clientY;
     return axis === "x" ? e.clientX : e.clientY;
@@ -309,28 +331,6 @@ function restorePositions() {
         if (data["row" + i]) { row.style.flex = "none"; row.style.height = data["row" + i]; }
     });
 }
-
-const DEFAULT_URLS = [
-    "https://en.wikipedia.org",
-    "https://archive.org",
-    "https://www.gutenberg.org",
-    "https://www.openstreetmap.org/export/embed.html"
-];
-
-const SUGGESTED_URLS = [
-    "https://en.wikipedia.org",
-    "https://archive.org",
-    "https://www.gutenberg.org",
-    "https://www.openstreetmap.org/export/embed.html",
-    "https://text.npr.org",
-    "https://wiby.me",
-    "https://www.wikidata.org",
-    "https://commons.wikimedia.org",
-    "https://www.openlibrary.org",
-    "https://creativecommons.org",
-    "https://librivox.org",
-    "https://mathworld.wolfram.com"
-];
 
 const iframes = document.querySelectorAll("iframe");
 const overlay = document.getElementById("modalOverlay");
