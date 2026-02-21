@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Newww Tab</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      font: 100% monospace;
+      --bg-color: #fff;
+      --text-color: #000;
+      --link-color: green;
+      --box-border: #ffdddd;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-color: #222;
+        --text-color: #eee;
+        --link-color: lightgreen;
+        --box-border: #444;
+      }
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #e0ffe0 var(--bg-color);
+    }
+
+    ::-webkit-scrollbar {
+      width: 12px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-color);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background-color: #e0ffe0;
+      border-radius: 6px;
+      border: 3px solid var(--bg-color);
+    }
+
+    a {
+      color: var(--link-color);
+      text-decoration: none;
+      font-size: 200%;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      padding: 10px;
+      gap: 4px;
+    }
+
+    .box {
+      border: 1px solid var(--box-border);
+      flex: 0 1 22ch;
+      padding: 2px;
+      overflow: auto;
+      height: calc(100vh - 25px);
+    }
+
+    .box-title {
+      font-size: 150%;
+      font-weight: bold;
+      margin: 0 0 4px 0;
+    }
+
+    .content > :first-child {
+      margin-top: 0;
+    }
+
+    details {
+      margin-bottom: 1rem;
+    }
+
+    summary {
+      cursor: pointer;
+      font-size: 1.5rem;
+      font-weight: bold;
+      outline: none;
+    }
+
+    .loading {
+      opacity: 0.5;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="app" class="container"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+
+  <script>
+    const columns = [
+      { title: "thingy", file: "data/mr-softy.md" },
+      { title: "news", file: "data/news.md" },
+      { title: "reads", file: "data/reads.md" },
+      { title: "theo", file: "data/theo.md" },
+      { title: "groups", file: "data/groups.md" }
+    ];
+
+    const converter = new showdown.Converter({
+      simpleLineBreaks: true,
+      simplifiedAutoLink: true,
+      openLinksInNewWindow: true
+    });
+
+    const app = document.getElementById("app");
+
+    columns.forEach(col => {
+      const box = document.createElement("div");
+      box.className = "box";
+
+      const title = document.createElement("div");
+      title.className = "box-title";
+      title.textContent = col.title;
+      box.appendChild(title);
+
+      const content = document.createElement("div");
+      content.className = "content loading";
+      content.textContent = "Loading...";
+      box.appendChild(content);
+
+      app.appendChild(box);
+
+      fetch(col.file)
+        .then(res => {
+          if (!res.ok) throw new Error("Failed to load " + col.file);
+          return res.text();
+        })
+        .then(text => {
+          content.innerHTML = converter.makeHtml(text);
+          content.classList.remove("loading");
+        })
+        .catch(() => {
+          content.innerHTML = '<p style="color:red">Error loading</p>';
+          content.classList.remove("loading");
+        });
+    });
+  </script>
+
+</body>
+
+</html>
