@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iframe Director</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: monospace;
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+h1 {
+    margin-bottom: 4px;
+    font-size: 18px;
+}
+
+p {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    font-size: 13px;
+    font-weight: bold;
+    margin-top: 14px;
+    margin-bottom: 4px;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 6px 8px;
+    font-size: 13px;
+    font-family: monospace;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: #4a90d9;
+}
+
+.buttons {
+    margin-top: 20px;
+    display: flex;
+    gap: 8px;
+}
+
+button {
+    padding: 8px 20px;
+    font-size: 13px;
+    font-family: monospace;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    background: #fff;
+}
+
+button:hover {
+    background: #f0f0f0;
+}
+
+button.apply {
+    background: #4a90d9;
+    color: #fff;
+    border-color: #4a90d9;
+}
+
+button.apply:hover {
+    background: #3a7bc8;
+}
+
+.status {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #4a90d9;
+    min-height: 16px;
+}
+</style>
+</head>
+<body>
+
+<h1>Iframe Director</h1>
+<p>Update the URLs of iframes in iframe-stuff.html</p>
+
+<label>Top Left</label>
+<input type="text" id="url0" placeholder="Enter URL">
+
+<label>Middle Left</label>
+<input type="text" id="url1" placeholder="Enter URL">
+
+<label>Bottom Left</label>
+<input type="text" id="url2" placeholder="Enter URL">
+
+<label>Right</label>
+<input type="text" id="url3" placeholder="Enter URL">
+
+<div class="buttons">
+    <button class="apply" id="applyBtn">Apply</button>
+    <button id="resetBtn">Reset</button>
+</div>
+
+<div class="status" id="status"></div>
+
+<script>
+const STORAGE_KEY = "iframe-stuff-urls";
+
+const DEFAULT_URLS = [
+    "https://theo-armour.github.io/sandbox/cookbook/walk-timer/",
+    "https://archive.org",
+    "https://youtu.be/F0GOOP82094",
+    "https://www.youtube.com/embed/ph1vpnYIxJk?autoplay=1&mute=1"
+];
+
+const inputs = [
+    document.getElementById("url0"),
+    document.getElementById("url1"),
+    document.getElementById("url2"),
+    document.getElementById("url3")
+];
+
+const status = document.getElementById("status");
+
+const loadUrls = () => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    const urls = saved ? JSON.parse(saved) : DEFAULT_URLS;
+    inputs.forEach((input, i) => { input.value = urls[i] || ""; });
+};
+
+const showStatus = (msg) => {
+    status.textContent = msg;
+    setTimeout(() => { status.textContent = ""; }, 2000);
+};
+
+document.getElementById("applyBtn").addEventListener("click", () => {
+    const urls = inputs.map(input => input.value.trim());
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(urls));
+    showStatus("URLs applied.");
+});
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+    localStorage.removeItem(STORAGE_KEY);
+    inputs.forEach((input, i) => { input.value = DEFAULT_URLS[i]; });
+    showStatus("Reset to defaults.");
+});
+
+loadUrls();
+</script>
+
+</body>
+</html>

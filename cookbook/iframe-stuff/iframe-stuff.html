@@ -202,7 +202,7 @@ iframe {
         </div>
         <div class="splitter-h" id="splitterH2"></div>
         <div class="left-row" id="leftRow3">
-            <iframe src="https://calendar.google.com/calendar/embed?height=600&wkst=1&bgcolor=%23ffffff&ctz=America%2FLos_Angeles&mode=AGENDA&showTitle=0&showPrint=0&showTz=0&src=dC5hcm1vdXJAZ21haWwuY29t&src=Mmw4cGp1MXB2czc0Ym42ZHY3NWY0Y2JjZjhAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=cnUyMXA3M2VkdDR2MHZqMXM2Zjc1aHRpMmtAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=ajIwNGYzMG1yczNmOTRwNGY5MmJkMjZjZnNAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=Y3RtY2xzY2d1NTVxazZwZXA5ZG84bm1wNGdAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=ZjBnOHM1ODNvcXF2ZG1zYnExbmJnMGhzZ2dAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=ZW4udXNhI2hvbGlkYXlAZ3JvdXAudi5jYWxlbmRhci5nb29nbGUuY29t&color=%23039BE5&color=%23616161&color=%23AD1457&color=%23F4511E&color=%23D50000&color=%230B8043&color=%23009688"></iframe>
+            <iframe src="https://calendar.google.com/calendar/embed?height=600&wkst=1&bgcolor=%23ffffff&ctz=America%2FLos_Angeles&mode=AGENDA&showTitle=0&showPrint=0&showTz=0&src=dC5hcm1vdXJAZ21haWwuY29t&src=Mmw4cGp1MXB2czc0Ym42ZHY3NWY0Y2JjZjhAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=cnUyMXA3M2VkdDR2MHZqMXM2Zjc1aHRpMmtAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=ajIwNGYzMG1yczNmOTRwNGY5MmJkMjZjZnNAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=Y3RtY2xzY2d1NTVxazZwZXA5ZG84bm1wNGdAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=ZjBnOHM1ODNvcXF2ZG1zYnExbmJnMGhzZ2dAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=ZW4udXNhI2hvbGlkYXlAZ3JvdXAudi5jYWxlbmRhci5nb29nbGUuY29t&color=%23039BE5&color=%23616161&color=%23AD1457&color=%23F4511E&color=%23D50000&color=%230B8043&color=%23009688" scrolling="no"></iframe>
         </div>
     </div>
     <div class="splitter-v" id="splitterV"></div>
@@ -436,6 +436,26 @@ restoreUrls();
 initSplitter(document.getElementById("splitterV"), "vertical");
 initSplitter(document.getElementById("splitterH1"), "horizontal");
 initSplitter(document.getElementById("splitterH2"), "horizontal");
+
+// Pick up URL changes from iframe-director.html
+window.addEventListener("storage", (e) => {
+    if (e.key === "iframe-stuff-urls") {
+        if (e.newValue) {
+            const urls = JSON.parse(e.newValue);
+            iframes.forEach((f, i) => { if (urls[i]) f.src = urls[i]; });
+        } else {
+            iframes.forEach((f, i) => { f.src = DEFAULT_URLS[i]; });
+        }
+    }
+    if (e.key === "iframe-stuff-positions" && !e.newValue) {
+        const leftCol = document.querySelector(".left-column");
+        const rightCol = document.querySelector(".right-column");
+        const rows = document.querySelectorAll(".left-row");
+        leftCol.style.flex = ""; leftCol.style.width = "";
+        rightCol.style.flex = ""; rightCol.style.width = "";
+        rows.forEach(row => { row.style.flex = ""; row.style.height = ""; });
+    }
+});
 </script>
 
 </body>
