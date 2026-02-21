@@ -15,5 +15,8 @@
 ## About
 
 * https://natesnewsletter.substack.com/p/new-claude-just-made-prompting-10x
+* https://docs.google.com/document/d/1uvMB5vk15lLpsU8axz2ytMsrIluGODXJuwWhvizEHG4/edit?tab=t.0#heading=h.jogerqjondh1
+* https://www.notion.so/product-templates/How-to-Work-With-Claude-Code-2d05a2ccb52680d781e1e515dbbc86c8
+* https://natesnewsletter.substack.com/p/the-complete-wait-i-can-use-claude
 * https://simonwillison.net/2025/Oct/16/claude-skills/
 * https://news.ycombinator.com/item?id=45607117

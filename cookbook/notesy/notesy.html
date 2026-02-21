@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notesy - Text Editor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+            background: #fafafa;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #1e3a5f;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .github-link {
+            color: white;
+            text-decoration: none;
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        .github-link:hover {
+            opacity: 0.8;
+        }
+
+        .file-title {
+            font-size: 14px;
+            font-weight: normal;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .mode-indicator {
+            font-size: 10px;
+            padding: 2px 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            margin-left: 8px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.15);
+        }
+
+        .status.loading {
+            background: #f0ad4e;
+            color: #000;
+        }
+
+        .status.success {
+            background: #5cb85c;
+        }
+
+        .status.error {
+            background: #d9534f;
+        }
+
+        button {
+            font-family: 'Courier New', Courier, monospace;
+            padding: 6px 14px;
+            background: #5cb85c;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        button:hover {
+            background: #4cae4c;
+        }
+
+        button:disabled {
+            background: #888;
+            cursor: not-allowed;
+        }
+
+        main {
+            margin-top: 55px;
+            max-width: 30rem;
+            padding: 20px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .token-setup {
+            background: white;
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+        }
+
+        .token-setup h3 {
+            color: maroon;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .token-setup input {
+            font-family: 'Courier New', Courier, monospace;
+            width: 100%;
+            padding: 8px;
+            margin: 6px 0;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 13px;
+        }
+
+        .quick-links {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .quick-links button {
+            background: #1e3a5f;
+            font-size: 11px;
+            padding: 5px 10px;
+        }
+
+        .quick-links button:hover {
+            background: #2d5a8f;
+        }
+
+        .file-info {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: white;
+            border-radius: 3px;
+            border: 1px solid #e0e0e0;
+        }
+
+        #editor {
+            width: 100%;
+            min-height: calc(100vh - 200px);
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            outline: none;
+            background: white;
+            resize: vertical;
+        }
+
+        #editor:focus {
+            border-color: #1e3a5f;
+            box-shadow: 0 0 0 2px rgba(30, 58, 95, 0.15);
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+                padding: 10px 15px;
+            }
+
+            .header-left,
+            .header-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            main {
+                padding: 15px 10px;
+                max-width: 100%;
+            }
+
+            .quick-links {
+                flex-direction: column;
+            }
+
+            .quick-links button {
+                width: 100%;
+            }
+        }
+
+        @media (min-width: 769px) {
+            #editor {
+                min-height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <a href="#" id="githubLink" class="github-link" title="View source" target="_blank">⚙️</a>
+            <span class="file-title" id="fileTitle">Notesy</span>
+            <span class="mode-indicator" id="modeIndicator">...</span>
+        </div>
+        <div class="header-right">
+            <span class="status" id="status">Ready</span>
+            <button id="saveBtn" onclick="XGP.saveFile()">Save</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="token-setup" id="tokenSetup" style="display: none;">
+            <h3>GitHub Setup</h3>
+            <p>One-time configuration - enter your GitHub repository details:</p>
+            <input type="password" id="tokenInput" placeholder="GitHub Token (ghp_...)" />
+            <input type="text" id="ownerInput" placeholder="Repository Owner" />
+            <input type="text" id="repoInput" placeholder="Repository Name" />
+            <input type="text" id="branchInput" placeholder="Branch (default: main)" value="main" />
+            <button onclick="XGP.saveConfig()">Save Config</button>
+            <p style="font-size: 11px; margin-top: 12px; color: #666;">
+                Create token with repo access at: <a href="https://github.com/settings/tokens" target="_blank">github.com/settings/tokens</a>
+            </p>
+        </div>
+
+        <div id="localFileSelect" style="display: none;">
+            <div style="background: white; padding: 20px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 20px;">
+                <h3 style="color: maroon; margin-bottom: 12px; font-size: 16px;">Select Local File</h3>
+                <p style="margin-bottom: 12px;">Choose a file to edit from your local filesystem:</p>
+                <button onclick="XGP.selectLocalFile()" style="width: 100%;">📁 Open File</button>
+                <p style="font-size: 11px; margin-top: 12px; color: #666;">
+                    The file will be opened and you can save changes directly back to it.
+                </p>
+            </div>
+        </div>
+
+        <div id="editorArea" style="display: none;">
+            <div class="quick-links" id="quickLinks">
+                <button onclick="XGP.loadFileByHash('README.md')">README.md</button>
+                <button onclick="XGP.loadFileByHash('test.md')">test.md</button>
+                <button onclick="XGP.loadFileByHash('test.txt')">test.txt</button>
+            </div>
+
+            <div class="file-info" id="fileInfo">No file loaded</div>
+
+            <div id="editor" contenteditable="true"></div>
+        </div>
+    </main>
+
+    <script>
+        const XGP = {
+            // Mode detection
+            isLocalMode: false,
+
+            // GitHub config
+            token: '',
+            owner: '',
+            repo: '',
+            branch: 'main',
+
+            // File state
+            currentFile: '',
+            currentSHA: '',
+            originalContent: '',
+            fileHandle: null,
+
+            // Auto-save state
+            autoSaveTimer: null,
+            lastSaveTime: 0,
+            saveThrottle: 3000,
+
+            init() {
+                this.detectMode();
+                this.loadConfig();
+
+                window.addEventListener('hashchange', () => this.handleHashChange());
+                window.addEventListener('resize', () => this.adjustEditorHeight());
+
+                const editor = document.getElementById('editor');
+                editor.addEventListener('input', () => this.scheduleAutoSave());
+                editor.addEventListener('blur', () => this.saveIfChanged());
+
+                this.handleHashChange();
+            },
+
+            detectMode() {
+                const hostname = window.location.hostname;
+                const protocol = window.location.protocol;
+
+                this.isLocalMode = (
+                    hostname === 'localhost' ||
+                    hostname === '127.0.0.1' ||
+                    hostname === '' ||
+                    protocol === 'file:'
+                );
+
+                const indicator = document.getElementById('modeIndicator');
+                indicator.textContent = this.isLocalMode ? 'LOCAL' : 'GITHUB';
+
+                console.log('Mode:', this.isLocalMode ? 'Local' : 'GitHub');
+            },
+
+            loadConfig() {
+                if (this.isLocalMode) {
+                    // Local mode - show file selector
+                    document.getElementById('localFileSelect').style.display = 'block';
+                } else {
+                    // GitHub mode - check for token
+                    const token = localStorage.getItem('github_token');
+                    const owner = localStorage.getItem('github_owner');
+                    const repo = localStorage.getItem('github_repo');
+                    const branch = localStorage.getItem('github_branch') || 'main';
+
+                    if (token && owner && repo) {
+                        this.token = token;
+                        this.owner = owner;
+                        this.repo = repo;
+                        this.branch = branch;
+                        document.getElementById('editorArea').style.display = 'block';
+                    } else {
+                        document.getElementById('tokenSetup').style.display = 'block';
+                        document.getElementById('tokenInput').value = token || '';
+                        document.getElementById('ownerInput').value = owner || '';
+                        document.getElementById('repoInput').value = repo || '';
+                    }
+                }
+            },
+
+            saveConfig() {
+                const token = document.getElementById('tokenInput').value.trim();
+                const owner = document.getElementById('ownerInput').value.trim();
+                const repo = document.getElementById('repoInput').value.trim();
+                const branch = document.getElementById('branchInput').value.trim() || 'main';
+
+                if (!token || !owner || !repo) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+
+                localStorage.setItem('github_token', token);
+                localStorage.setItem('github_owner', owner);
+                localStorage.setItem('github_repo', repo);
+                localStorage.setItem('github_branch', branch);
+
+                this.token = token;
+                this.owner = owner;
+                this.repo = repo;
+                this.branch = branch;
+
+                document.getElementById('tokenSetup').style.display = 'none';
+                document.getElementById('editorArea').style.display = 'block';
+
+                this.handleHashChange();
+            },
+
+            handleHashChange() {
+                const hash = window.location.hash.slice(1);
+                if (hash) {
+                    if (this.isLocalMode) {
+                        // In local mode, hash is ignored - user must select file
+                        // This prevents trying to fetch which would fail
+                        console.log('Local mode: Use file picker to select file');
+                    } else if (this.token) {
+                        this.loadFileGitHub(hash);
+                    } else {
+                        document.getElementById('fileTitle').textContent = hash;
+                    }
+                }
+            },
+
+            loadFileByHash(filename) {
+                window.location.hash = filename;
+            },
+
+            setStatus(message, type = '') {
+                const status = document.getElementById('status');
+                status.textContent = message;
+                status.className = 'status ' + type;
+            },
+
+            updateGitHubLink() {
+                const link = document.getElementById('githubLink');
+                if (!this.isLocalMode && this.currentFile && this.owner && this.repo) {
+                    link.href = `https://github.com/${this.owner}/${this.repo}/blob/${this.branch}/${this.currentFile}`;
+                }
+            },
+
+            adjustEditorHeight() {
+                const editor = document.getElementById('editor');
+                const minHeight = window.innerHeight - 200;
+                editor.style.minHeight = minHeight + 'px';
+            },
+
+            // LOCAL MODE: Select file using File System Access API
+            async selectLocalFile() {
+                try {
+                    if (!('showOpenFilePicker' in window)) {
+                        alert('File System Access API not supported in this browser. Please use Chrome, Edge, or another Chromium-based browser.');
+                        return;
+                    }
+
+                    const [fileHandle] = await window.showOpenFilePicker({
+                        types: [{
+                            description: 'Text Files',
+                            accept: {
+                                'text/plain': ['.txt', '.md', '.markdown', '.text'],
+                                'text/markdown': ['.md', '.markdown']
+                            }
+                        }],
+                        multiple: false
+                    });
+
+                    this.fileHandle = fileHandle;
+                    await this.loadFileLocal();
+
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        console.error('File selection error:', error);
+                        this.setStatus('Error selecting file', 'error');
+                    }
+                }
+            },
+
+            // LOCAL MODE: Load file from file handle
+            async loadFileLocal() {
+                if (!this.fileHandle) return;
+
+                this.setStatus('Loading...', 'loading');
+
+                try {
+                    const file = await this.fileHandle.getFile();
+                    const content = await file.text();
+
+                    this.currentFile = file.name;
+                    this.originalContent = content;
+
+                    document.getElementById('fileTitle').textContent = file.name;
+                    document.getElementById('editor').innerText = content;
+
+                    const size = (file.size / 1024).toFixed(2);
+                    const modified = new Date(file.lastModified).toLocaleString();
+                    document.getElementById('fileInfo').textContent = `${file.name} • ${size} KB • Modified: ${modified}`;
+
+                    document.getElementById('localFileSelect').style.display = 'none';
+                    document.getElementById('editorArea').style.display = 'block';
+
+                    this.setStatus('Loaded', 'success');
+                    setTimeout(() => this.setStatus('Ready'), 2000);
+
+                    this.adjustEditorHeight();
+
+                } catch (error) {
+                    this.setStatus('Error loading', 'error');
+                    console.error('Load error:', error);
+                }
+            },
+
+            // GITHUB MODE: Load file from GitHub API
+            loadFileGitHub(path) {
+                this.currentFile = path;
+                this.setStatus('Loading...', 'loading');
+
+                document.getElementById('fileTitle').textContent = path;
+                this.updateGitHubLink();
+
+                const url = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${path}?ref=${this.branch}`;
+
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', url);
+                xhr.setRequestHeader('Authorization', `token ${this.token}`);
+                xhr.setRequestHeader('Accept', 'application/vnd.github.v3+json');
+
+                xhr.onload = () => {
+                    if (xhr.status === 200) {
+                        const data = JSON.parse(xhr.responseText);
+                        this.currentSHA = data.sha;
+
+                        const content = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
+                        this.originalContent = content;
+
+                        document.getElementById('editor').innerText = content;
+
+                        const size = (data.size / 1024).toFixed(2);
+                        document.getElementById('fileInfo').textContent =
+                            `${path} • ${size} KB • SHA: ${this.currentSHA.slice(0, 7)}`;
+
+                        this.setStatus('Loaded', 'success');
+                        setTimeout(() => this.setStatus('Ready'), 2000);
+
+                        this.adjustEditorHeight();
+                    } else if (xhr.status === 404) {
+                        this.setStatus('File not found', 'error');
+                        document.getElementById('fileInfo').textContent = `File not found: ${path}`;
+                    } else {
+                        this.setStatus('Error loading', 'error');
+                        console.error('Load error:', xhr.responseText);
+                    }
+                };
+
+                xhr.onerror = () => {
+                    this.setStatus('Network error', 'error');
+                };
+
+                xhr.send();
+            },
+
+            saveFile() {
+                if (this.isLocalMode) {
+                    this.saveFileLocal();
+                } else {
+                    this.saveFileGitHub();
+                }
+            },
+
+            // LOCAL MODE: Save using FileSystem Access API
+            async saveFileLocal() {
+                if (!this.fileHandle) {
+                    this.setStatus('No file', 'error');
+                    return;
+                }
+
+                const content = document.getElementById('editor').innerText;
+
+                if (content === this.originalContent) {
+                    this.setStatus('No changes', '');
+                    setTimeout(() => this.setStatus('Ready'), 1500);
+                    return;
+                }
+
+                const now = Date.now();
+                if (now - this.lastSaveTime < this.saveThrottle) {
+                    console.log('Save throttled');
+                    return;
+                }
+                this.lastSaveTime = now;
+
+                this.setStatus('Saving...', 'loading');
+
+                try {
+                    // Write directly to the file handle we already have
+                    const writable = await this.fileHandle.createWritable();
+                    await writable.write(content);
+                    await writable.close();
+
+                    this.originalContent = content;
+
+                    const size = (new Blob([content]).size / 1024).toFixed(2);
+                    const now = new Date().toLocaleString();
+                    document.getElementById('fileInfo').textContent =
+                        `${this.currentFile} • ${size} KB • Saved: ${now}`;
+
+                    this.setStatus('Saved ✓', 'success');
+                    setTimeout(() => this.setStatus('Ready'), 2000);
+
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        this.setStatus('Save cancelled', '');
+                    } else {
+                        this.setStatus('Save failed', 'error');
+                        console.error('Save error:', error);
+                    }
+                }
+            },
+
+            // GITHUB MODE: Save to GitHub
+            saveFileGitHub() {
+                if (!this.token || !this.currentFile) {
+                    this.setStatus('No file', 'error');
+                    return;
+                }
+
+                const content = document.getElementById('editor').innerText;
+
+                if (content === this.originalContent) {
+                    this.setStatus('No changes', '');
+                    setTimeout(() => this.setStatus('Ready'), 1500);
+                    return;
+                }
+
+                const now = Date.now();
+                if (now - this.lastSaveTime < this.saveThrottle) {
+                    console.log('Save throttled');
+                    return;
+                }
+                this.lastSaveTime = now;
+
+                this.setStatus('Saving...', 'loading');
+
+                const url = `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${this.currentFile}`;
+
+                const payload = {
+                    message: `Update ${this.currentFile} via Notesy`,
+                    content: btoa(unescape(encodeURIComponent(content))),
+                    sha: this.currentSHA,
+                    branch: this.branch
+                };
+
+                const xhr = new XMLHttpRequest();
+                xhr.open('PUT', url);
+                xhr.setRequestHeader('Authorization', `token ${this.token}`);
+                xhr.setRequestHeader('Accept', 'application/vnd.github.v3+json');
+                xhr.setRequestHeader('Content-Type', 'application/json');
+
+                xhr.onload = () => {
+                    if (xhr.status === 200) {
+                        const data = JSON.parse(xhr.responseText);
+                        this.currentSHA = data.content.sha;
+                        this.originalContent = content;
+
+                        const size = (data.content.size / 1024).toFixed(2);
+                        document.getElementById('fileInfo').textContent =
+                            `${this.currentFile} • ${size} KB • SHA: ${this.currentSHA.slice(0, 7)}`;
+
+                        this.setStatus('Saved ✓', 'success');
+                        setTimeout(() => this.setStatus('Ready'), 2000);
+                    } else if (xhr.status === 409) {
+                        // Conflict - file was modified elsewhere
+                        this.setStatus('Conflict - reloading', 'error');
+                        console.warn('File conflict detected - reloading to get latest version');
+
+                        // Reload the file to get the latest SHA
+                        setTimeout(() => {
+                            this.loadFileGitHub(this.currentFile);
+                        }, 1000);
+                    } else {
+                        this.setStatus('Save failed', 'error');
+                        console.error('Save error:', xhr.responseText);
+                    }
+                };
+
+                xhr.onerror = () => {
+                    this.setStatus('Network error', 'error');
+                };
+
+                xhr.send(JSON.stringify(payload));
+            },
+
+            saveIfChanged() {
+                const content = document.getElementById('editor').innerText;
+                if (content !== this.originalContent) {
+                    this.saveFile();
+                }
+            },
+
+            scheduleAutoSave() {
+                clearTimeout(this.autoSaveTimer);
+                this.autoSaveTimer = setTimeout(() => {
+                    this.saveIfChanged();
+                }, 15000);
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => XGP.init());
+    </script>
+</body>
+</html>

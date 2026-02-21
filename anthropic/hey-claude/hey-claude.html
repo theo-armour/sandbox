@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hey Claude — Voice Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg: #1a1714;
+    --surface: #242019;
+    --surface2: #2e2a23;
+    --border: #3d3730;
+    --amber: #e8a849;
+    --amber-dim: #b8863a;
+    --amber-glow: rgba(232, 168, 73, 0.15);
+    --text: #e8e0d4;
+    --text-dim: #9a917f;
+    --text-faint: #6b6355;
+    --green: #7ab87a;
+    --red: #c96b6b;
+    --blue: #6b9bc9;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* --- Header --- */
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+}
+
+header h1 {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.3rem;
+    font-weight: 400;
+    color: var(--amber);
+    letter-spacing: 0.02em;
+}
+
+header h1 span {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    font-family: 'DM Sans', sans-serif;
+    margin-left: 12px;
+    font-weight: 300;
+}
+
+.header-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.header-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+}
+
+.header-btn:hover {
+    color: var(--text);
+    border-color: var(--amber-dim);
+}
+
+.header-btn.active {
+    background: var(--amber-glow);
+    border-color: var(--amber-dim);
+    color: var(--amber);
+}
+
+/* --- Timer Bar --- */
+.timer-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+}
+
+.timer-display {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 300;
+    color: var(--text);
+    min-width: 80px;
+    text-align: center;
+    letter-spacing: 0.05em;
+}
+
+.timer-display.running {
+    color: var(--amber);
+}
+
+.timer-display.paused {
+    color: var(--text-dim);
+}
+
+.timer-progress {
+    flex: 1;
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.timer-progress-fill {
+    height: 100%;
+    background: var(--amber);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 1s linear;
+}
+
+.timer-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.timer-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.timer-btn:hover {
+    color: var(--amber);
+    border-color: var(--amber-dim);
+}
+
+.timer-label {
+    font-size: 0.75rem;
+    color: var(--text-faint);
+}
+
+/* --- Chat Area --- */
+.chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scroll-behavior: smooth;
+}
+
+.chat-area::-webkit-scrollbar { width: 6px; }
+.chat-area::-webkit-scrollbar-track { background: transparent; }
+.chat-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.message {
+    max-width: 80%;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.message.claude {
+    align-self: flex-start;
+}
+
+.message.user {
+    align-self: flex-end;
+}
+
+.message.system {
+    align-self: center;
+    max-width: 90%;
+}
+
+.message-bubble {
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+
+.claude .message-bubble {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+}
+
+.user .message-bubble {
+    background: var(--amber-glow);
+    border: 1px solid rgba(232, 168, 73, 0.25);
+    border-bottom-right-radius: 4px;
+}
+
+.system .message-bubble {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    padding: 8px 16px;
+    border-radius: 20px;
+}
+
+.system .message-bubble.exercise {
+    border-color: var(--green);
+    color: var(--green);
+    background: rgba(122, 184, 122, 0.08);
+}
+
+.message-label {
+    font-size: 0.7rem;
+    color: var(--text-faint);
+    margin-bottom: 4px;
+    padding: 0 4px;
+}
+
+.user .message-label {
+    text-align: right;
+}
+
+/* --- Input Area --- */
+.input-area {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.mic-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-dim);
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.mic-btn:hover {
+    border-color: var(--amber-dim);
+    color: var(--amber);
+}
+
+.mic-btn.listening {
+    border-color: var(--red);
+    color: var(--red);
+    background: rgba(201, 107, 107, 0.1);
+    animation: pulse 1.5s ease infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(201, 107, 107, 0.3); }
+    50% { box-shadow: 0 0 0 12px rgba(201, 107, 107, 0); }
+}
+
+.mic-btn.thinking {
+    border-color: var(--amber);
+    color: var(--amber);
+    animation: think 2s ease infinite;
+}
+
+@keyframes think {
+    0%, 100% { box-shadow: 0 0 0 0 var(--amber-glow); }
+    50% { box-shadow: 0 0 0 12px rgba(232, 168, 73, 0); }
+}
+
+.text-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: var(--text);
+    font-size: 0.9rem;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.text-input:focus {
+    border-color: var(--amber-dim);
+}
+
+.text-input::placeholder {
+    color: var(--text-faint);
+}
+
+.send-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-dim);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.send-btn:hover {
+    background: var(--amber-glow);
+    border-color: var(--amber-dim);
+    color: var(--amber);
+}
+
+/* --- Settings Panel --- */
+.settings-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-overlay.open { display: flex; }
+
+.settings-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    width: 480px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.settings-panel h2 {
+    font-family: 'Libre Baskerville', serif;
+    font-weight: 400;
+    font-size: 1.2rem;
+    color: var(--amber);
+    margin-bottom: 24px;
+}
+
+.setting-group {
+    margin-bottom: 20px;
+}
+
+.setting-group label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+}
+
+.setting-group input, .setting-group select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+}
+
+.setting-group input:focus, .setting-group select:focus {
+    border-color: var(--amber-dim);
+}
+
+.settings-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+}
+
+.btn-save {
+    background: var(--amber-glow);
+    border: 1px solid var(--amber-dim);
+    color: var(--amber);
+    padding: 8px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+}
+
+.btn-cancel {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 8px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+}
+
+/* --- Status indicator --- */
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-faint);
+    display: inline-block;
+}
+
+.status-dot.connected { background: var(--green); }
+.status-dot.error { background: var(--red); }
+
+/* --- Notes Panel --- */
+.notes-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+}
+
+.notes-overlay.open { display: flex; }
+
+.notes-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    width: 520px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.notes-panel h2 {
+    font-family: 'Libre Baskerville', serif;
+    font-weight: 400;
+    font-size: 1.2rem;
+    color: var(--amber);
+    margin-bottom: 16px;
+}
+
+.note-item {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--text-dim);
+}
+
+.note-item .note-time {
+    font-size: 0.7rem;
+    color: var(--text-faint);
+}
+
+.note-item .note-text {
+    color: var(--text);
+    margin-top: 2px;
+}
+
+.no-notes {
+    color: var(--text-faint);
+    font-style: italic;
+    font-size: 0.85rem;
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+    <h1>Hey Claude <span>voice assistant</span></h1>
+    <div class="header-controls">
+        <span class="status-dot" id="statusDot" title="Not connected"></span>
+        <button class="header-btn" id="notesBtn">Notes</button>
+        <button class="header-btn" id="settingsBtn">Settings</button>
+    </div>
+</header>
+
+<!-- Timer Bar -->
+<div class="timer-bar">
+    <div class="timer-controls">
+        <button class="timer-btn" id="timerStartBtn" title="Start timer">▶</button>
+        <button class="timer-btn" id="timerStopBtn" title="Stop timer">■</button>
+    </div>
+    <div class="timer-progress">
+        <div class="timer-progress-fill" id="timerProgressFill"></div>
+    </div>
+    <div>
+        <div class="timer-display" id="timerDisplay">18:00</div>
+        <div class="timer-label" id="timerLabel">pomodoro</div>
+    </div>
+</div>
+
+<!-- Chat Area -->
+<div class="chat-area" id="chatArea"></div>
+
+<!-- Input Area -->
+<div class="input-area">
+    <button class="mic-btn" id="micBtn" title="Hold to talk, or click to toggle">🎤</button>
+    <input type="text" class="text-input" id="textInput" placeholder="Type a message or press the mic to speak..." />
+    <button class="send-btn" id="sendBtn" title="Send">➤</button>
+</div>
+
+<!-- Settings Overlay -->
+<div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-panel">
+        <h2>Settings</h2>
+        <div class="setting-group">
+            <label>Claude API Key</label>
+            <input type="password" id="apiKeyInput" placeholder="sk-ant-..." />
+        </div>
+        <div class="setting-group">
+            <label>Model</label>
+            <select id="modelSelect">
+                <option value="claude-sonnet-4-5-20250929">Claude Sonnet 4.5 (recommended)</option>
+                <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (fastest/cheapest)</option>
+            </select>
+        </div>
+        <div class="setting-group">
+            <label>Pomodoro Duration (minutes)</label>
+            <input type="number" id="timerDurationInput" value="18" min="1" max="120" />
+        </div>
+        <div class="setting-group">
+            <label>Exercise Reminders per Session</label>
+            <input type="number" id="exerciseCountInput" value="2" min="0" max="5" />
+        </div>
+        <div class="setting-group">
+            <label>TTS Voice</label>
+            <select id="voiceSelect"></select>
+        </div>
+        <div class="setting-group">
+            <label>Speech Rate</label>
+            <input type="range" id="speechRateInput" min="0.5" max="2" step="0.1" value="1.0" />
+        </div>
+        <div class="settings-actions">
+            <button class="btn-cancel" id="settingsCancel">Cancel</button>
+            <button class="btn-save" id="settingsSave">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Notes Overlay -->
+<div class="notes-overlay" id="notesOverlay">
+    <div class="notes-panel">
+        <h2>Notes &amp; Reminders</h2>
+        <div id="notesList"></div>
+        <div class="settings-actions">
+            <button class="btn-cancel" id="notesClose">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// =============================================================
+// Hey Claude — Voice Assistant
+// Single-file vanilla JS, no frameworks, no build tools
+// =============================================================
+
+// --- Settings / State ---
+
+let settings = loadSettings()
+let conversationHistory = []
+let notes = loadNotes()
+let reminders = loadReminders()
+let timerState = { running: false, seconds: 0, total: 0, interval: null, exerciseTimers: [] }
+let appState = "idle" // idle | listening | thinking | speaking
+let recognition = null
+let wakePhraseDetected = false
+
+function loadSettings() {
+    let saved = localStorage.getItem("hey-claude-settings")
+    let defaults = {
+        apiKey: "",
+        model: "claude-sonnet-4-5-20250929",
+        timerMinutes: 18,
+        exercisesPerSession: 2,
+        speechRate: 1.0,
+        voiceName: "",
+        proactiveThoughts: true,
+    }
+    if (saved) {
+        let parsed = JSON.parse(saved)
+        return { ...defaults, ...parsed }
+    }
+    return defaults
+}
+
+function saveSettings() {
+    localStorage.setItem("hey-claude-settings", JSON.stringify(settings))
+}
+
+function loadNotes() {
+    let saved = localStorage.getItem("hey-claude-notes")
+    return saved ? JSON.parse(saved) : []
+}
+
+function saveNotes() {
+    localStorage.setItem("hey-claude-notes", JSON.stringify(notes))
+}
+
+function loadReminders() {
+    let saved = localStorage.getItem("hey-claude-reminders")
+    return saved ? JSON.parse(saved) : []
+}
+
+function saveReminders() {
+    localStorage.setItem("hey-claude-reminders", JSON.stringify(reminders))
+}
+
+
+// --- Desk Exercises Library ---
+
+const EXERCISES = [
+    { name: "Neck Roll", instruction: "Slowly roll your head in a circle. Five times clockwise, then five times counterclockwise." },
+    { name: "Neck Tilt", instruction: "Tilt your head to the right, holding for five seconds. Then tilt to the left. Repeat three times." },
+    { name: "Chin Tuck", instruction: "Pull your chin straight back, making a double chin. Hold for five seconds. Repeat five times." },
+    { name: "Shoulder Shrug", instruction: "Raise both shoulders up toward your ears. Hold for three seconds, then release. Repeat eight times." },
+    { name: "Shoulder Roll", instruction: "Roll your shoulders forward in big circles five times, then backward five times." },
+    { name: "Cross-Body Stretch", instruction: "Bring your right arm across your chest and hold it with your left hand for ten seconds. Switch arms." },
+    { name: "Wrist Circles", instruction: "Extend your arms and rotate your wrists in circles. Ten times each direction." },
+    { name: "Finger Spread", instruction: "Spread your fingers wide, hold five seconds, then make a fist. Repeat five times." },
+    { name: "Arm Overhead Stretch", instruction: "Raise both arms overhead, interlace your fingers, and stretch upward. Hold ten seconds." },
+    { name: "Tricep Stretch", instruction: "Raise your right arm, bend it behind your head, push the elbow gently with your left hand. Hold ten seconds. Switch." },
+    { name: "Seated Spinal Twist", instruction: "Sit up straight, twist your torso to the right and hold the back of your chair for ten seconds. Switch sides." },
+    { name: "Cat-Cow Seated", instruction: "Sit on the edge of your chair. Arch your back and look up, then round your back and tuck your chin. Repeat five times." },
+    { name: "Side Stretch", instruction: "Raise your right arm overhead and lean to the left. Hold ten seconds. Switch." },
+    { name: "Chest Opener", instruction: "Clasp your hands behind your back, straighten your arms, lift slightly while opening your chest. Hold ten seconds." },
+    { name: "Seated Leg Extension", instruction: "Straighten your right leg out in front, hold five seconds, lower slowly. Five times each leg." },
+    { name: "Ankle Circles", instruction: "Lift one foot off the floor and rotate your ankle in circles. Ten times each direction. Switch." },
+    { name: "Calf Raise", instruction: "Raise your heels off the floor as high as you can. Hold three seconds, lower. Ten times." },
+    { name: "Seated Marching", instruction: "Sit tall and march your legs up and down, lifting your knees high for fifteen seconds." },
+    { name: "Stand and Stretch", instruction: "Stand up, reach your arms overhead, and stretch your whole body tall. Hold ten seconds." },
+    { name: "Desk Push-Up", instruction: "Place your hands on the desk edge, step back, and do five slow push-ups against the desk." },
+    { name: "Eye Rest 20-20-20", instruction: "Look at something twenty feet away for twenty seconds. Blink a few times." },
+    { name: "Deep Breathing", instruction: "Breathe in through your nose for four seconds, hold for four, exhale through your mouth for four. Three times." },
+    { name: "Box Breathing", instruction: "Inhale four seconds, hold four, exhale four, hold empty four. Three cycles." },
+    { name: "Face Scrunch", instruction: "Scrunch your entire face tight for five seconds, then release and relax. Three times." },
+    { name: "Hip Circles", instruction: "Stand up, hands on hips, make big circles with your hips. Five times each direction." },
+]
+
+let recentExercises = []
+
+function getRandomExercise() {
+    let available = EXERCISES.filter(e => !recentExercises.includes(e.name))
+    if (available.length === 0) {
+        recentExercises = []
+        available = EXERCISES
+    }
+    let exercise = available[Math.floor(Math.random() * available.length)]
+    recentExercises.push(exercise.name)
+    if (recentExercises.length > 8) recentExercises = recentExercises.slice(-8)
+    return exercise
+}
+
+
+// --- Philosophical Thoughts ---
+
+const THOUGHTS = [
+    "If a tree falls in a forest and no one is around to hear it, does it make a sound? What does this tell us about the nature of observation?",
+    "Theseus had a ship that was gradually repaired plank by plank until every piece was replaced. Was it still the same ship? Are you the same person you were ten years ago?",
+    "Do you think consciousness is something that emerges from complexity, or is it something more fundamental — woven into the fabric of reality?",
+    "Zeno argued that Achilles could never overtake a tortoise if it had a head start, because he'd always have to cross half the remaining distance first. Where does the logic break down?",
+    "Is mathematics discovered or invented? Do numbers exist in some abstract realm, or are they tools we created?",
+    "If you could know the exact date of your death, would you want to? How would that knowledge change how you live?",
+    "What makes something beautiful? Is beauty in the object, in the observer, or in the relationship between them?",
+    "Can a person be truly selfless, or does every good deed carry some element of self-interest — even if it's just feeling good about helping?",
+    "If an AI could perfectly simulate having emotions, would there be any meaningful difference between simulated and real emotions?",
+    "The Stoics believed that the only thing we truly control is our own mind. Everything else — health, wealth, reputation — is outside our control. Do you find that liberating or unsettling?",
+    "What do you think memory is for? Is it a record of the past, or a tool for navigating the future?",
+    "Imagine a world where everyone could read each other's thoughts. Would that lead to more compassion or more conflict?",
+    "Is there a meaningful difference between a life that's happy and a life that's meaningful? Can you have one without the other?",
+    "Language shapes how we think. If you spoke a language with no future tense, would you think differently about planning and goals?",
+    "What do you think makes someone wise? Is it knowledge, experience, humility, or something else entirely?",
+]
+
+
+// --- DOM References ---
+
+let chatArea = document.getElementById("chatArea")
+let textInput = document.getElementById("textInput")
+let sendBtn = document.getElementById("sendBtn")
+let micBtn = document.getElementById("micBtn")
+let timerDisplay = document.getElementById("timerDisplay")
+let timerLabel = document.getElementById("timerLabel")
+let timerProgressFill = document.getElementById("timerProgressFill")
+let timerStartBtn = document.getElementById("timerStartBtn")
+let timerStopBtn = document.getElementById("timerStopBtn")
+let settingsBtn = document.getElementById("settingsBtn")
+let settingsOverlay = document.getElementById("settingsOverlay")
+let settingsSave = document.getElementById("settingsSave")
+let settingsCancel = document.getElementById("settingsCancel")
+let notesBtn = document.getElementById("notesBtn")
+let notesOverlay = document.getElementById("notesOverlay")
+let notesClose = document.getElementById("notesClose")
+let statusDot = document.getElementById("statusDot")
+
+
+// --- Chat UI ---
+
+function addMessage(text, role = "claude") {
+    let msg = document.createElement("div")
+    msg.className = `message ${role}`
+
+    let label = document.createElement("div")
+    label.className = "message-label"
+    label.textContent = role === "claude" ? "Claude" : role === "user" ? "You" : ""
+
+    let bubble = document.createElement("div")
+    bubble.className = "message-bubble"
+    bubble.textContent = text
+
+    if (role !== "system") msg.appendChild(label)
+    msg.appendChild(bubble)
+    chatArea.appendChild(msg)
+    chatArea.scrollTop = chatArea.scrollHeight
+    return bubble
+}
+
+function addSystemMessage(text, type = "") {
+    let msg = document.createElement("div")
+    msg.className = "message system"
+    let bubble = document.createElement("div")
+    bubble.className = `message-bubble ${type}`
+    bubble.textContent = text
+    msg.appendChild(bubble)
+    chatArea.appendChild(msg)
+    chatArea.scrollTop = chatArea.scrollHeight
+}
+
+
+// --- Text-to-Speech ---
+
+function speak(text, onEnd = null) {
+    if (!("speechSynthesis" in window)) return
+    window.speechSynthesis.cancel()
+
+    let utterance = new SpeechSynthesisUtterance(text)
+    utterance.rate = settings.speechRate
+
+    // Find preferred voice
+    let voices = window.speechSynthesis.getVoices()
+    if (settings.voiceName) {
+        let found = voices.find(v => v.name === settings.voiceName)
+        if (found) utterance.voice = found
+    } else {
+        // Default to a good English voice
+        let preferred = voices.find(v => v.lang.startsWith("en") && v.name.includes("Natural"))
+            || voices.find(v => v.lang.startsWith("en") && !v.localService === false)
+            || voices.find(v => v.lang.startsWith("en"))
+        if (preferred) utterance.voice = preferred
+    }
+
+    appState = "speaking"
+    updateMicButton()
+
+    utterance.onend = () => {
+        appState = "idle"
+        updateMicButton()
+        if (onEnd) onEnd()
+    }
+
+    window.speechSynthesis.speak(utterance)
+}
+
+function stopSpeaking() {
+    window.speechSynthesis.cancel()
+    appState = "idle"
+    updateMicButton()
+}
+
+
+// --- Speech-to-Text (Web Speech API) ---
+
+function setupSpeechRecognition() {
+    let SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SpeechRecognition) {
+        addSystemMessage("Speech recognition not supported. Please use Chrome.")
+        return
+    }
+
+    recognition = new SpeechRecognition()
+    recognition.continuous = true
+    recognition.interimResults = false
+    recognition.lang = "en-US"
+
+    recognition.onresult = (event) => {
+        let last = event.results[event.results.length - 1]
+        if (!last.isFinal) return
+
+        let transcript = last[0].transcript.trim()
+        if (!transcript) return
+
+        // Check for wake word
+        let lower = transcript.toLowerCase()
+        if (lower.includes("hey claude") || lower.includes("hey, claude") || lower.includes("a claude")) {
+            // Strip the wake word and process the rest
+            let afterWake = lower.replace(/hey,?\s*claude/i, "").trim()
+            if (afterWake.length > 2) {
+                handleUserInput(afterWake)
+            } else {
+                // Just the wake word — signal we're listening
+                addSystemMessage("Listening...")
+                wakePhraseDetected = true
+                appState = "listening"
+                updateMicButton()
+                // Reset after 10 seconds if nothing follows
+                setTimeout(() => {
+                    if (wakePhraseDetected) {
+                        wakePhraseDetected = false
+                        appState = "idle"
+                        updateMicButton()
+                    }
+                }, 10000)
+            }
+            return
+        }
+
+        // If wake phrase was detected, process this as input
+        if (wakePhraseDetected) {
+            wakePhraseDetected = false
+            handleUserInput(transcript)
+            return
+        }
+
+        // Otherwise, check if we're in active listening mode (push-to-talk or mic clicked)
+        if (appState === "listening") {
+            handleUserInput(transcript)
+        }
+    }
+
+    recognition.onerror = (event) => {
+        if (event.error !== "no-speech") {
+            console.log("Speech recognition error:", event.error)
+        }
+    }
+
+    recognition.onend = () => {
+        // Restart continuous recognition
+        if (appState !== "speaking") {
+            try { recognition.start() } catch (e) { /* already started */ }
+        }
+    }
+
+    try {
+        recognition.start()
+        statusDot.className = "status-dot connected"
+        statusDot.title = "Listening for 'Hey Claude'"
+    } catch (e) {
+        console.log("Could not start speech recognition:", e)
+    }
+}
+
+
+// --- Mic Button ---
+
+function updateMicButton() {
+    micBtn.className = "mic-btn"
+    if (appState === "listening") {
+        micBtn.classList.add("listening")
+        micBtn.textContent = "🔴"
+    } else if (appState === "thinking") {
+        micBtn.classList.add("thinking")
+        micBtn.textContent = "💭"
+    } else if (appState === "speaking") {
+        micBtn.textContent = "🔊"
+    } else {
+        micBtn.textContent = "🎤"
+    }
+}
+
+micBtn.addEventListener("click", () => {
+    if (appState === "speaking") {
+        stopSpeaking()
+        return
+    }
+    if (appState === "listening") {
+        appState = "idle"
+        updateMicButton()
+        return
+    }
+    appState = "listening"
+    addSystemMessage("Listening...")
+    updateMicButton()
+    // Auto-stop after 15 seconds
+    setTimeout(() => {
+        if (appState === "listening") {
+            appState = "idle"
+            updateMicButton()
+        }
+    }, 15000)
+})
+
+
+// --- Process User Input ---
+
+async function handleUserInput(text) {
+    appState = "idle"
+    updateMicButton()
+
+    addMessage(text, "user")
+    textInput.value = ""
+
+    // Check for timer voice commands
+    let lower = text.toLowerCase()
+
+    if (lower.match(/start\s*(the\s*)?(timer|pomodoro|clock)/)) {
+        startTimer()
+        let response = `Timer started — ${settings.timerMinutes} minutes. I'll let you know when it's time for a break.`
+        addMessage(response, "claude")
+        speak(response)
+        return
+    }
+
+    if (lower.match(/stop\s*(the\s*)?(timer|pomodoro|clock)/)) {
+        stopTimer()
+        let response = "Timer stopped. Take your time."
+        addMessage(response, "claude")
+        speak(response)
+        return
+    }
+
+    let setMatch = lower.match(/set\s*(the\s*)?(timer|pomodoro|clock)\s*(to\s*)?(\d+)\s*min/)
+    if (setMatch) {
+        let mins = parseInt(setMatch[4])
+        settings.timerMinutes = mins
+        saveSettings()
+        let response = `Timer set to ${mins} minutes.`
+        addMessage(response, "claude")
+        speak(response)
+        return
+    }
+
+    let extendMatch = lower.match(/extend\s*(\d+)\s*min/)
+    if (extendMatch) {
+        let mins = parseInt(extendMatch[1])
+        extendTimer(mins * 60)
+        let response = `Extended by ${mins} minutes.`
+        addMessage(response, "claude")
+        speak(response)
+        return
+    }
+
+    let shortenMatch = lower.match(/shorten\s*(\d+)\s*min/)
+    if (shortenMatch) {
+        let mins = parseInt(shortenMatch[1])
+        shortenTimer(mins * 60)
+        let response = `Shortened by ${mins} minutes.`
+        addMessage(response, "claude")
+        speak(response)
+        return
+    }
+
+    if (lower.match(/what\s*are\s*my\s*notes/) || lower.match(/show\s*(me\s*)?my\s*notes/) || lower.match(/read\s*(my\s*)?notes/)) {
+        showNotesInChat()
+        return
+    }
+
+    if (lower.match(/what\s*are\s*my\s*reminders/) || lower.match(/show\s*(me\s*)?my\s*reminders/)) {
+        showRemindersInChat()
+        return
+    }
+
+    // Send to Claude
+    await sendToClaude(text)
+}
+
+
+// --- Claude API ---
+
+function getSystemPrompt() {
+    let now = new Date()
+    let timeStr = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
+    let dateStr = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })
+
+    let notesStr = notes.length > 0
+        ? `\n\nUser's saved notes:\n${notes.map(n => `- ${n.text} (${n.date})`).join("\n")}`
+        : ""
+
+    let remindersStr = reminders.length > 0
+        ? `\n\nUser's reminders:\n${reminders.map(r => `- ${r.text} at ${r.time} (${r.date})`).join("\n")}`
+        : ""
+
+    return `You are Claude, a warm and thoughtful voice assistant running on the user's desktop. The current time is ${timeStr} on ${dateStr}.
+
+You are conversational, concise (since your responses are spoken aloud), and friendly. Keep responses to 1-3 sentences unless the user asks for something longer or you're having a deeper discussion.
+
+You have these capabilities:
+- General conversation, answering questions, philosophical discussions
+- The user has a Pomodoro timer (currently ${settings.timerMinutes} min sessions)
+- You can help take notes — if the user says "remember that..." extract the key info
+- You can set reminders — if the user says "remind me..." extract the time and task
+
+If the user asks you to remember something, respond with EXACTLY this format on its own line:
+[NOTE: the thing to remember]
+
+If the user asks to set a reminder, respond with EXACTLY this format:
+[REMINDER: time | the task]
+
+Be warm, occasionally witty, and treat the user like a friend. When discussing philosophy or deep topics, be thoughtful and exploratory — share your perspective while inviting theirs.${notesStr}${remindersStr}`
+}
+
+async function sendToClaude(userText) {
+    if (!settings.apiKey) {
+        addMessage("I need an API key to respond. Click Settings to add one.", "claude")
+        speak("I need an API key to respond. Please open settings to add one.")
+        return
+    }
+
+    appState = "thinking"
+    updateMicButton()
+
+    conversationHistory.push({ role: "user", content: userText })
+
+    // Keep conversation history manageable
+    if (conversationHistory.length > 30) {
+        conversationHistory = conversationHistory.slice(-20)
+    }
+
+    try {
+        let response = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "x-api-key": settings.apiKey,
+                "anthropic-version": "2023-06-01",
+                "anthropic-dangerous-direct-browser-access": "true",
+            },
+            body: JSON.stringify({
+                model: settings.model,
+                max_tokens: 500,
+                system: getSystemPrompt(),
+                messages: conversationHistory,
+            }),
+        })
+
+        if (!response.ok) {
+            let err = await response.text()
+            throw new Error(`API error ${response.status}: ${err}`)
+        }
+
+        let data = await response.json()
+        let claudeText = data.content.map(c => c.text || "").join("")
+
+        // Process special commands
+        let displayText = claudeText
+        let noteMatch = claudeText.match(/\[NOTE:\s*(.+?)\]/)
+        if (noteMatch) {
+            let noteText = noteMatch[1].trim()
+            notes.push({ text: noteText, date: new Date().toLocaleDateString() })
+            saveNotes()
+            displayText = claudeText.replace(noteMatch[0], "").trim()
+            addSystemMessage(`📝 Note saved: "${noteText}"`)
+        }
+
+        let reminderMatch = claudeText.match(/\[REMINDER:\s*(.+?)\s*\|\s*(.+?)\]/)
+        if (reminderMatch) {
+            let rTime = reminderMatch[1].trim()
+            let rTask = reminderMatch[2].trim()
+            reminders.push({ time: rTime, text: rTask, date: new Date().toLocaleDateString() })
+            saveReminders()
+            displayText = claudeText.replace(reminderMatch[0], "").trim()
+            addSystemMessage(`⏰ Reminder set: "${rTask}" at ${rTime}`)
+        }
+
+        conversationHistory.push({ role: "assistant", content: claudeText })
+
+        if (displayText) {
+            addMessage(displayText, "claude")
+            speak(displayText)
+        }
+
+        statusDot.className = "status-dot connected"
+
+    } catch (err) {
+        console.error("Claude API error:", err)
+        addMessage("Sorry, I had trouble connecting. Check your API key in Settings.", "claude")
+        speak("Sorry, I had trouble connecting.")
+        statusDot.className = "status-dot error"
+    }
+
+    appState = "idle"
+    updateMicButton()
+}
+
+
+// --- Timer ---
+
+function formatTime(seconds) {
+    let m = Math.floor(seconds / 60)
+    let s = seconds % 60
+    return `${m}:${s.toString().padStart(2, "0")}`
+}
+
+function startTimer() {
+    if (timerState.running) stopTimer()
+
+    timerState.total = settings.timerMinutes * 60
+    timerState.seconds = timerState.total
+    timerState.running = true
+    timerDisplay.className = "timer-display running"
+    timerLabel.textContent = "focus time"
+
+    // Schedule exercise reminders
+    scheduleExerciseReminders()
+
+    timerState.interval = setInterval(() => {
+        timerState.seconds--
+        timerDisplay.textContent = formatTime(timerState.seconds)
+
+        let pct = ((timerState.total - timerState.seconds) / timerState.total) * 100
+        timerProgressFill.style.width = `${pct}%`
+
+        if (timerState.seconds <= 0) {
+            timerComplete()
+        }
+    }, 1000)
+}
+
+function stopTimer() {
+    timerState.running = false
+    clearInterval(timerState.interval)
+    timerState.exerciseTimers.forEach(t => clearTimeout(t))
+    timerState.exerciseTimers = []
+    timerDisplay.className = "timer-display"
+    timerLabel.textContent = "pomodoro"
+    timerDisplay.textContent = formatTime(settings.timerMinutes * 60)
+    timerProgressFill.style.width = "0%"
+}
+
+function extendTimer(seconds) {
+    if (!timerState.running) return
+    timerState.seconds += seconds
+    timerState.total += seconds
+}
+
+function shortenTimer(seconds) {
+    if (!timerState.running) return
+    timerState.seconds = Math.max(10, timerState.seconds - seconds)
+}
+
+function timerComplete() {
+    stopTimer()
+    addSystemMessage("⏰ Time's up! Take a break and stretch.")
+    playTimerSound()
+    speak("Time's up! Great work. Take a break, stretch your legs, and I'll be here when you get back.")
+}
+
+function scheduleExerciseReminders() {
+    timerState.exerciseTimers.forEach(t => clearTimeout(t))
+    timerState.exerciseTimers = []
+
+    let count = settings.exercisesPerSession
+    let totalMs = settings.timerMinutes * 60 * 1000
+
+    for (let i = 0; i < count; i++) {
+        // Spread exercises evenly through the session, avoiding first/last 2 minutes
+        let minTime = 2 * 60 * 1000
+        let maxTime = totalMs - 2 * 60 * 1000
+        if (maxTime <= minTime) continue
+
+        let interval = (maxTime - minTime) / (count + 1)
+        let time = minTime + interval * (i + 1) + (Math.random() - 0.5) * interval * 0.4
+
+        let timer = setTimeout(() => {
+            if (!timerState.running) return
+            let exercise = getRandomExercise()
+            addSystemMessage(`💪 ${exercise.name}: ${exercise.instruction}`, "exercise")
+            speak(`Quick stretch break. ${exercise.name}. ${exercise.instruction}`)
+        }, time)
+
+        timerState.exerciseTimers.push(timer)
+    }
+}
+
+function playTimerSound() {
+    // Generate a pleasant chime using Web Audio API
+    let audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+
+    let playNote = (freq, startTime, duration) => {
+        let osc = audioCtx.createOscillator()
+        let gain = audioCtx.createGain()
+        osc.type = "sine"
+        osc.frequency.value = freq
+        gain.gain.setValueAtTime(0.3, startTime)
+        gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration)
+        osc.connect(gain)
+        gain.connect(audioCtx.destination)
+        osc.start(startTime)
+        osc.stop(startTime + duration)
+    }
+
+    let now = audioCtx.currentTime
+    playNote(523.25, now, 0.4)       // C5
+    playNote(659.25, now + 0.2, 0.4) // E5
+    playNote(783.99, now + 0.4, 0.6) // G5
+    playNote(1046.5, now + 0.7, 0.8) // C6
+}
+
+timerStartBtn.addEventListener("click", () => {
+    if (timerState.running) {
+        // Pause-like behavior: stop
+        stopTimer()
+    } else {
+        startTimer()
+        addMessage("Timer started. Let's focus!", "claude")
+    }
+})
+
+timerStopBtn.addEventListener("click", () => {
+    stopTimer()
+    addSystemMessage("Timer stopped.")
+})
+
+
+// --- Settings UI ---
+
+function populateVoices() {
+    let voiceSelect = document.getElementById("voiceSelect")
+    let voices = window.speechSynthesis.getVoices()
+    voiceSelect.innerHTML = ""
+
+    let enVoices = voices.filter(v => v.lang.startsWith("en"))
+    enVoices.forEach(v => {
+        let opt = document.createElement("option")
+        opt.value = v.name
+        opt.textContent = `${v.name} (${v.lang})`
+        if (v.name === settings.voiceName) opt.selected = true
+        voiceSelect.appendChild(opt)
+    })
+}
+
+if (window.speechSynthesis) {
+    window.speechSynthesis.onvoiceschanged = populateVoices
+    populateVoices()
+}
+
+settingsBtn.addEventListener("click", () => {
+    document.getElementById("apiKeyInput").value = settings.apiKey
+    document.getElementById("modelSelect").value = settings.model
+    document.getElementById("timerDurationInput").value = settings.timerMinutes
+    document.getElementById("exerciseCountInput").value = settings.exercisesPerSession
+    document.getElementById("speechRateInput").value = settings.speechRate
+    populateVoices()
+    settingsOverlay.classList.add("open")
+})
+
+settingsSave.addEventListener("click", () => {
+    settings.apiKey = document.getElementById("apiKeyInput").value.trim()
+    settings.model = document.getElementById("modelSelect").value
+    settings.timerMinutes = parseInt(document.getElementById("timerDurationInput").value) || 18
+    settings.exercisesPerSession = parseInt(document.getElementById("exerciseCountInput").value) || 2
+    settings.speechRate = parseFloat(document.getElementById("speechRateInput").value) || 1.0
+    settings.voiceName = document.getElementById("voiceSelect").value
+    saveSettings()
+    settingsOverlay.classList.remove("open")
+
+    timerDisplay.textContent = formatTime(settings.timerMinutes * 60)
+
+    if (settings.apiKey) {
+        statusDot.className = "status-dot connected"
+        statusDot.title = "Connected"
+    }
+})
+
+settingsCancel.addEventListener("click", () => {
+    settingsOverlay.classList.remove("open")
+})
+
+settingsOverlay.addEventListener("click", (e) => {
+    if (e.target === settingsOverlay) settingsOverlay.classList.remove("open")
+})
+
+
+// --- Notes UI ---
+
+function renderNotes() {
+    let notesList = document.getElementById("notesList")
+    notesList.innerHTML = ""
+
+    if (notes.length === 0 && reminders.length === 0) {
+        notesList.innerHTML = '<div class="no-notes">No notes or reminders yet. Say "Remember that..." or "Remind me to..." to get started.</div>'
+        return
+    }
+
+    if (notes.length > 0) {
+        let heading = document.createElement("div")
+        heading.style.cssText = "font-size: 0.9rem; color: var(--amber); margin-bottom: 8px; margin-top: 8px;"
+        heading.textContent = "📝 Notes"
+        notesList.appendChild(heading)
+
+        notes.forEach((n, i) => {
+            let item = document.createElement("div")
+            item.className = "note-item"
+            item.innerHTML = `<div class="note-time">${n.date}</div><div class="note-text">${n.text}</div>`
+            notesList.appendChild(item)
+        })
+    }
+
+    if (reminders.length > 0) {
+        let heading = document.createElement("div")
+        heading.style.cssText = "font-size: 0.9rem; color: var(--amber); margin-bottom: 8px; margin-top: 16px;"
+        heading.textContent = "⏰ Reminders"
+        notesList.appendChild(heading)
+
+        reminders.forEach((r, i) => {
+            let item = document.createElement("div")
+            item.className = "note-item"
+            item.innerHTML = `<div class="note-time">${r.time} — ${r.date}</div><div class="note-text">${r.text}</div>`
+            notesList.appendChild(item)
+        })
+    }
+}
+
+notesBtn.addEventListener("click", () => {
+    renderNotes()
+    notesOverlay.classList.add("open")
+})
+
+notesClose.addEventListener("click", () => {
+    notesOverlay.classList.remove("open")
+})
+
+notesOverlay.addEventListener("click", (e) => {
+    if (e.target === notesOverlay) notesOverlay.classList.remove("open")
+})
+
+function showNotesInChat() {
+    if (notes.length === 0) {
+        let msg = "You don't have any notes saved yet."
+        addMessage(msg, "claude")
+        speak(msg)
+        return
+    }
+    let msg = "Here are your notes: " + notes.map(n => n.text).join(". ")
+    addMessage(msg, "claude")
+    speak(msg)
+}
+
+function showRemindersInChat() {
+    if (reminders.length === 0) {
+        let msg = "You don't have any reminders set."
+        addMessage(msg, "claude")
+        speak(msg)
+        return
+    }
+    let msg = "Your reminders: " + reminders.map(r => `${r.text} at ${r.time}`).join(". ")
+    addMessage(msg, "claude")
+    speak(msg)
+}
+
+
+// --- Text Input ---
+
+sendBtn.addEventListener("click", () => {
+    let text = textInput.value.trim()
+    if (text) handleUserInput(text)
+})
+
+textInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault()
+        let text = textInput.value.trim()
+        if (text) handleUserInput(text)
+    }
+})
+
+
+// --- Push-to-Talk (F9) ---
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "F9" && appState !== "listening") {
+        e.preventDefault()
+        appState = "listening"
+        updateMicButton()
+        addSystemMessage("Listening... (release F9 when done)")
+    }
+})
+
+document.addEventListener("keyup", (e) => {
+    if (e.key === "F9" && appState === "listening") {
+        e.preventDefault()
+        // Give a moment for final speech recognition
+        setTimeout(() => {
+            if (appState === "listening") {
+                appState = "idle"
+                updateMicButton()
+            }
+        }, 1500)
+    }
+})
+
+
+// --- Proactive Features ---
+
+function morningGreeting() {
+    let hour = new Date().getHours()
+    let greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening"
+    let day = new Date().toLocaleDateString("en-US", { weekday: "long" })
+
+    let greetings = [
+        `${greeting}! Happy ${day}. Ready to get started?`,
+        `${greeting}! It's a fresh ${day}. What shall we work on?`,
+        `${greeting}! Hope you're feeling good this ${day}. I'm here whenever you need me.`,
+    ]
+    let text = greetings[Math.floor(Math.random() * greetings.length)]
+    addMessage(text, "claude")
+    speak(text)
+}
+
+function proactiveThought() {
+    if (!settings.proactiveThoughts) return
+    if (Math.random() > 0.3) return // ~30% chance per check
+
+    let thought = THOUGHTS[Math.floor(Math.random() * THOUGHTS.length)]
+    let intros = [
+        "Here's something I've been thinking about: ",
+        "A thought for you: ",
+        "Something to ponder: ",
+        "I've been mulling over this: ",
+    ]
+    let intro = intros[Math.floor(Math.random() * intros.length)]
+    addMessage(intro + thought, "claude")
+    speak(intro + thought)
+}
+
+// Check for proactive actions every few minutes
+let proactiveInterval = setInterval(() => {
+    // Only trigger if idle (not in the middle of something)
+    if (appState !== "idle") return
+    if (timerState.running) return // Don't interrupt focus time
+
+    // Hydration reminder (~once per hour)
+    if (Math.random() < 0.03) {
+        addSystemMessage("💧 Don't forget to drink some water!")
+    }
+}, 5 * 60 * 1000) // Check every 5 minutes
+
+
+// --- Reminder Checker ---
+
+setInterval(() => {
+    let now = new Date()
+    let currentTime = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
+
+    reminders.forEach((r, i) => {
+        if (r.time && currentTime.toLowerCase().includes(r.time.toLowerCase()) && !r.fired) {
+            reminders[i].fired = true
+            saveReminders()
+            addSystemMessage(`⏰ Reminder: ${r.text}`)
+            speak(`Reminder: ${r.text}`)
+        }
+    })
+}, 30 * 1000) // Check every 30 seconds
+
+
+// --- Initialize ---
+
+function init() {
+    timerDisplay.textContent = formatTime(settings.timerMinutes * 60)
+
+    if (!settings.apiKey) {
+        addSystemMessage("Welcome! Open Settings to add your Claude API key to get started.")
+    } else {
+        morningGreeting()
+    }
+
+    setupSpeechRecognition()
+
+    // Schedule a philosophical thought after 20-40 minutes
+    setTimeout(() => {
+        if (settings.apiKey) proactiveThought()
+    }, (20 + Math.random() * 20) * 60 * 1000)
+}
+
+init()
+</script>
+</body>
+</html>

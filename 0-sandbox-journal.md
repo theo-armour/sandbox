@@ -1,6 +1,13 @@
 # Sandbox Journal
 
 
+## 2026-01-10
+
+Notesy updates
+thing2
+
+thing 3
+
 ## 2025-12-12
 
 ChatGPT 5.2 !?!
