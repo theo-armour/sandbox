@@ -232,7 +232,12 @@ const SUGGESTED_URLS = [
     "https://www.openlibrary.org",
     "https://creativecommons.org",
     "https://librivox.org",
-    "https://mathworld.wolfram.com"
+    "https://mathworld.wolfram.com",
+    "https://www.youtube.com/embed/ph1vpnYIxJk?autoplay=1&mute=1",
+    "https://www.youtube.com/embed/z7SiAaN4ogw?autoplay=1&mute=1",
+    "https://www.youtube.com/embed/2BLqhS59Elc?autoplay=1&mute=1",
+    "https://www.madeira-web.com/en/webcams.html",
+    "https://www.youtube.com/embed/videoseries?list=PLZA7fEFtp1Y0yv24oboNZSVyYuvbawWuZ&autoplay=1&mute=1"
 ];
 
 function getPos(e, axis) {
@@ -437,7 +442,18 @@ initSplitter(document.getElementById("splitterV"), "vertical");
 initSplitter(document.getElementById("splitterH1"), "horizontal");
 initSplitter(document.getElementById("splitterH2"), "horizontal");
 
-// Pick up URL changes from iframe-director.html
+// Pick up URL changes from embedded iframe-director.html (same window)
+window.addEventListener("message", (e) => {
+    if (e.data && e.data.type === "iframe-director-urls") {
+        if (e.data.urls) {
+            e.data.urls.forEach((url, i) => { if (url && iframes[i]) iframes[i].src = url; });
+        } else {
+            iframes.forEach((f, i) => { f.src = DEFAULT_URLS[i]; });
+        }
+    }
+});
+
+// Pick up URL changes from iframe-director.html in another tab
 window.addEventListener("storage", (e) => {
     if (e.key === "iframe-stuff-urls") {
         if (e.newValue) {

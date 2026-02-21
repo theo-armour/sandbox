@@ -37,6 +37,16 @@ label {
     margin-bottom: 4px;
 }
 
+select {
+    width: 100%;
+    padding: 6px 8px;
+    font-size: 13px;
+    font-family: monospace;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    margin-bottom: 4px;
+}
+
 input[type="text"] {
     width: 100%;
     padding: 6px 8px;
@@ -87,6 +97,30 @@ button.apply:hover {
     color: #4a90d9;
     min-height: 16px;
 }
+
+.webcams {
+    margin-top: 20px;
+    border-top: 1px solid #ddd;
+    padding-top: 14px;
+}
+
+.webcams h2 {
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.webcams a {
+    display: block;
+    padding: 4px 0;
+    font-size: 13px;
+    color: #4a90d9;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.webcams a:hover {
+    text-decoration: underline;
+}
 </style>
 </head>
 <body>
@@ -95,15 +129,19 @@ button.apply:hover {
 <p>Update the URLs of iframes in iframe-stuff.html</p>
 
 <label>Top Left</label>
+<select id="sel0"></select>
 <input type="text" id="url0" placeholder="Enter URL">
 
 <label>Middle Left</label>
+<select id="sel1"></select>
 <input type="text" id="url1" placeholder="Enter URL">
 
 <label>Bottom Left</label>
+<select id="sel2"></select>
 <input type="text" id="url2" placeholder="Enter URL">
 
 <label>Right</label>
+<select id="sel3"></select>
 <input type="text" id="url3" placeholder="Enter URL">
 
 <div class="buttons">
@@ -113,14 +151,45 @@ button.apply:hover {
 
 <div class="status" id="status"></div>
 
+<div class="webcams">
+    <h2>Webcams</h2>
+    <a data-url="https://www.youtube.com/embed/ph1vpnYIxJk?autoplay=1&mute=1">Rolling Cam Venice</a>
+    <a data-url="https://www.youtube.com/embed/z7SiAaN4ogw?autoplay=1&mute=1">Global Rolling Cam - Live Around the World</a>
+    <a data-url="https://www.youtube.com/embed/2BLqhS59Elc?autoplay=1&mute=1">Boston and Maine World Tour</a>
+    <a data-url="https://www.madeira-web.com/en/webcams.html">Madeira Rolling Cam Tour</a>
+    <a data-url="https://www.youtube.com/embed/videoseries?list=PLZA7fEFtp1Y0yv24oboNZSVyYuvbawWuZ&autoplay=1&mute=1">USA Live Cam Rolling Tour Playlist</a>
+</div>
+
 <script>
 const STORAGE_KEY = "iframe-stuff-urls";
 
 const DEFAULT_URLS = [
     "https://theo-armour.github.io/sandbox/cookbook/walk-timer/",
-    "https://archive.org",
-    "https://youtu.be/F0GOOP82094",
+    "https://theo-armour.github.io/sandbox/cookbook/iframe-stuff/iframe-director.html",
+    "https://calendar.google.com/calendar/embed?height=600&wkst=1&bgcolor=%23ffffff&ctz=America%2FLos_Angeles&mode=AGENDA&showTitle=0&showPrint=0&showTz=0&src=dC5hcm1vdXJAZ21haWwuY29t&src=Mmw4cGp1MXB2czc0Ym42ZHY3NWY0Y2JjZjhAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=cnUyMXA3M2VkdDR2MHZqMXM2Zjc1aHRpMmtAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=ajIwNGYzMG1yczNmOTRwNGY5MmJkMjZjZnNAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=Y3RtY2xzY2d1NTVxazZwZXA5ZG84bm1wNGdAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=ZjBnOHM1ODNvcXF2ZG1zYnExbmJnMGhzZ2dAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=ZW4udXNhI2hvbGlkYXlAZ3JvdXAudi5jYWxlbmRhci5nb29nbGUuY29t&color=%23039BE5&color=%23616161&color=%23AD1457&color=%23F4511E&color=%23D50000&color=%230B8043&color=%23009688",
     "https://www.youtube.com/embed/ph1vpnYIxJk?autoplay=1&mute=1"
+];
+
+const SUGGESTED_URLS = [
+    "https://theo-armour.github.io/sandbox/cookbook/walk-timer/",
+    "https://theo-armour.github.io/sandbox/cookbook/iframe-stuff/iframe-director.html",
+    "https://en.wikipedia.org",
+    "https://archive.org",
+    "https://www.gutenberg.org",
+    "https://www.openstreetmap.org/export/embed.html",
+    "https://text.npr.org",
+    "https://wiby.me",
+    "https://www.wikidata.org",
+    "https://commons.wikimedia.org",
+    "https://www.openlibrary.org",
+    "https://creativecommons.org",
+    "https://librivox.org",
+    "https://mathworld.wolfram.com",
+    "https://www.youtube.com/embed/ph1vpnYIxJk?autoplay=1&mute=1",
+    "https://www.youtube.com/embed/z7SiAaN4ogw?autoplay=1&mute=1",
+    "https://www.youtube.com/embed/2BLqhS59Elc?autoplay=1&mute=1",
+    "https://www.madeira-web.com/en/webcams.html",
+    "https://www.youtube.com/embed/videoseries?list=PLZA7fEFtp1Y0yv24oboNZSVyYuvbawWuZ&autoplay=1&mute=1"
 ];
 
 const inputs = [
@@ -129,6 +198,40 @@ const inputs = [
     document.getElementById("url2"),
     document.getElementById("url3")
 ];
+
+const selects = [
+    document.getElementById("sel0"),
+    document.getElementById("sel1"),
+    document.getElementById("sel2"),
+    document.getElementById("sel3")
+];
+
+function populateSelect(sel) {
+    sel.innerHTML = "";
+    const otherOpt = document.createElement("option");
+    otherOpt.value = "__other__";
+    otherOpt.textContent = "Other...";
+    otherOpt.selected = true;
+    sel.appendChild(otherOpt);
+    SUGGESTED_URLS.forEach(url => {
+        const opt = document.createElement("option");
+        opt.value = url;
+        opt.textContent = url;
+        sel.appendChild(opt);
+    });
+}
+
+selects.forEach((sel, i) => {
+    populateSelect(sel);
+    sel.addEventListener("change", () => {
+        if (sel.value !== "__other__") {
+            inputs[i].value = sel.value;
+        } else {
+            inputs[i].value = "";
+            inputs[i].focus();
+        }
+    });
+});
 
 const status = document.getElementById("status");
 
@@ -143,19 +246,42 @@ const showStatus = (msg) => {
     setTimeout(() => { status.textContent = ""; }, 2000);
 };
 
+function notifyParent(urls) {
+    if (window.parent !== window) {
+        window.parent.postMessage({ type: "iframe-director-urls", urls: urls }, "*");
+    }
+}
+
 document.getElementById("applyBtn").addEventListener("click", () => {
     const urls = inputs.map(input => input.value.trim());
     localStorage.setItem(STORAGE_KEY, JSON.stringify(urls));
+    notifyParent(urls);
     showStatus("URLs applied.");
 });
 
 document.getElementById("resetBtn").addEventListener("click", () => {
     localStorage.removeItem(STORAGE_KEY);
     inputs.forEach((input, i) => { input.value = DEFAULT_URLS[i]; });
+    notifyParent(null);
     showStatus("Reset to defaults.");
 });
 
 loadUrls();
+
+// Webcam quick-click: update only the right column (index 3)
+document.querySelectorAll(".webcams a").forEach(link => {
+    link.addEventListener("click", (e) => {
+        e.preventDefault();
+        const url = link.dataset.url;
+        const saved = localStorage.getItem(STORAGE_KEY);
+        const urls = saved ? JSON.parse(saved) : [...DEFAULT_URLS];
+        urls[3] = url;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(urls));
+        notifyParent(urls);
+        inputs[3].value = url;
+        showStatus("Right column → " + link.textContent);
+    });
+});
 </script>
 
 </body>
