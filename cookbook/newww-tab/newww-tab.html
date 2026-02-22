@@ -73,10 +73,27 @@
       height: calc(100vh - 25px);
     }
 
+    .box.collapsed {
+      flex: 0 0 auto;
+      width: auto;
+      height: auto;
+      overflow: hidden;
+    }
+
+    .box.collapsed .content {
+      display: none;
+    }
+
     .box-title {
       font-size: 150%;
       font-weight: bold;
       margin: 0 0 4px 0;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .box-title:hover {
+      text-decoration: underline;
     }
 
     .content > :first-child {
@@ -97,6 +114,23 @@
     .loading {
       opacity: 0.5;
     }
+
+    textarea {
+      background: var(--bg-color);
+      color: var(--text-color);
+      border: 1px solid var(--box-border);
+      font-family: monospace;
+    }
+
+    .edit-link {
+      font-size: 100%;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .tooltip {
+      display: none;
+    }
   </style>
 </head>
 
@@ -108,11 +142,13 @@
 
   <script>
     const columns = [
-      { title: "thingy", file: "data/mr-softy.md" },
-      { title: "news", file: "data/news.md" },
-      { title: "reads", file: "data/reads.md" },
       { title: "theo", file: "data/theo.md" },
-      { title: "groups", file: "data/groups.md" }
+      { title: "reads", file: "data/reads.md" },
+      { title: "news", file: "data/news.md" },
+      { title: "ai", file: "data/ai.md" },
+      { title: "apps", file: "data/apps.md" },
+      { title: "groups", file: "data/groups.md" },
+      { title: "orgs", file: "data/orgs.md" },
     ];
 
     const converter = new showdown.Converter({
@@ -121,15 +157,52 @@
       openLinksInNewWindow: true
     });
 
+    const COLLAPSE_KEY = "newww-tab-collapsed";
     const app = document.getElementById("app");
+
+    function getCollapsed() {
+      try { return JSON.parse(localStorage.getItem(COLLAPSE_KEY)) || []; }
+      catch { return []; }
+    }
+
+    function saveCollapsed(list) {
+      localStorage.setItem(COLLAPSE_KEY, JSON.stringify(list));
+    }
 
     columns.forEach(col => {
       const box = document.createElement("div");
       box.className = "box";
 
+      const collapsed = getCollapsed();
+      if (collapsed.includes(col.title)) box.classList.add("collapsed");
+
       const title = document.createElement("div");
       title.className = "box-title";
-      title.textContent = col.title;
+      const editLink = document.createElement("a");
+      editLink.className = "edit-link";
+      editLink.href = "https://github.com/theo-armour/sandbox/edit/main/cookbook/newww-tab/" + col.file;
+      editLink.target = "_blank";
+      editLink.textContent = "✏️";
+      editLink.title = "Edit " + col.title + ".md on GitHub";
+      editLink.addEventListener("click", e => e.stopPropagation());
+      function updateTitle() {
+        const isCollapsed = box.classList.contains("collapsed");
+        title.textContent = (isCollapsed ? "▶ " : "▼ ") + col.title + " ";
+        title.appendChild(editLink);
+      }
+      updateTitle();
+      title.addEventListener("click", () => {
+        box.classList.toggle("collapsed");
+        updateTitle();
+        const current = getCollapsed();
+        if (box.classList.contains("collapsed")) {
+          current.push(col.title);
+        } else {
+          const idx = current.indexOf(col.title);
+          if (idx !== -1) current.splice(idx, 1);
+        }
+        saveCollapsed(current);
+      });
       box.appendChild(title);
 
       const content = document.createElement("div");

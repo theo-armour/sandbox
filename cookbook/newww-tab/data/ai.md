@@ -1,31 +1,33 @@
-<div class="tooltip"><h1 style="margin:0;">thingy</h1>
-<span id=spnMenuThingy class="tooltiptext"></span>
-</div>
-[jules]( https://jules.google/)
-[perplexity]( https://www.perplexity.ai/ )
 [gemini]( https://gemini.google.com )
+[perplexity]( https://www.perplexity.ai/ )
 [chatGPT]( https://chat.openai.com/chat ) [ai]( https://openai.com/ )
 [claude]( https://claude.ai/chats )
 
+<details><summary>ai more</summary>
+
+<div class="tooltip"><h1 style="margin:0;">thingy</h1>
+<span id=spnMenuThingy class="tooltiptext"></span>
+</div>
 [copilotp]( https://copilot.microsoft.com/ )
 [grok]( https://x.ai/grok )
 
 [ms365]( https://office.com )
 [onedrv]( https://onedrive.live.com )
 [outlook]( https://outlook.live.com )
+</details>
 
 <details open><summary>google</summary>
-
+[g calender]( https://calendar.google.com/ )
+[g contacts]( https://contacts.google.com/ )
 [g photos]( https://photos.google.com/ )
 [g maps]( https://google.com/maps/ )
 [google]( https://google.com/ )
-[g calender]( https://calendar.google.com/ )
-[g contacts]( https://contacts.google.com/ )
+[g FiMsg]( https://messages.google.com/web/ )
+
 [g earth]( https://earth.google.com/web/ )
 [g mail]( https://mail.google.com/mail/u/0/?tab=mm#inbox )
 [> compose]( https://mail.google.com/mail/?view=cm&amp;fs=1&amp;tf=1 )
 [youtube]( https://youtube.com/ )
-[g FiMsg]( https://messages.google.com/web/ )
 [g fiAccnt]( https://fi.google.com )
 
 </details>

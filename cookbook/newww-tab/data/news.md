@@ -1,5 +1,3 @@
-[lifehacker](https://lifehacker.com/)
-
 [nytimes]( https://nytimes.com/ )
 [chronic]( https://www.sfchronicle.com/ )
 [googN]( https://news.google.com/ ) &nbsp; [wsj]( https://www.wsj.com/ )
