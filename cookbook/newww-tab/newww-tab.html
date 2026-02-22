@@ -142,7 +142,7 @@
 
   <script>
     const columns = [
-      { title: "theo", file: "data/theo.md" },
+      { title: "theo", files: ["data/repos.md", "data/vscode.md"] },
       { title: "reads", file: "data/reads.md" },
       { title: "news", file: "data/news.md" },
       { title: "ai", file: "data/ai.md" },
@@ -176,19 +176,28 @@
       const collapsed = getCollapsed();
       if (collapsed.includes(col.title)) box.classList.add("collapsed");
 
+      const colFiles = col.files || [col.file];
+      const isSingle = colFiles.length === 1;
+
       const title = document.createElement("div");
       title.className = "box-title";
-      const editLink = document.createElement("a");
-      editLink.className = "edit-link";
-      editLink.href = "https://github.com/theo-armour/sandbox/edit/main/cookbook/newww-tab/" + col.file;
-      editLink.target = "_blank";
-      editLink.textContent = "✏️";
-      editLink.title = "Edit " + col.title + ".md on GitHub";
-      editLink.addEventListener("click", e => e.stopPropagation());
+
+      // For single-file columns, pencil goes on the column title
+      let titleEditLink;
+      if (isSingle) {
+        titleEditLink = document.createElement("a");
+        titleEditLink.className = "edit-link";
+        titleEditLink.href = "https://github.com/theo-armour/sandbox/edit/main/cookbook/newww-tab/" + colFiles[0];
+        titleEditLink.target = "_blank";
+        titleEditLink.textContent = " ✏️";
+        titleEditLink.title = "Edit " + colFiles[0].split("/").pop() + " on GitHub";
+        titleEditLink.addEventListener("click", e => e.stopPropagation());
+      }
+
       function updateTitle() {
         const isCollapsed = box.classList.contains("collapsed");
-        title.textContent = (isCollapsed ? "▶ " : "▼ ") + col.title + " ";
-        title.appendChild(editLink);
+        title.textContent = (isCollapsed ? "▶ " : "▼ ") + col.title;
+        if (titleEditLink) title.appendChild(titleEditLink);
       }
       updateTitle();
       title.addEventListener("click", () => {
@@ -206,25 +215,65 @@
       box.appendChild(title);
 
       const content = document.createElement("div");
-      content.className = "content loading";
-      content.textContent = "Loading...";
+      content.className = "content";
       box.appendChild(content);
 
       app.appendChild(box);
 
-      fetch(col.file)
-        .then(res => {
-          if (!res.ok) throw new Error("Failed to load " + col.file);
-          return res.text();
-        })
-        .then(text => {
-          content.innerHTML = converter.makeHtml(text);
-          content.classList.remove("loading");
-        })
-        .catch(() => {
-          content.innerHTML = '<p style="color:red">Error loading</p>';
-          content.classList.remove("loading");
+      if (isSingle) {
+        // Single file: no <details> wrapper, content renders directly
+        content.className = "content loading";
+        content.textContent = "Loading...";
+        fetch(colFiles[0])
+          .then(res => {
+            if (!res.ok) throw new Error("Failed to load " + colFiles[0]);
+            return res.text();
+          })
+          .then(text => {
+            content.innerHTML = converter.makeHtml(text);
+            content.classList.remove("loading");
+          })
+          .catch(() => {
+            content.innerHTML = '<p style="color:red">Error loading</p>';
+            content.classList.remove("loading");
+          });
+      } else {
+        // Multiple files: each in its own <details> with pencil on summary
+        colFiles.forEach(f => {
+          const name = f.split("/").pop().replace(".md", "");
+          const section = document.createElement("details");
+          section.open = true;
+          const summary = document.createElement("summary");
+          summary.textContent = name;
+          const editLink = document.createElement("a");
+          editLink.className = "edit-link";
+          editLink.href = "https://github.com/theo-armour/sandbox/edit/main/cookbook/newww-tab/" + f;
+          editLink.target = "_blank";
+          editLink.textContent = " ✏️";
+          editLink.title = "Edit " + f.split("/").pop() + " on GitHub";
+          summary.appendChild(editLink);
+          section.appendChild(summary);
+          const sectionContent = document.createElement("div");
+          sectionContent.className = "loading";
+          sectionContent.textContent = "Loading...";
+          section.appendChild(sectionContent);
+          content.appendChild(section);
+
+          fetch(f)
+            .then(res => {
+              if (!res.ok) throw new Error("Failed to load " + f);
+              return res.text();
+            })
+            .then(text => {
+              sectionContent.innerHTML = converter.makeHtml(text);
+              sectionContent.classList.remove("loading");
+            })
+            .catch(() => {
+              sectionContent.innerHTML = '<p style="color:red">Error loading</p>';
+              sectionContent.classList.remove("loading");
+            });
         });
+      }
     });
   </script>
 
