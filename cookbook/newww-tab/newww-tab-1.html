@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Newww Tab</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      font: 100% monospace;
+      --bg-color: #fff;
+      --text-color: #000;
+      --link-color: green;
+      --box-border: #ffdddd;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-color: #222;
+        --text-color: #eee;
+        --link-color: lightgreen;
+        --box-border: #444;
+      }
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #e0ffe0 var(--bg-color);
+    }
+
+    ::-webkit-scrollbar {
+      width: 12px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-color);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background-color: #e0ffe0;
+      border-radius: 6px;
+      border: 3px solid var(--bg-color);
+    }
+
+    a {
+      color: var(--link-color);
+      text-decoration: none;
+      font-size: 200%;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      padding: 10px;
+      gap: 4px;
+    }
+
+    .box {
+      border: 1px solid var(--box-border);
+      flex: 0 1 22ch;
+      padding: 2px;
+      overflow: auto;
+      height: calc(100vh - 25px);
+    }
+
+    .box.collapsed {
+      flex: 0 0 auto;
+      width: auto;
+      height: auto;
+      overflow: hidden;
+    }
+
+    .box.collapsed .content {
+      display: none;
+    }
+
+    .box-title {
+      font-size: 150%;
+      font-weight: bold;
+      margin: 0 0 4px 0;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .box-title:hover {
+      text-decoration: underline;
+    }
+
+    .content > :first-child {
+      margin-top: 0;
+    }
+
+    details {
+      margin-bottom: 1rem;
+    }
+
+    summary {
+      cursor: pointer;
+      font-size: 1.5rem;
+      font-weight: bold;
+      outline: none;
+    }
+
+    .loading {
+      opacity: 0.5;
+    }
+
+    textarea {
+      background: var(--bg-color);
+      color: var(--text-color);
+      border: 1px solid var(--box-border);
+      font-family: monospace;
+    }
+
+    .edit-link {
+      font-size: 100%;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .tooltip {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="app" class="container"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+
+  <script>
+    const columns = [
+      { title: "theo", files: ["data/repos.md", "data/vscode.md"] },
+      { title: "reads", file: "data/reads.md" },
+      { title: "news", file: "data/news.md" },
+      { title: "ai", file: "data/ai.md" },
+      { title: "apps", file: "data/apps.md" },
+      { title: "groups", file: "data/groups.md" },
+      { title: "orgs", file: "data/orgs.md" },
+    ];
+
+    const converter = new showdown.Converter({
+      simpleLineBreaks: true,
+      simplifiedAutoLink: true,
+      openLinksInNewWindow: true
+    });
+
+    const COLLAPSE_KEY = "newww-tab-collapsed";
+    const app = document.getElementById("app");
+
+    function getCollapsed() {
+      try { return JSON.parse(localStorage.getItem(COLLAPSE_KEY)) || []; }
+      catch { return []; }
+    }
+
+    function saveCollapsed(list) {
+      localStorage.setItem(COLLAPSE_KEY, JSON.stringify(list));
+    }
+
+    columns.forEach(col => {
+      const box = document.createElement("div");
+      box.className = "box";
+
+      const collapsed = getCollapsed();
+      if (collapsed.includes(col.title)) box.classList.add("collapsed");
+
+      const colFiles = col.files || [col.file];
+      const isSingle = colFiles.length === 1;
+
+      const title = document.createElement("div");
+      title.className = "box-title";
+
+      // For single-file columns, pencil goes on the column title
+      let titleEditLink;
+      if (isSingle) {
+        titleEditLink = document.createElement("a");
+        titleEditLink.className = "edit-link";
+        titleEditLink.href = "https://github.com/theo-armour/sandbox/edit/main/cookbook/newww-tab/" + colFiles[0];
+        titleEditLink.target = "_blank";
+        titleEditLink.textContent = " ✏️";
+        titleEditLink.title = "Edit " + colFiles[0].split("/").pop() + " on GitHub";
+        titleEditLink.addEventListener("click", e => e.stopPropagation());
+      }
+
+      function updateTitle() {
+        const isCollapsed = box.classList.contains("collapsed");
+        title.textContent = (isCollapsed ? "▶ " : "▼ ") + col.title;
+        if (titleEditLink) title.appendChild(titleEditLink);
+      }
+      updateTitle();
+      title.addEventListener("click", () => {
+        box.classList.toggle("collapsed");
+        updateTitle();
+        const current = getCollapsed();
+        if (box.classList.contains("collapsed")) {
+          current.push(col.title);
+        } else {
+          const idx = current.indexOf(col.title);
+          if (idx !== -1) current.splice(idx, 1);
+        }
+        saveCollapsed(current);
+      });
+      box.appendChild(title);
+
+      const content = document.createElement("div");
+      content.className = "content";
+      box.appendChild(content);
+
+      app.appendChild(box);
+
+      if (isSingle) {
+        // Single file: no <details> wrapper, content renders directly
+        content.className = "content loading";
+        content.textContent = "Loading...";
+        fetch(colFiles[0])
+          .then(res => {
+            if (!res.ok) throw new Error("Failed to load " + colFiles[0]);
+            return res.text();
+          })
+          .then(text => {
+            content.innerHTML = converter.makeHtml(text);
+            content.classList.remove("loading");
+          })
+          .catch(() => {
+            content.innerHTML = '<p style="color:red">Error loading</p>';
+            content.classList.remove("loading");
+          });
+      } else {
+        // Multiple files: each in its own <details> with pencil on summary
+        colFiles.forEach(f => {
+          const name = f.split("/").pop().replace(".md", "");
+          const section = document.createElement("details");
+          section.open = true;
+          const summary = document.createElement("summary");
+          summary.textContent = name;
+          const editLink = document.createElement("a");
+          editLink.className = "edit-link";
+          editLink.href = "https://github.com/theo-armour/sandbox/edit/main/cookbook/newww-tab/" + f;
+          editLink.target = "_blank";
+          editLink.textContent = " ✏️";
+          editLink.title = "Edit " + f.split("/").pop() + " on GitHub";
+          summary.appendChild(editLink);
+          section.appendChild(summary);
+          const sectionContent = document.createElement("div");
+          sectionContent.className = "loading";
+          sectionContent.textContent = "Loading...";
+          section.appendChild(sectionContent);
+          content.appendChild(section);
+
+          fetch(f)
+            .then(res => {
+              if (!res.ok) throw new Error("Failed to load " + f);
+              return res.text();
+            })
+            .then(text => {
+              sectionContent.innerHTML = converter.makeHtml(text);
+              sectionContent.classList.remove("loading");
+            })
+            .catch(() => {
+              sectionContent.innerHTML = '<p style="color:red">Error loading</p>';
+              sectionContent.classList.remove("loading");
+            });
+        });
+      }
+    });
+  </script>
+
+</body>
+
+</html>

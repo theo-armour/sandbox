@@ -1,0 +1,8 @@
+[aeon](https://aeon.co/)
+[axios]( https://axios.com/ )
+[lesswrong]( https://www.lesswrong.com/ )
+[marginal]( https://www.themarginalian.org/ )
+[nautilus](https://nautil.us/)
+[noema]( https://www.noemamag.com/)
+[quanta]( https://www.quantamagazine.org/)
+[feedly]( https://feedly.com/ )

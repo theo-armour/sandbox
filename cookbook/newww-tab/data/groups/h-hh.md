@@ -1,14 +1,3 @@
-[nextvilge]( https://nextvillagesf.org/ )
-[sensay]( https://sensay.io/ )
-[sacsem]( https://sacsem.net ) [wix]( https://manage.wix.com/dashboard/b2537da6-a144-4436-bf40-8f3b36dcd723/home )
-[groups.io]( https://groups.io/groups )
-[ace-it.gr]( https://ace-it.groups.io/ )
-[hertge.gr]( https://heritage.groups.io/g/residents/messages )
-
-<textarea style="height:5rem;width:80%"></textarea>
-
-<details open><summary>h & hh</summary>
-
 <b>heritage</b>
 [hotm]( https://heritageonthemarina.org/ ) [p]( https://photos.fife.usercontent.google.com/pw/AP1GczMD9HRaxaWkG-W4JSgWilu9PVt29jRaMmifj8aZX3qM0I76RQV1RYsvdA=w1473-h831-s-no-gm?authuser=0)
 
@@ -28,6 +17,3 @@
 [flr plans]( https://heritage-happenings.github.io/pages/reference/2024-05-happenings-floor-plans.pdf )
 [xls]( https://1drv.ms/x/s!ArJ-RZ9B4UhDzOxNalqGdbMK8F97dA?e=p49UHF ) [resdir]( https://1drv.ms/b/s!ArJ-RZ9B4UhDzOxGlz6HYF0kYMpFwA?e=Lh8FYs )
 [granucci]( https://EverEverLand.github.io/granucci/ )
-
-
-</details>

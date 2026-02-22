@@ -141,15 +141,17 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
 
   <script>
-    const columns = [
-      { title: "theo", files: ["data/repos.md", "data/vscode.md"] },
-      { title: "reads", file: "data/reads.md" },
-      { title: "news", file: "data/news.md" },
-      { title: "ai", file: "data/ai.md" },
-      { title: "apps", file: "data/apps.md" },
-      { title: "groups", file: "data/groups.md" },
-      { title: "orgs", file: "data/orgs.md" },
-    ];
+    // Config
+    const REPO = "theo-armour/sandbox";
+    const BRANCH = "main";
+    const DATA_PATH = "cookbook/newww-tab/data";
+    const COLUMNS = ["theo", "reads", "news", "ai", "apps", "groups", "orgs"];
+    const API_BASE = "https://api.github.com/repos/" + REPO + "/contents/" + DATA_PATH;
+    const EDIT_BASE = "https://github.com/" + REPO + "/edit/" + BRANCH + "/" + DATA_PATH;
+
+    // localStorage keys
+    const COLLAPSE_KEY = "newww-tab-collapsed";
+    const GAT_KEY = "newww-tab-gat";
 
     const converter = new showdown.Converter({
       simpleLineBreaks: true,
@@ -157,7 +159,6 @@
       openLinksInNewWindow: true
     });
 
-    const COLLAPSE_KEY = "newww-tab-collapsed";
     const app = document.getElementById("app");
 
     function getCollapsed() {
@@ -169,45 +170,105 @@
       localStorage.setItem(COLLAPSE_KEY, JSON.stringify(list));
     }
 
-    columns.forEach(col => {
+    function getGat() {
+      return localStorage.getItem(GAT_KEY) || "";
+    }
+
+    function apiHeaders() {
+      const h = { Accept: "application/vnd.github.v3+json" };
+      const gat = getGat();
+      if (gat) h.Authorization = "token " + gat;
+      return h;
+    }
+
+    // GAT settings UI
+    const gatBtn = document.createElement("span");
+    gatBtn.textContent = "🔑";
+    gatBtn.style.cssText = "cursor:pointer;position:fixed;bottom:4px;right:8px;font-size:1.2rem;z-index:10;opacity:0.6;";
+    gatBtn.title = "GitHub token settings";
+    const gatPanel = document.createElement("div");
+    gatPanel.style.cssText = "display:none;position:fixed;bottom:30px;right:8px;background:var(--bg-color);border:1px solid var(--box-border);padding:8px;z-index:10;font-family:monospace;";
+    gatPanel.innerHTML = '<label style="font-size:0.8rem;">GitHub token<br>'
+      + '<input id="gatInput" type="password" style="width:22ch;background:var(--bg-color);color:var(--text-color);border:1px solid var(--box-border);font-family:monospace;" /></label> '
+      + '<button id="gatSave" style="font-family:monospace;">Save</button> '
+      + '<button id="gatClear" style="font-family:monospace;">Clear</button>';
+    document.body.appendChild(gatBtn);
+    document.body.appendChild(gatPanel);
+    gatBtn.addEventListener("click", () => {
+      const visible = gatPanel.style.display !== "none";
+      gatPanel.style.display = visible ? "none" : "block";
+      if (!visible) document.getElementById("gatInput").value = getGat();
+    });
+    document.getElementById("gatSave").addEventListener("click", () => {
+      localStorage.setItem(GAT_KEY, document.getElementById("gatInput").value.trim());
+      gatPanel.style.display = "none";
+      location.reload();
+    });
+    document.getElementById("gatClear").addEventListener("click", () => {
+      localStorage.removeItem(GAT_KEY);
+      document.getElementById("gatInput").value = "";
+      gatPanel.style.display = "none";
+      location.reload();
+    });
+
+    function makeEditLink(column, filename) {
+      const a = document.createElement("a");
+      a.className = "edit-link";
+      a.href = EDIT_BASE + "/" + column + "/" + filename;
+      a.target = "_blank";
+      a.textContent = " ✏️";
+      a.title = "Edit " + filename + " on GitHub";
+      return a;
+    }
+
+    function renderFile(container, column, file) {
+      const sectionContent = document.createElement("div");
+      sectionContent.className = "loading";
+      sectionContent.textContent = "Loading...";
+      container.appendChild(sectionContent);
+
+      fetch(file.download_url)
+        .then(res => {
+          if (!res.ok) throw new Error("Failed");
+          return res.text();
+        })
+        .then(text => {
+          sectionContent.innerHTML = converter.makeHtml(text);
+          sectionContent.classList.remove("loading");
+        })
+        .catch(() => {
+          sectionContent.innerHTML = '<p style="color:red">Error loading</p>';
+          sectionContent.classList.remove("loading");
+        });
+    }
+
+    // Build columns
+    COLUMNS.forEach(column => {
       const box = document.createElement("div");
       box.className = "box";
 
       const collapsed = getCollapsed();
-      if (collapsed.includes(col.title)) box.classList.add("collapsed");
-
-      const colFiles = col.files || [col.file];
-      const isSingle = colFiles.length === 1;
+      if (collapsed.includes(column)) box.classList.add("collapsed");
 
       const title = document.createElement("div");
       title.className = "box-title";
 
-      // For single-file columns, pencil goes on the column title
-      let titleEditLink;
-      if (isSingle) {
-        titleEditLink = document.createElement("a");
-        titleEditLink.className = "edit-link";
-        titleEditLink.href = "https://github.com/theo-armour/sandbox/edit/main/cookbook/newww-tab/" + colFiles[0];
-        titleEditLink.target = "_blank";
-        titleEditLink.textContent = " ✏️";
-        titleEditLink.title = "Edit " + colFiles[0].split("/").pop() + " on GitHub";
-        titleEditLink.addEventListener("click", e => e.stopPropagation());
-      }
-
-      function updateTitle() {
+      function updateTitle(editLink) {
         const isCollapsed = box.classList.contains("collapsed");
-        title.textContent = (isCollapsed ? "▶ " : "▼ ") + col.title;
-        if (titleEditLink) title.appendChild(titleEditLink);
+        title.textContent = (isCollapsed ? "▶ " : "▼ ") + column;
+        if (editLink) title.appendChild(editLink);
       }
       updateTitle();
+
+      let singleEditLink;
       title.addEventListener("click", () => {
         box.classList.toggle("collapsed");
-        updateTitle();
+        updateTitle(singleEditLink);
         const current = getCollapsed();
         if (box.classList.contains("collapsed")) {
-          current.push(col.title);
+          current.push(column);
         } else {
-          const idx = current.indexOf(col.title);
+          const idx = current.indexOf(column);
           if (idx !== -1) current.splice(idx, 1);
         }
         saveCollapsed(current);
@@ -215,65 +276,62 @@
       box.appendChild(title);
 
       const content = document.createElement("div");
-      content.className = "content";
+      content.className = "content loading";
+      content.textContent = "Loading...";
       box.appendChild(content);
 
       app.appendChild(box);
 
-      if (isSingle) {
-        // Single file: no <details> wrapper, content renders directly
-        content.className = "content loading";
-        content.textContent = "Loading...";
-        fetch(colFiles[0])
-          .then(res => {
-            if (!res.ok) throw new Error("Failed to load " + colFiles[0]);
-            return res.text();
-          })
-          .then(text => {
-            content.innerHTML = converter.makeHtml(text);
-            content.classList.remove("loading");
-          })
-          .catch(() => {
-            content.innerHTML = '<p style="color:red">Error loading</p>';
-            content.classList.remove("loading");
-          });
-      } else {
-        // Multiple files: each in its own <details> with pencil on summary
-        colFiles.forEach(f => {
-          const name = f.split("/").pop().replace(".md", "");
-          const section = document.createElement("details");
-          section.open = true;
-          const summary = document.createElement("summary");
-          summary.textContent = name;
-          const editLink = document.createElement("a");
-          editLink.className = "edit-link";
-          editLink.href = "https://github.com/theo-armour/sandbox/edit/main/cookbook/newww-tab/" + f;
-          editLink.target = "_blank";
-          editLink.textContent = " ✏️";
-          editLink.title = "Edit " + f.split("/").pop() + " on GitHub";
-          summary.appendChild(editLink);
-          section.appendChild(summary);
-          const sectionContent = document.createElement("div");
-          sectionContent.className = "loading";
-          sectionContent.textContent = "Loading...";
-          section.appendChild(sectionContent);
-          content.appendChild(section);
+      // Fetch directory listing from GitHub API
+      fetch(API_BASE + "/" + column, { headers: apiHeaders() })
+        .then(res => {
+          if (res.status === 403) throw new Error("rate-limited");
+          if (!res.ok) throw new Error("api-error");
+          return res.json();
+        })
+        .then(entries => {
+          const mdFiles = entries
+            .filter(e => e.type === "file" && e.name.endsWith(".md"))
+            .sort((a, b) => a.name.localeCompare(b.name));
 
-          fetch(f)
-            .then(res => {
-              if (!res.ok) throw new Error("Failed to load " + f);
-              return res.text();
-            })
-            .then(text => {
-              sectionContent.innerHTML = converter.makeHtml(text);
-              sectionContent.classList.remove("loading");
-            })
-            .catch(() => {
-              sectionContent.innerHTML = '<p style="color:red">Error loading</p>';
-              sectionContent.classList.remove("loading");
+          content.textContent = "";
+          content.classList.remove("loading");
+
+          if (mdFiles.length === 0) {
+            content.innerHTML = '<p style="color:orange">No .md files found</p>';
+            return;
+          }
+
+          if (mdFiles.length === 1) {
+            // Single file: pencil on column title, content renders directly
+            const file = mdFiles[0];
+            singleEditLink = makeEditLink(column, file.name);
+            singleEditLink.addEventListener("click", e => e.stopPropagation());
+            updateTitle(singleEditLink);
+            renderFile(content, column, file);
+          } else {
+            // Multiple files: each in its own <details> with pencil on summary
+            mdFiles.forEach(file => {
+              const name = file.name.replace(".md", "");
+              const section = document.createElement("details");
+              section.open = true;
+              const summary = document.createElement("summary");
+              summary.textContent = name;
+              summary.appendChild(makeEditLink(column, file.name));
+              section.appendChild(summary);
+              content.appendChild(section);
+              renderFile(section, column, file);
             });
+          }
+        })
+        .catch(err => {
+          content.classList.remove("loading");
+          if (err.message === "rate-limited") {
+            content.innerHTML = '<p style="color:orange">API rate limited. Click 🔑 to add a GitHub token.</p>';
+          } else {
+            content.innerHTML = '<p style="color:red">Error loading column</p>';
+          }
         });
-      }
     });
   </script>
 

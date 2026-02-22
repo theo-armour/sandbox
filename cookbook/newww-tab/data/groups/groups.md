@@ -1,0 +1,8 @@
+[nextvilge]( https://nextvillagesf.org/ )
+[sensay]( https://sensay.io/ )
+[sacsem]( https://sacsem.net ) [wix]( https://manage.wix.com/dashboard/b2537da6-a144-4436-bf40-8f3b36dcd723/home )
+[groups.io]( https://groups.io/groups )
+[ace-it.gr]( https://ace-it.groups.io/ )
+[hertge.gr]( https://heritage.groups.io/g/residents/messages )
+
+<textarea style="height:5rem;width:80%"></textarea>
