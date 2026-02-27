@@ -1,5 +1,5 @@
 {
-  "lastSync": "2026-02-27T04:52:52.882Z",
+  "lastSync": "2026-02-27T04:56:27.698Z",
   "columns": [
     {
       "folder": "theo",
@@ -27,6 +27,29 @@
         },
         {
           "file": "more-news.md",
+          "collapsed": false
+        }
+      ]
+    },
+    {
+      "folder": "reads",
+      "color": "#ec4899",
+      "collapsed": false,
+      "sections": [
+        {
+          "file": "ai-frank.md",
+          "collapsed": false
+        },
+        {
+          "file": "ai.md",
+          "collapsed": false
+        },
+        {
+          "file": "more-read.md",
+          "collapsed": false
+        },
+        {
+          "file": "reads.md",
           "collapsed": false
         }
       ]
@@ -95,29 +118,6 @@
       "sections": [
         {
           "file": "orgs.md",
-          "collapsed": false
-        }
-      ]
-    },
-    {
-      "folder": "reads",
-      "color": "#ec4899",
-      "collapsed": false,
-      "sections": [
-        {
-          "file": "ai-frank.md",
-          "collapsed": false
-        },
-        {
-          "file": "ai.md",
-          "collapsed": false
-        },
-        {
-          "file": "more-read.md",
-          "collapsed": false
-        },
-        {
-          "file": "reads.md",
           "collapsed": false
         }
       ]
