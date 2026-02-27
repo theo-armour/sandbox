@@ -1,7 +1,0 @@
-[sora](https://sora.com)
-[midjourny](https://www.midjourney.com/)
-[> dd](https://discord.com/channels/662267976984297473/@home)
-[ideogram](https://ideogram.ai/)
-[> dd](https://discord.com/channels/662267976984297473/@home)
-[kaiber](https://kaiber.ai)
-[suno/chirp](suno.com)
