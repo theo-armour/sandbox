@@ -1,5 +1,5 @@
 {
-  "lastSync": "2026-02-27T06:21:14.217Z",
+  "lastSync": "2026-02-27T06:54:30.887Z",
   "columns": [
     {
       "folder": "theo",
@@ -45,25 +45,6 @@
       "collapsed": false,
       "sections": [
         {
-          "file": "google.md",
-          "collapsed": false
-        },
-        {
-          "file": "gdrive.md",
-          "collapsed": false
-        },
-        {
-          "file": "more-goog.md",
-          "collapsed": false
-        }
-      ]
-    },
-    {
-      "folder": "ai",
-      "color": "#10b981",
-      "collapsed": false,
-      "sections": [
-        {
           "file": "ai.md",
           "collapsed": false
         },
@@ -74,6 +55,29 @@
         {
           "file": "ai.md",
           "collapsed": false
+        },
+        {
+          "file": "ai-frank.md",
+          "collapsed": false
+        }
+      ]
+    },
+    {
+      "folder": "ai",
+      "color": "#10b981",
+      "collapsed": false,
+      "sections": [
+        {
+          "file": "gdrive.md",
+          "collapsed": true
+        },
+        {
+          "file": "google.md",
+          "collapsed": false
+        },
+        {
+          "file": "more-goog.md",
+          "collapsed": true
         }
       ]
     },
