@@ -5,3 +5,4 @@
 [techmeme](https://techmeme.com)
 [slashdot](https://slashdot.org/)
 [hacker_new](https://news.ycombinator.com/)
+[xkcd](https://xkcd.com/)
