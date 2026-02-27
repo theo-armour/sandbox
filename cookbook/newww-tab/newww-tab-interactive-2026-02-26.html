@@ -1,0 +1,1370 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Newww Tab</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔶</text></svg>">
+  <style>
+    :root {
+      font: 100% monospace;
+      --bg: #fff;
+      --text: #000;
+      --link-color: green;
+      --border: #ffdddd;
+      --dim: #888;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #222;
+        --text: #eee;
+        --link-color: lightgreen;
+        --border: #444;
+      }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Scrollbars ── */
+    * { scrollbar-width: thin; scrollbar-color: #e0ffe0 var(--bg); }
+    ::-webkit-scrollbar { width: 12px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background-color: #e0ffe0; border-radius: 6px; border: 3px solid var(--bg); }
+
+    /* ── Toolbar ── */
+    #toolbar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    #search {
+      flex: 1;
+      max-width: 180px;
+      padding: 2px 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      outline: none;
+    }
+
+    #search:focus { border-color: var(--link-color); }
+    .toolbar-gap { flex: 1; }
+
+    .btn {
+      padding: 2px 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn:hover { background: var(--border); }
+
+    .btn-accent {
+      background: var(--link-color);
+      color: var(--bg);
+      border-color: var(--link-color);
+    }
+
+    .btn-accent:hover { opacity: 0.85; background: var(--link-color); }
+
+    /* ── Columns ── */
+    #columns {
+      flex: 1;
+      display: flex;
+      flex-wrap: wrap;
+      padding: 10px;
+      gap: 4px;
+    }
+
+    .column {
+      border: 1px solid var(--border);
+      flex: 0 1 24ch;
+      padding: 2px;
+      overflow: auto;
+      height: calc(100vh - 35px);
+    }
+
+    .column.collapsed {
+      flex: 0 0 auto;
+      width: auto;
+      height: auto;
+      overflow: hidden;
+    }
+
+    .column-header {
+      font-size: 130%;
+      font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+      padding: 0 2px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin-bottom: 1px;
+    }
+
+    .column-header:hover { text-decoration: underline; }
+
+    .column-drag-handle {
+      cursor: grab;
+      color: var(--dim);
+      font-size: 70%;
+      opacity: 0;
+    }
+
+    .column-header:hover .column-drag-handle { opacity: 0.6; }
+    .column-drag-handle:active { cursor: grabbing; }
+
+    .column-title { flex: 1; }
+    .column-toggle { font-size: 55%; color: var(--dim); }
+
+    .column-actions { display: none; gap: 1px; }
+    .column-header:hover .column-actions { display: flex; }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--dim);
+      font: inherit;
+      font-size: 70%;
+      padding: 0 2px;
+    }
+
+    .icon-btn:hover { color: var(--text); }
+
+    .column-body { padding: 0 2px; }
+    .column.collapsed .column-body { display: none; }
+
+    /* ── Section ── */
+    .section { margin-bottom: 3px; }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding: 0 2px;
+      font-size: 120%;
+      font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .section-header:hover { text-decoration: underline; }
+
+    .section-drag-handle {
+      cursor: grab;
+      color: var(--dim);
+      font-size: 60%;
+      opacity: 0;
+    }
+
+    .section-header:hover .section-drag-handle { opacity: 0.6; }
+
+    .section-toggle { font-size: 50%; color: var(--dim); }
+    .section-title { flex: 1; }
+
+    .section-header .icon-btn { display: none; }
+    .section-header:hover .icon-btn { display: inline; }
+
+    .section-body { padding: 0; }
+    .section.collapsed .section-body { display: none; }
+
+    /* ── Link ── */
+    .link-card {
+      display: flex;
+      align-items: baseline;
+      gap: 1px;
+      padding: 0 2px;
+      line-height: 1.15;
+    }
+
+    .link-card:hover { background: rgba(128, 128, 128, 0.1); }
+
+    .link-drag-handle {
+      cursor: grab;
+      color: var(--link-color);
+      font-size: 100%;
+      flex-shrink: 0;
+      opacity: 0.5;
+    }
+
+    .link-card:hover .link-drag-handle { opacity: 1; }
+    .link-drag-handle:active { cursor: grabbing; }
+
+    .link-info { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    a.link-title,
+    a.link-secondary {
+      color: var(--link-color);
+      text-decoration: none;
+      font-size: 200%;
+    }
+
+    a.link-title:hover,
+    a.link-secondary:hover { text-decoration: underline; }
+
+    .link-actions { display: none; gap: 1px; flex-shrink: 0; }
+    .link-card:hover .link-actions { display: flex; }
+
+    /* ── Edit Form ── */
+    .edit-form {
+      padding: 3px;
+      background: rgba(128, 128, 128, 0.1);
+      border: 1px solid var(--border);
+      margin: 1px 0;
+    }
+
+    .edit-form label { display: block; font-size: 0.65rem; color: var(--dim); margin-bottom: 0; }
+
+    .edit-form input {
+      width: 100%;
+      padding: 1px 3px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      font-size: 0.85rem;
+      margin-bottom: 3px;
+      outline: none;
+    }
+
+    .edit-form input:focus { border-color: var(--link-color); }
+    .edit-form .edit-buttons { display: flex; gap: 4px; justify-content: flex-end; }
+
+    /* ── Add Link ── */
+    .add-link-btn {
+      display: block;
+      padding: 0 4px;
+      margin-top: 1px;
+      color: var(--dim);
+      cursor: pointer;
+      border: 1px dashed var(--border);
+      background: none;
+      font: inherit;
+      font-size: 75%;
+      width: 100%;
+      text-align: center;
+    }
+
+    .add-link-btn:hover { color: var(--text); }
+
+    /* ── Drag ── */
+    .sortable-ghost { opacity: 0.3; }
+    .sortable-chosen { outline: 1px dashed var(--link-color); }
+
+    .link-list.drag-over { outline: 2px dashed var(--link-color); background: rgba(0, 128, 0, 0.05); }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 20px;
+      min-width: 340px;
+      max-width: 480px;
+    }
+
+    .modal h2 { font-size: 1rem; margin-bottom: 12px; }
+    .modal label { display: block; font-size: 0.8rem; color: var(--dim); margin-bottom: 2px; }
+
+    .modal input {
+      width: 100%;
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      margin-bottom: 10px;
+      outline: none;
+    }
+
+    .modal input:focus { border-color: var(--link-color); }
+    .modal-buttons { display: flex; gap: 6px; justify-content: flex-end; margin-top: 12px; }
+
+    .import-log {
+      font-size: 0.75rem;
+      color: var(--dim);
+      max-height: 120px;
+      overflow-y: auto;
+      margin-top: 8px;
+      padding: 6px;
+      border: 1px solid var(--border);
+      white-space: pre-wrap;
+    }
+
+    /* ── Empty State ── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 60vh;
+      width: 100%;
+      color: var(--dim);
+      text-align: center;
+      gap: 10px;
+    }
+
+    .empty-state .big { font-size: 2rem; opacity: 0.5; }
+
+    /* ── Search ── */
+    .search-hidden { display: none !important; }
+    mark { background: #fde68a; color: #000; padding: 0 1px; }
+
+    @media (prefers-color-scheme: dark) {
+      mark { background: #854d0e; color: #fde68a; }
+    }
+
+    [contenteditable="true"] { outline: none; border-bottom: 1px dashed var(--link-color); }
+  </style>
+</head>
+
+<body>
+
+  <header id="toolbar">
+    <input type="search" id="search" placeholder="Filter links... (Ctrl+F)">
+    <div class="toolbar-gap"></div>
+    <button class="btn btn-accent" id="btn-add-col">+ Column</button>
+    <button class="btn" id="btn-import">Import</button>
+    <button class="btn" id="btn-export">Export</button>
+    <button class="btn" id="btn-settings" title="Settings">&#9881;</button>
+  </header>
+
+  <main id="columns"></main>
+
+  <!-- Import Modal -->
+  <div class="modal-overlay" id="import-overlay">
+    <div class="modal">
+      <h2>Import from GitHub</h2>
+      <label>Repository</label>
+      <input id="import-repo" value="theo-armour/sandbox">
+      <label>Data path</label>
+      <input id="import-path" value="cookbook/newww-tab/data">
+      <label>GitHub token (optional &mdash; raises rate limit to 5,000/hr)</label>
+      <input id="import-token" type="password" placeholder="ghp_...">
+      <div id="import-log" class="import-log" style="display:none"></div>
+      <div class="modal-buttons">
+        <button class="btn" id="import-cancel">Cancel</button>
+        <button class="btn btn-accent" id="import-go">Import</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Modal -->
+  <div class="modal-overlay" id="export-overlay">
+    <div class="modal">
+      <h2>Export Data</h2>
+      <div class="modal-buttons" style="justify-content:center;margin-top:0;margin-bottom:12px;">
+        <button class="btn btn-accent" id="export-json">Download JSON</button>
+        <button class="btn" id="export-md">Download Markdown</button>
+      </div>
+      <label>Preview</label>
+      <textarea id="export-preview" readonly
+        style="width:100%;height:200px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;font-family:var(--font);font-size:0.75rem;padding:8px;resize:vertical;"></textarea>
+      <div class="modal-buttons">
+        <button class="btn" id="export-copy">Copy to Clipboard</button>
+        <button class="btn" id="export-close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settings-overlay">
+    <div class="modal">
+      <h2>Settings</h2>
+      <label>GitHub Personal Access Token</label>
+      <input id="settings-token" type="password" placeholder="ghp_...">
+      <p style="font-size:0.7rem;color:var(--text-dim);margin-bottom:12px;">
+        Stored in localStorage. Without a token: 60 API requests/hr. With: 5,000/hr.
+      </p>
+      <div class="modal-buttons">
+        <button class="btn" id="settings-clear">Clear token</button>
+        <button class="btn" id="settings-cancel">Cancel</button>
+        <button class="btn btn-accent" id="settings-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
+
+  <script>
+    // ╔══════════════════════════════════╗
+    // ║         CONFIGURATION            ║
+    // ╚══════════════════════════════════╝
+
+    const STORAGE_KEY = "newww-tab-data";
+    const GAT_KEY = "newww-tab-gat";
+    const MAX_TITLE = 10;
+    const COLUMN_COLORS = [
+      "#10b981", "#3b82f6", "#f59e0b", "#8b5cf6",
+      "#06b6d4", "#ec4899", "#78716c", "#ef4444",
+      "#14b8a6", "#6366f1"
+    ];
+
+    function truncate(s, max) {
+      if (!s) return s;
+      return s.length > max ? s.slice(0, max) : s;
+    }
+
+    // ╔══════════════════════════════════╗
+    // ║          DATA LAYER              ║
+    // ╚══════════════════════════════════╝
+
+    let data = { columns: [] };
+    let sortableInstances = [];
+    let editingLinkId = null;
+
+    function generateId() {
+      return "id-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 7);
+    }
+
+    function load() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) data = JSON.parse(raw);
+      } catch (e) {
+        console.error("Failed to load data:", e);
+      }
+    }
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function getGat() {
+      return localStorage.getItem(GAT_KEY) || "";
+    }
+
+    function findColumn(colId) {
+      return data.columns.find(c => c.id === colId);
+    }
+
+    function findSection(colId, secId) {
+      const col = findColumn(colId);
+      return col ? col.sections.find(s => s.id === secId) : null;
+    }
+
+    // ╔══════════════════════════════════╗
+    // ║          UTILITIES               ║
+    // ╚══════════════════════════════════╝
+
+    function esc(s) {
+      const d = document.createElement("div");
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    function escAttr(s) {
+      return (s || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function selectAll(el) {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    // ╔══════════════════════════════════╗
+    // ║           RENDERING              ║
+    // ╚══════════════════════════════════╝
+
+    const columnsEl = document.getElementById("columns");
+
+    function render() {
+      sortableInstances.forEach(s => s.destroy());
+      sortableInstances = [];
+      columnsEl.innerHTML = "";
+
+      if (data.columns.length === 0) {
+        columnsEl.innerHTML =
+          '<div class="empty-state">' +
+          '<div class="big">&#8984;</div>' +
+          "<p>No links yet.</p>" +
+          "<p>Click <strong>+ Column</strong> to start fresh,<br>or <strong>Import</strong> to load from GitHub.</p>" +
+          "</div>";
+        return;
+      }
+
+      data.columns.forEach((col, colIdx) => {
+        columnsEl.appendChild(renderColumn(col, colIdx));
+      });
+
+      initSortable();
+    }
+
+    function renderColumn(col, colIdx) {
+      const el = document.createElement("div");
+      el.className = "column" + (col.collapsed ? " collapsed" : "");
+      el.dataset.colId = col.id;
+      // color stored in data but not applied — all links use --link-color (green)
+
+      // ── Header ──
+      const header = document.createElement("div");
+      header.className = "column-header";
+
+      const dragHandle = document.createElement("span");
+      dragHandle.className = "column-drag-handle";
+      dragHandle.textContent = "\u2807";
+      dragHandle.title = "Drag to reorder";
+      header.appendChild(dragHandle);
+
+      const toggle = document.createElement("span");
+      toggle.className = "column-toggle";
+      toggle.textContent = col.collapsed ? "\u25B6" : "\u25BC";
+      header.appendChild(toggle);
+
+      const titleSpan = document.createElement("span");
+      titleSpan.className = "column-title";
+      titleSpan.textContent = col.title;
+      header.appendChild(titleSpan);
+
+      const actions = document.createElement("div");
+      actions.className = "column-actions";
+
+      const moveLeftBtn = document.createElement("button");
+      moveLeftBtn.className = "icon-btn";
+      moveLeftBtn.innerHTML = "&#9664;";
+      moveLeftBtn.title = "Move left";
+      actions.appendChild(moveLeftBtn);
+
+      const moveRightBtn = document.createElement("button");
+      moveRightBtn.className = "icon-btn";
+      moveRightBtn.innerHTML = "&#9654;";
+      moveRightBtn.title = "Move right";
+      actions.appendChild(moveRightBtn);
+
+      const addSecBtn = document.createElement("button");
+      addSecBtn.className = "icon-btn";
+      addSecBtn.textContent = "+";
+      addSecBtn.title = "Add section";
+      actions.appendChild(addSecBtn);
+
+      const editColBtn = document.createElement("button");
+      editColBtn.className = "icon-btn";
+      editColBtn.innerHTML = "&#9998;";
+      editColBtn.title = "Rename column";
+      actions.appendChild(editColBtn);
+
+      const delColBtn = document.createElement("button");
+      delColBtn.className = "icon-btn";
+      delColBtn.innerHTML = "&#10005;";
+      delColBtn.title = "Delete column";
+      actions.appendChild(delColBtn);
+
+      header.appendChild(actions);
+
+      // Toggle collapse
+      header.addEventListener("click", (e) => {
+        if (e.target.closest(".column-actions") || e.target.closest(".column-drag-handle")) return;
+        col.collapsed = !col.collapsed;
+        save();
+        render();
+      });
+
+      // Move column left
+      moveLeftBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const idx = data.columns.indexOf(col);
+        if (idx > 0) {
+          data.columns.splice(idx, 1);
+          data.columns.splice(idx - 1, 0, col);
+          save();
+          render();
+        }
+      });
+
+      // Move column right
+      moveRightBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const idx = data.columns.indexOf(col);
+        if (idx < data.columns.length - 1) {
+          data.columns.splice(idx, 1);
+          data.columns.splice(idx + 1, 0, col);
+          save();
+          render();
+        }
+      });
+
+      // Add section
+      addSecBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        col.sections.push({ id: generateId(), title: "New Section", collapsed: false, links: [] });
+        col.collapsed = false;
+        save();
+        render();
+      });
+
+      // Rename column
+      editColBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const current = col.title;
+        titleSpan.contentEditable = "true";
+        titleSpan.focus();
+        selectAll(titleSpan);
+        const finish = () => {
+          titleSpan.contentEditable = "false";
+          col.title = titleSpan.textContent.trim() || current;
+          titleSpan.textContent = col.title;
+          save();
+        };
+        titleSpan.addEventListener("blur", finish, { once: true });
+        titleSpan.addEventListener("keydown", (ev) => {
+          if (ev.key === "Enter") { ev.preventDefault(); titleSpan.blur(); }
+          if (ev.key === "Escape") { titleSpan.textContent = current; titleSpan.blur(); }
+        });
+      });
+
+      // Delete column
+      delColBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const count = col.sections.reduce((n, s) => n + s.links.length, 0);
+        if (count > 0 && !confirm('Delete column "' + col.title + '" with ' + count + " link(s)?")) return;
+        data.columns = data.columns.filter(c => c.id !== col.id);
+        save();
+        render();
+      });
+
+      el.appendChild(header);
+
+      // ── Body ──
+      const body = document.createElement("div");
+      body.className = "column-body";
+      body.dataset.colId = col.id;
+
+      col.sections.forEach(sec => {
+        body.appendChild(renderSection(col, sec));
+      });
+
+      el.appendChild(body);
+      return el;
+    }
+
+    function renderSection(col, sec) {
+      const el = document.createElement("div");
+      el.className = "section" + (sec.collapsed ? " collapsed" : "");
+      el.dataset.secId = sec.id;
+
+      // ── Section Header ──
+      const header = document.createElement("div");
+      header.className = "section-header";
+
+      const dragHandle = document.createElement("span");
+      dragHandle.className = "section-drag-handle";
+      dragHandle.textContent = "\u2807";
+      header.appendChild(dragHandle);
+
+      const toggle = document.createElement("span");
+      toggle.className = "section-toggle";
+      toggle.textContent = sec.collapsed ? "\u25B6" : "\u25BC";
+      header.appendChild(toggle);
+
+      const titleSpan = document.createElement("span");
+      titleSpan.className = "section-title";
+      titleSpan.textContent = sec.title;
+      header.appendChild(titleSpan);
+
+      const editSecBtn = document.createElement("button");
+      editSecBtn.className = "icon-btn";
+      editSecBtn.innerHTML = "&#9998;";
+      editSecBtn.title = "Rename";
+      header.appendChild(editSecBtn);
+
+      const delSecBtn = document.createElement("button");
+      delSecBtn.className = "icon-btn";
+      delSecBtn.innerHTML = "&#10005;";
+      delSecBtn.title = "Delete section";
+      header.appendChild(delSecBtn);
+
+      // Toggle collapse
+      header.addEventListener("click", (e) => {
+        if (e.target.closest(".icon-btn") || e.target.closest(".section-drag-handle")) return;
+        sec.collapsed = !sec.collapsed;
+        save();
+        render();
+      });
+
+      // Rename section
+      editSecBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const current = sec.title;
+        titleSpan.contentEditable = "true";
+        titleSpan.focus();
+        selectAll(titleSpan);
+        const finish = () => {
+          titleSpan.contentEditable = "false";
+          sec.title = titleSpan.textContent.trim() || current;
+          titleSpan.textContent = sec.title;
+          save();
+        };
+        titleSpan.addEventListener("blur", finish, { once: true });
+        titleSpan.addEventListener("keydown", (ev) => {
+          if (ev.key === "Enter") { ev.preventDefault(); titleSpan.blur(); }
+          if (ev.key === "Escape") { titleSpan.textContent = current; titleSpan.blur(); }
+        });
+      });
+
+      // Delete section
+      delSecBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (sec.links.length > 0 && !confirm('Delete section "' + sec.title + '" with ' + sec.links.length + " link(s)?")) return;
+        col.sections = col.sections.filter(s => s.id !== sec.id);
+        save();
+        render();
+      });
+
+      el.appendChild(header);
+
+      // ── Section Body ──
+      const body = document.createElement("div");
+      body.className = "section-body";
+
+      // Link list (sortable container)
+      const linkList = document.createElement("div");
+      linkList.className = "link-list";
+      linkList.dataset.colId = col.id;
+      linkList.dataset.secId = sec.id;
+
+      sec.links.forEach(link => {
+        linkList.appendChild(renderLink(col, sec, link));
+      });
+
+      // External URL drop target
+      linkList.addEventListener("dragover", (e) => {
+        // Only respond to external drags (not SortableJS internal)
+        if (e.dataTransfer.types.includes("text/uri-list") || e.dataTransfer.types.includes("text/plain")) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "copy";
+          linkList.classList.add("drag-over");
+        }
+      });
+      linkList.addEventListener("dragleave", () => {
+        linkList.classList.remove("drag-over");
+      });
+      linkList.addEventListener("drop", (e) => {
+        linkList.classList.remove("drag-over");
+        const url = e.dataTransfer.getData("text/uri-list") || e.dataTransfer.getData("text/plain");
+        if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
+          e.preventDefault();
+          let hostname;
+          try { hostname = new URL(url).hostname.replace("www.", ""); } catch { hostname = url; }
+          const newLink = {
+            id: generateId(),
+            title: hostname,
+            url: url,
+            secondaryTitle: "",
+            secondaryUrl: ""
+          };
+          sec.links.push(newLink);
+          editingLinkId = newLink.id;
+          save();
+          render();
+        }
+      });
+
+      body.appendChild(linkList);
+
+      // Add link button (outside sortable)
+      const addBtn = document.createElement("button");
+      addBtn.className = "add-link-btn";
+      addBtn.textContent = "+ Add link";
+      addBtn.addEventListener("click", () => {
+        const newLink = { id: generateId(), title: "", url: "", secondaryTitle: "", secondaryUrl: "" };
+        sec.links.push(newLink);
+        editingLinkId = newLink.id;
+        save();
+        render();
+      });
+      body.appendChild(addBtn);
+
+      el.appendChild(body);
+      return el;
+    }
+
+    function renderLink(col, sec, link) {
+      if (editingLinkId === link.id) {
+        return renderLinkEditForm(col, sec, link);
+      }
+
+      const el = document.createElement("div");
+      el.className = "link-card";
+      el.dataset.linkId = link.id;
+      el.dataset.title = link.title || "";
+      el.dataset.url = link.url || "";
+
+      // Drag handle
+      const grip = document.createElement("span");
+      grip.className = "link-drag-handle";
+      grip.textContent = "\u2807";
+      grip.title = "Drag to reorder";
+      el.appendChild(grip);
+
+      // Link info
+      const info = document.createElement("div");
+      info.className = "link-info";
+
+      if (link.secondaryUrl) {
+        const secA = document.createElement("a");
+        secA.className = "link-secondary";
+        secA.href = link.secondaryUrl;
+        secA.target = "_blank";
+        secA.rel = "noopener";
+        secA.textContent = truncate(link.secondaryTitle || "alt", MAX_TITLE);
+        secA.title = link.secondaryTitle + " — " + link.secondaryUrl;
+        info.appendChild(secA);
+        info.appendChild(document.createTextNode(" "));
+      }
+
+      const titleA = document.createElement("a");
+      titleA.className = "link-title";
+      titleA.href = link.url || "#";
+      titleA.target = "_blank";
+      titleA.rel = "noopener";
+      const fullTitle = link.title || link.url || "(untitled)";
+      titleA.textContent = truncate(fullTitle, MAX_TITLE);
+      titleA.title = link.title + " — " + link.url;
+      info.appendChild(titleA);
+
+      el.appendChild(info);
+
+      // Actions (visible on hover)
+      const actions = document.createElement("div");
+      actions.className = "link-actions";
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "icon-btn";
+      editBtn.innerHTML = "&#9998;";
+      editBtn.title = "Edit";
+      editBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        editingLinkId = link.id;
+        render();
+      });
+      actions.appendChild(editBtn);
+
+      const delBtn = document.createElement("button");
+      delBtn.className = "icon-btn";
+      delBtn.innerHTML = "&#10005;";
+      delBtn.title = "Delete";
+      delBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        sec.links = sec.links.filter(l => l.id !== link.id);
+        save();
+        render();
+      });
+      actions.appendChild(delBtn);
+
+      el.appendChild(actions);
+      return el;
+    }
+
+    function renderLinkEditForm(col, sec, link) {
+      const el = document.createElement("div");
+      el.className = "edit-form";
+      el.dataset.linkId = link.id;
+
+      el.innerHTML =
+        "<label>Title</label>" +
+        '<input class="edit-title" value="' + escAttr(link.title) + '" placeholder="Link title">' +
+        "<label>URL</label>" +
+        '<input class="edit-url" value="' + escAttr(link.url) + '" placeholder="https://...">' +
+        "<label>Secondary label (optional)</label>" +
+        '<input class="edit-sec-title" value="' + escAttr(link.secondaryTitle) + '" placeholder="e.g. repo">' +
+        "<label>Secondary URL (optional)</label>" +
+        '<input class="edit-sec-url" value="' + escAttr(link.secondaryUrl) + '" placeholder="https://...">' +
+        '<div class="edit-buttons">' +
+        '<button class="btn" data-action="cancel">Cancel</button>' +
+        '<button class="btn btn-accent" data-action="save">Save</button>' +
+        "</div>";
+
+      const saveEdit = () => {
+        link.title = el.querySelector(".edit-title").value.trim();
+        link.url = el.querySelector(".edit-url").value.trim();
+        link.secondaryTitle = el.querySelector(".edit-sec-title").value.trim();
+        link.secondaryUrl = el.querySelector(".edit-sec-url").value.trim();
+        if (!link.title && !link.url) {
+          sec.links = sec.links.filter(l => l.id !== link.id);
+        }
+        editingLinkId = null;
+        save();
+        render();
+      };
+
+      const cancelEdit = () => {
+        if (!link.title && !link.url) {
+          sec.links = sec.links.filter(l => l.id !== link.id);
+          save();
+        }
+        editingLinkId = null;
+        render();
+      };
+
+      el.querySelector('[data-action="save"]').addEventListener("click", saveEdit);
+      el.querySelector('[data-action="cancel"]').addEventListener("click", cancelEdit);
+
+      el.querySelectorAll("input").forEach(input => {
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") saveEdit();
+          if (e.key === "Escape") cancelEdit();
+        });
+      });
+
+      setTimeout(() => {
+        const titleInput = el.querySelector(".edit-title");
+        if (titleInput) titleInput.focus();
+      }, 0);
+
+      return el;
+    }
+
+    // ╔══════════════════════════════════╗
+    // ║         DRAG AND DROP            ║
+    // ╚══════════════════════════════════╝
+
+    function initSortable() {
+      // Columns: drag to reorder
+      sortableInstances.push(
+        new Sortable(columnsEl, {
+          animation: 200,
+          handle: ".column-drag-handle",
+          draggable: ".column",
+          ghostClass: "sortable-ghost",
+          chosenClass: "sortable-chosen",
+          onEnd: (evt) => {
+            const moved = data.columns.splice(evt.oldIndex, 1)[0];
+            data.columns.splice(evt.newIndex, 0, moved);
+            save();
+          }
+        })
+      );
+
+      // Sections: drag between columns
+      document.querySelectorAll(".column-body").forEach(body => {
+        sortableInstances.push(
+          new Sortable(body, {
+            animation: 200,
+            group: "sections",
+            handle: ".section-drag-handle",
+            draggable: ".section",
+            ghostClass: "sortable-ghost",
+            onEnd: (evt) => {
+              const fromColId = evt.from.dataset.colId;
+              const toColId = evt.to.dataset.colId;
+              const fromCol = findColumn(fromColId);
+              const toCol = findColumn(toColId);
+              if (fromCol && toCol) {
+                const moved = fromCol.sections.splice(evt.oldIndex, 1)[0];
+                toCol.sections.splice(evt.newIndex, 0, moved);
+                save();
+              }
+            }
+          })
+        );
+      });
+
+      // Links: drag between sections
+      document.querySelectorAll(".link-list").forEach(list => {
+        sortableInstances.push(
+          new Sortable(list, {
+            animation: 200,
+            group: "links",
+            handle: ".link-drag-handle",
+            draggable: ".link-card, .edit-form",
+            ghostClass: "sortable-ghost",
+            onEnd: (evt) => {
+              const fromColId = evt.from.dataset.colId;
+              const fromSecId = evt.from.dataset.secId;
+              const toColId = evt.to.dataset.colId;
+              const toSecId = evt.to.dataset.secId;
+              const fromSec = findSection(fromColId, fromSecId);
+              const toSec = findSection(toColId, toSecId);
+              if (fromSec && toSec) {
+                const moved = fromSec.links.splice(evt.oldIndex, 1)[0];
+                toSec.links.splice(evt.newIndex, 0, moved);
+                save();
+              }
+            }
+          })
+        );
+      });
+    }
+
+    // ╔══════════════════════════════════╗
+    // ║            SEARCH                ║
+    // ╚══════════════════════════════════╝
+
+    const searchInput = document.getElementById("search");
+
+    searchInput.addEventListener("input", () => {
+      const query = searchInput.value.trim().toLowerCase();
+
+      document.querySelectorAll(".column").forEach(colEl => {
+        let colHasMatch = false;
+
+        colEl.querySelectorAll(".section").forEach(secEl => {
+          let secHasMatch = false;
+
+          secEl.querySelectorAll(".link-card").forEach(cardEl => {
+            const title = cardEl.dataset.title || "";
+            const url = cardEl.dataset.url || "";
+            const titleEl = cardEl.querySelector(".link-title");
+
+            if (!query) {
+              cardEl.classList.remove("search-hidden");
+              if (titleEl) titleEl.textContent = truncate(title || url || "(untitled)", MAX_TITLE);
+              secHasMatch = true;
+            } else if (title.toLowerCase().includes(query) || url.toLowerCase().includes(query)) {
+              cardEl.classList.remove("search-hidden");
+              if (titleEl) {
+                const display = truncate(title || url || "(untitled)", MAX_TITLE);
+                const idx = display.toLowerCase().indexOf(query);
+                if (idx >= 0) {
+                  titleEl.innerHTML = esc(display.slice(0, idx))
+                    + "<mark>" + esc(display.slice(idx, idx + query.length)) + "</mark>"
+                    + esc(display.slice(idx + query.length));
+                } else {
+                  titleEl.textContent = display;
+                }
+              }
+              secHasMatch = true;
+            } else {
+              cardEl.classList.add("search-hidden");
+            }
+          });
+
+          // Also keep sections visible if they have edit forms (no dataset.title)
+          if (secEl.querySelector(".edit-form")) secHasMatch = true;
+
+          secEl.classList.toggle("search-hidden", !secHasMatch && !!query);
+          if (secHasMatch) colHasMatch = true;
+        });
+
+        colEl.classList.toggle("search-hidden", !colHasMatch && !!query);
+      });
+    });
+
+    // ╔══════════════════════════════════╗
+    // ║            IMPORT                ║
+    // ╚══════════════════════════════════╝
+
+    function showImportModal() {
+      document.getElementById("import-token").value = getGat();
+      document.getElementById("import-log").style.display = "none";
+      document.getElementById("import-log").textContent = "";
+      document.getElementById("import-overlay").classList.add("active");
+    }
+
+    function hideImportModal() {
+      document.getElementById("import-overlay").classList.remove("active");
+    }
+
+    function importLog(msg) {
+      const log = document.getElementById("import-log");
+      log.style.display = "block";
+      log.textContent += msg + "\n";
+      log.scrollTop = log.scrollHeight;
+    }
+
+    async function doImport() {
+      const repo = document.getElementById("import-repo").value.trim();
+      const dataPath = document.getElementById("import-path").value.trim();
+      const token = document.getElementById("import-token").value.trim();
+
+      if (token) localStorage.setItem(GAT_KEY, token);
+
+      const headers = { Accept: "application/vnd.github.v3+json" };
+      if (token) headers.Authorization = "token " + token;
+
+      const apiBase = "https://api.github.com/repos/" + repo + "/contents/" + dataPath;
+
+      importLog("Fetching directory listing...");
+      document.getElementById("import-go").disabled = true;
+
+      try {
+        const dirRes = await fetch(apiBase, { headers });
+        if (!dirRes.ok) throw new Error("Failed to list directory: " + dirRes.status);
+        const entries = await dirRes.json();
+        const folders = entries.filter(e => e.type === "dir").sort((a, b) => a.name.localeCompare(b.name));
+
+        importLog("Found " + folders.length + " columns: " + folders.map(f => f.name).join(", "));
+
+        const columns = [];
+
+        for (let i = 0; i < folders.length; i++) {
+          const folder = folders[i];
+          importLog("Loading " + folder.name + "...");
+
+          const folderRes = await fetch(apiBase + "/" + folder.name, { headers });
+          if (!folderRes.ok) { importLog("  Error listing " + folder.name); continue; }
+          const files = await folderRes.json();
+          const mdFiles = files
+            .filter(f => f.type === "file" && f.name.endsWith(".md"))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+          const col = {
+            id: generateId(),
+            title: folder.name,
+            color: COLUMN_COLORS[i % COLUMN_COLORS.length],
+            collapsed: false,
+            sections: []
+          };
+
+          for (const file of mdFiles) {
+            importLog("  Parsing " + file.name + "...");
+            const fileRes = await fetch(file.download_url);
+            if (!fileRes.ok) { importLog("    Error fetching " + file.name); continue; }
+            const text = await fileRes.text();
+            const links = parseMarkdownLinks(text);
+
+            col.sections.push({
+              id: generateId(),
+              title: file.name.replace(".md", ""),
+              collapsed: false,
+              links
+            });
+
+            importLog("    " + links.length + " links found");
+          }
+
+          columns.push(col);
+        }
+
+        if (data.columns.length > 0) {
+          if (confirm("Replace existing data? Click Cancel to merge instead.")) {
+            data.columns = columns;
+          } else {
+            data.columns.push(...columns);
+          }
+        } else {
+          data.columns = columns;
+        }
+
+        save();
+        render();
+        importLog("Done! Imported " + columns.reduce((n, c) => n + c.sections.reduce((m, s) => m + s.links.length, 0), 0) + " links.");
+        setTimeout(hideImportModal, 1500);
+
+      } catch (err) {
+        importLog("Error: " + err.message);
+      } finally {
+        document.getElementById("import-go").disabled = false;
+      }
+    }
+
+    function parseMarkdownLinks(text) {
+      const links = [];
+      const lines = text.split("\n");
+      const linkRe = /\[([^\]]*)\]\(\s*([^\s)]+)\s*\)/g;
+
+      for (const line of lines) {
+        const matches = [...line.matchAll(linkRe)];
+        if (matches.length === 0) continue;
+
+        if (matches.length === 1) {
+          links.push({
+            id: generateId(),
+            title: matches[0][1].trim(),
+            url: matches[0][2].trim(),
+            secondaryTitle: "",
+            secondaryUrl: ""
+          });
+        } else if (matches.length === 2) {
+          // Paired link: first is secondary (e.g. [g](repo)), second is primary
+          links.push({
+            id: generateId(),
+            title: matches[1][1].trim(),
+            url: matches[1][2].trim(),
+            secondaryTitle: matches[0][1].trim(),
+            secondaryUrl: matches[0][2].trim()
+          });
+        } else {
+          // 3+ links on one line: treat each as individual
+          for (const m of matches) {
+            links.push({
+              id: generateId(),
+              title: m[1].trim(),
+              url: m[2].trim(),
+              secondaryTitle: "",
+              secondaryUrl: ""
+            });
+          }
+        }
+      }
+      return links;
+    }
+
+    // ╔══════════════════════════════════╗
+    // ║            EXPORT                ║
+    // ╚══════════════════════════════════╝
+
+    function showExportModal() {
+      document.getElementById("export-preview").value = exportAsJSON();
+      document.getElementById("export-overlay").classList.add("active");
+    }
+
+    function hideExportModal() {
+      document.getElementById("export-overlay").classList.remove("active");
+    }
+
+    function exportAsJSON() {
+      return JSON.stringify(data, null, 2);
+    }
+
+    function exportAsMarkdown() {
+      let md = "";
+      for (const col of data.columns) {
+        md += "# " + col.title + "\n\n";
+        for (const sec of col.sections) {
+          md += "## " + sec.title + "\n\n";
+          for (const link of sec.links) {
+            if (link.secondaryUrl) {
+              md += "[" + (link.secondaryTitle || "alt") + "](" + link.secondaryUrl + ") ";
+            }
+            md += "[" + link.title + "](" + link.url + ")\n";
+          }
+          md += "\n";
+        }
+      }
+      return md;
+    }
+
+    function downloadFile(content, filename, mime) {
+      const blob = new Blob([content], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ╔══════════════════════════════════╗
+    // ║        EVENT WIRING              ║
+    // ╚══════════════════════════════════╝
+
+    // Toolbar buttons
+    document.getElementById("btn-add-col").addEventListener("click", () => {
+      const col = {
+        id: generateId(),
+        title: "New Column",
+        color: COLUMN_COLORS[data.columns.length % COLUMN_COLORS.length],
+        collapsed: false,
+        sections: [{ id: generateId(), title: "Links", collapsed: false, links: [] }]
+      };
+      data.columns.push(col);
+      save();
+      render();
+    });
+
+    document.getElementById("btn-import").addEventListener("click", showImportModal);
+    document.getElementById("import-cancel").addEventListener("click", hideImportModal);
+    document.getElementById("import-go").addEventListener("click", doImport);
+
+    document.getElementById("btn-export").addEventListener("click", showExportModal);
+    document.getElementById("export-close").addEventListener("click", hideExportModal);
+    document.getElementById("export-json").addEventListener("click", () => {
+      document.getElementById("export-preview").value = exportAsJSON();
+      downloadFile(exportAsJSON(), "newww-tab-data.json", "application/json");
+    });
+    document.getElementById("export-md").addEventListener("click", () => {
+      const md = exportAsMarkdown();
+      document.getElementById("export-preview").value = md;
+      downloadFile(md, "newww-tab-data.md", "text/markdown");
+    });
+    document.getElementById("export-copy").addEventListener("click", () => {
+      const preview = document.getElementById("export-preview");
+      navigator.clipboard.writeText(preview.value).then(() => {
+        const btn = document.getElementById("export-copy");
+        btn.textContent = "Copied!";
+        setTimeout(() => { btn.textContent = "Copy to Clipboard"; }, 1500);
+      });
+    });
+
+    // Settings
+    document.getElementById("btn-settings").addEventListener("click", () => {
+      document.getElementById("settings-token").value = getGat();
+      document.getElementById("settings-overlay").classList.add("active");
+    });
+    document.getElementById("settings-cancel").addEventListener("click", () => {
+      document.getElementById("settings-overlay").classList.remove("active");
+    });
+    document.getElementById("settings-save").addEventListener("click", () => {
+      localStorage.setItem(GAT_KEY, document.getElementById("settings-token").value.trim());
+      document.getElementById("settings-overlay").classList.remove("active");
+    });
+    document.getElementById("settings-clear").addEventListener("click", () => {
+      localStorage.removeItem(GAT_KEY);
+      document.getElementById("settings-token").value = "";
+      document.getElementById("settings-overlay").classList.remove("active");
+    });
+
+    // Close modals on overlay click
+    document.querySelectorAll(".modal-overlay").forEach(overlay => {
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) overlay.classList.remove("active");
+      });
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "f") {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+      }
+      if (e.key === "Escape") {
+        searchInput.value = "";
+        searchInput.dispatchEvent(new Event("input"));
+        searchInput.blur();
+        document.querySelectorAll(".modal-overlay").forEach(o => o.classList.remove("active"));
+        if (editingLinkId) {
+          editingLinkId = null;
+          render();
+        }
+      }
+    });
+
+    // ╔══════════════════════════════════╗
+    // ║        INITIALIZATION            ║
+    // ╚══════════════════════════════════╝
+
+    load();
+    render();
+  </script>
+
+</body>
+
+</html>
