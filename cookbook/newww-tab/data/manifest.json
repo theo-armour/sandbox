@@ -1,5 +1,5 @@
 {
-  "lastSync": "2026-02-27T05:54:15.527Z",
+  "lastSync": "2026-02-27T06:20:28.805Z",
   "columns": [
     {
       "folder": "theo",
@@ -45,19 +45,15 @@
       "collapsed": false,
       "sections": [
         {
-          "file": "ai.md",
+          "file": "google.md",
           "collapsed": false
         },
         {
-          "file": "ai-more.md",
+          "file": "gdrive.md",
           "collapsed": false
         },
         {
-          "file": "ai.md",
-          "collapsed": false
-        },
-        {
-          "file": "ai-frank.md",
+          "file": "more-goog.md",
           "collapsed": false
         }
       ]
@@ -68,15 +64,15 @@
       "collapsed": false,
       "sections": [
         {
-          "file": "gdrive.md",
-          "collapsed": true
-        },
-        {
-          "file": "google.md",
+          "file": "ai.md",
           "collapsed": false
         },
         {
-          "file": "more-goog.md",
+          "file": "ai-more.md",
+          "collapsed": false
+        },
+        {
+          "file": "ai.md",
           "collapsed": false
         }
       ]
