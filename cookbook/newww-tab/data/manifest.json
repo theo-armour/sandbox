@@ -1,5 +1,5 @@
 {
-  "lastSync": "2026-02-27T04:45:59.322Z",
+  "lastSync": "2026-02-27T04:46:52.441Z",
   "columns": [
     {
       "folder": "theo",
@@ -12,6 +12,21 @@
         },
         {
           "file": "vscode.md",
+          "collapsed": false
+        }
+      ]
+    },
+    {
+      "folder": "news",
+      "color": "#8b5cf6",
+      "collapsed": false,
+      "sections": [
+        {
+          "file": "0-news.md",
+          "collapsed": false
+        },
+        {
+          "file": "more-news.md",
           "collapsed": false
         }
       ]
@@ -69,21 +84,6 @@
         },
         {
           "file": "h-hh.md",
-          "collapsed": false
-        }
-      ]
-    },
-    {
-      "folder": "news",
-      "color": "#8b5cf6",
-      "collapsed": false,
-      "sections": [
-        {
-          "file": "0-news.md",
-          "collapsed": false
-        },
-        {
-          "file": "more-news.md",
           "collapsed": false
         }
       ]
