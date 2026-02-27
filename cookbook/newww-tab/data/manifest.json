@@ -1,0 +1,126 @@
+{
+  "lastSync": "2026-02-27T03:19:49.009Z",
+  "columns": [
+    {
+      "folder": "ai",
+      "color": "#10b981",
+      "collapsed": false,
+      "sections": [
+        {
+          "file": "ai-more.md",
+          "collapsed": false
+        },
+        {
+          "file": "ai.md",
+          "collapsed": false
+        },
+        {
+          "file": "gdrive.md",
+          "collapsed": false
+        },
+        {
+          "file": "google.md",
+          "collapsed": false
+        },
+        {
+          "file": "more-goog.md",
+          "collapsed": false
+        }
+      ]
+    },
+    {
+      "folder": "apps",
+      "color": "#3b82f6",
+      "collapsed": false,
+      "sections": [
+        {
+          "file": "apps.md",
+          "collapsed": false
+        },
+        {
+          "file": "reference.md",
+          "collapsed": false
+        }
+      ]
+    },
+    {
+      "folder": "groups",
+      "color": "#f59e0b",
+      "collapsed": false,
+      "sections": [
+        {
+          "file": "groups.md",
+          "collapsed": false
+        },
+        {
+          "file": "h-hh.md",
+          "collapsed": false
+        }
+      ]
+    },
+    {
+      "folder": "news",
+      "color": "#8b5cf6",
+      "collapsed": false,
+      "sections": [
+        {
+          "file": "0-news.md",
+          "collapsed": false
+        },
+        {
+          "file": "more-news.md",
+          "collapsed": false
+        }
+      ]
+    },
+    {
+      "folder": "orgs",
+      "color": "#06b6d4",
+      "collapsed": false,
+      "sections": [
+        {
+          "file": "orgs.md",
+          "collapsed": false
+        }
+      ]
+    },
+    {
+      "folder": "reads",
+      "color": "#ec4899",
+      "collapsed": false,
+      "sections": [
+        {
+          "file": "ai-frank.md",
+          "collapsed": false
+        },
+        {
+          "file": "ai.md",
+          "collapsed": false
+        },
+        {
+          "file": "more-read.md",
+          "collapsed": false
+        },
+        {
+          "file": "reads.md",
+          "collapsed": false
+        }
+      ]
+    },
+    {
+      "folder": "theo",
+      "color": "#78716c",
+      "collapsed": false,
+      "sections": [
+        {
+          "file": "repos.md",
+          "collapsed": false
+        },
+        {
+          "file": "vscode.md",
+          "collapsed": false
+        }
+      ]
+    }
+  ]
+}
