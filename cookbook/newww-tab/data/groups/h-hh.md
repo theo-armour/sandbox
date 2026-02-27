@@ -6,7 +6,6 @@
 [HerHap](https://heritage-happenings.github.io/)
 [g](https://github.com/heritage-happenings/documents/)
 [documnts](https://heritage-happenings.github.io/documents/)
-[e](https://heritage-happenings.github.io/documents/tootoo/edit/)
 [g](https://github.com/heritage-happenings/kiosk/) [kiosk](https://heritage-happenings.github.io/kiosk)
 [calendar](https://heritage-happenings.github.io/happenings-issues/calendar.html)
 [newlettr](https://heritage-happenings.github.io/happenings-issues/newsletter.html)
