@@ -1,6 +1,21 @@
 {
-  "lastSync": "2026-02-27T04:48:08.775Z",
+  "lastSync": "2026-02-27T04:48:47.618Z",
   "columns": [
+    {
+      "folder": "theo",
+      "color": "#78716c",
+      "collapsed": false,
+      "sections": [
+        {
+          "file": "repos.md",
+          "collapsed": false
+        },
+        {
+          "file": "vscode.md",
+          "collapsed": false
+        }
+      ]
+    },
     {
       "folder": "ai",
       "color": "#10b981",
@@ -103,21 +118,6 @@
         },
         {
           "file": "reads.md",
-          "collapsed": false
-        }
-      ]
-    },
-    {
-      "folder": "theo",
-      "color": "#78716c",
-      "collapsed": false,
-      "sections": [
-        {
-          "file": "repos.md",
-          "collapsed": false
-        },
-        {
-          "file": "vscode.md",
           "collapsed": false
         }
       ]
