@@ -1,36 +1,6 @@
 {
-  "lastSync": "2026-02-27T04:46:52.441Z",
+  "lastSync": "2026-02-27T04:48:08.775Z",
   "columns": [
-    {
-      "folder": "theo",
-      "color": "#78716c",
-      "collapsed": false,
-      "sections": [
-        {
-          "file": "repos.md",
-          "collapsed": false
-        },
-        {
-          "file": "vscode.md",
-          "collapsed": false
-        }
-      ]
-    },
-    {
-      "folder": "news",
-      "color": "#8b5cf6",
-      "collapsed": false,
-      "sections": [
-        {
-          "file": "0-news.md",
-          "collapsed": false
-        },
-        {
-          "file": "more-news.md",
-          "collapsed": false
-        }
-      ]
-    },
     {
       "folder": "ai",
       "color": "#10b981",
@@ -89,6 +59,21 @@
       ]
     },
     {
+      "folder": "news",
+      "color": "#8b5cf6",
+      "collapsed": false,
+      "sections": [
+        {
+          "file": "0-news.md",
+          "collapsed": false
+        },
+        {
+          "file": "more-news.md",
+          "collapsed": false
+        }
+      ]
+    },
+    {
       "folder": "orgs",
       "color": "#06b6d4",
       "collapsed": false,
@@ -118,6 +103,21 @@
         },
         {
           "file": "reads.md",
+          "collapsed": false
+        }
+      ]
+    },
+    {
+      "folder": "theo",
+      "color": "#78716c",
+      "collapsed": false,
+      "sections": [
+        {
+          "file": "repos.md",
+          "collapsed": false
+        },
+        {
+          "file": "vscode.md",
           "collapsed": false
         }
       ]
