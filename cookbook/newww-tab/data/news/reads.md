@@ -3,3 +3,4 @@
 [atlantic](https://www.theatlantic.com/)
 [wired](https://www.wired.com/)
 [marginal](https://www.themarginalian.org/)
+[kottke.org](https://kottke.org/)
