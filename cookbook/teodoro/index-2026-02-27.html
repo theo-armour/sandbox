@@ -65,7 +65,7 @@
     .card {
       background: var(--card-bg);
       border-radius: clamp(6px, 2vmin, 16px);
-      padding: clamp(8px, 2vmin, 16px);
+      padding: clamp(6px, 2.5vmin, 24px);
       width: min(96vw, 96vh * 0.7, 360px);
       min-width: 200px;
       max-height: 98vh;
@@ -74,13 +74,13 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: clamp(2px, 1vmin, 8px);
+      gap: clamp(2px, 1.2vmin, 12px);
       overflow-y: auto;
       overflow-x: hidden;
     }
 
     h1 {
-      font-size: clamp(14px, 2.5vmin, 18px);
+      font-size: clamp(10px, 2.5vmin, 16px);
       font-weight: 700;
       color: var(--text-muted);
       letter-spacing: 1px;
@@ -95,7 +95,7 @@
     }
 
     .status {
-      font-size: clamp(14px, 2.2vmin, 18px);
+      font-size: clamp(10px, 2vmin, 16px);
       font-weight: 700;
       color: var(--accent);
       min-height: 1.2em;
@@ -133,8 +133,8 @@
       color: var(--text);
       border: 2px solid var(--btn-border);
       border-radius: clamp(6px, 1.5vmin, 10px);
-      padding: clamp(4px, 1vmin, 8px) clamp(10px, 2.5vmin, 24px);
-      font-size: clamp(15px, 2.8vmin, 20px);
+      padding: clamp(5px, 1.2vmin, 12px) clamp(10px, 2.5vmin, 24px);
+      font-size: clamp(13px, 2.8vmin, 20px);
       font-weight: 700;
       cursor: pointer;
       transition: all 0.2s;
@@ -163,11 +163,11 @@
     }
 
     .presets button {
-      padding: clamp(3px, 0.8vmin, 6px) clamp(8px, 2vmin, 16px);
+      padding: clamp(4px, 1vmin, 8px) clamp(8px, 2vmin, 16px);
       border-radius: clamp(8px, 2vmin, 16px);
       color: var(--text-preset);
       border-color: var(--preset-border);
-      font-size: clamp(13px, 2.2vmin, 16px);
+      font-size: clamp(11px, 2.2vmin, 16px);
       font-weight: 700;
     }
 
@@ -194,7 +194,7 @@
     }
 
     .interval-label {
-      font-size: clamp(15px, 2.8vmin, 20px);
+      font-size: clamp(13px, 2.8vmin, 20px);
       font-weight: 700;
       color: var(--text-muted);
       min-width: clamp(36px, 8vmin, 70px);
@@ -214,7 +214,7 @@
     }
 
     .volume-icon {
-      font-size: clamp(16px, 2.8vmin, 22px);
+      font-size: clamp(14px, 2.8vmin, 22px);
       color: var(--text-muted);
       cursor: pointer;
       user-select: none;
@@ -647,8 +647,8 @@
       }
     } );
 
-    // Do NOT auto-start: a user gesture is required before
-    // the browser will allow AudioContext / Audio playback.
+    // Auto-start timer on page load
+    toggleTimer();
   </script>
 </body>
 
