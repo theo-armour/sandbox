@@ -2,5 +2,5 @@
 [medium](https://medium.com/)
 [atlantic](https://www.theatlantic.com/)
 [wired](https://www.wired.com/)
+[kottke](https://kottke.org/)
 [marginal](https://www.themarginalian.org/)
-[kottke.org](https://kottke.org/)
