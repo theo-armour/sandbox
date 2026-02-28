@@ -1,4 +1,5 @@
 [substack](https://substack.com/inbox)
 [medium](https://medium.com/)
-[scanalyst](https://scanalyst.fourmilab.ch/)
-[kindle](https://read.amazon.com/kindle-library)
+[atlantic](https://www.theatlantic.com/)
+[wired](https://www.wired.com/)
+[marginal](https://www.themarginalian.org/)
