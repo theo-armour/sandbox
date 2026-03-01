@@ -79,9 +79,9 @@ Stores all data in localStorage as JSON. Fully interactive — add, edit, delete
 ### Interactivity
 
 * **Drag-and-drop** (SortableJS from CDN):
-  - Reorder links within a section or move them between sections/columns
-  - Reorder sections within a column or move them between columns
-  - Reorder columns via drag handle on the column header
+  * Reorder links within a section or move them between sections/columns
+  * Reorder sections within a column or move them between columns
+  * Reorder columns via drag handle on the column header
 * **Move columns**: "◀" / "▶" arrow buttons on each column header (shown on hover)
 * **Inline editing**: click the pencil icon on any column, section, or link to rename it; Enter saves, Escape cancels
 * **Link editing**: pencil icon opens a form with Title, URL, Secondary Label, Secondary URL fields
@@ -97,13 +97,14 @@ Stores all data in localStorage as JSON. Fully interactive — add, edit, delete
 * Drag handles, edit/delete buttons appear on hover to keep the UI clean
 * Compact and dense layout — minimal padding, tight line-height (1.15)
 
-### Import
+### Sync
 
-* Import button opens a modal: configure repo (`theo-armour/sandbox`), data path (`cookbook/newww-tab/data`), and optional GitHub token
-* Fetches directory listing via GitHub Contents API, then each `.md` file via `download_url`
-* Parses `[title](url)` markdown links; detects paired links (two links on one line: first becomes secondary, second becomes primary)
-* Creates columns from folder names, sections from file names
-* Can replace or merge with existing data
+* Sync button opens a modal: configure repo (`theo-armour/sandbox`) and data file path (`cookbook/newww-tab/newww-tab-data.json`)
+* All data stored as a single JSON file on GitHub — same structure as localStorage
+* **Pull**: one GET to the GitHub Contents API, decodes the JSON, replaces localStorage, re-renders (1 API call)
+* **Push**: one PUT to the GitHub Contents API with the full JSON (1 API call, requires token)
+* No directory traversal, no markdown parsing, no manifest file
+* Editing the JSON file directly on GitHub works — pull brings those changes down
 * Token stored in localStorage (`newww-tab-gat`) for reuse
 
 ### Export
@@ -120,4 +121,4 @@ Stores all data in localStorage as JSON. Fully interactive — add, edit, delete
 
 ### To add or edit URLs
 
-Edit directly in the browser: click "+ Add link" in any section, or click the pencil icon on an existing link. Drag links to reorder or move between sections. All changes are saved to localStorage immediately.
+Edit directly in the browser: click "+ Add link" in any section, or click the pencil icon on an existing link. Drag links to reorder or move between sections. All changes are saved to localStorage immediately. Click Sync → Push to commit changes to GitHub as a single JSON file.

@@ -545,8 +545,8 @@
       <h2>Sync with GitHub</h2>
       <label>Repository</label>
       <input id="sync-repo" value="theo-armour/sandbox">
-      <label>Data path</label>
-      <input id="sync-path" value="cookbook/newww-tab/data">
+      <label>Data file path</label>
+      <input id="sync-path" value="cookbook/newww-tab/newww-tab-data.json">
       <div id="sync-info" class="sync-info"></div>
       <div class="modal-buttons" style="justify-content:center;margin-top:0;margin-bottom:8px;">
         <button class="btn btn-accent" id="sync-pull">&#8595; Pull from GitHub</button>
@@ -685,11 +685,6 @@
       const sel = window.getSelection();
       sel.removeAllRanges();
       sel.addRange( range );
-    }
-
-    // Sanitize a string into a safe folder/file name
-    function toFileName ( s ) {
-      return ( s || "untitled" ).toLowerCase().replace( /[^a-z0-9_-]/g, "-" ).replace( /-+/g, "-" ).replace( /^-|-$/g, "" );
     }
 
     function updateSyncStatus () {
@@ -1282,79 +1277,6 @@
       return h;
     }
 
-    // GET a file's content and SHA from GitHub
-    async function githubGet ( repo, path ) {
-      const url = "https://api.github.com/repos/" + repo + "/contents/" + path;
-      const res = await fetch( url, { headers: githubHeaders() } );
-      if ( res.status === 404 ) return null;
-      if ( !res.ok ) throw new Error( "GET " + path + ": " + res.status );
-      const json = await res.json();
-      if ( Array.isArray( json ) ) return json; // directory listing
-      const content = decodeURIComponent( escape( atob( json.content.replace( /\n/g, "" ) ) ) );
-      return { content, sha: json.sha, path: json.path };
-    }
-
-    // PUT (create or update) a file on GitHub
-    async function githubPut ( repo, path, content, message ) {
-      const token = getGat();
-      if ( !token ) throw new Error( "GitHub token required for push. Set it in Settings." );
-
-      const url = "https://api.github.com/repos/" + repo + "/contents/" + path;
-
-      // Get current SHA if file exists (needed for update)
-      let sha = null;
-      const getRes = await fetch( url, { headers: githubHeaders() } );
-      if ( getRes.ok ) {
-        const existing = await getRes.json();
-        sha = existing.sha;
-      } else if ( getRes.status !== 404 ) {
-        throw new Error( "GET " + path + ": " + getRes.status );
-      }
-
-      const body = {
-        message: message,
-        content: btoa( unescape( encodeURIComponent( content ) ) )
-      };
-      if ( sha ) body.sha = sha;
-
-      const putRes = await fetch( url, {
-        method: "PUT",
-        headers: { ...githubHeaders(), "Content-Type": "application/json" },
-        body: JSON.stringify( body )
-      } );
-
-      if ( !putRes.ok ) {
-        const err = await putRes.text();
-        throw new Error( "PUT " + path + ": " + putRes.status + " " + err );
-      }
-
-      return await putRes.json();
-    }
-
-    // DELETE a file on GitHub
-    async function githubDelete ( repo, path, message ) {
-      const token = getGat();
-      if ( !token ) throw new Error( "GitHub token required for delete." );
-
-      const url = "https://api.github.com/repos/" + repo + "/contents/" + path;
-
-      // Get current SHA
-      const getRes = await fetch( url, { headers: githubHeaders() } );
-      if ( getRes.status === 404 ) return; // already gone
-      if ( !getRes.ok ) throw new Error( "GET " + path + ": " + getRes.status );
-      const existing = await getRes.json();
-
-      const delRes = await fetch( url, {
-        method: "DELETE",
-        headers: { ...githubHeaders(), "Content-Type": "application/json" },
-        body: JSON.stringify( { message: message, sha: existing.sha } )
-      } );
-
-      if ( !delRes.ok && delRes.status !== 404 ) {
-        throw new Error( "DELETE " + path + ": " + delRes.status );
-      }
-    }
-
     // ╔══════════════════════════════════╗
     // ║          SYNC MODAL              ║
     // ╚══════════════════════════════════╝
@@ -1395,120 +1317,28 @@
 
     async function doPull () {
       const repo = document.getElementById( "sync-repo" ).value.trim();
-      const dataPath = document.getElementById( "sync-path" ).value.trim();
+      const filePath = document.getElementById( "sync-path" ).value.trim();
 
       setSyncBusy( true );
-      syncLog( "Pulling from " + repo + "/" + dataPath + "..." );
+      syncLog( "Pulling from " + repo + "/" + filePath + "..." );
 
       try {
-        const apiBase = "https://api.github.com/repos/" + repo + "/contents/" + dataPath;
+        const url = "https://api.github.com/repos/" + repo + "/contents/" + filePath;
+        const res = await fetch( url, { headers: githubHeaders() } );
+        if ( !res.ok ) throw new Error( "GET " + filePath + ": " + res.status );
+        const json = await res.json();
+        const content = decodeURIComponent( escape( atob( json.content.replace( /\n/g, "" ) ) ) );
+        const pulled = JSON.parse( content );
 
-        // Try to read manifest.json first
-        let manifest = null;
-        try {
-          const mf = await githubGet( repo, dataPath + "/manifest.json" );
-          if ( mf && mf.content ) {
-            manifest = JSON.parse( mf.content );
-            syncLog( "Found manifest.json (last sync: " + ( manifest.lastSync || "unknown" ) + ")" );
-          }
-        } catch ( e ) {
-          syncLog( "No manifest.json found, using alphabetical order." );
-        }
+        const linkCount = pulled.columns.reduce( ( n, c ) => n + c.sections.reduce( ( m, s ) => m + s.links.length, 0 ), 0 );
+        syncLog( "Found " + pulled.columns.length + " columns, " + linkCount + " links." );
 
-        // List directory
-        const dirRes = await fetch( apiBase, { headers: githubHeaders() } );
-        if ( !dirRes.ok ) throw new Error( "Failed to list directory: " + dirRes.status );
-        const entries = await dirRes.json();
-        const folders = entries.filter( e => e.type === "dir" ).sort( ( a, b ) => a.name.localeCompare( b.name ) );
-
-        syncLog( "Found " + folders.length + " column folders: " + folders.map( f => f.name ).join( ", " ) );
-
-        const columns = [];
-
-        for ( let i = 0; i < folders.length; i++ ) {
-          const folder = folders[ i ];
-          syncLog( "Loading " + folder.name + "..." );
-
-          const folderRes = await fetch( apiBase + "/" + folder.name, { headers: githubHeaders() } );
-          if ( !folderRes.ok ) { syncLog( "  Error listing " + folder.name ); continue; }
-          const files = await folderRes.json();
-          const mdFiles = files
-            .filter( f => f.type === "file" && f.name.endsWith( ".md" ) )
-            .sort( ( a, b ) => a.name.localeCompare( b.name ) );
-
-          // Get manifest metadata for this column
-          const colManifest = manifest ? manifest.columns.find( c => c.folder === folder.name ) : null;
-
-          const col = {
-            id: generateId(),
-            title: folder.name,
-            folder: folder.name, // track the GitHub folder name
-            color: colManifest ? colManifest.color : COLUMN_COLORS[ i % COLUMN_COLORS.length ],
-            collapsed: colManifest ? colManifest.collapsed : false,
-            sections: []
-          };
-
-          // If manifest exists, use its section order
-          const sectionOrder = colManifest ? colManifest.sections.map( s => s.file ) : null;
-
-          for ( const file of mdFiles ) {
-            syncLog( "  Parsing " + file.name + "..." );
-            const fileRes = await fetch( file.download_url );
-            if ( !fileRes.ok ) { syncLog( "    Error fetching " + file.name ); continue; }
-            const text = await fileRes.text();
-            const links = parseMarkdownLinks( text );
-
-            const secManifest = colManifest ? colManifest.sections.find( s => s.file === file.name ) : null;
-
-            col.sections.push( {
-              id: generateId(),
-              title: file.name.replace( ".md", "" ),
-              file: file.name, // track the GitHub file name
-              collapsed: secManifest ? secManifest.collapsed : false,
-              links
-            } );
-
-            syncLog( "    " + links.length + " links" );
-          }
-
-          // Reorder sections according to manifest
-          if ( sectionOrder ) {
-            col.sections.sort( ( a, b ) => {
-              const ia = sectionOrder.indexOf( a.file );
-              const ib = sectionOrder.indexOf( b.file );
-              return ( ia === -1 ? 999 : ia ) - ( ib === -1 ? 999 : ib );
-            } );
-          }
-
-          columns.push( col );
-        }
-
-        // Reorder columns according to manifest
-        if ( manifest && manifest.columns ) {
-          const colOrder = manifest.columns.map( c => c.folder );
-          columns.sort( ( a, b ) => {
-            const ia = colOrder.indexOf( a.folder );
-            const ib = colOrder.indexOf( b.folder );
-            return ( ia === -1 ? 999 : ia ) - ( ib === -1 ? 999 : ib );
-          } );
-        }
-
-        if ( data.columns.length > 0 ) {
-          if ( confirm( "Replace existing local data? Click Cancel to merge instead." ) ) {
-            data.columns = columns;
-          } else {
-            data.columns.push( ...columns );
-          }
-        } else {
-          data.columns = columns;
-        }
-
+        data = pulled;
         save();
         setLastSync();
         render();
 
-        const totalLinks = columns.reduce( ( n, c ) => n + c.sections.reduce( ( m, s ) => m + s.links.length, 0 ), 0 );
-        syncLog( "Done! Pulled " + columns.length + " columns, " + totalLinks + " links." );
+        syncLog( "Done! Local data replaced." );
 
       } catch ( err ) {
         syncLog( "Error: " + err.message );
@@ -1523,9 +1353,10 @@
 
     async function doPush () {
       const repo = document.getElementById( "sync-repo" ).value.trim();
-      const dataPath = document.getElementById( "sync-path" ).value.trim();
+      const filePath = document.getElementById( "sync-path" ).value.trim();
+      const token = getGat();
 
-      if ( !getGat() ) {
+      if ( !token ) {
         syncLog( "Error: GitHub token required for push. Set it in Settings (gear icon)." );
         return;
       }
@@ -1536,178 +1367,50 @@
       }
 
       setSyncBusy( true );
-      syncLog( "Pushing to " + repo + "/" + dataPath + "..." );
+      syncLog( "Pushing to " + repo + "/" + filePath + "..." );
 
       try {
-        // 1. Build the list of files we'll write
-        const filesToWrite = []; // { path, content, message }
+        const url = "https://api.github.com/repos/" + repo + "/contents/" + filePath;
+        const content = JSON.stringify( data, null, 2 );
 
-        for ( const col of data.columns ) {
-          const folderName = col.folder || toFileName( col.title );
-          col.folder = folderName; // persist for future syncs
-
-          for ( const sec of col.sections ) {
-            const fileName = sec.file || toFileName( sec.title ) + ".md";
-            sec.file = fileName; // persist for future syncs
-
-            // Convert links to Markdown
-            let md = "";
-            for ( const link of sec.links ) {
-              if ( link.secondaryUrl ) {
-                md += "[" + ( link.secondaryTitle || "alt" ) + "](" + link.secondaryUrl + ") ";
-              }
-              md += "[" + ( link.title || link.url ) + "](" + link.url + ")\n";
-            }
-
-            filesToWrite.push( {
-              path: dataPath + "/" + folderName + "/" + fileName,
-              content: md,
-              message: "sync: update " + folderName + "/" + fileName
-            } );
-          }
+        // Get current SHA if file exists (needed for update)
+        let sha = null;
+        const getRes = await fetch( url, { headers: githubHeaders() } );
+        if ( getRes.ok ) {
+          const existing = await getRes.json();
+          sha = existing.sha;
+        } else if ( getRes.status !== 404 ) {
+          throw new Error( "GET " + filePath + ": " + getRes.status );
         }
 
-        // 2. Build and write manifest.json
-        const manifest = {
-          lastSync: new Date().toISOString(),
-          columns: data.columns.map( col => ( {
-            folder: col.folder,
-            color: col.color || "",
-            collapsed: !!col.collapsed,
-            sections: col.sections.map( sec => ( {
-              file: sec.file,
-              collapsed: !!sec.collapsed
-            } ) )
-          } ) )
+        const body = {
+          message: "sync: update newww-tab data",
+          content: btoa( unescape( encodeURIComponent( content ) ) )
         };
+        if ( sha ) body.sha = sha;
 
-        filesToWrite.push( {
-          path: dataPath + "/manifest.json",
-          content: JSON.stringify( manifest, null, 2 ),
-          message: "sync: update manifest.json"
+        const putRes = await fetch( url, {
+          method: "PUT",
+          headers: { ...githubHeaders(), "Content-Type": "application/json" },
+          body: JSON.stringify( body )
         } );
 
-        // 3. Determine which old files to delete
-        //    Get the current directory listing from GitHub
-        const remoteFolders = new Set();
-        const remoteFiles = new Set(); // "folder/file.md"
-
-        try {
-          const apiBase = "https://api.github.com/repos/" + repo + "/contents/" + dataPath;
-          const dirRes = await fetch( apiBase, { headers: githubHeaders() } );
-          if ( dirRes.ok ) {
-            const entries = await dirRes.json();
-            const folders = entries.filter( e => e.type === "dir" );
-
-            for ( const folder of folders ) {
-              remoteFolders.add( folder.name );
-              const folderRes = await fetch( apiBase + "/" + folder.name, { headers: githubHeaders() } );
-              if ( folderRes.ok ) {
-                const files = await folderRes.json();
-                for ( const f of files ) {
-                  if ( f.type === "file" ) remoteFiles.add( folder.name + "/" + f.name );
-                }
-              }
-            }
-          }
-        } catch ( e ) {
-          syncLog( "Note: Could not list remote files for cleanup: " + e.message );
+        if ( !putRes.ok ) {
+          const err = await putRes.text();
+          throw new Error( "PUT " + filePath + ": " + putRes.status + " " + err );
         }
 
-        // Compute local file set
-        const localFiles = new Set();
-        const localFolders = new Set();
-        for ( const col of data.columns ) {
-          localFolders.add( col.folder );
-          for ( const sec of col.sections ) {
-            localFiles.add( col.folder + "/" + sec.file );
-          }
-        }
-
-        // Files to delete: exist on remote but not in local
-        const toDelete = [];
-        for ( const rf of remoteFiles ) {
-          if ( !localFiles.has( rf ) ) {
-            toDelete.push( dataPath + "/" + rf );
-          }
-        }
-
-        // 4. Write all files
-        syncLog( "Writing " + filesToWrite.length + " files..." );
-        for ( const f of filesToWrite ) {
-          syncLog( "  PUT " + f.path );
-          await githubPut( repo, f.path, f.content, f.message );
-        }
-
-        // 5. Delete stale files
-        if ( toDelete.length > 0 ) {
-          syncLog( "Cleaning up " + toDelete.length + " removed files..." );
-          for ( const path of toDelete ) {
-            syncLog( "  DELETE " + path );
-            try {
-              await githubDelete( repo, path, "sync: remove " + path );
-            } catch ( e ) {
-              syncLog( "    Warning: " + e.message );
-            }
-          }
-        }
-
-        // 6. Save the folder/file mappings back to localStorage
         save();
         setLastSync();
 
-        const totalLinks = data.columns.reduce( ( n, c ) => n + c.sections.reduce( ( m, s ) => m + s.links.length, 0 ), 0 );
-        syncLog( "Done! Pushed " + data.columns.length + " columns, " + totalLinks + " links." );
+        const linkCount = data.columns.reduce( ( n, c ) => n + c.sections.reduce( ( m, s ) => m + s.links.length, 0 ), 0 );
+        syncLog( "Done! Pushed " + data.columns.length + " columns, " + linkCount + " links." );
 
       } catch ( err ) {
         syncLog( "Error: " + err.message );
       } finally {
         setSyncBusy( false );
       }
-    }
-
-    // ╔══════════════════════════════════╗
-    // ║      MARKDOWN PARSER             ║
-    // ╚══════════════════════════════════╝
-
-    function parseMarkdownLinks ( text ) {
-      const links = [];
-      const lines = text.split( "\n" );
-      const linkRe = /\[([^\]]*)\]\(\s*([^\s)]+)\s*\)/g;
-
-      for ( const line of lines ) {
-        const matches = [ ...line.matchAll( linkRe ) ];
-        if ( matches.length === 0 ) continue;
-
-        if ( matches.length === 1 ) {
-          links.push( {
-            id: generateId(),
-            title: matches[ 0 ][ 1 ].trim(),
-            url: matches[ 0 ][ 2 ].trim(),
-            secondaryTitle: "",
-            secondaryUrl: ""
-          } );
-        } else if ( matches.length === 2 ) {
-          links.push( {
-            id: generateId(),
-            title: matches[ 1 ][ 1 ].trim(),
-            url: matches[ 1 ][ 2 ].trim(),
-            secondaryTitle: matches[ 0 ][ 1 ].trim(),
-            secondaryUrl: matches[ 0 ][ 2 ].trim()
-          } );
-        } else {
-          for ( const m of matches ) {
-            links.push( {
-              id: generateId(),
-              title: m[ 1 ].trim(),
-              url: m[ 2 ].trim(),
-              secondaryTitle: "",
-              secondaryUrl: ""
-            } );
-          }
-        }
-      }
-      return links;
     }
 
     // ╔══════════════════════════════════╗
