@@ -1,0 +1,5 @@
+[copilotp](https://copilot.microsoft.com/)
+[grok](https://x.ai/grok)
+[ms365](https://office.com)
+[onedrv](https://onedrive.live.com)
+[outlook](https://outlook.live.com)

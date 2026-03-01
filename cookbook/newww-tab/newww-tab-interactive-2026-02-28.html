@@ -1294,69 +1294,65 @@
       return { content, sha: json.sha, path: json.path };
     }
 
-    // Batch-commit: create/update/delete multiple files in one commit
-    // files: array of { path, content } for creates/updates
-    // deletes: array of paths to remove
-    async function githubBatchCommit ( repo, files, deletes, message ) {
+    // PUT (create or update) a file on GitHub
+    async function githubPut ( repo, path, content, message ) {
       const token = getGat();
       if ( !token ) throw new Error( "GitHub token required for push. Set it in Settings." );
-      const apiBase = "https://api.github.com/repos/" + repo;
-      const hdrs = { ...githubHeaders(), "Content-Type": "application/json" };
 
-      // 1. Get the SHA of the latest commit on the default branch
-      const refRes = await fetch( apiBase + "/git/ref/heads/main", { headers: githubHeaders() } );
-      if ( !refRes.ok ) throw new Error( "Failed to get branch ref: " + refRes.status );
-      const refData = await refRes.json();
-      const latestCommitSha = refData.object.sha;
+      const url = "https://api.github.com/repos/" + repo + "/contents/" + path;
 
-      // 2. Get the tree SHA of that commit
-      const commitRes = await fetch( apiBase + "/git/commits/" + latestCommitSha, { headers: githubHeaders() } );
-      if ( !commitRes.ok ) throw new Error( "Failed to get commit: " + commitRes.status );
-      const commitData = await commitRes.json();
-      const baseTreeSha = commitData.tree.sha;
-
-      // 3. Build tree entries for creates/updates
-      const tree = [];
-      for ( const f of files ) {
-        // Create a blob for each file
-        const blobRes = await fetch( apiBase + "/git/blobs", {
-          method: "POST", headers: hdrs,
-          body: JSON.stringify( { content: f.content, encoding: "utf-8" } )
-        } );
-        if ( !blobRes.ok ) throw new Error( "Failed to create blob for " + f.path + ": " + blobRes.status );
-        const blobData = await blobRes.json();
-        tree.push( { path: f.path, mode: "100644", type: "blob", sha: blobData.sha } );
+      // Get current SHA if file exists (needed for update)
+      let sha = null;
+      const getRes = await fetch( url, { headers: githubHeaders() } );
+      if ( getRes.ok ) {
+        const existing = await getRes.json();
+        sha = existing.sha;
+      } else if ( getRes.status !== 404 ) {
+        throw new Error( "GET " + path + ": " + getRes.status );
       }
 
-      // 4. Add delete entries (sha: null removes the file)
-      for ( const path of deletes ) {
-        tree.push( { path: path, mode: "100644", type: "blob", sha: null } );
+      const body = {
+        message: message,
+        content: btoa( unescape( encodeURIComponent( content ) ) )
+      };
+      if ( sha ) body.sha = sha;
+
+      const putRes = await fetch( url, {
+        method: "PUT",
+        headers: { ...githubHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify( body )
+      } );
+
+      if ( !putRes.ok ) {
+        const err = await putRes.text();
+        throw new Error( "PUT " + path + ": " + putRes.status + " " + err );
       }
 
-      // 5. Create a new tree
-      const treeRes = await fetch( apiBase + "/git/trees", {
-        method: "POST", headers: hdrs,
-        body: JSON.stringify( { base_tree: baseTreeSha, tree: tree } )
-      } );
-      if ( !treeRes.ok ) throw new Error( "Failed to create tree: " + treeRes.status );
-      const treeData = await treeRes.json();
+      return await putRes.json();
+    }
 
-      // 6. Create a new commit
-      const newCommitRes = await fetch( apiBase + "/git/commits", {
-        method: "POST", headers: hdrs,
-        body: JSON.stringify( { message: message, tree: treeData.sha, parents: [ latestCommitSha ] } )
-      } );
-      if ( !newCommitRes.ok ) throw new Error( "Failed to create commit: " + newCommitRes.status );
-      const newCommitData = await newCommitRes.json();
+    // DELETE a file on GitHub
+    async function githubDelete ( repo, path, message ) {
+      const token = getGat();
+      if ( !token ) throw new Error( "GitHub token required for delete." );
 
-      // 7. Update the branch ref to point to the new commit
-      const updateRefRes = await fetch( apiBase + "/git/refs/heads/main", {
-        method: "PATCH", headers: hdrs,
-        body: JSON.stringify( { sha: newCommitData.sha } )
-      } );
-      if ( !updateRefRes.ok ) throw new Error( "Failed to update ref: " + updateRefRes.status );
+      const url = "https://api.github.com/repos/" + repo + "/contents/" + path;
 
-      return newCommitData;
+      // Get current SHA
+      const getRes = await fetch( url, { headers: githubHeaders() } );
+      if ( getRes.status === 404 ) return; // already gone
+      if ( !getRes.ok ) throw new Error( "GET " + path + ": " + getRes.status );
+      const existing = await getRes.json();
+
+      const delRes = await fetch( url, {
+        method: "DELETE",
+        headers: { ...githubHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify( { message: message, sha: existing.sha } )
+      } );
+
+      if ( !delRes.ok && delRes.status !== 404 ) {
+        throw new Error( "DELETE " + path + ": " + delRes.status );
+      }
     }
 
     // ╔══════════════════════════════════╗
@@ -1544,15 +1540,15 @@
 
       try {
         // 1. Build the list of files we'll write
-        const filesToWrite = []; // { path, content }
+        const filesToWrite = []; // { path, content, message }
 
         for ( const col of data.columns ) {
           const folderName = col.folder || toFileName( col.title );
-          col.folder = folderName;
+          col.folder = folderName; // persist for future syncs
 
           for ( const sec of col.sections ) {
             const fileName = sec.file || toFileName( sec.title ) + ".md";
-            sec.file = fileName;
+            sec.file = fileName; // persist for future syncs
 
             // Convert links to Markdown
             let md = "";
@@ -1565,12 +1561,13 @@
 
             filesToWrite.push( {
               path: dataPath + "/" + folderName + "/" + fileName,
-              content: md
+              content: md,
+              message: "sync: update " + folderName + "/" + fileName
             } );
           }
         }
 
-        // 2. Build manifest.json
+        // 2. Build and write manifest.json
         const manifest = {
           lastSync: new Date().toISOString(),
           columns: data.columns.map( col => ( {
@@ -1586,10 +1583,13 @@
 
         filesToWrite.push( {
           path: dataPath + "/manifest.json",
-          content: JSON.stringify( manifest, null, 2 )
+          content: JSON.stringify( manifest, null, 2 ),
+          message: "sync: update manifest.json"
         } );
 
         // 3. Determine which old files to delete
+        //    Get the current directory listing from GitHub
+        const remoteFolders = new Set();
         const remoteFiles = new Set(); // "folder/file.md"
 
         try {
@@ -1600,6 +1600,7 @@
             const folders = entries.filter( e => e.type === "dir" );
 
             for ( const folder of folders ) {
+              remoteFolders.add( folder.name );
               const folderRes = await fetch( apiBase + "/" + folder.name, { headers: githubHeaders() } );
               if ( folderRes.ok ) {
                 const files = await folderRes.json();
@@ -1615,7 +1616,9 @@
 
         // Compute local file set
         const localFiles = new Set();
+        const localFolders = new Set();
         for ( const col of data.columns ) {
+          localFolders.add( col.folder );
           for ( const sec of col.sections ) {
             localFiles.add( col.folder + "/" + sec.file );
           }
@@ -1629,21 +1632,32 @@
           }
         }
 
-        // 4. Batch commit: all writes and deletes in a single commit
-        syncLog( "Committing " + filesToWrite.length + " files" +
-          ( toDelete.length ? ", deleting " + toDelete.length + " stale files" : "" ) + "..." );
+        // 4. Write all files
+        syncLog( "Writing " + filesToWrite.length + " files..." );
+        for ( const f of filesToWrite ) {
+          syncLog( "  PUT " + f.path );
+          await githubPut( repo, f.path, f.content, f.message );
+        }
 
-        for ( const f of filesToWrite ) syncLog( "  + " + f.path );
-        for ( const d of toDelete ) syncLog( "  - " + d );
+        // 5. Delete stale files
+        if ( toDelete.length > 0 ) {
+          syncLog( "Cleaning up " + toDelete.length + " removed files..." );
+          for ( const path of toDelete ) {
+            syncLog( "  DELETE " + path );
+            try {
+              await githubDelete( repo, path, "sync: remove " + path );
+            } catch ( e ) {
+              syncLog( "    Warning: " + e.message );
+            }
+          }
+        }
 
-        await githubBatchCommit( repo, filesToWrite, toDelete, "sync: update " + filesToWrite.length + " files" );
-
-        // 5. Save the folder/file mappings back to localStorage
+        // 6. Save the folder/file mappings back to localStorage
         save();
         setLastSync();
 
         const totalLinks = data.columns.reduce( ( n, c ) => n + c.sections.reduce( ( m, s ) => m + s.links.length, 0 ), 0 );
-        syncLog( "Done! Pushed " + data.columns.length + " columns, " + totalLinks + " links in one commit." );
+        syncLog( "Done! Pushed " + data.columns.length + " columns, " + totalLinks + " links." );
 
       } catch ( err ) {
         syncLog( "Error: " + err.message );
