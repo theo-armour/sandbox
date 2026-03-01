@@ -1,5 +1,5 @@
 {
-  "lastSync": "2026-03-01T05:02:50.633Z",
+  "lastSync": "2026-03-01T05:18:26.528Z",
   "columns": [
     {
       "folder": "theo",
@@ -54,7 +54,7 @@
         },
         {
           "file": "ai.md",
-          "collapsed": true
+          "collapsed": false
         }
       ]
     },
