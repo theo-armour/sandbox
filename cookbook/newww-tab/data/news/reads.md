@@ -3,4 +3,5 @@
 [atlantic](https://www.theatlantic.com/)
 [wired](https://www.wired.com/)
 [kottke](https://kottke.org/)
+[swiss-miss](https://swiss-miss.com)
 [marginal](https://www.themarginalian.org/)

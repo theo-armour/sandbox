@@ -1,5 +1,5 @@
 {
-  "lastSync": "2026-02-28T19:22:17.521Z",
+  "lastSync": "2026-03-01T05:02:50.633Z",
   "columns": [
     {
       "folder": "theo",
@@ -27,7 +27,7 @@
         },
         {
           "file": "more-news.md",
-          "collapsed": true
+          "collapsed": false
         },
         {
           "file": "reads.md",
@@ -50,7 +50,7 @@
         },
         {
           "file": "ai-frank.md",
-          "collapsed": true
+          "collapsed": false
         },
         {
           "file": "ai.md",
