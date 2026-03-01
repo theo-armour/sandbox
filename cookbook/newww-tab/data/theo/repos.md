@@ -5,7 +5,6 @@
 [g](https://github.com/theo-armour/sandbox/) [sandbox](https://theo-armour.github.io/sandbox/)
 [g](https://github.com/theo-armour/genealogy/) [genalogy](https://theo-armour.github.io/genealogy/)
 [g](https://github.com/theo-armour/wikitheo/) [wikitheo](https://theo-armour.github.io/wikitheo/)
-[g](https://github.com/inkubatr) [wikitheo](https://inkubatr.github.io)
 [g](https://github.com/theo-armour/qdata/blob/main/apps/iframe-stuff/2023-05-02/iframe-stuff.html) [ifrStuff](https://theo-armour.github.io/qdata/apps/iframe-stuff)
 [g](https://github.com/theo-armour/qdata/tree/master/apps/newww-tab) [newTab](https://theo-armour.github.io/qdata/apps/newww-tab/)
 [g](https://github.com/theo-armour/qdata/tree/master/apps/notesy) [notesy](https://theo-armour.github.io/qdata/apps/notesy)
