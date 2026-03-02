@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NewwwTab</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='5' y='5' width='22' height='22' rx='3' fill='%23b85a3a' transform='rotate(45 16 16)'/></svg>" />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f3ef;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --text-mid: #555;
+    --text-light: #999;
+    --accent: #b85a3a;
+    --rule: #d4d0ca;
+    --rule-heavy: #1a1a1a;
+    --hover-bg: rgba(184,90,58,0.06);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+  }
+
+  /* Top bar */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--bg);
+    border-bottom: 2px solid var(--rule-heavy);
+    padding: 10px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+  }
+  .topbar-left {
+    display: flex; align-items: baseline; gap: 16px;
+  }
+  .topbar h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.3rem; font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .topbar .date {
+    font-size: 0.82rem; color: var(--text-mid);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }
+  .topbar-right {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  }
+  .search-box {
+    display: flex; align-items: center;
+    border: 1px solid var(--rule); border-radius: 4px;
+    padding: 4px 8px; gap: 6px; background: var(--card);
+  }
+  .search-box input {
+    border: none; outline: none; background: transparent;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem; color: var(--text); width: 180px;
+  }
+  .search-box input::placeholder { color: var(--text-light); }
+  .search-box svg { color: var(--text-light); flex-shrink: 0; }
+  .btn {
+    padding: 5px 12px; border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem; font-weight: 500;
+    cursor: pointer; border: 1px solid var(--rule);
+    background: var(--card); color: var(--text-mid);
+    transition: all 0.12s;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-accent { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-accent:hover { background: #a04e30; color: #fff; }
+
+  /* Newspaper columns */
+  .columns {
+    padding: 12px 16px 40px;
+    column-count: 8;
+    column-width: 100px;
+    column-gap: 18px;
+    column-rule: 1px solid var(--rule);
+  }
+
+  /* Category block */
+  .cat-block {
+    break-inside: avoid;
+    margin-bottom: 10px;
+    page-break-inside: avoid;
+  }
+  .cat-head {
+    display: flex; align-items: center; gap: 5px;
+    padding: 0 0 4px;
+    border-bottom: 1.5px solid var(--rule-heavy);
+    margin-bottom: 4px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .cat-toggle {
+    font-size: 0.55rem; color: var(--text-light);
+    transition: transform 0.2s;
+    margin-right: 1px;
+  }
+  .cat-block.collapsed .cat-toggle { transform: rotate(-90deg); }
+  .cat-block.collapsed .link-list { display: none; }
+  .cat-block.collapsed .cat-head { margin-bottom: 0; border-bottom-color: var(--rule); }
+  .cat-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem; font-weight: 700;
+    letter-spacing: -0.01em;
+    flex: 1;
+  }
+  .cat-actions {
+    display: flex; gap: 1px; opacity: 0;
+    transition: opacity 0.12s;
+  }
+  .cat-block:hover .cat-actions { opacity: 1; }
+  .cat-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 0.75rem; color: var(--text-light);
+    padding: 0 3px; border-radius: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1;
+  }
+  .cat-btn:hover { color: var(--accent); background: var(--hover-bg); }
+  .cat-btn.danger:hover { color: #c44; }
+
+  /* Link rows */
+  .link-list { list-style: none; }
+  .link-row {
+    display: flex;
+    align-items: center;
+  }
+  .link-row[draggable="true"] { cursor: grab; }
+  .link-row[draggable="true"]:active { cursor: grabbing; }
+  .link-row.dragging { opacity: 0.3; }
+  .link-row.drag-over {
+    border-top: 2px solid var(--accent);
+    margin-top: -2px;
+  }
+  .link-list.drag-over-empty {
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 2px;
+  }
+  .link-row a {
+    display: flex; align-items: center; gap: 6px;
+    padding: 3px 4px;
+    text-decoration: none; color: var(--text);
+    border-radius: 3px;
+    transition: background 0.1s;
+    min-width: 0; flex: 1;
+  }
+  .link-row a:hover {
+    background: var(--hover-bg);
+  }
+  .link-row .le { font-size: 0.85rem; flex-shrink: 0; width: 18px; text-align: center; }
+  .link-row .lg {
+    font-size: 0.65rem; font-weight: 700; color: var(--text-light);
+    text-decoration: none; flex: 0 0 auto;
+    padding: 2px 3px; border-radius: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    margin-left: 1px;
+  }
+  .link-row .lg:hover { color: var(--accent); background: var(--hover-bg); }
+  .link-row .ln {
+    font-size: 0.88rem; font-weight: 400;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    line-height: 1.5;
+  }
+  .link-row a:hover .ln { color: var(--accent); }
+
+  .no-results {
+    text-align: center; padding: 60px;
+    color: var(--text-light); font-size: 0.85rem;
+    column-span: all;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(26,26,26,0.15);
+    backdrop-filter: blur(4px);
+    z-index: 100; align-items: center; justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--card); border-radius: 8px;
+    padding: 24px; width: 90%; max-width: 340px;
+    box-shadow: 0 12px 40px rgba(26,26,26,0.15);
+  }
+  .modal h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem; font-weight: 700; margin-bottom: 16px;
+  }
+  .fld { margin-bottom: 12px; }
+  .fld label {
+    font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--text-mid); display: block; margin-bottom: 3px;
+  }
+  .fld input, .fld select {
+    width: 100%; padding: 7px 8px;
+    border: 1px solid var(--rule); border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88rem; color: var(--text);
+    background: var(--bg); outline: none;
+  }
+  .fld input:focus, .fld select:focus { border-color: var(--accent); }
+  .modal-act { display: flex; gap: 6px; justify-content: flex-end; margin-top: 16px; }
+
+  .settings-section {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .settings-section:last-of-type { border-bottom: none; margin-bottom: 8px; padding-bottom: 8px; }
+  .settings-label {
+    font-size: 0.78rem; font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .settings-row {
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .settings-hint {
+    font-size: 0.68rem; color: var(--text-light);
+    margin-top: 6px; line-height: 1.4;
+  }
+
+  /* Context menu */
+  .ctx {
+    display: none; position: fixed;
+    background: var(--card); border: 1px solid var(--rule);
+    border-radius: 6px; padding: 3px;
+    box-shadow: 0 4px 16px rgba(26,26,26,0.1);
+    z-index: 200; min-width: 110px;
+  }
+  .ctx.active { display: block; }
+  .ctx button {
+    display: block; width: 100%; padding: 6px 10px;
+    background: none; border: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem; color: var(--text);
+    cursor: pointer; border-radius: 4px; text-align: left;
+  }
+  .ctx button:hover { background: var(--bg); }
+  .ctx button.danger { color: #c44; }
+  .ctx-div { height: 1px; background: var(--rule); margin: 2px 4px; }
+
+  /* Responsive columns */
+  @media (max-width: 1400px) { .columns { column-count: 7; } }
+  @media (max-width: 1100px) { .columns { column-count: 5; } }
+  @media (max-width: 800px)  { .columns { column-count: 4; column-gap: 14px; } }
+  @media (max-width: 500px)  {
+    .columns { column-count: 1; }
+    .topbar { flex-wrap: wrap; }
+    .search-box input { width: 120px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <h1 id="greeting-text"></h1>
+    <span class="date" id="date-text"></span>
+  </div>
+  <div class="topbar-right">
+    <div class="search-box">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="search-input" placeholder="Filter Links..." title="Ctrl+K" />
+    </div>
+    <button class="btn" onclick="toggleAll()" title="Ctrl+E">Toggle All</button>
+    <button class="btn" onclick="openSettings()">Settings</button>
+    <button class="btn" onclick="openCatModal()">+ Category</button>
+  </div>
+</div>
+
+<div class="columns" id="columns"></div>
+
+<div class="modal-overlay" id="link-modal">
+  <div class="modal">
+    <h2 id="lm-title">Add Link</h2>
+    <div class="fld"><label>Name</label><input type="text" id="lm-name" placeholder="YouTube" /></div>
+    <div class="fld"><label>URL</label><input type="text" id="lm-url" placeholder="youtube.com" /></div>
+    <div class="fld"><label>Repo URL</label><input type="text" id="lm-repo" placeholder="github.com/user/repo (optional)" /></div>
+    <div class="fld"><label>Icon</label><input type="text" id="lm-emoji" placeholder="🎬" maxlength="4" /></div>
+    <div class="fld"><label>Category</label><select id="lm-cat"></select></div>
+    <div class="modal-act">
+      <button class="btn" onclick="closeModal('link-modal')">Cancel</button>
+      <button class="btn btn-accent" id="lm-save" onclick="saveLink()">Add</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="cat-modal">
+  <div class="modal">
+    <h2 id="cm-title">Add Category</h2>
+    <div class="fld"><label>Name</label><input type="text" id="cm-name" placeholder="Design Tools" /></div>
+    <div class="fld"><label>Icon</label><input type="text" id="cm-emoji" placeholder="🎨" maxlength="4" /></div>
+    <div class="modal-act">
+      <button class="btn" onclick="closeModal('cat-modal')">Cancel</button>
+      <button class="btn btn-accent" id="cm-save" onclick="saveCat()">Add</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <h2>Settings</h2>
+    <div class="settings-section">
+      <div class="settings-label">Import</div>
+      <div class="settings-row">
+        <button class="btn" onclick="document.getElementById('import-file').click()">Import JSON Or Markdown</button>
+        <input type="file" id="import-file" accept=".json,.md,.txt,.markdown" style="display:none" onchange="importFile(this)" />
+      </div>
+      <div class="settings-hint">Accepts .json or .md files</div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-label">Export</div>
+      <div class="settings-row">
+        <button class="btn" onclick="exportJSON()">Export JSON</button>
+        <button class="btn" onclick="exportMD()">Export Markdown</button>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-label">Publish</div>
+      <div class="settings-row">
+        <button class="btn btn-accent" onclick="downloadHTML()">Save HTML With Data</button>
+      </div>
+      <div class="settings-hint">Downloads a self-contained HTML file with your current links baked in. Deploy to GitHub Pages for shared access.</div>
+    </div>
+    <div class="modal-act">
+      <button class="btn" onclick="closeModal('settings-modal')">Close</button>
+    </div>
+  </div>
+</div>
+<div class="ctx" id="ctx">
+  <button onclick="ctxEdit()">Edit</button>
+  <button onclick="ctxTop()">Move To Top</button>
+  <div class="ctx-div"></div>
+  <button class="danger" onclick="ctxDel()">Remove</button>
+</div>
+
+<script>
+const SK='newtab_v5';
+/*BAKE_START*/
+const DD={categories:[
+{id:'search',name:'Search',emoji:'🔍'},{id:'social',name:'Social',emoji:'💬'},
+{id:'news',name:'News & Media',emoji:'📰'},{id:'video',name:'Streaming',emoji:'🎬'},
+{id:'music',name:'Music',emoji:'🎵'},{id:'dev',name:'Development',emoji:'💻'},
+{id:'design',name:'Design',emoji:'🎨'},{id:'productivity',name:'Productivity',emoji:'📋'},
+{id:'email',name:'Communication',emoji:'✉️'},{id:'cloud',name:'Cloud',emoji:'☁️'},
+{id:'shopping',name:'Shopping',emoji:'🛒'},{id:'finance',name:'Finance',emoji:'💰'},
+{id:'education',name:'Education',emoji:'📚'},{id:'health',name:'Health',emoji:'💪'},
+{id:'travel',name:'Travel',emoji:'✈️'},{id:'food',name:'Food',emoji:'🍳'},
+{id:'ai',name:'AI & ML',emoji:'🤖'},{id:'reference',name:'Utilities',emoji:'🔧'},
+{id:'gaming',name:'Gaming',emoji:'🎮'},{id:'sports',name:'Sports',emoji:'⚽'},
+],links:[
+{name:'Google',url:'https://google.com',emoji:'🔍',catId:'search'},
+{name:'Bing',url:'https://bing.com',emoji:'🅱️',catId:'search'},
+{name:'DuckDuckGo',url:'https://duckduckgo.com',emoji:'🦆',catId:'search'},
+{name:'Yahoo',url:'https://yahoo.com',emoji:'🟣',catId:'search'},
+{name:'Brave Search',url:'https://search.brave.com',emoji:'🦁',catId:'search'},
+{name:'Startpage',url:'https://startpage.com',emoji:'🔒',catId:'search'},
+{name:'Wolfram Alpha',url:'https://wolframalpha.com',emoji:'🧮',catId:'search'},
+{name:'Perplexity',url:'https://perplexity.ai',emoji:'🧠',catId:'search'},
+{name:'X / Twitter',url:'https://x.com',emoji:'🐦',catId:'social'},
+{name:'Facebook',url:'https://facebook.com',emoji:'👤',catId:'social'},
+{name:'Instagram',url:'https://instagram.com',emoji:'📷',catId:'social'},
+{name:'LinkedIn',url:'https://linkedin.com',emoji:'💼',catId:'social'},
+{name:'Reddit',url:'https://reddit.com',emoji:'🟠',catId:'social'},
+{name:'TikTok',url:'https://tiktok.com',emoji:'🎵',catId:'social'},
+{name:'Mastodon',url:'https://mastodon.social',emoji:'🐘',catId:'social'},
+{name:'Threads',url:'https://threads.net',emoji:'🧵',catId:'social'},
+{name:'Bluesky',url:'https://bsky.app',emoji:'🦋',catId:'social'},
+{name:'Pinterest',url:'https://pinterest.com',emoji:'📌',catId:'social'},
+{name:'Tumblr',url:'https://tumblr.com',emoji:'✏️',catId:'social'},
+{name:'Discord',url:'https://discord.com',emoji:'🎮',catId:'social'},
+{name:'CNN',url:'https://cnn.com',emoji:'📺',catId:'news'},
+{name:'BBC News',url:'https://bbc.com/news',emoji:'🇬🇧',catId:'news'},
+{name:'NY Times',url:'https://nytimes.com',emoji:'📰',catId:'news'},
+{name:'The Guardian',url:'https://theguardian.com',emoji:'🗞️',catId:'news'},
+{name:'Reuters',url:'https://reuters.com',emoji:'🔵',catId:'news'},
+{name:'AP News',url:'https://apnews.com',emoji:'📡',catId:'news'},
+{name:'Washington Post',url:'https://washingtonpost.com',emoji:'🏛️',catId:'news'},
+{name:'NPR',url:'https://npr.org',emoji:'🎙️',catId:'news'},
+{name:'Hacker News',url:'https://news.ycombinator.com',emoji:'🟧',catId:'news'},
+{name:'TechCrunch',url:'https://techcrunch.com',emoji:'⚡',catId:'news'},
+{name:'The Verge',url:'https://theverge.com',emoji:'🔺',catId:'news'},
+{name:'Ars Technica',url:'https://arstechnica.com',emoji:'🔬',catId:'news'},
+{name:'YouTube',url:'https://youtube.com',emoji:'▶️',catId:'video'},
+{name:'Netflix',url:'https://netflix.com',emoji:'🎬',catId:'video'},
+{name:'Twitch',url:'https://twitch.tv',emoji:'🟣',catId:'video'},
+{name:'Disney+',url:'https://disneyplus.com',emoji:'🏰',catId:'video'},
+{name:'Hulu',url:'https://hulu.com',emoji:'🟢',catId:'video'},
+{name:'Max',url:'https://max.com',emoji:'🎭',catId:'video'},
+{name:'Prime Video',url:'https://primevideo.com',emoji:'📦',catId:'video'},
+{name:'Vimeo',url:'https://vimeo.com',emoji:'🎥',catId:'video'},
+{name:'Crunchyroll',url:'https://crunchyroll.com',emoji:'🍥',catId:'video'},
+{name:'Peacock',url:'https://peacocktv.com',emoji:'🦚',catId:'video'},
+{name:'Spotify',url:'https://spotify.com',emoji:'🎧',catId:'music'},
+{name:'Apple Music',url:'https://music.apple.com',emoji:'🍎',catId:'music'},
+{name:'SoundCloud',url:'https://soundcloud.com',emoji:'🔊',catId:'music'},
+{name:'Bandcamp',url:'https://bandcamp.com',emoji:'🎸',catId:'music'},
+{name:'YouTube Music',url:'https://music.youtube.com',emoji:'🎶',catId:'music'},
+{name:'Tidal',url:'https://tidal.com',emoji:'🌊',catId:'music'},
+{name:'Podcasts',url:'https://podcasts.apple.com',emoji:'🎙️',catId:'music'},
+{name:'Audible',url:'https://audible.com',emoji:'📖',catId:'music'},
+{name:'GitHub',url:'https://github.com',emoji:'🐙',catId:'dev'},
+{name:'GitLab',url:'https://gitlab.com',emoji:'🦊',catId:'dev'},
+{name:'Stack Overflow',url:'https://stackoverflow.com',emoji:'📚',catId:'dev'},
+{name:'CodePen',url:'https://codepen.io',emoji:'✒️',catId:'dev'},
+{name:'JSFiddle',url:'https://jsfiddle.net',emoji:'🎻',catId:'dev'},
+{name:'npm',url:'https://npmjs.com',emoji:'📦',catId:'dev'},
+{name:'MDN Docs',url:'https://developer.mozilla.org',emoji:'🦎',catId:'dev'},
+{name:'Dev.to',url:'https://dev.to',emoji:'👩‍💻',catId:'dev'},
+{name:'Vercel',url:'https://vercel.com',emoji:'▲',catId:'dev'},
+{name:'Netlify',url:'https://netlify.com',emoji:'🌐',catId:'dev'},
+{name:'Docker Hub',url:'https://hub.docker.com',emoji:'🐳',catId:'dev'},
+{name:'AWS',url:'https://console.aws.amazon.com',emoji:'☁️',catId:'dev'},
+{name:'Figma',url:'https://figma.com',emoji:'🎨',catId:'design'},
+{name:'Dribbble',url:'https://dribbble.com',emoji:'🏀',catId:'design'},
+{name:'Behance',url:'https://behance.net',emoji:'🅱️',catId:'design'},
+{name:'Canva',url:'https://canva.com',emoji:'🖼️',catId:'design'},
+{name:'Adobe CC',url:'https://creativecloud.adobe.com',emoji:'🅰️',catId:'design'},
+{name:'Unsplash',url:'https://unsplash.com',emoji:'📸',catId:'design'},
+{name:'Pexels',url:'https://pexels.com',emoji:'🖼️',catId:'design'},
+{name:'Coolors',url:'https://coolors.co',emoji:'🌈',catId:'design'},
+{name:'Font Awesome',url:'https://fontawesome.com',emoji:'🔤',catId:'design'},
+{name:'Google Fonts',url:'https://fonts.google.com',emoji:'🔠',catId:'design'},
+{name:'Notion',url:'https://notion.so',emoji:'📝',catId:'productivity'},
+{name:'Trello',url:'https://trello.com',emoji:'📋',catId:'productivity'},
+{name:'Asana',url:'https://asana.com',emoji:'✅',catId:'productivity'},
+{name:'Todoist',url:'https://todoist.com',emoji:'☑️',catId:'productivity'},
+{name:'Google Cal',url:'https://calendar.google.com',emoji:'📅',catId:'productivity'},
+{name:'Jira',url:'https://atlassian.net',emoji:'🔷',catId:'productivity'},
+{name:'Airtable',url:'https://airtable.com',emoji:'📊',catId:'productivity'},
+{name:'Miro',url:'https://miro.com',emoji:'🟡',catId:'productivity'},
+{name:'Linear',url:'https://linear.app',emoji:'📐',catId:'productivity'},
+{name:'Obsidian',url:'https://obsidian.md',emoji:'💎',catId:'productivity'},
+{name:'Gmail',url:'https://mail.google.com',emoji:'📧',catId:'email'},
+{name:'Outlook',url:'https://outlook.live.com',emoji:'📬',catId:'email'},
+{name:'Slack',url:'https://slack.com',emoji:'💬',catId:'email'},
+{name:'Zoom',url:'https://zoom.us',emoji:'📹',catId:'email'},
+{name:'Teams',url:'https://teams.microsoft.com',emoji:'👥',catId:'email'},
+{name:'Telegram',url:'https://web.telegram.org',emoji:'✈️',catId:'email'},
+{name:'WhatsApp',url:'https://web.whatsapp.com',emoji:'💚',catId:'email'},
+{name:'Signal',url:'https://signal.org',emoji:'🔵',catId:'email'},
+{name:'Google Drive',url:'https://drive.google.com',emoji:'📁',catId:'cloud'},
+{name:'Dropbox',url:'https://dropbox.com',emoji:'📦',catId:'cloud'},
+{name:'OneDrive',url:'https://onedrive.live.com',emoji:'☁️',catId:'cloud'},
+{name:'iCloud',url:'https://icloud.com',emoji:'🍏',catId:'cloud'},
+{name:'Box',url:'https://box.com',emoji:'📥',catId:'cloud'},
+{name:'Google Photos',url:'https://photos.google.com',emoji:'🖼️',catId:'cloud'},
+{name:'Mega',url:'https://mega.nz',emoji:'🔐',catId:'cloud'},
+{name:'WeTransfer',url:'https://wetransfer.com',emoji:'📤',catId:'cloud'},
+{name:'Amazon',url:'https://amazon.com',emoji:'📦',catId:'shopping'},
+{name:'eBay',url:'https://ebay.com',emoji:'🏷️',catId:'shopping'},
+{name:'Etsy',url:'https://etsy.com',emoji:'🧶',catId:'shopping'},
+{name:'Target',url:'https://target.com',emoji:'🎯',catId:'shopping'},
+{name:'Walmart',url:'https://walmart.com',emoji:'🏪',catId:'shopping'},
+{name:'Best Buy',url:'https://bestbuy.com',emoji:'🔌',catId:'shopping'},
+{name:'Costco',url:'https://costco.com',emoji:'🏬',catId:'shopping'},
+{name:'Newegg',url:'https://newegg.com',emoji:'🥚',catId:'shopping'},
+{name:'Craigslist',url:'https://craigslist.org',emoji:'📋',catId:'shopping'},
+{name:'Mint',url:'https://mint.intuit.com',emoji:'🪙',catId:'finance'},
+{name:'Robinhood',url:'https://robinhood.com',emoji:'🏹',catId:'finance'},
+{name:'Coinbase',url:'https://coinbase.com',emoji:'🪙',catId:'finance'},
+{name:'PayPal',url:'https://paypal.com',emoji:'💳',catId:'finance'},
+{name:'Venmo',url:'https://venmo.com',emoji:'💸',catId:'finance'},
+{name:'Yahoo Finance',url:'https://finance.yahoo.com',emoji:'📈',catId:'finance'},
+{name:'Bloomberg',url:'https://bloomberg.com',emoji:'📊',catId:'finance'},
+{name:'Wise',url:'https://wise.com',emoji:'🌍',catId:'finance'},
+{name:'Wikipedia',url:'https://wikipedia.org',emoji:'📖',catId:'education'},
+{name:'Coursera',url:'https://coursera.org',emoji:'🎓',catId:'education'},
+{name:'Khan Academy',url:'https://khanacademy.org',emoji:'🏫',catId:'education'},
+{name:'Udemy',url:'https://udemy.com',emoji:'📕',catId:'education'},
+{name:'edX',url:'https://edx.org',emoji:'🎒',catId:'education'},
+{name:'Duolingo',url:'https://duolingo.com',emoji:'🦉',catId:'education'},
+{name:'Brilliant',url:'https://brilliant.org',emoji:'💡',catId:'education'},
+{name:'Google Scholar',url:'https://scholar.google.com',emoji:'🔎',catId:'education'},
+{name:'Quizlet',url:'https://quizlet.com',emoji:'🃏',catId:'education'},
+{name:'MIT OCW',url:'https://ocw.mit.edu',emoji:'🏛️',catId:'education'},
+{name:'MyFitnessPal',url:'https://myfitnesspal.com',emoji:'🍎',catId:'health'},
+{name:'Strava',url:'https://strava.com',emoji:'🏃',catId:'health'},
+{name:'Headspace',url:'https://headspace.com',emoji:'🧘',catId:'health'},
+{name:'WebMD',url:'https://webmd.com',emoji:'🩺',catId:'health'},
+{name:'Peloton',url:'https://onepeloton.com',emoji:'🚴',catId:'health'},
+{name:'AllTrails',url:'https://alltrails.com',emoji:'🥾',catId:'health'},
+{name:'Calm',url:'https://calm.com',emoji:'😌',catId:'health'},
+{name:'Nike Training',url:'https://nike.com/ntc-app',emoji:'👟',catId:'health'},
+{name:'Google Maps',url:'https://maps.google.com',emoji:'🗺️',catId:'travel'},
+{name:'Airbnb',url:'https://airbnb.com',emoji:'🏠',catId:'travel'},
+{name:'Booking.com',url:'https://booking.com',emoji:'🏨',catId:'travel'},
+{name:'Expedia',url:'https://expedia.com',emoji:'✈️',catId:'travel'},
+{name:'Google Flights',url:'https://google.com/travel/flights',emoji:'🛫',catId:'travel'},
+{name:'TripAdvisor',url:'https://tripadvisor.com',emoji:'🦉',catId:'travel'},
+{name:'Uber',url:'https://uber.com',emoji:'🚗',catId:'travel'},
+{name:'Lyft',url:'https://lyft.com',emoji:'🩷',catId:'travel'},
+{name:'Rome2Rio',url:'https://rome2rio.com',emoji:'🚆',catId:'travel'},
+{name:'Kayak',url:'https://kayak.com',emoji:'🛶',catId:'travel'},
+{name:'Yelp',url:'https://yelp.com',emoji:'⭐',catId:'food'},
+{name:'DoorDash',url:'https://doordash.com',emoji:'🚪',catId:'food'},
+{name:'Uber Eats',url:'https://ubereats.com',emoji:'🍔',catId:'food'},
+{name:'Grubhub',url:'https://grubhub.com',emoji:'🍕',catId:'food'},
+{name:'Allrecipes',url:'https://allrecipes.com',emoji:'👨‍🍳',catId:'food'},
+{name:'Instacart',url:'https://instacart.com',emoji:'🥦',catId:'food'},
+{name:'OpenTable',url:'https://opentable.com',emoji:'🍽️',catId:'food'},
+{name:'Serious Eats',url:'https://seriouseats.com',emoji:'🧑‍🍳',catId:'food'},
+{name:'Claude',url:'https://claude.ai',emoji:'🤖',catId:'ai'},
+{name:'ChatGPT',url:'https://chat.openai.com',emoji:'💬',catId:'ai'},
+{name:'Midjourney',url:'https://midjourney.com',emoji:'🎨',catId:'ai'},
+{name:'Hugging Face',url:'https://huggingface.co',emoji:'🤗',catId:'ai'},
+{name:'Stability AI',url:'https://stability.ai',emoji:'🌀',catId:'ai'},
+{name:'Runway',url:'https://runwayml.com',emoji:'✨',catId:'ai'},
+{name:'Replicate',url:'https://replicate.com',emoji:'🔄',catId:'ai'},
+{name:'AI Studio',url:'https://aistudio.google.com',emoji:'🧪',catId:'ai'},
+{name:'Anthropic',url:'https://anthropic.com',emoji:'🔶',catId:'ai'},
+{name:'Cursor',url:'https://cursor.com',emoji:'⌨️',catId:'ai'},
+{name:'Google Translate',url:'https://translate.google.com',emoji:'🌐',catId:'reference'},
+{name:'DeepL',url:'https://deepl.com',emoji:'📝',catId:'reference'},
+{name:'Speedtest',url:'https://speedtest.net',emoji:'⚡',catId:'reference'},
+{name:'Archive.org',url:'https://archive.org',emoji:'🏛️',catId:'reference'},
+{name:'HIBP',url:'https://haveibeenpwned.com',emoji:'🔓',catId:'reference'},
+{name:'VirusTotal',url:'https://virustotal.com',emoji:'🛡️',catId:'reference'},
+{name:'Time.is',url:'https://time.is',emoji:'⏰',catId:'reference'},
+{name:'TinyURL',url:'https://tinyurl.com',emoji:'🔗',catId:'reference'},
+{name:'Steam',url:'https://store.steampowered.com',emoji:'🎮',catId:'gaming'},
+{name:'Epic Games',url:'https://store.epicgames.com',emoji:'🏔️',catId:'gaming'},
+{name:'IGN',url:'https://ign.com',emoji:'🕹️',catId:'gaming'},
+{name:'GameSpot',url:'https://gamespot.com',emoji:'🎯',catId:'gaming'},
+{name:'Humble Bundle',url:'https://humblebundle.com',emoji:'🎁',catId:'gaming'},
+{name:'GOG',url:'https://gog.com',emoji:'🌌',catId:'gaming'},
+{name:'Polygon',url:'https://polygon.com',emoji:'🔷',catId:'gaming'},
+{name:'Kotaku',url:'https://kotaku.com',emoji:'🕹️',catId:'gaming'},
+{name:'ESPN',url:'https://espn.com',emoji:'🏈',catId:'sports'},
+{name:'NBA',url:'https://nba.com',emoji:'🏀',catId:'sports'},
+{name:'NFL',url:'https://nfl.com',emoji:'🏈',catId:'sports'},
+{name:'MLB',url:'https://mlb.com',emoji:'⚾',catId:'sports'},
+{name:'Premier League',url:'https://premierleague.com',emoji:'⚽',catId:'sports'},
+{name:'F1',url:'https://formula1.com',emoji:'🏎️',catId:'sports'},
+{name:'The Athletic',url:'https://theathletic.com',emoji:'📰',catId:'sports'},
+{name:'Yahoo Sports',url:'https://sports.yahoo.com',emoji:'🏆',catId:'sports'},
+],collapsed:{}};
+/*BAKE_END*/
+
+let D,eLI=-1,eCI=null,cI=-1;
+function load(){try{const s=localStorage.getItem(SK);D=s?JSON.parse(s):JSON.parse(JSON.stringify(DD))}catch{D=JSON.parse(JSON.stringify(DD))}}
+function sv(){localStorage.setItem(SK,JSON.stringify(D))}
+function h(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+function setG(){
+  document.getElementById('greeting-text').textContent='NewwwTab';
+  const hr=new Date().getHours();
+  const greet=hr<12?'Good Morning':hr<17?'Good Afternoon':'Good Evening';
+  document.getElementById('date-text').textContent=greet+' · '+new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+}
+
+function render(f=''){
+  const box=document.getElementById('columns');box.innerHTML='';
+  const q=f.toLowerCase().trim();let any=false;
+
+  D.categories.forEach(cat=>{
+    let cl=D.links.filter(l=>l.catId===cat.id);
+    if(q)cl=cl.filter(l=>l.name.toLowerCase().includes(q)||l.url.toLowerCase().includes(q)||cat.name.toLowerCase().includes(q));
+    if(q&&cl.length===0)return;
+    any=true;
+
+    const block=document.createElement('div');
+    block.className='cat-block'+(D.collapsed[cat.id]?' collapsed':'');
+    block.innerHTML=`<div class="cat-head"><span class="cat-toggle">▼</span><span class="cat-name">${h(cat.name)}</span><div class="cat-actions"><button class="cat-btn" data-a="up" title="Move Up">↑</button><button class="cat-btn" data-a="dn" title="Move Down">↓</button><button class="cat-btn" data-a="add" title="Add Link">+</button><button class="cat-btn" data-a="edit" title="Edit Category">✎</button><button class="cat-btn danger" data-a="del" title="Delete Category">×</button></div></div><ul class="link-list" data-cat="${cat.id}"></ul>`;
+    box.appendChild(block);
+
+    block.querySelector('.cat-head').addEventListener('click',e=>{
+      if(e.target.closest('.cat-actions'))return;
+      D.collapsed[cat.id]=!D.collapsed[cat.id];sv();render(document.getElementById('search-input').value);
+    });
+
+    block.querySelector('[data-a="up"]').addEventListener('click',()=>moveCat(cat.id,-1));
+    block.querySelector('[data-a="dn"]').addEventListener('click',()=>moveCat(cat.id,1));
+    block.querySelector('[data-a="add"]').addEventListener('click',()=>openLinkModal(-1,cat.id));
+    block.querySelector('[data-a="edit"]').addEventListener('click',()=>openCatModal(cat.id));
+    block.querySelector('[data-a="del"]').addEventListener('click',()=>{if(confirm('Remove "'+cat.name+'"?')){D.links=D.links.filter(l=>l.catId!==cat.id);D.categories=D.categories.filter(c=>c.id!==cat.id);sv();render(document.getElementById('search-input').value)}});
+
+    const ul=block.querySelector('.link-list');
+    cl.forEach(lk=>{
+      const gi=D.links.indexOf(lk);
+      const li=document.createElement('li');li.className='link-row';
+      li.draggable=true;
+      li.dataset.gi=gi;
+      const mainUrl=lk.url.startsWith('http')?lk.url:'https://'+lk.url;
+      const repoHtml=lk.repoUrl?`<a class="lg" href="${lk.repoUrl.startsWith('http')?lk.repoUrl:'https://'+lk.repoUrl}" draggable="false" title="Repo">g</a>`:'';
+      li.innerHTML=`<a href="${mainUrl}" draggable="false"><span class="le">${lk.emoji||'🔗'}</span><span class="ln">${h(lk.name.length>15?lk.name.slice(0,15):lk.name)}</span></a>${repoHtml}`;
+      li.addEventListener('contextmenu',e=>{e.preventDefault();showCtx(e.clientX,e.clientY,gi)});
+
+      li.addEventListener('dragstart',e=>{
+        dragSrcIdx=gi;dragSrcCat=cat.id;
+        li.classList.add('dragging');
+        e.dataTransfer.effectAllowed='move';
+      });
+      li.addEventListener('dragend',()=>{li.classList.remove('dragging');clearDragStates()});
+      li.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';clearDragStates();li.classList.add('drag-over')});
+      li.addEventListener('dragleave',()=>{li.classList.remove('drag-over')});
+      li.addEventListener('drop',e=>{
+        e.preventDefault();clearDragStates();
+        if(dragSrcIdx<0)return;
+        const targetIdx=parseInt(li.dataset.gi);
+        dropLink(dragSrcIdx,targetIdx,cat.id);
+      });
+
+      ul.appendChild(li);
+    });
+
+    // Allow dropping into empty category or at end of list
+    ul.addEventListener('dragover',e=>{
+      if(e.target===ul){e.preventDefault();e.dataTransfer.dropEffect='move';ul.classList.add('drag-over-empty')}
+    });
+    ul.addEventListener('dragleave',e=>{if(e.target===ul)ul.classList.remove('drag-over-empty')});
+    ul.addEventListener('drop',e=>{
+      if(e.target===ul){e.preventDefault();ul.classList.remove('drag-over-empty');
+        if(dragSrcIdx<0)return;
+        dropLinkToEnd(dragSrcIdx,cat.id);
+      }
+    });
+  });
+  if(!any)box.innerHTML='<div class="no-results">No Matches Found</div>';
+}
+
+document.getElementById('search-input').addEventListener('input',e=>render(e.target.value));
+
+function expandAll(){D.categories.forEach(c=>D.collapsed[c.id]=false);sv();render(document.getElementById('search-input').value)}
+function collapseAll(){D.categories.forEach(c=>D.collapsed[c.id]=true);sv();render(document.getElementById('search-input').value)}
+function toggleAll(){
+  const anyOpen=D.categories.some(c=>!D.collapsed[c.id]);
+  if(anyOpen)collapseAll();else expandAll();
+}
+
+// Category reorder
+function moveCat(catId,dir){
+  const i=D.categories.findIndex(c=>c.id===catId);
+  const ni=i+dir;
+  if(ni<0||ni>=D.categories.length)return;
+  const tmp=D.categories[i];D.categories[i]=D.categories[ni];D.categories[ni]=tmp;
+  sv();render(document.getElementById('search-input').value);
+}
+
+// Link drag and drop
+let dragSrcIdx=-1,dragSrcCat=null;
+
+function clearDragStates(){
+  document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));
+  document.querySelectorAll('.drag-over-empty').forEach(el=>el.classList.remove('drag-over-empty'));
+}
+
+function dropLink(fromGI,toGI,toCatId){
+  const lk=D.links[fromGI];
+  D.links.splice(fromGI,1);
+  // Recalc target index after removal
+  let newToGI=toGI;
+  if(fromGI<toGI)newToGI--;
+  // Update category if cross-category drop
+  lk.catId=toCatId;
+  D.links.splice(newToGI,0,lk);
+  dragSrcIdx=-1;dragSrcCat=null;
+  sv();render(document.getElementById('search-input').value);
+}
+
+function dropLinkToEnd(fromGI,toCatId){
+  const lk=D.links[fromGI];
+  D.links.splice(fromGI,1);
+  lk.catId=toCatId;
+  // Find last link in target category and insert after it
+  let insertAt=-1;
+  for(let i=D.links.length-1;i>=0;i--){if(D.links[i].catId===toCatId){insertAt=i+1;break}}
+  if(insertAt<0)insertAt=D.links.length;
+  D.links.splice(insertAt,0,lk);
+  dragSrcIdx=-1;dragSrcCat=null;
+  sv();render(document.getElementById('search-input').value);
+}
+
+function showCtx(x,y,i){cI=i;const m=document.getElementById('ctx');m.style.left=Math.min(x,innerWidth-130)+'px';m.style.top=Math.min(y,innerHeight-100)+'px';m.classList.add('active')}
+function hideCtx(){document.getElementById('ctx').classList.remove('active')}
+function ctxEdit(){hideCtx();openLinkModal(cI)}
+function ctxTop(){hideCtx();if(cI>=0){const lk=D.links[cI];D.links.splice(cI,1);const f=D.links.findIndex(l=>l.catId===lk.catId);D.links.splice(f>=0?f:0,0,lk);sv();render(document.getElementById('search-input').value)}}
+function ctxDel(){hideCtx();if(cI>=0){D.links.splice(cI,1);sv();render(document.getElementById('search-input').value)}}
+
+function openLinkModal(i=-1,pc=null){
+  eLI=i;const cs=document.getElementById('lm-cat');
+  cs.innerHTML=D.categories.map(c=>'<option value="'+c.id+'">'+c.emoji+' '+h(c.name)+'</option>').join('');
+  if(i>=0){const l=D.links[i];document.getElementById('lm-title').textContent='Edit Link';document.getElementById('lm-save').textContent='Save';document.getElementById('lm-name').value=l.name;document.getElementById('lm-url').value=l.url;document.getElementById('lm-repo').value=l.repoUrl||'';document.getElementById('lm-emoji').value=l.emoji||'';cs.value=l.catId}
+  else{document.getElementById('lm-title').textContent='Add Link';document.getElementById('lm-save').textContent='Add';document.getElementById('lm-name').value='';document.getElementById('lm-url').value='';document.getElementById('lm-repo').value='';document.getElementById('lm-emoji').value='';if(pc)cs.value=pc}
+  document.getElementById('link-modal').classList.add('active');setTimeout(()=>document.getElementById('lm-name').focus(),80);
+}
+function saveLink(){
+  const n=document.getElementById('lm-name').value.trim();let u=document.getElementById('lm-url').value.trim();const r=document.getElementById('lm-repo').value.trim();const e=document.getElementById('lm-emoji').value.trim()||'🔗';const c=document.getElementById('lm-cat').value;
+  if(!n||!u)return;if(!u.startsWith('http'))u='https://'+u;
+  let ru=r;if(ru&&!ru.startsWith('http'))ru='https://'+ru;
+  const obj={name:n,url:u,emoji:e,catId:c};if(ru)obj.repoUrl=ru;
+  if(eLI>=0)D.links[eLI]=obj;else D.links.push(obj);
+  sv();render(document.getElementById('search-input').value);closeModal('link-modal');
+}
+function openCatModal(id=null){
+  eCI=id;
+  if(id){const c=D.categories.find(x=>x.id===id);document.getElementById('cm-title').textContent='Edit Category';document.getElementById('cm-save').textContent='Save';document.getElementById('cm-name').value=c.name;document.getElementById('cm-emoji').value=c.emoji||''}
+  else{document.getElementById('cm-title').textContent='Add Category';document.getElementById('cm-save').textContent='Add';document.getElementById('cm-name').value='';document.getElementById('cm-emoji').value=''}
+  document.getElementById('cat-modal').classList.add('active');setTimeout(()=>document.getElementById('cm-name').focus(),80);
+}
+function saveCat(){
+  const n=document.getElementById('cm-name').value.trim();const e=document.getElementById('cm-emoji').value.trim()||'📁';if(!n)return;
+  if(eCI){const c=D.categories.find(x=>x.id===eCI);c.name=n;c.emoji=e}else D.categories.push({id:'c'+Date.now(),name:n,emoji:e});
+  sv();render(document.getElementById('search-input').value);closeModal('cat-modal');
+}
+function closeModal(id){document.getElementById(id).classList.remove('active')}
+function openSettings(){document.getElementById('settings-modal').classList.add('active')}
+
+document.addEventListener('click',e=>{if(!e.target.closest('.ctx'))hideCtx();if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('active')});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeModal('link-modal');closeModal('cat-modal');closeModal('settings-modal');hideCtx()}
+  if(e.key==='Enter'){if(document.getElementById('link-modal').classList.contains('active'))saveLink();else if(document.getElementById('cat-modal').classList.contains('active'))saveCat()}
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();document.getElementById('search-input').focus()}
+  if((e.ctrlKey||e.metaKey)&&e.key==='e'){e.preventDefault();toggleAll()}
+});
+
+// Export JSON
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='newwwtab-data.json';a.click();URL.revokeObjectURL(a.href);
+}
+
+// Export Markdown
+function exportMD(){
+  let md='# NewwwTab Links\n\n';
+  D.categories.forEach(cat=>{
+    const cl=D.links.filter(l=>l.catId===cat.id);
+    md+='## '+cat.emoji+' '+cat.name+'\n';
+    cl.forEach(lk=>{
+      if(lk.repoUrl)md+='- '+lk.emoji+' [g]('+lk.repoUrl+') '+lk.name+' '+lk.url+'\n';
+      else md+='- '+lk.emoji+' '+lk.name+' '+lk.url+'\n';
+    });
+    md+='\n';
+  });
+  const blob=new Blob([md],{type:'text/markdown'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='newwwtab-data.md';a.click();URL.revokeObjectURL(a.href);
+}
+
+// Import JSON or Markdown
+function importFile(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const txt=e.target.result;
+    if(file.name.endsWith('.json')){
+      try{
+        const imported=JSON.parse(txt);
+        if(imported.categories&&imported.links){
+          D=imported;sv();render(document.getElementById('search-input').value);
+        }else{alert('Invalid NewwwTab Data File')}
+      }catch{alert('Could Not Parse JSON File')}
+    }else{
+      // Parse as Markdown
+      importMarkdown(txt);
+    }
+  };
+  reader.readAsText(file);
+  input.value='';
+}
+
+function importMarkdown(txt){
+  const lines=txt.split('\n');
+  const cats=[];const links=[];
+  let curCat=null;
+  for(const raw of lines){
+    const line=raw.trim();
+    if(!line)continue;
+    // H2 = category: ## 🔍 Search
+    const h2=line.match(/^##\s+(.+)$/);
+    if(h2){
+      const catText=h2[1].trim();
+      // Extract leading emoji if present
+      const emojiMatch=catText.match(/^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F?)\s*(.*)/u);
+      let emoji='📁',name=catText;
+      if(emojiMatch){emoji=emojiMatch[1];name=emojiMatch[2]||catText}
+      const id='c'+Date.now()+'_'+cats.length;
+      curCat={id,name,emoji};
+      cats.push(curCat);
+      continue;
+    }
+    // Skip H1
+    if(line.startsWith('#'))continue;
+    // Bullet = link: - 🔗 Google https://google.com
+    // Or paired: - 🔗 [g](repoUrl) name https://site.com
+    const bullet=line.match(/^[-*]\s+(.+)$/);
+    if(bullet&&curCat){
+      let content=bullet[1].trim();
+      // Check for [g](repoUrl) pattern
+      let repoUrl=null;
+      const repoMatch=content.match(/\[g\]\((https?:\/\/[^)]+)\)/);
+      if(repoMatch){
+        repoUrl=repoMatch[1];
+        content=content.replace(repoMatch[0],'').trim();
+      }
+      // Try to extract: emoji name url
+      // URL is the last https:// or http:// chunk
+      const urlMatch=content.match(/(https?:\/\/\S+)\s*$/);
+      if(urlMatch){
+        const url=urlMatch[1];
+        const before=content.slice(0,content.lastIndexOf(url)).trim();
+        // Extract emoji from before
+        const eMatch=before.match(/^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F?)\s*(.*)/u);
+        let emoji='🔗',name=before;
+        if(eMatch){emoji=eMatch[1];name=eMatch[2]||before}
+        if(!name)name=url.replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,'');
+        const obj={name:name.trim(),url,emoji,catId:curCat.id};
+        if(repoUrl)obj.repoUrl=repoUrl;
+        links.push(obj);
+      }else{
+        // No URL found, treat whole thing as name
+        const eMatch=content.match(/^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F?)\s*(.*)/u);
+        let emoji='🔗',name=content;
+        if(eMatch){emoji=eMatch[1];name=eMatch[2]||content}
+        const obj={name:name.trim(),url:'https://example.com',emoji,catId:curCat.id};
+        if(repoUrl)obj.repoUrl=repoUrl;
+        links.push(obj);
+      }
+    }
+  }
+  if(cats.length===0){alert('No Categories Found (Use ## Headers)');return}
+  D={categories:cats,links,collapsed:{}};
+  sv();render(document.getElementById('search-input').value);
+}
+
+// Download HTML with baked-in data
+function downloadHTML(){
+  const src=document.documentElement.outerHTML;
+  const startTag='/*BAKE_START*/';
+  const endTag='/*BAKE_END*/';
+  const si=src.indexOf(startTag);
+  const ei=src.indexOf(endTag);
+  if(si<0||ei<0){alert('Could Not Bake Data');return}
+  const baked=JSON.parse(JSON.stringify(D));
+  baked.collapsed={};
+  const bakedStr='\n/*BAKE_START*/\nconst DD='+JSON.stringify(baked)+';\n/*BAKE_END*/\n';
+  const newSrc='<!DOCTYPE html>\n<html lang="en">'+
+    src.substring(src.indexOf('<head>'),si)+
+    bakedStr+
+    src.substring(ei+endTag.length);
+  const blob=new Blob([newSrc],{type:'text/html'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='newwwtab.html';a.click();URL.revokeObjectURL(a.href);
+}
+
+load();setG();render();
+</script>
+</body>
+</html>

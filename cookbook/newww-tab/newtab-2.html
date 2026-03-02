@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>New Tab</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f4f0;
+    --card: #ffffff;
+    --text: #2c2c2c;
+    --text-light: #8a8680;
+    --accent: #c4724e;
+    --accent-light: rgba(196, 114, 78, 0.08);
+    --border: #e8e4df;
+    --shadow-hover: rgba(44, 44, 44, 0.1);
+    --sidebar-w: 220px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(196,114,78,0.04), transparent),
+      radial-gradient(ellipse 60% 50% at 80% 90%, rgba(196,114,78,0.03), transparent);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* Layout */
+  .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+  /* Sidebar */
+  .sidebar {
+    width: var(--sidebar-w); flex-shrink: 0;
+    position: fixed; top: 0; left: 0; bottom: 0;
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    z-index: 50;
+    overflow: hidden;
+  }
+  .sidebar-header {
+    padding: 20px 16px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.25rem; font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+  .sidebar-header p {
+    font-size: 0.72rem; color: var(--text-light);
+    font-weight: 300; margin-top: 2px;
+  }
+  .sidebar-search {
+    padding: 12px 12px 8px;
+  }
+  .sidebar-search input {
+    width: 100%; padding: 8px 10px;
+    border: 1px solid var(--border); border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem; color: var(--text);
+    background: var(--bg); outline: none;
+    transition: border-color 0.2s;
+  }
+  .sidebar-search input:focus { border-color: var(--accent); }
+  .sidebar-search input::placeholder { color: var(--text-light); }
+  .sidebar-nav {
+    flex: 1; overflow-y: auto; padding: 6px 8px 16px;
+  }
+  .sidebar-nav::-webkit-scrollbar { width: 4px; }
+  .sidebar-nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px; border-radius: 8px;
+    cursor: pointer; font-size: 0.78rem;
+    color: var(--text-light); transition: all 0.15s;
+    text-decoration: none; user-select: none;
+    border: none; background: none; width: 100; text-align: left;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .nav-item:hover { background: var(--bg); color: var(--text); }
+  .nav-item.active { background: var(--accent-light); color: var(--accent); font-weight: 500; }
+  .nav-emoji { font-size: 0.9rem; width: 20px; text-align: center; flex-shrink: 0; }
+  .nav-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nav-count {
+    margin-left: auto; font-size: 0.65rem;
+    color: var(--text-light); opacity: 0.6;
+  }
+  .sidebar-footer {
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+    display: flex; gap: 6px;
+  }
+  .sidebar-footer .btn { flex: 1; text-align: center; }
+
+  /* Main content */
+  .main {
+    flex: 1; margin-left: var(--sidebar-w);
+    padding: 28px 32px 60px;
+  }
+
+  /* Expand/Collapse All */
+  .top-bar {
+    display: flex; justify-content: flex-end;
+    gap: 8px; margin-bottom: 20px;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 16px;
+    scroll-margin-top: 16px;
+  }
+  .section-header {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: rgba(255,255,255,0.6);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer; user-select: none;
+    transition: all 0.2s;
+  }
+  .section-header:hover { background: var(--card); }
+  .section-title-area {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-emoji {
+    font-size: 1.1rem; width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--accent-light); border-radius: 8px;
+  }
+  .section-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.05rem; font-weight: 400;
+  }
+  .section-count {
+    font-size: 0.68rem; color: var(--text-light); margin-left: 6px;
+  }
+  .section-toggle {
+    font-size: 0.7rem; color: var(--text-light);
+    transition: transform 0.3s; margin-left: auto;
+    padding: 0 8px;
+  }
+  .section.collapsed .section-toggle { transform: rotate(-90deg); }
+  .section-actions {
+    display: flex; gap: 4px; margin-left: 8px;
+  }
+  .section-actions .btn { opacity: 0; transition: opacity 0.15s; }
+  .section-header:hover .section-actions .btn { opacity: 1; }
+
+  /* Links grid */
+  .links-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+    gap: 6px;
+    padding: 10px 4px 4px;
+    max-height: 2000px;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.2s ease;
+    opacity: 1;
+  }
+  .section.collapsed .links-grid {
+    max-height: 0; padding: 0 4px; opacity: 0;
+    pointer-events: none;
+  }
+  .link-card {
+    display: flex; align-items: center; gap: 9px;
+    padding: 9px 11px; background: var(--card);
+    border: 1px solid transparent; border-radius: 9px;
+    text-decoration: none; color: var(--text);
+    transition: all 0.2s cubic-bezier(0.23,1,0.32,1);
+    cursor: pointer;
+  }
+  .link-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 12px var(--shadow-hover);
+    border-color: var(--border);
+  }
+  .link-emoji {
+    font-size: 0.9rem; flex-shrink: 0;
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg); border-radius: 6px;
+  }
+  .link-card:hover .link-emoji { background: var(--accent-light); }
+  .link-name {
+    font-weight: 500; font-size: 0.78rem;
+    white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; min-width: 0;
+  }
+  .add-link-btn {
+    border: 1.5px dashed var(--border); background: transparent;
+    justify-content: center; color: var(--text-light);
+    font-size: 0.75rem;
+  }
+  .add-link-btn:hover {
+    border-color: var(--accent); color: var(--accent);
+    transform: none; box-shadow: none;
+  }
+  .no-results {
+    text-align: center; padding: 60px 20px;
+    color: var(--text-light); font-size: 0.9rem;
+  }
+
+  /* Buttons */
+  .btn {
+    padding: 7px 14px; border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.76rem; font-weight: 500;
+    cursor: pointer; border: none; transition: all 0.2s; white-space: nowrap;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #b3633f; }
+  .btn-outline { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-ghost { background: transparent; color: var(--text-light); padding: 5px 8px; }
+  .btn-ghost:hover { color: var(--text); }
+  .btn-sm { padding: 4px 10px; font-size: 0.7rem; }
+  .btn-danger { color: #c44e4e; }
+  .btn-danger:hover { background: rgba(196,78,78,0.06); }
+
+  /* Modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(44,44,44,0.2);
+    backdrop-filter: blur(8px);
+    z-index: 100; align-items: center; justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--card); border-radius: 16px;
+    padding: 28px; width: 90%; max-width: 400px;
+    box-shadow: 0 24px 64px rgba(44,44,44,0.12);
+    animation: scaleIn 0.2s ease;
+  }
+  .modal h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.2rem; font-weight: 400; margin-bottom: 20px;
+  }
+  .field { margin-bottom: 14px; }
+  .field label {
+    font-size: 0.68rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--text-light); display: block; margin-bottom: 5px;
+  }
+  .field input, .field select {
+    width: 100%; padding: 9px 12px;
+    border: 1px solid var(--border); border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem; color: var(--text);
+    background: var(--bg); outline: none;
+  }
+  .field input:focus, .field select:focus { border-color: var(--accent); }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+  /* Context menu */
+  .context-menu {
+    display: none; position: fixed;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 5px;
+    box-shadow: 0 8px 24px rgba(44,44,44,0.12);
+    z-index: 200; min-width: 140px;
+  }
+  .context-menu.active { display: block; }
+  .context-menu button {
+    display: block; width: 100%; padding: 8px 12px;
+    background: none; border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem; color: var(--text);
+    cursor: pointer; border-radius: 6px;
+    text-align: left;
+  }
+  .context-menu button:hover { background: var(--bg); }
+  .context-menu button.danger { color: #c44e4e; }
+  .ctx-divider { height: 1px; background: var(--border); margin: 3px 5px; }
+
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .sidebar { width: 56px; }
+    .sidebar-header, .sidebar-search, .nav-label, .nav-count, .sidebar-footer span { display: none; }
+    .sidebar-footer { flex-direction: column; padding: 6px; }
+    .sidebar-footer .btn { padding: 6px; font-size: 0.7rem; }
+    .sidebar-nav { padding: 6px 4px; }
+    .nav-item { justify-content: center; padding: 8px; }
+    .nav-emoji { width: auto; }
+    .main { margin-left: 56px; padding: 20px 16px; }
+    .links-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h1 id="greeting-text"></h1>
+      <p id="date-text"></p>
+    </div>
+    <div class="sidebar-search">
+      <input type="text" id="search-input" placeholder="Filter... (⌘K)" />
+    </div>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+      <button class="btn btn-outline" onclick="openCategoryModal()"><span>+ </span>Cat</button>
+      <button class="btn btn-primary" onclick="openLinkModal()"><span>+ </span>Link</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="top-bar">
+      <button class="btn btn-outline btn-sm" onclick="expandAll()">Expand all</button>
+      <button class="btn btn-outline btn-sm" onclick="collapseAll()">Collapse all</button>
+    </div>
+    <div id="sections"></div>
+  </main>
+
+</div>
+
+<!-- Link Modal -->
+<div class="modal-overlay" id="link-modal">
+  <div class="modal">
+    <h2 id="link-modal-title">Add Link</h2>
+    <div class="field"><label>Name</label><input type="text" id="link-name" placeholder="e.g. YouTube" /></div>
+    <div class="field"><label>URL</label><input type="text" id="link-url" placeholder="e.g. youtube.com" /></div>
+    <div class="field"><label>Icon (emoji)</label><input type="text" id="link-emoji" placeholder="e.g. 🎬" maxlength="4" /></div>
+    <div class="field"><label>Category</label><select id="link-category"></select></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('link-modal')">Cancel</button>
+      <button class="btn btn-primary" id="link-save-btn" onclick="saveLink()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Category Modal -->
+<div class="modal-overlay" id="cat-modal">
+  <div class="modal">
+    <h2 id="cat-modal-title">Add Category</h2>
+    <div class="field"><label>Category Name</label><input type="text" id="cat-name" placeholder="e.g. Design Tools" /></div>
+    <div class="field"><label>Icon (emoji)</label><input type="text" id="cat-emoji" placeholder="e.g. 🎨" maxlength="4" /></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('cat-modal')">Cancel</button>
+      <button class="btn btn-primary" id="cat-save-btn" onclick="saveCategory()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Context Menu -->
+<div class="context-menu" id="context-menu">
+  <button onclick="ctxEdit()">Edit</button>
+  <button onclick="ctxMoveUp()">Move to top</button>
+  <div class="ctx-divider"></div>
+  <button class="danger" onclick="ctxDelete()">Remove</button>
+</div>
+
+<script>
+const STORAGE_KEY = 'newtab_data_v3';
+const DEFAULT_DATA = {
+  categories: [
+    {id:'search',name:'Search & Portals',emoji:'🔍'},
+    {id:'social',name:'Social Media',emoji:'💬'},
+    {id:'news',name:'News & Media',emoji:'📰'},
+    {id:'video',name:'Video & Streaming',emoji:'🎬'},
+    {id:'music',name:'Music & Audio',emoji:'🎵'},
+    {id:'dev',name:'Development',emoji:'💻'},
+    {id:'design',name:'Design & Creative',emoji:'🎨'},
+    {id:'productivity',name:'Productivity',emoji:'📋'},
+    {id:'email',name:'Email & Communication',emoji:'✉️'},
+    {id:'cloud',name:'Cloud & Storage',emoji:'☁️'},
+    {id:'shopping',name:'Shopping',emoji:'🛒'},
+    {id:'finance',name:'Finance & Banking',emoji:'💰'},
+    {id:'education',name:'Education & Learning',emoji:'📚'},
+    {id:'health',name:'Health & Fitness',emoji:'💪'},
+    {id:'travel',name:'Travel & Maps',emoji:'✈️'},
+    {id:'food',name:'Food & Recipes',emoji:'🍳'},
+    {id:'ai',name:'AI & Machine Learning',emoji:'🤖'},
+    {id:'reference',name:'Reference & Utilities',emoji:'🔧'},
+    {id:'gaming',name:'Gaming',emoji:'🎮'},
+    {id:'sports',name:'Sports',emoji:'⚽'},
+  ],
+  links: [
+    {name:'Google',url:'https://google.com',emoji:'🔍',catId:'search'},
+    {name:'Bing',url:'https://bing.com',emoji:'🅱️',catId:'search'},
+    {name:'DuckDuckGo',url:'https://duckduckgo.com',emoji:'🦆',catId:'search'},
+    {name:'Yahoo',url:'https://yahoo.com',emoji:'🟣',catId:'search'},
+    {name:'Brave Search',url:'https://search.brave.com',emoji:'🦁',catId:'search'},
+    {name:'Startpage',url:'https://startpage.com',emoji:'🔒',catId:'search'},
+    {name:'Wolfram Alpha',url:'https://wolframalpha.com',emoji:'🧮',catId:'search'},
+    {name:'Perplexity',url:'https://perplexity.ai',emoji:'🧠',catId:'search'},
+    {name:'X / Twitter',url:'https://x.com',emoji:'🐦',catId:'social'},
+    {name:'Facebook',url:'https://facebook.com',emoji:'👤',catId:'social'},
+    {name:'Instagram',url:'https://instagram.com',emoji:'📷',catId:'social'},
+    {name:'LinkedIn',url:'https://linkedin.com',emoji:'💼',catId:'social'},
+    {name:'Reddit',url:'https://reddit.com',emoji:'🟠',catId:'social'},
+    {name:'TikTok',url:'https://tiktok.com',emoji:'🎵',catId:'social'},
+    {name:'Mastodon',url:'https://mastodon.social',emoji:'🐘',catId:'social'},
+    {name:'Threads',url:'https://threads.net',emoji:'🧵',catId:'social'},
+    {name:'Bluesky',url:'https://bsky.app',emoji:'🦋',catId:'social'},
+    {name:'Pinterest',url:'https://pinterest.com',emoji:'📌',catId:'social'},
+    {name:'Tumblr',url:'https://tumblr.com',emoji:'✏️',catId:'social'},
+    {name:'Discord',url:'https://discord.com',emoji:'🎮',catId:'social'},
+    {name:'CNN',url:'https://cnn.com',emoji:'📺',catId:'news'},
+    {name:'BBC News',url:'https://bbc.com/news',emoji:'🇬🇧',catId:'news'},
+    {name:'NY Times',url:'https://nytimes.com',emoji:'📰',catId:'news'},
+    {name:'The Guardian',url:'https://theguardian.com',emoji:'🗞️',catId:'news'},
+    {name:'Reuters',url:'https://reuters.com',emoji:'🔵',catId:'news'},
+    {name:'AP News',url:'https://apnews.com',emoji:'📡',catId:'news'},
+    {name:'Washington Post',url:'https://washingtonpost.com',emoji:'🏛️',catId:'news'},
+    {name:'NPR',url:'https://npr.org',emoji:'🎙️',catId:'news'},
+    {name:'Hacker News',url:'https://news.ycombinator.com',emoji:'🟧',catId:'news'},
+    {name:'TechCrunch',url:'https://techcrunch.com',emoji:'⚡',catId:'news'},
+    {name:'The Verge',url:'https://theverge.com',emoji:'🔺',catId:'news'},
+    {name:'Ars Technica',url:'https://arstechnica.com',emoji:'🔬',catId:'news'},
+    {name:'YouTube',url:'https://youtube.com',emoji:'▶️',catId:'video'},
+    {name:'Netflix',url:'https://netflix.com',emoji:'🎬',catId:'video'},
+    {name:'Twitch',url:'https://twitch.tv',emoji:'🟣',catId:'video'},
+    {name:'Disney+',url:'https://disneyplus.com',emoji:'🏰',catId:'video'},
+    {name:'Hulu',url:'https://hulu.com',emoji:'🟢',catId:'video'},
+    {name:'HBO Max',url:'https://max.com',emoji:'🎭',catId:'video'},
+    {name:'Prime Video',url:'https://primevideo.com',emoji:'📦',catId:'video'},
+    {name:'Vimeo',url:'https://vimeo.com',emoji:'🎥',catId:'video'},
+    {name:'Crunchyroll',url:'https://crunchyroll.com',emoji:'🍥',catId:'video'},
+    {name:'Peacock',url:'https://peacocktv.com',emoji:'🦚',catId:'video'},
+    {name:'Spotify',url:'https://spotify.com',emoji:'🎧',catId:'music'},
+    {name:'Apple Music',url:'https://music.apple.com',emoji:'🍎',catId:'music'},
+    {name:'SoundCloud',url:'https://soundcloud.com',emoji:'🔊',catId:'music'},
+    {name:'Bandcamp',url:'https://bandcamp.com',emoji:'🎸',catId:'music'},
+    {name:'YouTube Music',url:'https://music.youtube.com',emoji:'🎶',catId:'music'},
+    {name:'Tidal',url:'https://tidal.com',emoji:'🌊',catId:'music'},
+    {name:'Podcasts (Apple)',url:'https://podcasts.apple.com',emoji:'🎙️',catId:'music'},
+    {name:'Audible',url:'https://audible.com',emoji:'📖',catId:'music'},
+    {name:'GitHub',url:'https://github.com',emoji:'🐙',catId:'dev'},
+    {name:'GitLab',url:'https://gitlab.com',emoji:'🦊',catId:'dev'},
+    {name:'Stack Overflow',url:'https://stackoverflow.com',emoji:'📚',catId:'dev'},
+    {name:'CodePen',url:'https://codepen.io',emoji:'✒️',catId:'dev'},
+    {name:'JSFiddle',url:'https://jsfiddle.net',emoji:'🎻',catId:'dev'},
+    {name:'npm',url:'https://npmjs.com',emoji:'📦',catId:'dev'},
+    {name:'MDN Web Docs',url:'https://developer.mozilla.org',emoji:'🦎',catId:'dev'},
+    {name:'Dev.to',url:'https://dev.to',emoji:'👩‍💻',catId:'dev'},
+    {name:'Vercel',url:'https://vercel.com',emoji:'▲',catId:'dev'},
+    {name:'Netlify',url:'https://netlify.com',emoji:'🌐',catId:'dev'},
+    {name:'Docker Hub',url:'https://hub.docker.com',emoji:'🐳',catId:'dev'},
+    {name:'AWS Console',url:'https://console.aws.amazon.com',emoji:'☁️',catId:'dev'},
+    {name:'Figma',url:'https://figma.com',emoji:'🎨',catId:'design'},
+    {name:'Dribbble',url:'https://dribbble.com',emoji:'🏀',catId:'design'},
+    {name:'Behance',url:'https://behance.net',emoji:'🅱️',catId:'design'},
+    {name:'Canva',url:'https://canva.com',emoji:'🖼️',catId:'design'},
+    {name:'Adobe CC',url:'https://creativecloud.adobe.com',emoji:'🅰️',catId:'design'},
+    {name:'Unsplash',url:'https://unsplash.com',emoji:'📸',catId:'design'},
+    {name:'Pexels',url:'https://pexels.com',emoji:'🖼️',catId:'design'},
+    {name:'Coolors',url:'https://coolors.co',emoji:'🌈',catId:'design'},
+    {name:'Font Awesome',url:'https://fontawesome.com',emoji:'🔤',catId:'design'},
+    {name:'Google Fonts',url:'https://fonts.google.com',emoji:'🔠',catId:'design'},
+    {name:'Notion',url:'https://notion.so',emoji:'📝',catId:'productivity'},
+    {name:'Trello',url:'https://trello.com',emoji:'📋',catId:'productivity'},
+    {name:'Asana',url:'https://asana.com',emoji:'✅',catId:'productivity'},
+    {name:'Todoist',url:'https://todoist.com',emoji:'☑️',catId:'productivity'},
+    {name:'Google Calendar',url:'https://calendar.google.com',emoji:'📅',catId:'productivity'},
+    {name:'Jira',url:'https://atlassian.net',emoji:'🔷',catId:'productivity'},
+    {name:'Airtable',url:'https://airtable.com',emoji:'📊',catId:'productivity'},
+    {name:'Miro',url:'https://miro.com',emoji:'🟡',catId:'productivity'},
+    {name:'Linear',url:'https://linear.app',emoji:'📐',catId:'productivity'},
+    {name:'Obsidian',url:'https://obsidian.md',emoji:'💎',catId:'productivity'},
+    {name:'Gmail',url:'https://mail.google.com',emoji:'📧',catId:'email'},
+    {name:'Outlook',url:'https://outlook.live.com',emoji:'📬',catId:'email'},
+    {name:'Slack',url:'https://slack.com',emoji:'💬',catId:'email'},
+    {name:'Zoom',url:'https://zoom.us',emoji:'📹',catId:'email'},
+    {name:'Teams',url:'https://teams.microsoft.com',emoji:'👥',catId:'email'},
+    {name:'Telegram',url:'https://web.telegram.org',emoji:'✈️',catId:'email'},
+    {name:'WhatsApp Web',url:'https://web.whatsapp.com',emoji:'💚',catId:'email'},
+    {name:'Signal',url:'https://signal.org',emoji:'🔵',catId:'email'},
+    {name:'Google Drive',url:'https://drive.google.com',emoji:'📁',catId:'cloud'},
+    {name:'Dropbox',url:'https://dropbox.com',emoji:'📦',catId:'cloud'},
+    {name:'OneDrive',url:'https://onedrive.live.com',emoji:'☁️',catId:'cloud'},
+    {name:'iCloud',url:'https://icloud.com',emoji:'🍏',catId:'cloud'},
+    {name:'Box',url:'https://box.com',emoji:'📥',catId:'cloud'},
+    {name:'Google Photos',url:'https://photos.google.com',emoji:'🖼️',catId:'cloud'},
+    {name:'Mega',url:'https://mega.nz',emoji:'🔐',catId:'cloud'},
+    {name:'WeTransfer',url:'https://wetransfer.com',emoji:'📤',catId:'cloud'},
+    {name:'Amazon',url:'https://amazon.com',emoji:'📦',catId:'shopping'},
+    {name:'eBay',url:'https://ebay.com',emoji:'🏷️',catId:'shopping'},
+    {name:'Etsy',url:'https://etsy.com',emoji:'🧶',catId:'shopping'},
+    {name:'Target',url:'https://target.com',emoji:'🎯',catId:'shopping'},
+    {name:'Walmart',url:'https://walmart.com',emoji:'🏪',catId:'shopping'},
+    {name:'Best Buy',url:'https://bestbuy.com',emoji:'🔌',catId:'shopping'},
+    {name:'Costco',url:'https://costco.com',emoji:'🏬',catId:'shopping'},
+    {name:'Newegg',url:'https://newegg.com',emoji:'🥚',catId:'shopping'},
+    {name:'Craigslist',url:'https://craigslist.org',emoji:'📋',catId:'shopping'},
+    {name:'Mint',url:'https://mint.intuit.com',emoji:'🪙',catId:'finance'},
+    {name:'Robinhood',url:'https://robinhood.com',emoji:'🏹',catId:'finance'},
+    {name:'Coinbase',url:'https://coinbase.com',emoji:'🪙',catId:'finance'},
+    {name:'PayPal',url:'https://paypal.com',emoji:'💳',catId:'finance'},
+    {name:'Venmo',url:'https://venmo.com',emoji:'💸',catId:'finance'},
+    {name:'Yahoo Finance',url:'https://finance.yahoo.com',emoji:'📈',catId:'finance'},
+    {name:'Bloomberg',url:'https://bloomberg.com',emoji:'📊',catId:'finance'},
+    {name:'Wise',url:'https://wise.com',emoji:'🌍',catId:'finance'},
+    {name:'Wikipedia',url:'https://wikipedia.org',emoji:'📖',catId:'education'},
+    {name:'Coursera',url:'https://coursera.org',emoji:'🎓',catId:'education'},
+    {name:'Khan Academy',url:'https://khanacademy.org',emoji:'🏫',catId:'education'},
+    {name:'Udemy',url:'https://udemy.com',emoji:'📕',catId:'education'},
+    {name:'edX',url:'https://edx.org',emoji:'🎒',catId:'education'},
+    {name:'Duolingo',url:'https://duolingo.com',emoji:'🦉',catId:'education'},
+    {name:'Brilliant',url:'https://brilliant.org',emoji:'💡',catId:'education'},
+    {name:'Google Scholar',url:'https://scholar.google.com',emoji:'🔎',catId:'education'},
+    {name:'Quizlet',url:'https://quizlet.com',emoji:'🃏',catId:'education'},
+    {name:'MIT OCW',url:'https://ocw.mit.edu',emoji:'🏛️',catId:'education'},
+    {name:'MyFitnessPal',url:'https://myfitnesspal.com',emoji:'🍎',catId:'health'},
+    {name:'Strava',url:'https://strava.com',emoji:'🏃',catId:'health'},
+    {name:'Headspace',url:'https://headspace.com',emoji:'🧘',catId:'health'},
+    {name:'WebMD',url:'https://webmd.com',emoji:'🩺',catId:'health'},
+    {name:'Peloton',url:'https://onepeloton.com',emoji:'🚴',catId:'health'},
+    {name:'AllTrails',url:'https://alltrails.com',emoji:'🥾',catId:'health'},
+    {name:'Calm',url:'https://calm.com',emoji:'😌',catId:'health'},
+    {name:'Nike Training',url:'https://nike.com/ntc-app',emoji:'👟',catId:'health'},
+    {name:'Google Maps',url:'https://maps.google.com',emoji:'🗺️',catId:'travel'},
+    {name:'Airbnb',url:'https://airbnb.com',emoji:'🏠',catId:'travel'},
+    {name:'Booking.com',url:'https://booking.com',emoji:'🏨',catId:'travel'},
+    {name:'Expedia',url:'https://expedia.com',emoji:'✈️',catId:'travel'},
+    {name:'Google Flights',url:'https://google.com/travel/flights',emoji:'🛫',catId:'travel'},
+    {name:'TripAdvisor',url:'https://tripadvisor.com',emoji:'🦉',catId:'travel'},
+    {name:'Uber',url:'https://uber.com',emoji:'🚗',catId:'travel'},
+    {name:'Lyft',url:'https://lyft.com',emoji:'🩷',catId:'travel'},
+    {name:'Rome2Rio',url:'https://rome2rio.com',emoji:'🚆',catId:'travel'},
+    {name:'Kayak',url:'https://kayak.com',emoji:'🛶',catId:'travel'},
+    {name:'Yelp',url:'https://yelp.com',emoji:'⭐',catId:'food'},
+    {name:'DoorDash',url:'https://doordash.com',emoji:'🚪',catId:'food'},
+    {name:'Uber Eats',url:'https://ubereats.com',emoji:'🍔',catId:'food'},
+    {name:'Grubhub',url:'https://grubhub.com',emoji:'🍕',catId:'food'},
+    {name:'Allrecipes',url:'https://allrecipes.com',emoji:'👨‍🍳',catId:'food'},
+    {name:'Instacart',url:'https://instacart.com',emoji:'🥦',catId:'food'},
+    {name:'OpenTable',url:'https://opentable.com',emoji:'🍽️',catId:'food'},
+    {name:'Serious Eats',url:'https://seriouseats.com',emoji:'🧑‍🍳',catId:'food'},
+    {name:'Claude',url:'https://claude.ai',emoji:'🤖',catId:'ai'},
+    {name:'ChatGPT',url:'https://chat.openai.com',emoji:'💬',catId:'ai'},
+    {name:'Midjourney',url:'https://midjourney.com',emoji:'🎨',catId:'ai'},
+    {name:'Hugging Face',url:'https://huggingface.co',emoji:'🤗',catId:'ai'},
+    {name:'Stable Diffusion',url:'https://stability.ai',emoji:'🌀',catId:'ai'},
+    {name:'Runway',url:'https://runwayml.com',emoji:'✨',catId:'ai'},
+    {name:'Replicate',url:'https://replicate.com',emoji:'🔄',catId:'ai'},
+    {name:'Google AI Studio',url:'https://aistudio.google.com',emoji:'🧪',catId:'ai'},
+    {name:'Anthropic',url:'https://anthropic.com',emoji:'🔶',catId:'ai'},
+    {name:'Cursor',url:'https://cursor.com',emoji:'⌨️',catId:'ai'},
+    {name:'Google Translate',url:'https://translate.google.com',emoji:'🌐',catId:'reference'},
+    {name:'DeepL',url:'https://deepl.com',emoji:'📝',catId:'reference'},
+    {name:'Speedtest',url:'https://speedtest.net',emoji:'⚡',catId:'reference'},
+    {name:'Archive.org',url:'https://archive.org',emoji:'🏛️',catId:'reference'},
+    {name:'Have I Been Pwned',url:'https://haveibeenpwned.com',emoji:'🔓',catId:'reference'},
+    {name:'VirusTotal',url:'https://virustotal.com',emoji:'🛡️',catId:'reference'},
+    {name:'Time.is',url:'https://time.is',emoji:'⏰',catId:'reference'},
+    {name:'URL Shortener',url:'https://tinyurl.com',emoji:'🔗',catId:'reference'},
+    {name:'Steam',url:'https://store.steampowered.com',emoji:'🎮',catId:'gaming'},
+    {name:'Epic Games',url:'https://store.epicgames.com',emoji:'🏔️',catId:'gaming'},
+    {name:'IGN',url:'https://ign.com',emoji:'🕹️',catId:'gaming'},
+    {name:'GameSpot',url:'https://gamespot.com',emoji:'🎯',catId:'gaming'},
+    {name:'Humble Bundle',url:'https://humblebundle.com',emoji:'🎁',catId:'gaming'},
+    {name:'GOG',url:'https://gog.com',emoji:'🌌',catId:'gaming'},
+    {name:'Polygon',url:'https://polygon.com',emoji:'🔷',catId:'gaming'},
+    {name:'Kotaku',url:'https://kotaku.com',emoji:'🕹️',catId:'gaming'},
+    {name:'ESPN',url:'https://espn.com',emoji:'🏈',catId:'sports'},
+    {name:'NBA',url:'https://nba.com',emoji:'🏀',catId:'sports'},
+    {name:'NFL',url:'https://nfl.com',emoji:'🏈',catId:'sports'},
+    {name:'MLB',url:'https://mlb.com',emoji:'⚾',catId:'sports'},
+    {name:'Premier League',url:'https://premierleague.com',emoji:'⚽',catId:'sports'},
+    {name:'F1',url:'https://formula1.com',emoji:'🏎️',catId:'sports'},
+    {name:'The Athletic',url:'https://theathletic.com',emoji:'📰',catId:'sports'},
+    {name:'Yahoo Sports',url:'https://sports.yahoo.com',emoji:'🏆',catId:'sports'},
+  ],
+  collapsed: {}
+};
+
+let data, editingLinkIndex = -1, editingCatId = null;
+let ctxIndex = -1;
+
+function load() {
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    data = s ? JSON.parse(s) : JSON.parse(JSON.stringify(DEFAULT_DATA));
+    // Default: all collapsed
+    if (!s) { data.categories.forEach(c => data.collapsed[c.id] = true); }
+  } catch { data = JSON.parse(JSON.stringify(DEFAULT_DATA)); data.categories.forEach(c => data.collapsed[c.id] = true); }
+}
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function setGreeting() {
+  const h = new Date().getHours();
+  document.getElementById('greeting-text').textContent =
+    h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('date-text').textContent =
+    new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+}
+
+function renderSidebar(filter = '') {
+  const nav = document.getElementById('sidebar-nav');
+  nav.innerHTML = '';
+  const q = filter.toLowerCase().trim();
+  data.categories.forEach(cat => {
+    const count = data.links.filter(l => l.catId === cat.id).length;
+    if (q) {
+      const catLinks = data.links.filter(l => l.catId === cat.id);
+      const match = cat.name.toLowerCase().includes(q) ||
+        catLinks.some(l => l.name.toLowerCase().includes(q) || l.url.toLowerCase().includes(q));
+      if (!match) return;
+    }
+    const btn = document.createElement('button');
+    btn.className = 'nav-item' + (!data.collapsed[cat.id] ? ' active' : '');
+    btn.innerHTML = `<span class="nav-emoji">${cat.emoji}</span><span class="nav-label">${esc(cat.name)}</span><span class="nav-count">${count}</span>`;
+    btn.addEventListener('click', () => {
+      // Expand and scroll
+      data.collapsed[cat.id] = false;
+      save();
+      render(document.getElementById('search-input').value);
+      setTimeout(() => {
+        const el = document.getElementById('section-' + cat.id);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    });
+    nav.appendChild(btn);
+  });
+}
+
+function render(filter = '') {
+  const container = document.getElementById('sections');
+  container.innerHTML = '';
+  const q = filter.toLowerCase().trim();
+  let anyVisible = false;
+
+  data.categories.forEach(cat => {
+    let catLinks = data.links.filter(l => l.catId === cat.id);
+    if (q) catLinks = catLinks.filter(l =>
+      l.name.toLowerCase().includes(q) || l.url.toLowerCase().includes(q) || cat.name.toLowerCase().includes(q)
+    );
+    if (q && catLinks.length === 0) return;
+    anyVisible = true;
+
+    const section = document.createElement('div');
+    section.className = 'section' + (data.collapsed[cat.id] ? ' collapsed' : '');
+    section.id = 'section-' + cat.id;
+
+    section.innerHTML = `
+      <div class="section-header">
+        <div class="section-title-area">
+          <div class="section-emoji">${cat.emoji || '📁'}</div>
+          <span class="section-name">${esc(cat.name)}</span>
+          <span class="section-count">${catLinks.length}</span>
+        </div>
+        <div class="section-actions">
+          <button class="btn btn-ghost btn-sm" data-act="add">+ Add</button>
+          <button class="btn btn-ghost btn-sm" data-act="edit">Edit</button>
+          <button class="btn btn-ghost btn-sm btn-danger" data-act="del">×</button>
+        </div>
+        <span class="section-toggle">▼</span>
+      </div>
+      <div class="links-grid"></div>
+    `;
+    container.appendChild(section);
+
+    const header = section.querySelector('.section-header');
+    header.addEventListener('click', (e) => {
+      if (e.target.closest('.section-actions')) return;
+      data.collapsed[cat.id] = !data.collapsed[cat.id];
+      save(); render(document.getElementById('search-input').value);
+    });
+    section.querySelector('[data-act="add"]').addEventListener('click', (e) => { e.stopPropagation(); openLinkModal(-1, cat.id); });
+    section.querySelector('[data-act="edit"]').addEventListener('click', (e) => { e.stopPropagation(); openCategoryModal(cat.id); });
+    section.querySelector('[data-act="del"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (confirm('Remove "'+cat.name+'" and all its links?')) {
+        data.links = data.links.filter(l => l.catId !== cat.id);
+        data.categories = data.categories.filter(c => c.id !== cat.id);
+        save(); render(document.getElementById('search-input').value);
+      }
+    });
+
+    if (!data.collapsed[cat.id]) {
+      const grid = section.querySelector('.links-grid');
+      catLinks.forEach(link => {
+        const gi = data.links.indexOf(link);
+        const card = document.createElement('a');
+        card.className = 'link-card';
+        card.href = link.url.startsWith('http') ? link.url : 'https://' + link.url;
+        card.innerHTML = '<div class="link-emoji">'+(link.emoji||'🔗')+'</div><span class="link-name">'+esc(link.name)+'</span>';
+        card.addEventListener('contextmenu', e => { e.preventDefault(); showCtx(e.clientX, e.clientY, gi); });
+        grid.appendChild(card);
+      });
+      const addBtn = document.createElement('div');
+      addBtn.className = 'link-card add-link-btn';
+      addBtn.textContent = '+';
+      addBtn.addEventListener('click', () => openLinkModal(-1, cat.id));
+      grid.appendChild(addBtn);
+    }
+  });
+  if (!anyVisible) container.innerHTML = '<div class="no-results">No links match your search.</div>';
+  renderSidebar(filter);
+}
+
+function expandAll() { data.categories.forEach(c => data.collapsed[c.id] = false); save(); render(document.getElementById('search-input').value); }
+function collapseAll() { data.categories.forEach(c => data.collapsed[c.id] = true); save(); render(document.getElementById('search-input').value); }
+
+document.getElementById('search-input').addEventListener('input', e => render(e.target.value));
+
+function showCtx(x, y, index) {
+  ctxIndex = index;
+  const m = document.getElementById('context-menu');
+  m.style.left = Math.min(x, innerWidth - 160) + 'px';
+  m.style.top = Math.min(y, innerHeight - 120) + 'px';
+  m.classList.add('active');
+}
+function hideCtx() { document.getElementById('context-menu').classList.remove('active'); }
+function ctxEdit() { hideCtx(); openLinkModal(ctxIndex); }
+function ctxMoveUp() {
+  hideCtx();
+  if (ctxIndex >= 0) {
+    const link = data.links[ctxIndex];
+    data.links.splice(ctxIndex, 1);
+    const f = data.links.findIndex(l => l.catId === link.catId);
+    data.links.splice(f >= 0 ? f : 0, 0, link);
+    save(); render(document.getElementById('search-input').value);
+  }
+}
+function ctxDelete() { hideCtx(); if (ctxIndex >= 0) { data.links.splice(ctxIndex, 1); save(); render(document.getElementById('search-input').value); } }
+
+function openLinkModal(index = -1, presetCatId = null) {
+  editingLinkIndex = index;
+  const cs = document.getElementById('link-category');
+  cs.innerHTML = data.categories.map(c => '<option value="'+c.id+'">'+c.emoji+' '+esc(c.name)+'</option>').join('');
+  if (index >= 0) {
+    const l = data.links[index];
+    document.getElementById('link-modal-title').textContent = 'Edit Link';
+    document.getElementById('link-save-btn').textContent = 'Save';
+    document.getElementById('link-name').value = l.name;
+    document.getElementById('link-url').value = l.url;
+    document.getElementById('link-emoji').value = l.emoji || '';
+    cs.value = l.catId;
+  } else {
+    document.getElementById('link-modal-title').textContent = 'Add Link';
+    document.getElementById('link-save-btn').textContent = 'Add';
+    document.getElementById('link-name').value = '';
+    document.getElementById('link-url').value = '';
+    document.getElementById('link-emoji').value = '';
+    if (presetCatId) cs.value = presetCatId;
+  }
+  document.getElementById('link-modal').classList.add('active');
+  setTimeout(() => document.getElementById('link-name').focus(), 100);
+}
+function saveLink() {
+  const name = document.getElementById('link-name').value.trim();
+  let url = document.getElementById('link-url').value.trim();
+  const emoji = document.getElementById('link-emoji').value.trim() || '🔗';
+  const catId = document.getElementById('link-category').value;
+  if (!name || !url) return;
+  if (!url.startsWith('http')) url = 'https://' + url;
+  if (editingLinkIndex >= 0) data.links[editingLinkIndex] = { name, url, emoji, catId };
+  else data.links.push({ name, url, emoji, catId });
+  save(); render(document.getElementById('search-input').value);
+  closeModal('link-modal');
+}
+function openCategoryModal(catId = null) {
+  editingCatId = catId;
+  if (catId) {
+    const c = data.categories.find(x => x.id === catId);
+    document.getElementById('cat-modal-title').textContent = 'Edit Category';
+    document.getElementById('cat-save-btn').textContent = 'Save';
+    document.getElementById('cat-name').value = c.name;
+    document.getElementById('cat-emoji').value = c.emoji || '';
+  } else {
+    document.getElementById('cat-modal-title').textContent = 'Add Category';
+    document.getElementById('cat-save-btn').textContent = 'Add';
+    document.getElementById('cat-name').value = '';
+    document.getElementById('cat-emoji').value = '';
+  }
+  document.getElementById('cat-modal').classList.add('active');
+  setTimeout(() => document.getElementById('cat-name').focus(), 100);
+}
+function saveCategory() {
+  const name = document.getElementById('cat-name').value.trim();
+  const emoji = document.getElementById('cat-emoji').value.trim() || '📁';
+  if (!name) return;
+  if (editingCatId) { const c = data.categories.find(x => x.id === editingCatId); c.name = name; c.emoji = emoji; }
+  else data.categories.push({ id: 'cat_' + Date.now(), name, emoji });
+  save(); render(document.getElementById('search-input').value);
+  closeModal('cat-modal');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.context-menu')) hideCtx();
+  if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('active');
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal('link-modal'); closeModal('cat-modal'); hideCtx(); }
+  if (e.key === 'Enter') {
+    if (document.getElementById('link-modal').classList.contains('active')) saveLink();
+    else if (document.getElementById('cat-modal').classList.contains('active')) saveCategory();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); document.getElementById('search-input').focus(); }
+});
+
+load(); setGreeting(); render();
+</script>
+</body>
+</html>
