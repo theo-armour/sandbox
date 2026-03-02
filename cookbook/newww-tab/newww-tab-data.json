@@ -1,151 +1,153 @@
 {
   "columns": [
     {
-      "id": "id-mlxa72nc-lrcal",
+      "id": "id-mm4h3ms5-v055d",
       "title": "theo",
+      "folder": "theo",
       "color": "#78716c",
       "collapsed": false,
       "sections": [
         {
-          "id": "id-mlxa72r4-fomaw",
+          "id": "id-mm4h3mt5-ublmw",
           "title": "repos",
+          "file": "repos.md",
           "collapsed": false,
           "links": [
             {
-              "id": "id-mlxa72r4-7aqro",
+              "id": "id-mm4h3mt5-e6oy3",
               "title": "agenda",
               "url": "https://theo-armour.github.io/agenda/",
               "secondaryTitle": "g",
               "secondaryUrl": "https://github.com/theo-armour/agenda"
             },
             {
-              "id": "id-mlxa72r4-kvsda",
+              "id": "id-mm4h3mt5-0lrsx",
               "title": "qData",
               "url": "https://theo-armour.github.io/qdata/",
               "secondaryTitle": "g",
               "secondaryUrl": "https://github.com/theo-armour/qdata/"
             },
             {
-              "id": "id-mlxa72r4-ed53i",
+              "id": "id-mm4h3mt5-qeuu9",
               "title": "pages",
               "url": "https://theo-armour.github.io/pages/",
               "secondaryTitle": "g",
               "secondaryUrl": "https://github.com/theo-armour/pages"
             },
             {
-              "id": "id-mlxa72r4-8o7ft",
+              "id": "id-mm4h3mt5-sgwpj",
               "title": "t2025",
               "url": "https://theo-armour.github.io/2025",
               "secondaryTitle": "g",
               "secondaryUrl": "https://github.com/theo-armour/2025/"
             },
             {
-              "id": "id-mlxa72r4-c2jkq",
+              "id": "id-mm4h3mt5-pcrra",
               "title": "sandbox",
               "url": "https://theo-armour.github.io/sandbox/",
               "secondaryTitle": "g",
               "secondaryUrl": "https://github.com/theo-armour/sandbox/"
             },
             {
-              "id": "id-mlxa72r4-n9n1h",
+              "id": "id-mm4h3mt5-zx1zt",
               "title": "genalogy",
               "url": "https://theo-armour.github.io/genealogy/",
               "secondaryTitle": "g",
               "secondaryUrl": "https://github.com/theo-armour/genealogy/"
             },
             {
-              "id": "id-mlxa72r4-ta586",
+              "id": "id-mm4h3mt5-qd1zk",
               "title": "wikitheo",
               "url": "https://theo-armour.github.io/wikitheo/",
               "secondaryTitle": "g",
               "secondaryUrl": "https://github.com/theo-armour/wikitheo/"
             },
             {
-              "id": "id-mlxa72r4-ntdzx",
+              "id": "id-mm4h3mt5-mho40",
               "title": "ifrStuff",
-              "url": "https://theo-armour.github.io/sandbox/cookbook/newww-tab/newww-tab-interactive.html",
+              "url": "https://theo-armour.github.io/qdata/apps/iframe-stuff",
               "secondaryTitle": "g",
-              "secondaryUrl": "https://github.com/theo-armour/sandbox/tree/main/cookbook/iframe-stuff"
+              "secondaryUrl": "https://github.com/theo-armour/qdata/blob/main/apps/iframe-stuff/2023-05-02/iframe-stuff.html"
             },
             {
-              "id": "id-mlxa72r4-4ft74",
+              "id": "id-mm4h3mt5-ht2yu",
               "title": "newTab",
               "url": "https://theo-armour.github.io/qdata/apps/newww-tab/",
               "secondaryTitle": "g",
               "secondaryUrl": "https://github.com/theo-armour/qdata/tree/master/apps/newww-tab"
             },
             {
-              "id": "id-mlxa72r4-b2w5n",
+              "id": "id-mm4h3mt5-gltpq",
               "title": "notesy",
               "url": "https://theo-armour.github.io/qdata/apps/notesy",
               "secondaryTitle": "g",
               "secondaryUrl": "https://github.com/theo-armour/qdata/tree/master/apps/notesy"
             },
             {
-              "id": "id-mlxa72r4-ic163",
+              "id": "id-mm4h3mt5-8ggtz",
               "title": "teodori",
               "url": "https://theo-armour.github.io/qdata/apps/teodori",
               "secondaryTitle": "g",
               "secondaryUrl": "https://github.com/theo-armour/qdata/tree/master/apps/teodori"
             },
             {
-              "id": "id-mlxa72r4-j36zm",
+              "id": "id-mm4h3mt5-k6qam",
               "title": "trayo",
               "url": "https://theo-armour.github.io/qdata/apps/trayo/",
               "secondaryTitle": "g",
               "secondaryUrl": "https://github.com/theo-armour/qdata/tree/master/apps/trayo"
             },
             {
-              "id": "id-mlxa72r4-bsupc",
+              "id": "id-mm4h3mt5-a7opn",
               "title": "days",
               "url": "https://theo-armour.github.io/qdata/apps/notesy/days.html",
               "secondaryTitle": "g",
               "secondaryUrl": "https://github.com/theo-armour/qdata/tree/master/apps/notesy"
             },
             {
-              "id": "id-mlxa72r4-92yzt",
+              "id": "id-mm4h3mt5-8w00u",
               "title": "gT-A",
               "url": "https://github.com/theo-armour",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa72r4-lc1qq",
+              "id": "id-mm4h3mt5-84u0h",
               "title": "demo",
               "url": "https://theo-armour.github.io/2021/demo-reel/v-2021-08-31/iframe-carousel-r1.html",
               "secondaryTitle": "gbxml",
               "secondaryUrl": "https://www.gbxml.org"
             },
             {
-              "id": "id-mlxa72r4-spav3",
+              "id": "id-mm4h3mt5-6lkvi",
               "title": "T-A.g.io",
               "url": "https://theo-armour.github.io/",
               "secondaryTitle": "g",
               "secondaryUrl": "https://github.com/theo-armour/theo-armour.github.io"
             },
             {
-              "id": "id-mlxa72r4-9x22w",
+              "id": "id-mm4h3mt5-4vs1s",
               "title": "mouth",
               "url": "https://theo-armour.github.io/mouth-stl-2022/simple-stl",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa72r4-prykw",
+              "id": "id-mm4h3mt5-0nh9r",
               "title": "bizcard",
               "url": "https://theo-armour.github.io/2024/about/theo-business-card.html",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa72r4-iajet",
+              "id": "id-mm4h3mt5-ay497",
               "title": "evrlnd",
               "url": "https://evereverland.github.io/",
               "secondaryTitle": "g",
               "secondaryUrl": "https://github.com/evereverland/"
             },
             {
-              "id": "id-mlxa72r4-4tar8",
+              "id": "id-mm4h3mt5-hznwy",
               "title": "2019",
               "url": "https://evereverland.github.io/2019",
               "secondaryTitle": "g",
@@ -154,61 +156,62 @@
           ]
         },
         {
-          "id": "id-mlxa72y7-291d3",
+          "id": "id-mm4h3mtr-qtlei",
           "title": "vscode",
+          "file": "vscode.md",
           "collapsed": false,
           "links": [
             {
-              "id": "id-mlxa72y7-a2nwx",
+              "id": "id-mm4h3mtr-okt45",
               "title": "PshPll",
               "url": "https://pushme-pullyou.github.io/",
               "secondaryTitle": "g",
               "secondaryUrl": "https://github.com/pushme-pullyou/"
             },
             {
-              "id": "id-mlxa72y7-dg2y3",
+              "id": "id-mm4h3mtr-n9rlt",
               "title": "ppAssets",
               "url": "https://pushme-pullyou.github.io/assets/",
               "secondaryTitle": "g",
               "secondaryUrl": "https://github.com/pushme-pullyou/assets/"
             },
             {
-              "id": "id-mlxa72y7-n9nhg",
+              "id": "id-mm4h3mtr-v5ae3",
               "title": "g",
               "url": "https://github.com/pushme-pullyou/2024/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa72y7-xwmv6",
+              "id": "id-mm4h3mtr-2sm39",
               "title": "&gt;ta 2024",
               "url": "https://vscode.dev/github/theo-armour/2024",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa72y7-vhcyy",
+              "id": "id-mm4h3mtr-k4lv5",
               "title": "&gt;ta 23agnd",
               "url": "https://vscode.dev/github/theo-armour/agenda",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa72y7-clnkz",
+              "id": "id-mm4h3mtr-czalb",
               "title": "&gt;ta pages",
               "url": "https://vscode.dev/github/theo-armour/pages",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa72y7-ruso1",
+              "id": "id-mm4h3mtr-tdpfh",
               "title": "&gt;ta 23qDat",
               "url": "https://vscode.dev/github/theo-armour/qdata",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa72y7-z67dj",
+              "id": "id-mm4h3mtr-3j4ir",
               "title": "&gt;TooToo23",
               "url": "https://vscode.dev/github/pushme-pullyou/assets/",
               "secondaryTitle": "",
@@ -219,357 +222,312 @@
       ]
     },
     {
-      "id": "id-mlxa71bb-d31bp",
+      "id": "id-mm4h3m40-727vx",
       "title": "news",
+      "folder": "news",
       "color": "#8b5cf6",
       "collapsed": false,
       "sections": [
         {
-          "id": "id-mlxa71fm-47vf4",
+          "id": "id-mm4h3m4r-3gsjs",
           "title": "0-news",
+          "file": "0-news.md",
           "collapsed": false,
           "links": [
             {
-              "id": "id-mlxa71fm-221b7",
+              "id": "id-mm4h3m4r-9ofjf",
               "title": "nytimes",
               "url": "https://nytimes.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71fm-hyh70",
+              "id": "id-mm4h3m4r-3t9vv",
               "title": "chronic",
               "url": "https://www.sfchronicle.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71fm-cn97a",
+              "id": "id-mm4h3m4r-atlps",
               "title": "wsj",
               "url": "https://www.wsj.com/",
               "secondaryTitle": "googN",
               "secondaryUrl": "https://news.google.com/"
             },
             {
-              "id": "id-mlxa71fm-t2sq4",
+              "id": "id-mm4h3m4r-q6jxo",
               "title": "drudge",
               "url": "https://drudgereport.com",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71fm-ewxph",
-              "title": "hacker_new",
-              "url": "https://news.ycombinator.com/",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa71fm-0qhfh",
-              "title": "slashdot",
-              "url": "https://slashdot.org/",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa71fm-dx6a8",
+              "id": "id-mm4h3m4r-0aol3",
               "title": "techmeme",
               "url": "https://techmeme.com",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71fm-lwoo3",
-              "title": "reddit",
-              "url": "https://reddit.com",
+              "id": "id-mm4h3m4r-4q6as",
+              "title": "slashdot",
+              "url": "https://slashdot.org/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71fm-k5p7y",
-              "title": "twitter",
-              "url": "https://twitter.com/",
+              "id": "id-mm4h3m4r-2a1ga",
+              "title": "hacker_new",
+              "url": "https://news.ycombinator.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71fm-dnsz2",
-              "title": "wired",
-              "url": "https://www.wired.com/",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa71fm-q4dus",
-              "title": "atlantic",
-              "url": "https://www.theatlantic.com/",
+              "id": "id-mm4ivye7-50dqj",
+              "title": "xkcd",
+              "url": "https://xkcd.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             }
           ]
         },
         {
-          "id": "id-mlxa71jl-3fcv1",
+          "id": "id-mm4h3m5c-fje33",
           "title": "more-news",
+          "file": "more-news.md",
           "collapsed": false,
           "links": [
             {
-              "id": "id-mlxa71jl-rby9x",
+              "id": "id-mm4h3m5b-e685x",
               "title": "compuserve",
               "url": "http://compuserve.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71jl-82uzx",
+              "id": "id-mm4h3m5b-01a2d",
               "title": "allTop",
               "url": "https://alltop.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71jl-coa5l",
+              "id": "id-mm4h3m5b-xj7lr",
               "title": "brutalist",
               "url": "https://brutalist.report/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71jl-g6nmi",
+              "id": "id-mm4h3m5b-0knse",
               "title": "npr",
               "url": "https://text.npr.org/",
-              "secondaryTitle": "cnn",
-              "secondaryUrl": "https://lite.cnn.io"
+              "secondaryTitle": "",
+              "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71jl-kzzod",
+              "id": "id-mm4h3m5b-pkiz1",
               "title": "apnews",
               "url": "https://apnews.com",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71jl-r3xc6",
+              "id": "id-mm4h3m5b-m3cw1",
               "title": "MarktechP",
               "url": "https://www.marktechpost.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71jl-cvcc5",
-              "title": "nxtbigfutr",
-              "url": "https://www.nextbigfuture.com/",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa71jl-9gtib",
-              "title": "swiss-miss",
-              "url": "https://swiss-miss.com",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa71jl-h9zzz",
-              "title": "kottke",
-              "url": "https://kottke.org",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa71jl-at9ml",
+              "id": "id-mm4h3m5c-dtfzc",
               "title": "digg",
               "url": "https://digg.com/",
               "secondaryTitle": "boing",
               "secondaryUrl": "https://boingboing.net/blog/"
             },
             {
-              "id": "id-mlxa71jl-ltwyu",
+              "id": "id-mm4h3m5c-xkz3z",
               "title": "lifehacker",
               "url": "https://lifehacker.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71jl-3wjbm",
+              "id": "id-mm4h3m5c-5ioow",
               "title": "techcrunch",
               "url": "https://techcrunch.com",
               "secondaryTitle": "",
               "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3m5c-71tmk",
+              "title": "twitter.com",
+              "url": "https://twitter.com/",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3m5c-8ie0r",
+              "title": "reddit",
+              "url": "https://reddit.com/",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm78mqhz-rb6pw",
+              "title": "boing",
+              "url": "https://boingboing.net/",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
             }
           ]
-        }
-      ]
-    },
-    {
-      "id": "id-mlxa721g-6hof6",
-      "title": "reads",
-      "color": "#ec4899",
-      "collapsed": false,
-      "sections": [
+        },
         {
-          "id": "id-mlxa72gj-fb5fo",
+          "id": "id-mm4h3m6m-kw6fm",
           "title": "reads",
+          "file": "reads.md",
           "collapsed": false,
           "links": [
             {
-              "id": "id-mlxa72gj-gh2nq",
+              "id": "id-mm4h3m6m-aupc6",
               "title": "substack",
               "url": "https://substack.com/inbox",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa72gj-nx96t",
+              "id": "id-mm4h3m6m-361p0",
               "title": "medium",
               "url": "https://medium.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa72gj-fcjsj",
-              "title": "scanalyst",
-              "url": "https://scanalyst.fourmilab.ch/",
+              "id": "id-mm4h3m5c-bbjl6",
+              "title": "atlantic",
+              "url": "https://www.theatlantic.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa72gj-qo1r5",
-              "title": "kindle",
-              "url": "https://read.amazon.com/kindle-library",
+              "id": "id-mm4h3m5c-g55cu",
+              "title": "wired",
+              "url": "https://www.wired.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa72gj-6vaxp",
-              "title": "sfpublib",
-              "url": "https://sfpl.org/",
+              "id": "id-mm5sdrva-uw8zr",
+              "title": "kottke",
+              "url": "https://kottke.org/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa72gj-vpysx",
-              "title": "libby",
-              "url": "https://libbyapp.com",
+              "id": "id-mm4h3m5c-1qdx2",
+              "title": "swiss-miss",
+              "url": "https://swiss-miss.com",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3m5x-k1gs4",
+              "title": "marginal",
+              "url": "https://www.themarginalian.org/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             }
           ]
         },
         {
-          "id": "id-mlxa7294-nv2ez",
-          "title": "ai",
+          "id": "id-mm4h3m5x-oxvcj",
+          "title": "more-read",
+          "file": "more-read.md",
           "collapsed": false,
           "links": [
             {
-              "id": "id-mlxa7294-571ri",
-              "title": "sora",
-              "url": "https://sora.com",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa7294-h2bv9",
-              "title": "midjourny",
-              "url": "https://www.midjourney.com/",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa7294-ccnvk",
-              "title": "> dd",
-              "url": "https://discord.com/channels/662267976984297473/@home",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa7294-d3rlh",
-              "title": "ideogram",
-              "url": "https://ideogram.ai/",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa7294-55evy",
-              "title": "> dd",
-              "url": "https://discord.com/channels/662267976984297473/@home",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa7294-f4jax",
-              "title": "kaiber",
-              "url": "https://kaiber.ai",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa7294-t0mqh",
-              "title": "suno/chirp",
-              "url": "suno.com",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            }
-          ]
-        },
-        {
-          "id": "id-mlxa72cy-id1ik",
-          "title": "more-read",
-          "collapsed": true,
-          "links": [
-            {
-              "id": "id-mlxa72cy-klcba",
+              "id": "id-mm4h3m5x-ftc1o",
               "title": "aeon",
               "url": "https://aeon.co/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa72cy-ycsom",
+              "id": "id-mm4h3m6m-u62oj",
+              "title": "scanalyst",
+              "url": "https://scanalyst.fourmilab.ch/",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3m5x-h3bt5",
               "title": "axios",
               "url": "https://axios.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa72cy-25427",
+              "id": "id-mm4h3m5x-dmaw1",
               "title": "lesswrong",
               "url": "https://www.lesswrong.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa72cy-82abn",
-              "title": "marginal",
-              "url": "https://www.themarginalian.org/",
+              "id": "id-mm5n9382-xgw18",
+              "title": "thepoint",
+              "url": "https://thepointmag.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa72cy-387cn",
+              "id": "id-mm4h3m5x-497eq",
               "title": "nautilus",
               "url": "https://nautil.us/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa72cy-gri6o",
+              "id": "id-mm4h3m5x-z1ne2",
               "title": "noema",
               "url": "https://www.noemamag.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa72cy-03hmk",
+              "id": "id-mm4h3m5x-rx4qn",
               "title": "quanta",
               "url": "https://www.quantamagazine.org/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa72cy-xfroa",
+              "id": "id-mm4h3m5x-st8er",
               "title": "feedly",
               "url": "https://feedly.com/",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3m6m-oit7f",
+              "title": "kindle",
+              "url": "https://read.amazon.com/kindle-library",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3m5x-dob5c",
+              "title": "libbyapp.com",
+              "url": "https://libbyapp.com/",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3m5x-lxsm2",
+              "title": "sfpl.org",
+              "url": "https://sfpl.org/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             }
@@ -578,270 +536,235 @@
       ]
     },
     {
-      "id": "id-mlxa6zna-9qmhc",
-      "title": "ai",
-      "color": "#10b981",
+      "id": "id-mm4h3mjh-okyis",
+      "title": "reads",
+      "folder": "reads",
+      "color": "#ec4899",
       "collapsed": false,
       "sections": [
         {
-          "id": "id-mlxa6zti-48pub",
-          "title": "ai-more",
-          "collapsed": false,
-          "links": [
-            {
-              "id": "id-mlxa6zti-ye95z",
-              "title": "copilotp",
-              "url": "https://copilot.microsoft.com/",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa6zti-jgrn4",
-              "title": "grok",
-              "url": "https://x.ai/grok",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa6zti-qok72",
-              "title": "ms365",
-              "url": "https://office.com",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa6zti-p5a56",
-              "title": "onedrv",
-              "url": "https://onedrive.live.com",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa6zti-b3xg3",
-              "title": "outlook",
-              "url": "https://outlook.live.com",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            }
-          ]
-        },
-        {
-          "id": "id-mlxa6zxo-e2dwf",
+          "id": "id-mm4h3mkx-o08zq",
           "title": "ai",
+          "file": "ai.md",
           "collapsed": false,
           "links": [
             {
-              "id": "id-mlxa6zxo-62f25",
+              "id": "id-mm4h3mkx-ri9sd",
+              "title": "claude",
+              "url": "https://claude.ai/chats",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3mkx-2gmuj",
               "title": "gemini",
               "url": "https://gemini.google.com",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa6zxo-lw5jk",
-              "title": "perplexity",
-              "url": "https://www.perplexity.ai/",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa6zxo-laua4",
+              "id": "id-mm4h3mkx-0h0o1",
               "title": "ai",
               "url": "https://openai.com/",
               "secondaryTitle": "chatGPT",
               "secondaryUrl": "https://chat.openai.com/chat"
             },
             {
-              "id": "id-mlxa6zxo-112vf",
-              "title": "claude",
-              "url": "https://claude.ai/chats",
+              "id": "id-mm4h3mkx-vm607",
+              "title": "perplexity",
+              "url": "https://www.perplexity.ai/",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3lfh-kwzah",
+              "title": "copilotp",
+              "url": "https://copilot.microsoft.com/",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3lfh-tpwx1",
+              "title": "grok xxx",
+              "url": "https://x.ai/grok",
               "secondaryTitle": "",
               "secondaryUrl": ""
             }
           ]
         },
         {
-          "id": "id-mlxa7015-i8a2o",
-          "title": "gdrive",
+          "id": "id-mm4h3mk7-segwb",
+          "title": "microsoft",
+          "file": "ai-frank.md",
           "collapsed": false,
           "links": [
             {
-              "id": "id-mlxa7015-n8lxj",
-              "title": "g drive",
-              "url": "https://drive.google.com/?authuser=0#my-drive",
+              "id": "id-mm4h3lfh-kntgd",
+              "title": "outlook",
+              "url": "https://outlook.live.com",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa7015-orqdt",
-              "title": "> stars",
-              "url": "https://drive.google.com/drive/starred",
+              "id": "id-mm4h3lfh-ovek4",
+              "title": "onedrv",
+              "url": "https://onedrive.live.com",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa7015-y18u1",
-              "title": "> theo22",
-              "url": "https://drive.google.com/drive/folders/15KhLE7zV4TZhqu4d89x9K-HrubUm6rxV",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa7015-rxfh5",
-              "title": "> ace-it22",
-              "url": "https://drive.google.com/drive/folders/0B0g809SWki8tMjcwM2IwNjItNDk3ZC00NzhiLTk0NDEtZDYxZjJiYWRhMTU5",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa7015-xn9ni",
-              "title": "> heritage",
-              "url": "https://drive.google.com/drive/folders/15M2I16bU8Tt5-w5EOLBiCmUiI1Wm2phD",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa7015-k0v2f",
-              "title": "> my sdg",
-              "url": "https://docs.google.com/document/d/1YsbP8hE83vkrvW-bmjmXNcfxtKYjQh1IhKUuDCaBfyE/edit#",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa7015-wk3ht",
-              "title": "> eel",
-              "url": "https://drive.google.com/drive/folders/1Qg5BGI1jeWAiwPyHnWpF_aIawiI7qvAO",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa7015-2kkdu",
-              "title": "scc eel",
-              "url": "https://drive.google.com/drive/folders/1_jB0axW28CIvjH0gTW44T9fSOxkl8frC",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa7015-3aqgy",
-              "title": "heritage",
-              "url": "https://drive.google.com/drive/folders/15M2I16bU8Tt5-w5EOLBiCmUiI1Wm2phD",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa7015-c7x3a",
-              "title": "> resiSS",
-              "url": "https://docs.google.com/spreadsheets/d/1BtqRUotYqAKiJSTiir5h4sLrTfMFg8XdtWvn46DYti8/edit#gid=1362604872",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa7015-poywc",
-              "title": "> folder",
-              "url": "https://drive.google.com/drive/folders/1MqjSUaIlRb7zjYd3886tlCMAQ0-Xk0Nk",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa7015-pl4hc",
-              "title": "> refman",
-              "url": "https://docs.google.com/document/d/1oO8sRRqVAj7g4FI-beDok11l9t590svvMwLJt5VUg5s",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa7015-dez4p",
-              "title": "> 09",
-              "url": "https://docs.google.com/document/d/1dC7MseGDhCl2x1fEOtmhGxenrMsGGxS9GR2dwJ-qDX8/edit",
-              "secondaryTitle": "> 08",
-              "secondaryUrl": "https://docs.google.com/document/d/1iI9j5Ort73PLMPnUndQc7JEpPYQtoD3TickliqqSTb0/edit"
-            },
-            {
-              "id": "id-mlxa7015-9zj32",
-              "title": "> 10",
-              "url": "https://docs.google.com/document/d/1Es--zDC4I4XYoklRJnSuMyhS1iggsuK2Y1KDTdHAMNQ/edit",
+              "id": "id-mm4h3lfh-yi0df",
+              "title": "ms365",
+              "url": "https://office.com",
               "secondaryTitle": "",
               "secondaryUrl": ""
             }
           ]
         },
         {
-          "id": "id-mlxa7054-ve544",
+          "id": "id-mm4h3lg9-jwx2i",
+          "title": "ai image",
+          "file": "ai.md",
+          "collapsed": false,
+          "links": [
+            {
+              "id": "id-mm4h3lg9-9h213",
+              "title": "sora",
+              "url": "https://sora.com",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3lg9-d9x63",
+              "title": "midjourny",
+              "url": "https://www.midjourney.com/",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3lg9-99kom",
+              "title": "> dd",
+              "url": "https://discord.com/channels/662267976984297473/@home",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3lg9-0ib3j",
+              "title": "ideogram",
+              "url": "https://ideogram.ai/",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3lg9-ka7ot",
+              "title": "> dd",
+              "url": "https://discord.com/channels/662267976984297473/@home",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3lg9-yx8mf",
+              "title": "kaiber",
+              "url": "https://kaiber.ai",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3lg9-cuwpu",
+              "title": "suno/chirp",
+              "url": "suno.com",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "id-mm4h3lcj-atxwg",
+      "title": "ai",
+      "folder": "ai",
+      "color": "#10b981",
+      "collapsed": false,
+      "sections": [
+        {
+          "id": "id-mm4h3lhz-0kn1h",
           "title": "google",
+          "file": "google.md",
           "collapsed": false,
           "links": [
             {
-              "id": "id-mlxa7054-8h794",
+              "id": "id-mm4h3lhz-y9582",
               "title": "g calender",
               "url": "https://calendar.google.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa7054-wnwvf",
+              "id": "id-mm4h3lhz-fsor9",
               "title": "g contacts",
               "url": "https://contacts.google.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa7054-fvnjy",
+              "id": "id-mm4h3lhz-cwcyl",
               "title": "g photos",
               "url": "https://photos.google.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa7054-ue2kw",
+              "id": "id-mm4h3lhz-zcc38",
               "title": "g maps",
               "url": "https://google.com/maps/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa7054-m6mal",
+              "id": "id-mm4h3lhz-930g2",
               "title": "google",
               "url": "https://google.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa7054-2hq90",
+              "id": "id-mm4h3lhz-a0y90",
               "title": "g FiMsg",
               "url": "https://messages.google.com/web/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa7054-7y0y8",
+              "id": "id-mm4h3lhz-u1ce2",
               "title": "g earth",
               "url": "https://earth.google.com/web/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa7054-npf9k",
+              "id": "id-mm4h3lhz-r0vo4",
               "title": "g mail",
               "url": "https://mail.google.com/mail/u/0/?tab=mm#inbox",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa7054-xnzcv",
+              "id": "id-mm4h3lhz-meb3y",
               "title": "> compose",
               "url": "https://mail.google.com/mail/?view=cm&amp;fs=1&amp;tf=1",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa7054-knrgu",
+              "id": "id-mm4h3lhz-a3kdw",
               "title": "youtube",
               "url": "https://youtube.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa7054-pc897",
+              "id": "id-mm4h3lhz-oaprz",
               "title": "g fiAccnt",
               "url": "https://fi.google.com",
               "secondaryTitle": "",
@@ -850,47 +773,154 @@
           ]
         },
         {
-          "id": "id-mlxa7095-jz9io",
+          "id": "id-mm4h3lh9-ica56",
+          "title": "gdrive",
+          "file": "gdrive.md",
+          "collapsed": true,
+          "links": [
+            {
+              "id": "id-mm4h3lh9-xm5m2",
+              "title": "g drive",
+              "url": "https://drive.google.com/?authuser=0#my-drive",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3lh9-ph1zs",
+              "title": "> stars",
+              "url": "https://drive.google.com/drive/starred",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3lh9-49vzg",
+              "title": "> theo22",
+              "url": "https://drive.google.com/drive/folders/15KhLE7zV4TZhqu4d89x9K-HrubUm6rxV",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3lh9-stha6",
+              "title": "> ace-it22",
+              "url": "https://drive.google.com/drive/folders/0B0g809SWki8tMjcwM2IwNjItNDk3ZC00NzhiLTk0NDEtZDYxZjJiYWRhMTU5",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3lh9-536h2",
+              "title": "> heritage",
+              "url": "https://drive.google.com/drive/folders/15M2I16bU8Tt5-w5EOLBiCmUiI1Wm2phD",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3lh9-n5lf1",
+              "title": "> my sdg",
+              "url": "https://docs.google.com/document/d/1YsbP8hE83vkrvW-bmjmXNcfxtKYjQh1IhKUuDCaBfyE/edit#",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3lh9-k4t72",
+              "title": "> eel",
+              "url": "https://drive.google.com/drive/folders/1Qg5BGI1jeWAiwPyHnWpF_aIawiI7qvAO",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3lh9-qar0a",
+              "title": "scc eel",
+              "url": "https://drive.google.com/drive/folders/1_jB0axW28CIvjH0gTW44T9fSOxkl8frC",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3lh9-aaqzi",
+              "title": "heritage",
+              "url": "https://drive.google.com/drive/folders/15M2I16bU8Tt5-w5EOLBiCmUiI1Wm2phD",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3lh9-yl1q8",
+              "title": "> resiSS",
+              "url": "https://docs.google.com/spreadsheets/d/1BtqRUotYqAKiJSTiir5h4sLrTfMFg8XdtWvn46DYti8/edit#gid=1362604872",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3lh9-ssaa6",
+              "title": "> folder",
+              "url": "https://drive.google.com/drive/folders/1MqjSUaIlRb7zjYd3886tlCMAQ0-Xk0Nk",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3lh9-z9253",
+              "title": "> refman",
+              "url": "https://docs.google.com/document/d/1oO8sRRqVAj7g4FI-beDok11l9t590svvMwLJt5VUg5s",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            },
+            {
+              "id": "id-mm4h3lh9-gjara",
+              "title": "> 09",
+              "url": "https://docs.google.com/document/d/1dC7MseGDhCl2x1fEOtmhGxenrMsGGxS9GR2dwJ-qDX8/edit",
+              "secondaryTitle": "> 08",
+              "secondaryUrl": "https://docs.google.com/document/d/1iI9j5Ort73PLMPnUndQc7JEpPYQtoD3TickliqqSTb0/edit"
+            },
+            {
+              "id": "id-mm4h3lh9-si67q",
+              "title": "> 10",
+              "url": "https://docs.google.com/document/d/1Es--zDC4I4XYoklRJnSuMyhS1iggsuK2Y1KDTdHAMNQ/edit",
+              "secondaryTitle": "",
+              "secondaryUrl": ""
+            }
+          ]
+        },
+        {
+          "id": "id-mm4h3lj8-pvx2u",
           "title": "more-goog",
+          "file": "more-goog.md",
           "collapsed": false,
           "links": [
             {
-              "id": "id-mlxa7094-f95yo",
+              "id": "id-mm4h3lj8-877ky",
               "title": "g chat",
               "url": "https://chat.google.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa7094-kt8wk",
+              "id": "id-mm4h3lj8-9rzd6",
               "title": "g design",
               "url": "https://design.google/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa7094-kfuf4",
+              "id": "id-mm4h3lj8-ja3ya",
               "title": "g domains",
               "url": "https://domains.google/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa7094-j0a7b",
+              "id": "id-mm4h3lj8-9427x",
               "title": "g experimt",
               "url": "https://experiments.withgoogle.com/experiments",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa7094-r2p56",
+              "id": "id-mm4h3lj8-acy64",
               "title": "g groups",
               "url": "https://groups.google.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa7094-seygz",
+              "id": "id-mm4h3lj8-w09nx",
               "title": "g sites",
               "url": "https://sites.google.com/",
               "secondaryTitle": "",
@@ -901,186 +931,188 @@
       ]
     },
     {
-      "id": "id-mlxa70g0-4zm9v",
+      "id": "id-mm4h3lpa-zpj0k",
       "title": "apps",
+      "folder": "apps",
       "color": "#3b82f6",
       "collapsed": false,
       "sections": [
         {
-          "id": "id-mlxa70jo-15b3s",
+          "id": "id-mm4h3lpz-qyuin",
           "title": "apps",
+          "file": "apps.md",
           "collapsed": false,
           "links": [
             {
-              "id": "id-mlxa70jo-q2hgu",
+              "id": "id-mm4h3lpz-cvk9s",
               "title": "geni",
               "url": "https://geni.com/family-tree/index/6000000004118029730",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-barm4",
+              "id": "id-mm4h3lpz-rd37i",
               "title": "gedcom",
               "url": "https://pewu.github.io/topola-viewer/#/view?url=https://theo-armour.github.io/genealogy/gedcom-files/2025-08-18-export-geni/export-BloodTree.ged",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-hetgl",
+              "id": "id-mm4h3lpz-rn15e",
               "title": "myheritage",
               "url": "https://www.myheritage.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-zzktm",
+              "id": "id-mm4h3lpz-d0rai",
               "title": "ancestry",
               "url": "https://www.ancestry.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-rsfn4",
+              "id": "id-mm4h3lpz-f2z54",
               "title": "wikitree",
               "url": "https://www.wikitree.com/wiki/Main_Page",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-pz15y",
+              "id": "id-mm4h3lpz-xaif2",
               "title": "prompt",
               "url": "https://my.promptsmart.com/scripts",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-qvvmb",
+              "id": "id-mm4h3lpz-mmm0v",
               "title": "whatsapp",
               "url": "https://web.whatsapp.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-61a0v",
+              "id": "id-mm4h3lpz-efnw4",
               "title": "raindrop",
               "url": "https://app.raindrop.io/my/-1",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-3e8mg",
+              "id": "id-mm4h3lpz-q04di",
               "title": "linkedin",
               "url": "https://linkedin.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-jsycv",
+              "id": "id-mm4h3lpz-w7vic",
               "title": "instagram",
               "url": "https://instagram.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-2b64n",
+              "id": "id-mm4h3lpz-079sv",
               "title": "dictanoth",
               "url": "https://dictanote.co/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-34f1f",
+              "id": "id-mm4h3lpz-2n0y3",
               "title": "excalidrw",
               "url": "https://excalidraw.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-zfzus",
+              "id": "id-mm4h3lpz-l34iq",
               "title": "bsky",
               "url": "https://bsky.app/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-mc7fv",
+              "id": "id-mm4h3lpz-fjisw",
               "title": "threads",
               "url": "https://www.threads.net/web/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-g5tki",
+              "id": "id-mm4h3lpz-qxpkn",
               "title": "nextdoor",
               "url": "https://nextdoor.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-o59qh",
+              "id": "id-mm4h3lpz-67lpl",
               "title": "stackoflow",
               "url": "https://stackoverflow.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-xx4zb",
+              "id": "id-mm4h3lpz-v4z4a",
               "title": "facebook",
               "url": "https://facebook.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-9bmg3",
+              "id": "id-mm4h3lpz-gjj8r",
               "title": "trmnl",
               "url": "https://usetrmnl.com/dashboard",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-q2eo8",
+              "id": "id-mm4h3lpz-3i48g",
               "title": "audiopen",
               "url": "https://audiopen.ai/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-53aq0",
+              "id": "id-mm4h3lpz-jy99b",
               "title": "spotify",
               "url": "https://www.spotify.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-9tz7s",
+              "id": "id-mm4h3lpz-0wgt6",
               "title": "dropbox",
               "url": "https://dropbox.com/home",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-nu8al",
+              "id": "id-mm4h3lpz-x1n3h",
               "title": "evernote",
               "url": "https://evernote.com/Home.action",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-5z1xi",
+              "id": "id-mm4h3lpz-1dlfq",
               "title": "flickr",
               "url": "https://flickr.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-axed7",
+              "id": "id-mm4h3lpz-e6clc",
               "title": "tumblr",
               "url": "https://tumblr.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70jo-flra7",
+              "id": "id-mm4h3lpz-sr6yr",
               "title": "lowercase",
               "url": "https://www.lowercase.app/workspace/9b004c32-5287-4fe7-8d1f-c66a0cc1a31c/edit",
               "secondaryTitle": "",
@@ -1089,75 +1121,76 @@
           ]
         },
         {
-          "id": "id-mlxa70nk-8i7wa",
+          "id": "id-mm4h3lqn-22gfk",
           "title": "reference",
-          "collapsed": false,
+          "file": "reference.md",
+          "collapsed": true,
           "links": [
             {
-              "id": "id-mlxa70nk-i7ih7",
+              "id": "id-mm4h3lqn-7huqp",
               "title": "threejs",
               "url": "https://threejs.org",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70nk-vb0wi",
+              "id": "id-mm4h3lqn-diypj",
               "title": "mdn",
               "url": "https://developer.mozilla.org/en-US/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70nk-op5ny",
+              "id": "id-mm4h3lqn-4r0gk",
               "title": "regex",
               "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions/Cheatsheet",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70nk-szhvi",
+              "id": "id-mm4h3lqn-z8ktn",
               "title": "wiki",
               "url": "https://en.wikipedia.org",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70nk-shqfu",
+              "id": "id-mm4h3lqn-aitgf",
               "title": "> wContent",
               "url": "https://en.wikipedia.org/wiki/Wikipedia:Contents/Categories",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70nk-7dw61",
+              "id": "id-mm4h3lqn-dn2f8",
               "title": "trendsG",
               "url": "https://trends.google.com/trends/?geo=US",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70nk-ej919",
+              "id": "id-mm4h3lqn-or6qj",
               "title": "thesaurus",
               "url": "https://thesaurus.com",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70nk-w39c7",
+              "id": "id-mm4h3lqn-2zomm",
               "title": "translate",
               "url": "https://translate.google.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70nk-v9f0x",
+              "id": "id-mm4h3lqn-enciu",
               "title": "validator",
               "url": "https://validator.w3.org/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70nk-flalr",
+              "id": "id-mm4h3lqn-virvf",
               "title": "speedtest",
               "url": "https://speed.cloudflare.com/",
               "secondaryTitle": "",
@@ -1168,53 +1201,55 @@
       ]
     },
     {
-      "id": "id-mlxa70vj-w4kqk",
+      "id": "id-mm4h3lwo-1wf4m",
       "title": "groups",
+      "folder": "groups",
       "color": "#f59e0b",
       "collapsed": false,
       "sections": [
         {
-          "id": "id-mlxa70zg-bi7a5",
+          "id": "id-mm4h3lxa-j4y9f",
           "title": "groups",
+          "file": "groups.md",
           "collapsed": false,
           "links": [
             {
-              "id": "id-mlxa70zg-feml2",
+              "id": "id-mm4h3lxa-yymw0",
               "title": "nextvilge",
               "url": "https://nextvillagesf.org/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70zg-a162o",
+              "id": "id-mm4h3lxa-rypob",
               "title": "sensay",
               "url": "https://sensay.io/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70zg-fqqco",
+              "id": "id-mm4h3lxa-2s67a",
               "title": "wix",
               "url": "https://manage.wix.com/dashboard/b2537da6-a144-4436-bf40-8f3b36dcd723/home",
               "secondaryTitle": "sacsem",
               "secondaryUrl": "https://sacsem.net"
             },
             {
-              "id": "id-mlxa70zg-mfdpp",
+              "id": "id-mm4h3lxa-fvnh8",
               "title": "groups.io",
               "url": "https://groups.io/groups",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70zg-7i6db",
+              "id": "id-mm4h3lxa-m3kmv",
               "title": "ace-it.gr",
               "url": "https://ace-it.groups.io/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa70zg-yv7n5",
+              "id": "id-mm4h3lxa-cjrdi",
               "title": "hertge.gr",
               "url": "https://heritage.groups.io/g/residents/messages",
               "secondaryTitle": "",
@@ -1223,131 +1258,125 @@
           ]
         },
         {
-          "id": "id-mlxa713p-8vwii",
+          "id": "id-mm4h3lxz-jmbns",
           "title": "h-hh",
+          "file": "h-hh.md",
           "collapsed": false,
           "links": [
             {
-              "id": "id-mlxa713p-3io1p",
+              "id": "id-mm4h3lxz-dwf23",
               "title": "p",
               "url": "https://photos.fife.usercontent.google.com/pw/AP1GczMD9HRaxaWkG-W4JSgWilu9PVt29jRaMmifj8aZX3qM0I76RQV1RYsvdA=w1473-h831-s-no-gm?authuser=0",
               "secondaryTitle": "hotm",
               "secondaryUrl": "https://heritageonthemarina.org/"
             },
             {
-              "id": "id-mlxa713p-uskq7",
+              "id": "id-mm4h3lxz-eyd92",
               "title": "worxhub",
               "url": "https://theheritagesf.theworxhub.com/Dashboard",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa713p-v8x0n",
+              "id": "id-mm4h3lxz-f0fbf",
               "title": "tchTwn",
               "url": "https://www.residentapps.com/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa713p-d8w7c",
+              "id": "id-mm4h3lxz-czja1",
               "title": "elatn",
               "url": "https://app.elationpassport.com/passport/login/",
               "secondaryTitle": "pph",
               "secondaryUrl": "https://www.pineparkhealth.com/"
             },
             {
-              "id": "id-mlxa713p-cvk4d",
+              "id": "id-mm4h3lxz-mv2fm",
               "title": "g",
               "url": "https://github.com/heritage-happenings/heritage-happenings.github.io/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa713p-iiwrj",
+              "id": "id-mm4h3lxz-mfvox",
               "title": "HerHap",
               "url": "https://heritage-happenings.github.io/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa713p-08i41",
+              "id": "id-mm4h3lxz-axfdx",
               "title": "g",
               "url": "https://github.com/heritage-happenings/documents/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa713p-s63j3",
+              "id": "id-mm4h3lxz-r764c",
               "title": "documnts",
               "url": "https://heritage-happenings.github.io/documents/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa713p-zmfi0",
-              "title": "e",
-              "url": "https://heritage-happenings.github.io/documents/tootoo/edit/",
-              "secondaryTitle": "",
-              "secondaryUrl": ""
-            },
-            {
-              "id": "id-mlxa713p-4n2qt",
+              "id": "id-mm4h3lxz-hsttb",
               "title": "kiosk",
               "url": "https://heritage-happenings.github.io/kiosk",
               "secondaryTitle": "g",
               "secondaryUrl": "https://github.com/heritage-happenings/kiosk/"
             },
             {
-              "id": "id-mlxa713p-u3z0b",
+              "id": "id-mm4h3lxz-sgo16",
               "title": "calendar",
               "url": "https://heritage-happenings.github.io/happenings-issues/calendar.html",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa713p-buj8z",
+              "id": "id-mm4h3lxz-q85es",
               "title": "newlettr",
               "url": "https://heritage-happenings.github.io/happenings-issues/newsletter.html",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa713p-nfcmd",
+              "id": "id-mm4h3lxz-w4n9a",
               "title": "theo24hh",
               "url": "https://onedrive.live.com/?id=4348E1419F457EB2%21807727&cid=4348E1419F457EB2",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa713p-vo6ms",
+              "id": "id-mm4h3lxz-ozow7",
               "title": "g-priv",
               "url": "https://github.com/heritage-happenings/private",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa713p-dzos4",
+              "id": "id-mm4h3lxz-lmfpz",
               "title": "wp-sflp",
               "url": "https://en.wikipedia.org/wiki/Draft:San_Francisco_Ladies_Protection_and_Relief_Society",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa713p-cly0e",
+              "id": "id-mm4h3lxz-apzho",
               "title": "flr plans",
               "url": "https://heritage-happenings.github.io/pages/reference/2024-05-happenings-floor-plans.pdf",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa713p-bk9i8",
+              "id": "id-mm4h3lxz-vsqqx",
               "title": "resdir",
               "url": "https://1drv.ms/b/s!ArJ-RZ9B4UhDzOxGlz6HYF0kYMpFwA?e=Lh8FYs",
               "secondaryTitle": "xls",
               "secondaryUrl": "https://1drv.ms/x/s!ArJ-RZ9B4UhDzOxNalqGdbMK8F97dA?e=p49UHF"
             },
             {
-              "id": "id-mlxa713p-18wd3",
+              "id": "id-mm4h3lxz-oewjh",
               "title": "granucci",
               "url": "https://EverEverLand.github.io/granucci/",
               "secondaryTitle": "",
@@ -1358,165 +1387,167 @@
       ]
     },
     {
-      "id": "id-mlxa71q5-t4h0x",
+      "id": "id-mm4h3mcj-ouo24",
       "title": "orgs",
+      "folder": "orgs",
       "color": "#06b6d4",
       "collapsed": false,
       "sections": [
         {
-          "id": "id-mlxa71ui-8x18m",
+          "id": "id-mm4h3mdd-ep3td",
           "title": "orgs",
+          "file": "orgs.md",
           "collapsed": false,
           "links": [
             {
-              "id": "id-mlxa71uh-ysx8o",
+              "id": "id-mm4h3mdd-8qr23",
               "title": "notesy",
               "url": "https://theo-armour.github.io/qdata/apps/notesy",
               "secondaryTitle": "g",
               "secondaryUrl": "https://github.com/theo-armour/qdata/tree/master/apps/notesy"
             },
             {
-              "id": "id-mlxa71ui-anydo",
+              "id": "id-mm4h3mdd-6swaw",
               "title": "read me",
               "url": "https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/README.md",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71ui-hzjmb",
+              "id": "id-mm4h3mdd-jpp5a",
               "title": "AxisOrdinry",
               "url": "https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/axis-of-ordinary.md",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71ui-en8g1",
+              "id": "id-mm4h3mdd-firpd",
               "title": "Art2Write",
               "url": "https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/articles-to-write-video.md",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71ui-hdsyo",
+              "id": "id-mm4h3mdd-4f38l",
               "title": "Inspiration",
               "url": "https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/inspirations-sources.md",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71ui-m2qo6",
+              "id": "id-mm4h3mdd-n5e9g",
               "title": "jokes",
               "url": "https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/jokes-quotes.md",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71ui-ni8r9",
+              "id": "id-mm4h3mdd-ifhyn",
               "title": "lingo",
               "url": "https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/lingo.md",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71ui-1c6n8",
+              "id": "id-mm4h3mdd-rtpb8",
               "title": "location",
               "url": "https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/location-marina.md",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71ui-u67rv",
+              "id": "id-mm4h3mdd-rsu6n",
               "title": "shortcuts",
               "url": "https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/shortcuts.md",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71ui-69biv",
+              "id": "id-mm4h3mdd-z6do4",
               "title": "iforget",
               "url": "https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/things-i-forget.md",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71ui-xfvc1",
+              "id": "id-mm4h3mdd-1bkfs",
               "title": "ilike",
               "url": "https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/things-i-like.md",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71ui-vth8a",
+              "id": "id-mm4h3mdd-uig4a",
               "title": "tips",
               "url": "https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/tips.md",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71ui-l8wzb",
+              "id": "id-mm4h3mdd-mpzve",
               "title": "poem-otd",
               "url": "https://poets.org/poem-a-day",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71ui-rwan7",
+              "id": "id-mm4h3mdd-nagi6",
               "title": "gh",
               "url": "https://github.com/jaanga/jaanga.github.io/",
               "secondaryTitle": "Jaanga",
               "secondaryUrl": "http://jaanga.github.io/"
             },
             {
-              "id": "id-mlxa71ui-d8ivm",
+              "id": "id-mm4h3mdd-js2xz",
               "title": "> demo",
               "url": "https://jaanga.github.io/demo/",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71ui-7i9vt",
+              "id": "id-mm4h3mdd-68qqd",
               "title": "gh",
               "url": "https://github.com/konturno/konturno.github.io/",
               "secondaryTitle": "konturno",
               "secondaryUrl": "https://konturno.github.io/"
             },
             {
-              "id": "id-mlxa71ui-fl5zc",
+              "id": "id-mm4h3mdd-ebsnd",
               "title": "gh",
               "url": "https://github.com/konturno/konturno.github.io/2023",
               "secondaryTitle": "2023",
               "secondaryUrl": "https://konturno.github.io/2023"
             },
             {
-              "id": "id-mlxa71ui-wfoeo",
+              "id": "id-mm4h3mdd-i78fb",
               "title": "gh",
               "url": "https://github.com/evereverland/2019",
               "secondaryTitle": "eel 19",
               "secondaryUrl": "https://evereverland.github.io/2019"
             },
             {
-              "id": "id-mlxa71ui-zok46",
+              "id": "id-mm4h3mdd-fptt7",
               "title": "gh",
               "url": "https://github.com/evereverland/evereverland.github.io",
               "secondaryTitle": "eel 22",
               "secondaryUrl": "https://evereverland.github.io"
             },
             {
-              "id": "id-mlxa71ui-5cits",
+              "id": "id-mm4h3mdd-x0ozy",
               "title": "gh",
               "url": "https://github.com/plain-JavaScript/plain-JavaScript.github.io",
               "secondaryTitle": "plainJS",
               "secondaryUrl": "https://plain-javascript.github.io"
             },
             {
-              "id": "id-mlxa71ui-228oj",
+              "id": "id-mm4h3mdd-2q8wi",
               "title": "gh",
               "url": "https://github.com/plain-JavaScript/awesome-list",
               "secondaryTitle": "",
               "secondaryUrl": ""
             },
             {
-              "id": "id-mlxa71ui-0gvqa",
+              "id": "id-mm4h3mdd-lva0h",
               "title": "DoE",
               "url": "file:///C:/Users/tarmo/OneDrive/Documents/GitHub/theo-armour-reference/books/The-Dawn-of-Everything-by-David-Graeber-David-Wengrow-z-lib.-zmbbo.pdf",
               "secondaryTitle": "",
