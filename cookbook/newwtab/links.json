@@ -4,6 +4,31 @@
       "title": "Theo",
       "sections": [
         {
+          "title": "VSCode",
+          "links": [
+            {
+              "title": ">ta 2024",
+              "url": "https://vscode.dev/github/theo-armour/2024"
+            },
+            {
+              "title": ">ta 23agnd",
+              "url": "https://vscode.dev/github/theo-armour/agenda"
+            },
+            {
+              "title": ">ta pages",
+              "url": "https://vscode.dev/github/theo-armour/pages"
+            },
+            {
+              "title": ">ta 23qDat",
+              "url": "https://vscode.dev/github/theo-armour/qdata"
+            },
+            {
+              "title": ">TooToo23",
+              "url": "https://vscode.dev/github/theo-armour/tootoo23"
+            }
+          ]
+        },
+        {
           "title": "Theo",
           "links": [
             {
@@ -86,31 +111,6 @@
     {
       "title": "VSCode",
       "sections": [
-        {
-          "title": "VSCode",
-          "links": [
-            {
-              "title": ">ta 2024",
-              "url": "https://vscode.dev/github/theo-armour/2024"
-            },
-            {
-              "title": ">ta 23agnd",
-              "url": "https://vscode.dev/github/theo-armour/agenda"
-            },
-            {
-              "title": ">ta pages",
-              "url": "https://vscode.dev/github/theo-armour/pages"
-            },
-            {
-              "title": ">ta 23qDat",
-              "url": "https://vscode.dev/github/theo-armour/qdata"
-            },
-            {
-              "title": ">TooToo23",
-              "url": "https://vscode.dev/github/theo-armour/tootoo23"
-            }
-          ]
-        },
         {
           "title": "News",
           "links": [

@@ -140,14 +140,6 @@ a.lk-secondary {
 }
 a.lk-secondary:hover { opacity: 0.7; }
 
-/* ── Add link button ─────────────────────────────────────── */
-.add-lk-btn {
-  display: block; width: 100%;
-  font-size: 11px; color: var(--muted);
-  background: none; border: none; cursor: pointer;
-  text-align: left; padding: 1px 4px; border-radius: 2px;
-}
-.add-lk-btn:hover { color: var(--link); background: var(--hover); }
 
 /* ── Icon buttons ────────────────────────────────────────── */
 .ibtn {
@@ -227,7 +219,7 @@ a.lk-secondary:hover { opacity: 0.7; }
 <script>
 'use strict';
 // ============================================================
-// NewwwTab  —  loads from ./links.json, saves via GitHub API
+// NewwwTab  —  loads from ./links.json, saves locally or to GitHub
 // JSON format: { columns: [{ title, sections: [{ title?, links: [
 //   { title, url, g? (github url), secondary?, secondaryUrl? }
 // ]}]}]}
@@ -275,8 +267,9 @@ const saveToLocalFile = async () => {
   if (!window.showSaveFilePicker) {
     // Fallback for browsers without FSA: download the file
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
-    a.download = 'links.json'; a.click();
+    const blobUrl = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+    a.href = blobUrl; a.download = 'links.json'; a.click();
+    URL.revokeObjectURL(blobUrl);
     markClean(); return;
   }
 
@@ -306,19 +299,18 @@ const saveToLocalFile = async () => {
 let state = null;
 let isDirty = false;
 let allCollapsed = false;
+let colSortable = null;  // track instance so we can destroy before re-create
 
 // ── Utils ─────────────────────────────────────────────────
-const uid  = () => 'id' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
-const esc  = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const deep = o => JSON.parse(JSON.stringify(o));
+const uid = () => 'id' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
 // ── Normalize file → runtime state (adds IDs) ─────────────
 const normalize = data => ({
   columns: (data.columns || []).map(col => ({
-    id:        uid(),
-    title:     col.title || '',
-    collapsed: false,
-    sections:  (col.sections || []).map(sec => ({
+    id:       uid(),
+    title:    col.title || '',
+    sections: (col.sections || []).map(sec => ({
       id:        uid(),
       title:     sec.title || '',
       collapsed: false,
@@ -373,7 +365,6 @@ const markClean = () => {
 const showStatus = (msg, isError) => {
   const el = document.getElementById('status');
   el.textContent = msg;
-  el.className = isError ? 'visible' : 'visible';
   el.style.color = isError ? 'var(--dirty)' : 'var(--muted)';
   el.classList.add('visible');
 };
@@ -458,6 +449,7 @@ const mkSection = (sec, col) => {
     `<span class="sec-toggle">${sec.collapsed ? '▶' : '▼'}</span>` +
     `<span class="sec-title">${esc(sec.title)}</span>` +
     `<span class="sec-acts">` +
+      `<button class="ibtn" data-a="add-lk" title="Add link">+</button>` +
       `<button class="ibtn" data-a="rename" title="Rename">✎</button>` +
       `<button class="ibtn" data-a="del"    title="Delete">✕</button>` +
     `</span>`;
@@ -470,6 +462,7 @@ const mkSection = (sec, col) => {
       body.classList.toggle('collapsed', sec.collapsed);
       return;
     }
+    if (a === 'add-lk') doAddLink(sec);
     if (a === 'rename') inlineEdit(hd.querySelector('.sec-title'), sec.title, v => { sec.title = v; markDirty(); });
     if (a === 'del') delSection(col, sec);
   });
@@ -481,11 +474,6 @@ const mkSection = (sec, col) => {
   listEl.className = 'links-list';
   listEl.dataset.secId = sec.id;
   sec.links.forEach(lk => listEl.appendChild(mkLink(lk, sec)));
-
-  const addBtn = document.createElement('button');
-  addBtn.className = 'add-lk-btn';
-  addBtn.textContent = '+ add link';
-  addBtn.addEventListener('click', () => doAddLink(sec));
 
   // URL drop from address bar
   body.addEventListener('dragover', e => { e.preventDefault(); body.classList.add('drop-zone-on'); });
@@ -502,7 +490,6 @@ const mkSection = (sec, col) => {
   });
 
   body.appendChild(listEl);
-  body.appendChild(addBtn);
   el.appendChild(hd);
   el.appendChild(body);
   bindLinkSortable(listEl, sec);
@@ -515,7 +502,7 @@ const mkLink = (lk, sec) => {
   el.className = 'lk';
   el.dataset.linkId = lk.id;
 
-  const display = esc(lk.title.slice(0, 10));
+  const display = esc(lk.title);
   const secHtml = lk.secondaryUrl
     ? `<a class="lk-secondary" href="${esc(lk.secondaryUrl)}" target="_blank" rel="noopener" title="${esc(lk.secondaryUrl)}">[${esc((lk.secondaryTitle||'g').slice(0,3))}]</a>`
     : '';
@@ -593,7 +580,8 @@ const doAddLink = sec => modal(
      if (!url) return;
      let title = ov.querySelector('#mi-t').value.trim();
      if (!title) { try { title = new URL(url).hostname.replace(/^www\./,'').slice(0,10); } catch(x) { title = url.slice(0,10); } }
-     sec.links.push({ id: uid(), title, url, secondaryTitle: ov.querySelector('#mi-g').value.trim() ? 'g' : '', secondaryUrl: ov.querySelector('#mi-g').value.trim() });
+     const g = ov.querySelector('#mi-g').value.trim();
+     sec.links.push({ id: uid(), title, url, secondaryTitle: g ? 'g' : '', secondaryUrl: g });
      markDirty(); render(); closeModal(ov);
    }}]
 );
@@ -646,8 +634,10 @@ document.addEventListener('keydown', e => {
 
 // ── Toggle all ────────────────────────────────────────────
 document.getElementById('btn-toggle-all').addEventListener('click', () => {
-  allCollapsed = !allCollapsed;
-  state.columns.forEach(col => { col.collapsed = allCollapsed; col.sections.forEach(sec => sec.collapsed = allCollapsed); });
+  // Collapse all if anything is expanded; expand all if everything is already collapsed
+  const anyExpanded = state.columns.some(col => col.sections.some(sec => !sec.collapsed));
+  allCollapsed = anyExpanded;
+  state.columns.forEach(col => col.sections.forEach(sec => sec.collapsed = allCollapsed));
   markDirty(); render();
 });
 
@@ -664,15 +654,18 @@ document.getElementById('btn-add-col').addEventListener('click', () => modal(
 ));
 
 // ── SortableJS ────────────────────────────────────────────
-const bindColumnSortable = () => Sortable.create(colsEl, {
-  animation: 150, handle: '.col-handle',
-  ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen',
-  onEnd: () => {
-    const order = Array.from(colsEl.querySelectorAll('[data-col-id]')).map(e => e.dataset.colId);
-    state.columns = order.map(id => state.columns.find(c => c.id === id)).filter(Boolean);
-    markDirty();
-  }
-});
+const bindColumnSortable = () => {
+  if (colSortable) colSortable.destroy();  // prevent stacking instances across re-renders
+  colSortable = Sortable.create(colsEl, {
+    animation: 150, handle: '.col-handle',
+    ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen',
+    onEnd: () => {
+      const order = Array.from(colsEl.querySelectorAll('[data-col-id]')).map(e => e.dataset.colId);
+      state.columns = order.map(id => state.columns.find(c => c.id === id)).filter(Boolean);
+      markDirty();
+    }
+  });
+};
 
 const bindSectionSortable = (el, col) => Sortable.create(el, {
   group: 'secs', animation: 150, handle: '.sec-hd',
@@ -794,8 +787,9 @@ document.getElementById('btn-export').addEventListener('click', () => {
   ov.querySelector('#ex-md').addEventListener('click',    () => { mode = 'md';   ta.value = mdStr; });
   ov.querySelector('#ex-copy').addEventListener('click',  () => navigator.clipboard.writeText(ta.value).then(() => alert('Copied!')));
   ov.querySelector('#ex-dl').addEventListener('click',    () => {
-    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([ta.value], {type:'text/plain'})), download: 'links.' + mode });
-    a.click();
+    const blobUrl = URL.createObjectURL(new Blob([ta.value], { type: 'text/plain' }));
+    const a = Object.assign(document.createElement('a'), { href: blobUrl, download: 'links.' + mode });
+    a.click(); URL.revokeObjectURL(blobUrl);
   });
   ov.querySelector('#ex-close').addEventListener('click', () => ov.remove());
   ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
@@ -820,7 +814,7 @@ const tick = () => {
     n.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + ' · ' +
     n.toLocaleDateString([], {weekday:'long', month:'long', day:'numeric', year:'numeric'});
 };
-tick(); setInterval(tick, 30000);
+tick(); setInterval(tick, 60000);
 
 // ── Boot ──────────────────────────────────────────────────
 loadFromFile();
