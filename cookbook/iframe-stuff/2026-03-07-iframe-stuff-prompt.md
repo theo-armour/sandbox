@@ -12,3 +12,9 @@
 * The user can resize the iframes by dragging the borders between them. The two-column layout and the three-row split in the left column should both be adjustable, while maintaining the overall full-viewport layout.
 * The splitters should work with both mouse and touch input.
 * Each panel has a minimum size so it cannot be collapsed to zero.
+
+* The current splitter positions and custom iframe URLs are saved to localStorage and restored when the page is reloaded.
+* A "Settings" button opens a modal (closeable via Escape, Cancel, or clicking the backdrop) where the user can:
+  * Change the URL for each iframe. Each has a dropdown of 12 suggested websites (all confirmed to allow iframe embedding) and an editable text input below it. The dropdown defaults to "Other..." and the text input shows the current URL. Selecting a suggested site fills the input; the text input is always the source of truth for Apply.
+  * Reset the layout, modal, and URLs to their defaults.
+* The default and suggested URL lists are defined at the top of the script for easy editing.
