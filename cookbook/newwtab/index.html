@@ -236,6 +236,72 @@ a.lk-secondary:hover { opacity: 0.7; }
 const TOKEN_KEY = 'newwwtab-gat';
 const DATA_FILE = './links.json';
 
+// ── Environment ───────────────────────────────────────────
+const isLocal = () => {
+  const h = window.location.hostname;
+  return h === 'localhost' || h === '127.0.0.1' || h === '' || window.location.protocol === 'file:';
+};
+
+// ── IndexedDB helpers (for caching FSA file handle) ───────
+const idbOpen = () => new Promise((res, rej) => {
+  const req = indexedDB.open('newwwtab-fs', 1);
+  req.onupgradeneeded = e => e.target.result.createObjectStore('fs');
+  req.onsuccess = e => res(e.target.result);
+  req.onerror   = e => rej(e.target.error);
+});
+const idbPut = async (key, val) => {
+  const db = await idbOpen();
+  return new Promise((res, rej) => {
+    const tx = db.transaction('fs', 'readwrite');
+    tx.objectStore('fs').put(val, key);
+    tx.oncomplete = res; tx.onerror = e => rej(e.target.error);
+  });
+};
+const idbGet = async (key) => {
+  const db = await idbOpen();
+  return new Promise((res, rej) => {
+    const tx = db.transaction('fs', 'readonly');
+    const req = tx.objectStore('fs').get(key);
+    req.onsuccess = e => res(e.target.result ?? null);
+    req.onerror   = e => rej(e.target.error);
+  });
+};
+
+// ── Local file save (File System Access API) ──────────────
+const saveToLocalFile = async () => {
+  const json = JSON.stringify(serialize(), null, 2);
+  const HKEY = 'links-json-handle';
+
+  if (!window.showSaveFilePicker) {
+    // Fallback for browsers without FSA: download the file
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+    a.download = 'links.json'; a.click();
+    markClean(); return;
+  }
+
+  let handle = await idbGet(HKEY);
+  if (handle) {
+    // Re-verify permission (may lapse after page reload)
+    const perm = await handle.queryPermission({ mode: 'readwrite' });
+    if (perm !== 'granted') {
+      if (await handle.requestPermission({ mode: 'readwrite' }) !== 'granted') handle = null;
+    }
+  }
+  if (!handle) {
+    // First time: show file picker so user can select their links.json
+    handle = await window.showSaveFilePicker({
+      suggestedName: 'links.json',
+      types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
+    });
+    await idbPut(HKEY, handle);   // cache for next time
+  }
+
+  const writable = await handle.createWritable();
+  await writable.write(json); await writable.close();
+  markClean();
+};
+
 // ── State ─────────────────────────────────────────────────
 let state = null;
 let isDirty = false;
@@ -639,8 +705,8 @@ const bindLinkSortable = (el, sec) => Sortable.create(el, {
   }
 });
 
-// ── Save (push to GitHub) ─────────────────────────────────
-document.getElementById('btn-save').addEventListener('click', () => {
+// ── Save — routes to local file or GitHub based on environment ──
+const showGitHubSaveModal = () => {
   const token = localStorage.getItem(TOKEN_KEY) || '';
   const ov = document.createElement('div');
   ov.className = 'modal-ov';
@@ -679,6 +745,17 @@ document.getElementById('btn-save').addEventListener('click', () => {
     } catch(e) { alert('Save failed: ' + e.message); }
   });
   ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+};
+
+document.getElementById('btn-save').addEventListener('click', async () => {
+  if (isLocal()) {
+    // Write directly to links.json on disk via File System Access API
+    try { await saveToLocalFile(); }
+    catch(e) { if (e.name !== 'AbortError') alert('Save failed: ' + e.message); }
+    return;
+  }
+  // GitHub Pages: push via GitHub Contents API
+  showGitHubSaveModal();
 });
 
 // ── Export ────────────────────────────────────────────────
