@@ -1,855 +1,752 @@
 <!DOCTYPE html>
-<html lang="en"><head>
+<html lang="en">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NewwwTab</title>
-<link rel="icon" href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'&gt;&lt;rect x='5' y='5' width='22' height='22' rx='3' fill='%23b85a3a' transform='rotate(45 16 16)'/&gt;&lt;/svg&gt;">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
 <style>
+/* ── Variables ───────────────────────────────────────────── */
+:root {
+  --bg:        #fff;
+  --text:      #111;
+  --link:      #007700;
+  --link2:     #005599;
+  --muted:     #666;
+  --border:    #ccc;
+  --hover:     #f0f0f0;
+  --toolbar:   #f5f5f5;
+  --scrollbar: #00aa00;
+  --highlight: rgba(0,180,0,.2);
+  --dirty:     #c05000;
+}
+@media (prefers-color-scheme: dark) {
   :root {
-    --bg: #faf9f7;
-    --card: #ffffff;
-    --text: #111111;
-    --text-mid: #444;
-    --text-light: #888;
-    --accent: #b85a3a;
-    --rule: #d4d0ca;
-    --rule-heavy: #1a1a1a;
-    --hover-bg: rgba(184,90,58,0.06);
-    --grad-mid: #f5efe8;
+    --bg:        #222;
+    --text:      #ddd;
+    --link:      #55cc55;
+    --link2:     #55aaff;
+    --muted:     #888;
+    --border:    #444;
+    --hover:     #2e2e2e;
+    --toolbar:   #2a2a2a;
+    --scrollbar: #44bb44;
+    --highlight: rgba(80,200,80,.25);
+    --dirty:     #e07030;
   }
-  [data-theme="dark"] {
-    --bg: #1a1a1e;
-    --card: #242428;
-    --text: #e8e6e1;
-    --text-mid: #aaa;
-    --text-light: #777;
-    --rule: #3a3a3e;
-    --rule-heavy: #ccc;
-    --hover-bg: rgba(184,90,58,0.1);
-    --grad-mid: #222226;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  input, select, button, textarea { font-family: inherit; }
-  body {
-    font-family: 'JetBrains Mono', monospace;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    font-size: 16px;
-    transition: background 0.3s, color 0.3s;
-  }
+}
+/* ── Reset ───────────────────────────────────────────────── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
+  font-size: 18px;
+  line-height: 1.15;
+  background: var(--bg);
+  color: var(--text);
+}
+button, input, textarea, select { font-family: inherit; font-size: inherit; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 2px; }
+::-webkit-scrollbar-track { background: transparent; }
 
-  /* Top bar */
-  .topbar {
-    position: sticky; top: 0; z-index: 50;
-    background: linear-gradient(135deg, var(--bg) 0%, var(--grad-mid) 50%, var(--bg) 100%);
-    border-bottom: 2px solid var(--rule-heavy);
-    padding: 10px 24px;
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 16px;
-  }
-  .topbar-left {
-    display: flex; align-items: center; gap: 12px;
-  }
-  .topbar-repo {
-    color: var(--text-light); display: flex; align-items: center;
-    transition: color 0.12s;
-  }
-  .topbar-repo:hover { color: var(--text); }
-  .topbar h1 {
-    font-size: 1.4rem; font-weight: 700;
-    letter-spacing: -0.02em;
-    cursor: pointer;
-    transition: color 0.12s;
-  }
-  .topbar h1:hover { color: var(--accent); }
-  .topbar .date {
-    font-size: 0.85rem; color: var(--text-mid);
-    letter-spacing: 0.02em;
-  }
-  .topbar-right {
-    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-  }
-  .search-box {
-    display: flex; align-items: center;
-    border: 1px solid var(--rule); border-radius: 4px;
-    padding: 4px 8px; gap: 6px; background: var(--card);
-  }
-  .search-box input {
-    border: none; outline: none; background: transparent;
-    font-size: 0.88rem; color: var(--text); width: 180px;
-  }
-  .search-box input::placeholder { color: var(--text-light); }
-  .search-box svg { color: var(--text-light); flex-shrink: 0; }
-  .btn {
-    padding: 5px 12px; border-radius: 3px;
-    font-size: 0.82rem; font-weight: 500;
-    cursor: pointer; border: 1px solid var(--rule);
-    background: var(--card); color: var(--text-mid);
-    transition: all 0.12s;
-  }
-  .btn:hover { border-color: var(--accent); color: var(--accent); }
-  .btn-accent { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .btn-accent:hover { background: var(--accent); opacity: 0.85; color: #fff; }
+/* ── Toolbar ─────────────────────────────────────────────── */
+#toolbar {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--toolbar);
+  border-bottom: 1px solid var(--border);
+  padding: 4px 8px;
+  display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+}
+#tb-title { font-size: 14px; font-weight: bold; margin-right: 6px; user-select: none; }
+#tb-date  { font-size: 11px; color: var(--muted); margin-right: 6px; white-space: nowrap; }
+#tb-search {
+  border: 1px solid var(--border);
+  background: var(--bg); color: var(--text);
+  padding: 2px 6px; border-radius: 3px; width: 160px;
+}
+#tb-search::placeholder { color: var(--muted); }
+#tb-dirty {
+  font-size: 11px; color: var(--dirty);
+  display: none; margin-left: 4px;
+}
+#tb-dirty.visible { display: inline; }
+.tbtn {
+  padding: 2px 8px; border: 1px solid var(--border);
+  background: var(--bg); color: var(--text);
+  border-radius: 3px; cursor: pointer; white-space: nowrap;
+}
+.tbtn:hover { border-color: var(--link); color: var(--link); }
+.tbtn.dirty { border-color: var(--dirty); color: var(--dirty); }
 
-  /* Column layout */
-  .columns {
-    display: flex;
-    padding: 8px 10px 40px;
-    gap: 10px;
-  }
-  .col {
-    flex: 1;
-    min-width: 0;
-    border-right: 1px solid var(--rule);
-    padding-right: 10px;
-  }
-  .col:last-child { border-right: none; padding-right: 0; }
+/* ── Columns container ───────────────────────────────────── */
+#columns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  padding: 6px;
+  gap: 6px;
+}
 
-  /* Category block */
-  .cat-block {
-    margin-bottom: 10px;
-  }
-  .cat-head {
-    display: flex; align-items: center; gap: 5px;
-    padding: 0 0 4px;
-    border-bottom: 1.5px solid var(--rule-heavy);
-    border-left: 3px solid var(--accent);
-    padding-left: 6px;
-    margin-bottom: 4px;
-    cursor: pointer;
-    user-select: none;
-  }
-  .cat-toggle {
-    font-size: 0.55rem; color: var(--text-light);
-    transition: transform 0.2s;
-    margin-right: 1px;
-  }
-  .cat-block.collapsed .cat-toggle { transform: rotate(-90deg); }
-  .cat-block.collapsed .link-list { display: none; }
-  .cat-block.collapsed .cat-head { margin-bottom: 0; border-bottom-color: var(--rule); border-left-color: var(--rule); }
-  .cat-name {
-    font-size: 0.9rem; font-weight: 700;
-    letter-spacing: -0.01em;
-    flex: 1;
-  }
+/* ── Column ──────────────────────────────────────────────── */
+.col {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+}
+/* Minimal column handle — drag grip + management buttons, always visible */
+.col-handle {
+  height: 26px;
+  display: flex; align-items: center; gap: 2px;
+  cursor: grab; background: transparent;
+}
+.col-drag { color: var(--muted); padding: 0 2px; flex-shrink: 0; }
+.col-acts { display: flex; align-items: center; gap: 1px; }
 
-  /* Link rows */
-  .link-list { list-style: none; }
-  .link-row {
-    display: flex;
-    align-items: center;
-  }
-  .link-row[draggable="true"] { cursor: grab; }
-  .link-row[draggable="true"]:active { cursor: grabbing; }
-  .link-row.dragging { opacity: 0.3; }
-  .link-row.drag-over {
-    border-top: 2px solid var(--accent);
-    margin-top: -2px;
-  }
-  .link-list.drag-over-empty {
-    border-bottom: 2px solid var(--accent);
-    padding-bottom: 2px;
-  }
-  .link-row a {
-    display: flex; align-items: center; gap: 6px;
-    padding: 3px 4px;
-    text-decoration: none; color: var(--text);
-    border-radius: 3px;
-    transition: background 0.1s;
-    min-width: 0; flex: 1;
-  }
-  .link-row a:hover {
-    background: var(--hover-bg);
-  }
-  .link-row .le { flex-shrink: 0; width: 16px; height: 16px; text-align: center; font-size: 0.9rem; border-radius: 2px; }
-  .link-row .lg {
-    display: flex; align-items: center;
-    color: var(--text-light);
-    text-decoration: none; flex: 0 0 auto;
-    padding: 2px 3px; border-radius: 2px;
-    margin-left: 1px; opacity: 0.4;
-    transition: opacity 0.12s, color 0.12s;
-  }
-  .link-row:hover .lg { opacity: 0.7; }
-  .link-row .lg:hover { opacity: 1; color: var(--text); }
-  .link-row .ln {
-    font-size: 0.92rem;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    line-height: 1.5;
-  }
-  .link-row a:hover .ln { color: var(--accent); }
+/* ── Section ─────────────────────────────────────────────── */
+.sec { border-top: 1px solid var(--border); }
+.sec-hd {
+  display: flex; align-items: center; gap: 3px;
+  padding: 2px 4px;
+  cursor: pointer; color: var(--muted);
+  font-weight: 700; user-select: none;
+}
+.sec-hd:hover { background: var(--hover); color: var(--text); }
+.sec-toggle { font-size: 8px; flex-shrink: 0; }
+.sec-title  { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sec-acts   { display: none; align-items: center; gap: 1px; flex-shrink: 0; }
+.sec-hd:hover .sec-acts { display: flex; }
+.sec-body.collapsed { display: none; }
 
-  .no-results {
-    text-align: center; padding: 60px;
-    color: var(--text-light); font-size: 0.85rem;
-    width: 100%;
-  }
+/* ── Links list ──────────────────────────────────────────── */
+.links-list { padding: 1px 2px; }
+.lk {
+  display: flex; align-items: center; gap: 3px;
+  padding: 1px 2px; border-radius: 2px;
+}
+.lk:hover { background: var(--hover); }
+.lk-drag { display: none; cursor: grab; color: var(--muted); font-size: 10px; flex-shrink: 0; }
+.lk:hover .lk-drag { display: block; }
+.lk-main { flex: 1; display: flex; align-items: center; gap: 3px; overflow: hidden; min-width: 0; }
+.lk-acts { display: none; align-items: center; gap: 1px; flex-shrink: 0; }
+.lk:hover .lk-acts { display: flex; }
+a.lk-primary {
+  color: var(--link); text-decoration: none;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+a.lk-primary:hover { text-decoration: underline; }
+a.lk-secondary {
+  font-size: 10px; color: var(--link2); text-decoration: none;
+  border: 1px solid var(--link2); border-radius: 2px;
+  padding: 0 2px; white-space: nowrap; flex-shrink: 0;
+}
+a.lk-secondary:hover { opacity: 0.7; }
 
-  /* Modal */
-  .modal-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(26,26,26,0.15);
-    backdrop-filter: blur(4px);
-    z-index: 100; align-items: center; justify-content: center;
-  }
-  .modal-overlay.active { display: flex; }
-  .modal {
-    background: var(--card); border-radius: 8px;
-    padding: 24px; width: 90%; max-width: 340px;
-    max-height: 85vh; overflow-y: auto;
-    box-shadow: 0 12px 40px rgba(26,26,26,0.15);
-  }
-  .modal h2 {
-    font-size: 1.15rem; font-weight: 700; margin-bottom: 16px;
-  }
-  .fld { margin-bottom: 12px; }
-  .fld label {
-    font-size: 0.75rem; font-weight: 600;
-    letter-spacing: 0.02em;
-    color: var(--text-mid); display: block; margin-bottom: 3px;
-  }
-  .fld input, .fld select {
-    width: 100%; padding: 7px 8px;
-    border: 1px solid var(--rule); border-radius: 4px;
-    font-size: 0.92rem; color: var(--text);
-    background: var(--bg); outline: none;
-  }
-  .fld input:focus, .fld select:focus { border-color: var(--accent); }
-  .modal-act { display: flex; gap: 6px; justify-content: flex-end; margin-top: 16px; }
+/* ── Add link button ─────────────────────────────────────── */
+.add-lk-btn {
+  display: block; width: 100%;
+  font-size: 11px; color: var(--muted);
+  background: none; border: none; cursor: pointer;
+  text-align: left; padding: 1px 4px; border-radius: 2px;
+}
+.add-lk-btn:hover { color: var(--link); background: var(--hover); }
 
-  .settings-section {
-    margin-bottom: 16px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--rule);
-  }
-  .settings-section:last-of-type { border-bottom: none; margin-bottom: 8px; padding-bottom: 8px; }
-  .settings-label {
-    font-size: 0.82rem; font-weight: 600;
-    margin-bottom: 8px;
-  }
-  .settings-row {
-    display: flex; gap: 6px; flex-wrap: wrap;
-  }
-  .settings-hint {
-    font-size: 0.72rem; color: var(--text-light);
-    margin-top: 6px; line-height: 1.4;
-  }
-  .color-swatch {
-    width: 28px; height: 28px; border-radius: 50%;
-    border: 2px solid transparent; cursor: pointer;
-    transition: border-color 0.12s, transform 0.12s;
-  }
-  .color-swatch:hover { transform: scale(1.15); }
-  .color-swatch.active { border-color: var(--text); transform: scale(1.15); }
-  .btn.theme-active { border-color: var(--accent); color: var(--accent); }
-  /* Context menu */
-  .ctx {
-    display: none; position: fixed;
-    background: var(--card); border: 1px solid var(--rule);
-    border-radius: 6px; padding: 3px;
-    box-shadow: 0 4px 16px rgba(26,26,26,0.1);
-    z-index: 200; min-width: 110px;
-  }
-  .ctx.active { display: block; }
-  .ctx button {
-    display: block; width: 100%; padding: 6px 10px;
-    background: none; border: none;
-    font-size: 0.85rem; color: var(--text);
-    cursor: pointer; border-radius: 4px; text-align: left;
-  }
-  .ctx button:hover { background: var(--bg); }
-  .ctx button.danger { color: #c44; }
-  .ctx-div { height: 1px; background: var(--rule); margin: 2px 4px; }
+/* ── Icon buttons ────────────────────────────────────────── */
+.ibtn {
+  background: none; border: none; cursor: pointer;
+  color: var(--muted); font-size: 11px; padding: 0 2px;
+  line-height: 1; border-radius: 2px;
+}
+.ibtn:hover { color: var(--text); background: var(--hover); }
 
-  /* Responsive: re-render handles column count via JS */
-  @media (max-width: 500px)  {
-    .topbar { flex-wrap: wrap; }
-    .search-box input { width: 120px; }
-  }
+/* ── Drag feedback ───────────────────────────────────────── */
+.sortable-ghost  { opacity: 0.3; }
+.sortable-chosen { background: var(--hover); }
+.drop-zone-on    { outline: 2px dashed var(--link); outline-offset: 2px; }
+
+/* ── Search ──────────────────────────────────────────────── */
+.lk.search-hidden { display: none; }
+.search-match     { background: var(--highlight); border-radius: 2px; }
+
+/* ── Inline edit ─────────────────────────────────────────── */
+.inline-edit {
+  border: 1px solid var(--link);
+  background: var(--bg); color: var(--text);
+  padding: 0 2px; border-radius: 2px; width: 100%;
+  font-family: inherit; font-size: inherit;
+}
+
+/* ── Modal ───────────────────────────────────────────────── */
+.modal-ov {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.45); z-index: 500;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal {
+  background: var(--toolbar);
+  border: 1px solid var(--border); border-radius: 5px;
+  padding: 16px; min-width: 300px; max-width: 480px; width: 92%;
+}
+.modal h2 { font-size: 14px; margin-bottom: 10px; }
+.modal label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 1px; }
+.modal input, .modal textarea, .modal select {
+  display: block; width: 100%;
+  border: 1px solid var(--border); border-radius: 3px;
+  background: var(--bg); color: var(--text);
+  padding: 4px 6px; margin-bottom: 8px;
+  font-family: inherit; font-size: 12px;
+}
+.modal textarea { height: 200px; resize: vertical; }
+.modal-btns { display: flex; gap: 6px; justify-content: flex-end; margin-top: 4px; }
+.modal input:focus, .modal textarea:focus { outline: 1px solid var(--link); }
+
+/* ── Loading / error ─────────────────────────────────────── */
+#status {
+  padding: 24px; font-size: 13px; color: var(--muted);
+  display: none;
+}
+#status.visible { display: block; }
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="topbar-left">
-    <a href="https://github.com/theo-armour/qdata/tree/main/apps/newww-tab" target="_blank" rel="noopener" class="topbar-repo" title="Source on GitHub"><svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a>
-    <h1 id="greeting-text" onclick="location.reload()" title="Reload Page">NewwwTab</h1>
-    <span class="date" id="date-text">Good Evening · Monday, March 2, 2026</span>
-  </div>
-  <div class="topbar-right">
-    <div class="search-box">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      <input type="text" id="search-input" placeholder="Filter Links..." title="Ctrl+K">
-    </div>
-    <button class="btn" onclick="toggleAll()" title="Ctrl+E">Toggle All</button>
-    <span id="sync-status" style="font-size:0.72rem;color:var(--text-light)"></span>
-    <button class="btn" id="save-btn" onclick="GHS.save()" title="Save links.json">Save JSON</button>
-    <button class="btn" onclick="openSettings()">Settings</button>
-    <button class="btn" onclick="openCatModal()">+ Category</button>
-  </div>
+<div id="toolbar">
+  <span id="tb-title">NewwwTab</span>
+  <span id="tb-date"></span>
+  <input id="tb-search" type="text" placeholder="🔍 Filter Links..." autocomplete="off">
+  <span id="tb-dirty">● unsaved</span>
+  <button class="tbtn" id="btn-toggle-all">Toggle All</button>
+  <button class="tbtn" id="btn-add-col">+ Column</button>
+  <button class="tbtn" id="btn-save">⬆ Save</button>
+  <button class="tbtn" id="btn-export">Export</button>
+  <button class="tbtn" id="btn-settings">Settings</button>
 </div>
 
-<div class="columns" id="columns"><div class="cat-block"><div class="cat-head"><span class="cat-toggle">▼</span><span class="cat-name" title="Theo (9 links)">Theo</span></div><ul class="link-list" data-cat="c1772423750288_0"><li class="link-row" draggable="true" data-gi="0"><a href="https://theo-armour.github.io/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">T-A.g.io</span></a><a class="lg" href="https://github.com/theo-armour/theo-armour.github.io" draggable="false" title="Repo" target="_blank" rel="noopener"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></li><li class="link-row" draggable="true" data-gi="1"><a href="https://github.com/theo-armour" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=16" width="16" height="16" data-domain="github.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">gT-A</span></a></li><li class="link-row" draggable="true" data-gi="2"><a href="https://theo-armour.github.io/2025" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">t2025</span></a><a class="lg" href="https://github.com/theo-armour/2025/" draggable="false" title="Repo" target="_blank" rel="noopener"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></li><li class="link-row" draggable="true" data-gi="3"><a href="https://theo-armour.github.io/agenda/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">agenda</span></a><a class="lg" href="https://github.com/theo-armour/agenda" draggable="false" title="Repo" target="_blank" rel="noopener"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></li><li class="link-row" draggable="true" data-gi="4"><a href="https://theo-armour.github.io/genealogy/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">genalogy</span></a><a class="lg" href="https://github.com/theo-armour/genealogy/" draggable="false" title="Repo" target="_blank" rel="noopener"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></li><li class="link-row" draggable="true" data-gi="5"><a href="https://theo-armour.github.io/pages/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">pages</span></a><a class="lg" href="https://github.com/theo-armour/pages" draggable="false" title="Repo" target="_blank" rel="noopener"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></li><li class="link-row" draggable="true" data-gi="6"><a href="https://theo-armour.github.io/qdata/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">qData</span></a><a class="lg" href="https://github.com/theo-armour/qdata/" draggable="false" title="Repo" target="_blank" rel="noopener"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></li><li class="link-row" draggable="true" data-gi="7"><a href="https://theo-armour.github.io/sandbox/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">sandbox</span></a><a class="lg" href="https://github.com/theo-armour/sandbox/" draggable="false" title="Repo" target="_blank" rel="noopener"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></li><li class="link-row" draggable="true" data-gi="8"><a href="https://theo-armour.github.io/wikitheo/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">wikitheo</span></a><a class="lg" href="https://github.com/theo-armour/wikitheo/" draggable="false" title="Repo" target="_blank" rel="noopener"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></li></ul></div><div class="cat-block"><div class="cat-head"><span class="cat-toggle">▼</span><span class="cat-name" title="orgs (4 links)">orgs</span></div><ul class="link-list" data-cat="c1772501192746"><li class="link-row" draggable="true" data-gi="198"><a href="https://www.gbxml.org" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=www.gbxml.org&amp;sz=16" width="16" height="16" data-domain="www.gbxml.org" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">gbxml</span></a></li><li class="link-row" draggable="true" data-gi="199"><a href="https://evereverland.github.io/2019" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=evereverland.github.io&amp;sz=16" width="16" height="16" data-domain="evereverland.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">2019</span></a><a class="lg" href="https://github.com/evereverland/2019/" draggable="false" title="Repo" target="_blank" rel="noopener"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></li><li class="link-row" draggable="true" data-gi="200"><a href="https://evereverland.github.io/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=evereverland.github.io&amp;sz=16" width="16" height="16" data-domain="evereverland.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">evrlnd</span></a><a class="lg" href="https://github.com/evereverland/" draggable="false" title="Repo" target="_blank" rel="noopener"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></li><li class="link-row" draggable="true" data-gi="201"><a href="https://example.com" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=example.com&amp;sz=16" width="16" height="16" data-domain="example.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">e</span></a></li></ul></div><div class="cat-block"><div class="cat-head"><span class="cat-toggle">▼</span><span class="cat-name" title="ta apps (9 links)">ta apps</span></div><ul class="link-list" data-cat="c1772428088465"><li class="link-row" draggable="true" data-gi="189"><a href="https://theo-armour.github.io/qdata/apps/trayo/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">trayo</span></a><a class="lg" href="https://github.com/theo-armour/qdata/tree/master/apps/trayo" draggable="false" title="Repo" target="_blank" rel="noopener"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></li><li class="link-row" draggable="true" data-gi="190"><a href="https://theo-armour.github.io/2024/about/theo-business-card.html" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">bizcard</span></a></li><li class="link-row" draggable="true" data-gi="191"><a href="https://theo-armour.github.io/qdata/apps/iframe-stuff" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">ifrStuff</span></a><a class="lg" href="https://github.com/theo-armour/qdata/blob/main/apps/iframe-stuff/2023-05-02/iframe-stuff.html" draggable="false" title="Repo" target="_blank" rel="noopener"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></li><li class="link-row" draggable="true" data-gi="192"><a href="https://theo-armour.github.io/qdata/apps/teodori" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">teodori</span></a><a class="lg" href="https://github.com/theo-armour/qdata/tree/master/apps/teodori" draggable="false" title="Repo" target="_blank" rel="noopener"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></li><li class="link-row" draggable="true" data-gi="193"><a href="https://theo-armour.github.io/qdata/apps/newww-tab/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">newTab</span></a><a class="lg" href="https://github.com/theo-armour/qdata/tree/master/apps/newww-tab" draggable="false" title="Repo" target="_blank" rel="noopener"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></li><li class="link-row" draggable="true" data-gi="194"><a href="https://theo-armour.github.io/qdata/apps/notesy" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">notesy</span></a><a class="lg" href="https://github.com/theo-armour/qdata/tree/master/apps/notesy" draggable="false" title="Repo" target="_blank" rel="noopener"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></li><li class="link-row" draggable="true" data-gi="195"><a href="https://theo-armour.github.io/qdata/apps/notesy/days.html" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">days</span></a><a class="lg" href="https://github.com/theo-armour/qdata/tree/master/apps/notesy" draggable="false" title="Repo" target="_blank" rel="noopener"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></li><li class="link-row" draggable="true" data-gi="196"><a href="https://theo-armour.github.io/2021/demo-reel/v-2021-08-31/iframe-carousel-r1.html" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">demo</span></a></li><li class="link-row" draggable="true" data-gi="197"><a href="https://theo-armour.github.io/mouth-stl-2022/simple-stl" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">mouth</span></a></li></ul></div><div class="cat-block"><div class="cat-head"><span class="cat-toggle">▼</span><span class="cat-name" title="VSCode (8 links)">VSCode</span></div><ul class="link-list" data-cat="c1772423750288_1"><li class="link-row" draggable="true" data-gi="9"><a href="https://pushme-pullyou.github.io/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=pushme-pullyou.github.io&amp;sz=16" width="16" height="16" data-domain="pushme-pullyou.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">PshPll</span></a><a class="lg" href="https://github.com/pushme-pullyou/" draggable="false" title="Repo" target="_blank" rel="noopener"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></li><li class="link-row" draggable="true" data-gi="10"><a href="https://pushme-pullyou.github.io/assets/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=pushme-pullyou.github.io&amp;sz=16" width="16" height="16" data-domain="pushme-pullyou.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">ppAssets</span></a><a class="lg" href="https://github.com/pushme-pullyou/assets/" draggable="false" title="Repo" target="_blank" rel="noopener"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></li><li class="link-row" draggable="true" data-gi="11"><a href="https://github.com/pushme-pullyou/2024/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=16" width="16" height="16" data-domain="github.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">g</span></a></li><li class="link-row" draggable="true" data-gi="12"><a href="https://vscode.dev/github/theo-armour/2024" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=vscode.dev&amp;sz=16" width="16" height="16" data-domain="vscode.dev" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt;ta 2024</span></a></li><li class="link-row" draggable="true" data-gi="13"><a href="https://vscode.dev/github/theo-armour/agenda" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=vscode.dev&amp;sz=16" width="16" height="16" data-domain="vscode.dev" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt;ta 23agnd</span></a></li><li class="link-row" draggable="true" data-gi="14"><a href="https://vscode.dev/github/theo-armour/pages" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=vscode.dev&amp;sz=16" width="16" height="16" data-domain="vscode.dev" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt;ta pages</span></a></li><li class="link-row" draggable="true" data-gi="15"><a href="https://vscode.dev/github/theo-armour/qdata" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=vscode.dev&amp;sz=16" width="16" height="16" data-domain="vscode.dev" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt;ta 23qDat</span></a></li><li class="link-row" draggable="true" data-gi="16"><a href="https://vscode.dev/github/pushme-pullyou/assets/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=vscode.dev&amp;sz=16" width="16" height="16" data-domain="vscode.dev" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt;TooToo23</span></a></li></ul></div><div class="cat-block"><div class="cat-head"><span class="cat-toggle">▼</span><span class="cat-name" title="News (8 links)">News</span></div><ul class="link-list" data-cat="c1772423750288_2"><li class="link-row" draggable="true" data-gi="17"><a href="https://nytimes.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=nytimes.com&amp;sz=16" width="16" height="16" data-domain="nytimes.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">nytimes</span></a></li><li class="link-row" draggable="true" data-gi="18"><a href="https://www.sfchronicle.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=www.sfchronicle.com&amp;sz=16" width="16" height="16" data-domain="www.sfchronicle.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">chronic</span></a></li><li class="link-row" draggable="true" data-gi="19"><a href="https://news.google.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=news.google.com&amp;sz=16" width="16" height="16" data-domain="news.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">googN</span></a></li><li class="link-row" draggable="true" data-gi="20"><a href="https://drudgereport.com" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=drudgereport.com&amp;sz=16" width="16" height="16" data-domain="drudgereport.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">drudge</span></a></li><li class="link-row" draggable="true" data-gi="21"><a href="https://techmeme.com" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=techmeme.com&amp;sz=16" width="16" height="16" data-domain="techmeme.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">techmeme</span></a></li><li class="link-row" draggable="true" data-gi="22"><a href="https://slashdot.org/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=slashdot.org&amp;sz=16" width="16" height="16" data-domain="slashdot.org" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">slashdot</span></a></li><li class="link-row" draggable="true" data-gi="23"><a href="https://news.ycombinator.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=news.ycombinator.com&amp;sz=16" width="16" height="16" data-domain="news.ycombinator.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">hacker_new</span></a></li><li class="link-row" draggable="true" data-gi="24"><a href="https://xkcd.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=xkcd.com&amp;sz=16" width="16" height="16" data-domain="xkcd.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">xkcd</span></a></li></ul></div><div class="cat-block"><div class="cat-head"><span class="cat-toggle">▼</span><span class="cat-name" title="MoreNews (17 links)">MoreNews</span></div><ul class="link-list" data-cat="c1772423750288_3"><li class="link-row" draggable="true" data-gi="25"><a href="http://compuserve.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=compuserve.com&amp;sz=16" width="16" height="16" data-domain="compuserve.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">compuserve</span></a></li><li class="link-row" draggable="true" data-gi="26"><a href="https://alltop.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=alltop.com&amp;sz=16" width="16" height="16" data-domain="alltop.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">allTop</span></a></li><li class="link-row" draggable="true" data-gi="27"><a href="https://brutalist.report/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=brutalist.report&amp;sz=16" width="16" height="16" data-domain="brutalist.report" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">brutalist</span></a></li><li class="link-row" draggable="true" data-gi="28"><a href="https://lite.cnn.io" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=lite.cnn.io&amp;sz=16" width="16" height="16" data-domain="lite.cnn.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">cnn</span></a></li><li class="link-row" draggable="true" data-gi="29"><a href="https://text.npr.org/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=text.npr.org&amp;sz=16" width="16" height="16" data-domain="text.npr.org" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">npr</span></a></li><li class="link-row" draggable="true" data-gi="30"><a href="https://apnews.com" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=apnews.com&amp;sz=16" width="16" height="16" data-domain="apnews.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">apnews</span></a></li><li class="link-row" draggable="true" data-gi="31"><a href="https://www.marktechpost.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=www.marktechpost.com&amp;sz=16" width="16" height="16" data-domain="www.marktechpost.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">MarktechP</span></a></li><li class="link-row" draggable="true" data-gi="32"><a href="https://swiss-miss.com" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=swiss-miss.com&amp;sz=16" width="16" height="16" data-domain="swiss-miss.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">swiss-miss</span></a></li><li class="link-row" draggable="true" data-gi="33"><a href="https://kottke.org" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=kottke.org&amp;sz=16" width="16" height="16" data-domain="kottke.org" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">kottke</span></a></li><li class="link-row" draggable="true" data-gi="34"><a href="https://boingboing.net/blog/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=boingboing.net&amp;sz=16" width="16" height="16" data-domain="boingboing.net" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">boing</span></a></li><li class="link-row" draggable="true" data-gi="35"><a href="https://digg.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=digg.com&amp;sz=16" width="16" height="16" data-domain="digg.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">digg</span></a></li><li class="link-row" draggable="true" data-gi="36"><a href="https://lifehacker.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=lifehacker.com&amp;sz=16" width="16" height="16" data-domain="lifehacker.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">lifehacker</span></a></li><li class="link-row" draggable="true" data-gi="37"><a href="https://techcrunch.com" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=techcrunch.com&amp;sz=16" width="16" height="16" data-domain="techcrunch.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">techcrunch</span></a></li><li class="link-row" draggable="true" data-gi="38"><a href="https://www.theatlantic.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=www.theatlantic.com&amp;sz=16" width="16" height="16" data-domain="www.theatlantic.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">atlantic</span></a></li><li class="link-row" draggable="true" data-gi="39"><a href="https://www.wired.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=www.wired.com&amp;sz=16" width="16" height="16" data-domain="www.wired.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">wired.com</span></a></li><li class="link-row" draggable="true" data-gi="40"><a href="https://twitter.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=twitter.com&amp;sz=16" width="16" height="16" data-domain="twitter.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">twitter.com</span></a></li><li class="link-row" draggable="true" data-gi="41"><a href="https://reddit.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=reddit.com&amp;sz=16" width="16" height="16" data-domain="reddit.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">reddit</span></a></li></ul></div><div class="cat-block"><div class="cat-head"><span class="cat-toggle">▼</span><span class="cat-name" title="Reads (4 links)">Reads</span></div><ul class="link-list" data-cat="c1772423750289_4"><li class="link-row" draggable="true" data-gi="42"><a href="https://substack.com/inbox" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=substack.com&amp;sz=16" width="16" height="16" data-domain="substack.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">substack</span></a></li><li class="link-row" draggable="true" data-gi="43"><a href="https://medium.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=medium.com&amp;sz=16" width="16" height="16" data-domain="medium.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">medium</span></a></li><li class="link-row" draggable="true" data-gi="44"><a href="https://scanalyst.fourmilab.ch/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=scanalyst.fourmilab.ch&amp;sz=16" width="16" height="16" data-domain="scanalyst.fourmilab.ch" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">scanalyst</span></a></li><li class="link-row" draggable="true" data-gi="45"><a href="https://read.amazon.com/kindle-library" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=read.amazon.com&amp;sz=16" width="16" height="16" data-domain="read.amazon.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">kindle</span></a></li></ul></div><div class="cat-block"><div class="cat-head"><span class="cat-toggle">▼</span><span class="cat-name" title="MoreRead (10 links)">MoreRead</span></div><ul class="link-list" data-cat="c1772423750289_5"><li class="link-row" draggable="true" data-gi="46"><a href="https://aeon.co/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=aeon.co&amp;sz=16" width="16" height="16" data-domain="aeon.co" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">aeon</span></a></li><li class="link-row" draggable="true" data-gi="47"><a href="https://axios.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=axios.com&amp;sz=16" width="16" height="16" data-domain="axios.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">axios</span></a></li><li class="link-row" draggable="true" data-gi="48"><a href="https://www.lesswrong.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=www.lesswrong.com&amp;sz=16" width="16" height="16" data-domain="www.lesswrong.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">lesswrong</span></a></li><li class="link-row" draggable="true" data-gi="49"><a href="https://www.themarginalian.org/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=www.themarginalian.org&amp;sz=16" width="16" height="16" data-domain="www.themarginalian.org" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">marginal</span></a></li><li class="link-row" draggable="true" data-gi="50"><a href="https://nautil.us/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=nautil.us&amp;sz=16" width="16" height="16" data-domain="nautil.us" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">nautilus</span></a></li><li class="link-row" draggable="true" data-gi="51"><a href="https://www.noemamag.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=www.noemamag.com&amp;sz=16" width="16" height="16" data-domain="www.noemamag.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">noema</span></a></li><li class="link-row" draggable="true" data-gi="52"><a href="https://www.quantamagazine.org/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=www.quantamagazine.org&amp;sz=16" width="16" height="16" data-domain="www.quantamagazine.org" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">quanta</span></a></li><li class="link-row" draggable="true" data-gi="53"><a href="https://feedly.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=feedly.com&amp;sz=16" width="16" height="16" data-domain="feedly.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">feedly</span></a></li><li class="link-row" draggable="true" data-gi="54"><a href="https://libbyapp.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=libbyapp.com&amp;sz=16" width="16" height="16" data-domain="libbyapp.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">libbyapp.com</span></a></li><li class="link-row" draggable="true" data-gi="55"><a href="https://sfpl.org/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=sfpl.org&amp;sz=16" width="16" height="16" data-domain="sfpl.org" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">sfpl.org</span></a></li></ul></div><div class="cat-block"><div class="cat-head"><span class="cat-toggle">▼</span><span class="cat-name" title="GoogleDriv (15 links)">GoogleDri</span></div><ul class="link-list" data-cat="c1772423750289_8"><li class="link-row" draggable="true" data-gi="68"><a href="https://drive.google.com/?authuser=0#my-drive" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=drive.google.com&amp;sz=16" width="16" height="16" data-domain="drive.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">g drive</span></a></li><li class="link-row" draggable="true" data-gi="69"><a href="https://drive.google.com/drive/starred" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=drive.google.com&amp;sz=16" width="16" height="16" data-domain="drive.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt; stars</span></a></li><li class="link-row" draggable="true" data-gi="70"><a href="https://drive.google.com/drive/folders/15KhLE7zV4TZhqu4d89x9K-HrubUm6rxV" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=drive.google.com&amp;sz=16" width="16" height="16" data-domain="drive.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt; theo22</span></a></li><li class="link-row" draggable="true" data-gi="71"><a href="https://drive.google.com/drive/folders/0B0g809SWki8tMjcwM2IwNjItNDk3ZC00NzhiLTk0NDEtZDYxZjJiYWRhMTU5" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=drive.google.com&amp;sz=16" width="16" height="16" data-domain="drive.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt; ace-it22</span></a></li><li class="link-row" draggable="true" data-gi="72"><a href="https://drive.google.com/drive/folders/15M2I16bU8Tt5-w5EOLBiCmUiI1Wm2phD" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=drive.google.com&amp;sz=16" width="16" height="16" data-domain="drive.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt; heritage</span></a></li><li class="link-row" draggable="true" data-gi="73"><a href="https://docs.google.com/document/d/1YsbP8hE83vkrvW-bmjmXNcfxtKYjQh1IhKUuDCaBfyE/edit#" draggable="false" target="_blank" rel="noopener" title="&gt; my sdg 123456789"><img class="le" src="https://www.google.com/s2/favicons?domain=docs.google.com&amp;sz=16" width="16" height="16" data-domain="docs.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt; my sdg 123456</span></a></li><li class="link-row" draggable="true" data-gi="74"><a href="https://drive.google.com/drive/folders/1Qg5BGI1jeWAiwPyHnWpF_aIawiI7qvAO" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=drive.google.com&amp;sz=16" width="16" height="16" data-domain="drive.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt; eel</span></a></li><li class="link-row" draggable="true" data-gi="75"><a href="https://drive.google.com/drive/folders/1_jB0axW28CIvjH0gTW44T9fSOxkl8frC" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=drive.google.com&amp;sz=16" width="16" height="16" data-domain="drive.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">scc eel</span></a></li><li class="link-row" draggable="true" data-gi="76"><a href="https://drive.google.com/drive/folders/15M2I16bU8Tt5-w5EOLBiCmUiI1Wm2phD" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=drive.google.com&amp;sz=16" width="16" height="16" data-domain="drive.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">heritage</span></a></li><li class="link-row" draggable="true" data-gi="77"><a href="https://docs.google.com/spreadsheets/d/1BtqRUotYqAKiJSTiir5h4sLrTfMFg8XdtWvn46DYti8/edit#gid=1362604872" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=docs.google.com&amp;sz=16" width="16" height="16" data-domain="docs.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt; resiSS</span></a></li><li class="link-row" draggable="true" data-gi="78"><a href="https://drive.google.com/drive/folders/1MqjSUaIlRb7zjYd3886tlCMAQ0-Xk0Nk" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=drive.google.com&amp;sz=16" width="16" height="16" data-domain="drive.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt; folder</span></a></li><li class="link-row" draggable="true" data-gi="79"><a href="https://docs.google.com/document/d/1oO8sRRqVAj7g4FI-beDok11l9t590svvMwLJt5VUg5s" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=docs.google.com&amp;sz=16" width="16" height="16" data-domain="docs.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt; refman</span></a></li><li class="link-row" draggable="true" data-gi="80"><a href="https://docs.google.com/document/d/1iI9j5Ort73PLMPnUndQc7JEpPYQtoD3TickliqqSTb0/edit" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=docs.google.com&amp;sz=16" width="16" height="16" data-domain="docs.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt; 08</span></a></li><li class="link-row" draggable="true" data-gi="81"><a href="https://docs.google.com/document/d/1dC7MseGDhCl2x1fEOtmhGxenrMsGGxS9GR2dwJ-qDX8/edit" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=docs.google.com&amp;sz=16" width="16" height="16" data-domain="docs.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt; 09</span></a></li><li class="link-row" draggable="true" data-gi="82"><a href="https://docs.google.com/document/d/1Es--zDC4I4XYoklRJnSuMyhS1iggsuK2Y1KDTdHAMNQ/edit" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=docs.google.com&amp;sz=16" width="16" height="16" data-domain="docs.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt; 10</span></a></li></ul></div><div class="cat-block"><div class="cat-head"><span class="cat-toggle">▼</span><span class="cat-name" title="AI Creative (7 links)">AI Creati</span></div><ul class="link-list" data-cat="c1772423750289_6"><li class="link-row" draggable="true" data-gi="56"><a href="https://sora.com" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=sora.com&amp;sz=16" width="16" height="16" data-domain="sora.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">sora</span></a></li><li class="link-row" draggable="true" data-gi="57"><a href="https://www.midjourney.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=www.midjourney.com&amp;sz=16" width="16" height="16" data-domain="www.midjourney.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">midjourny</span></a></li><li class="link-row" draggable="true" data-gi="58"><a href="https://discord.com/channels/662267976984297473/@home" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=discord.com&amp;sz=16" width="16" height="16" data-domain="discord.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt; dd</span></a></li><li class="link-row" draggable="true" data-gi="59"><a href="https://ideogram.ai/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=ideogram.ai&amp;sz=16" width="16" height="16" data-domain="ideogram.ai" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">ideogram</span></a></li><li class="link-row" draggable="true" data-gi="60"><a href="https://discord.com/channels/662267976984297473/@home" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=discord.com&amp;sz=16" width="16" height="16" data-domain="discord.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt; dd</span></a></li><li class="link-row" draggable="true" data-gi="61"><a href="https://kaiber.ai" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=kaiber.ai&amp;sz=16" width="16" height="16" data-domain="kaiber.ai" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">kaiber</span></a></li><li class="link-row" draggable="true" data-gi="62"><a href="https://suno.com" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=suno.com&amp;sz=16" width="16" height="16" data-domain="suno.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">suno/chirp</span></a></li></ul></div><div class="cat-block"><div class="cat-head"><span class="cat-toggle">▼</span><span class="cat-name" title="AI&amp;OfficeMS (5 links)">AI&amp;Office</span></div><ul class="link-list" data-cat="c1772423750289_7"><li class="link-row" draggable="true" data-gi="63"><a href="https://copilot.microsoft.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=copilot.microsoft.com&amp;sz=16" width="16" height="16" data-domain="copilot.microsoft.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">copilotp</span></a></li><li class="link-row" draggable="true" data-gi="64"><a href="https://x.ai/grok" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=x.ai&amp;sz=16" width="16" height="16" data-domain="x.ai" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">grok</span></a></li><li class="link-row" draggable="true" data-gi="65"><a href="https://office.com" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=office.com&amp;sz=16" width="16" height="16" data-domain="office.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">ms365</span></a></li><li class="link-row" draggable="true" data-gi="66"><a href="https://onedrive.live.com" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=onedrive.live.com&amp;sz=16" width="16" height="16" data-domain="onedrive.live.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">onedrv</span></a></li><li class="link-row" draggable="true" data-gi="67"><a href="https://outlook.live.com" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=outlook.live.com&amp;sz=16" width="16" height="16" data-domain="outlook.live.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">outlook</span></a></li></ul></div><div class="cat-block"><div class="cat-head"><span class="cat-toggle">▼</span><span class="cat-name" title="Google Apps (11 links)">Google Ap</span></div><ul class="link-list" data-cat="c1772423750289_9"><li class="link-row" draggable="true" data-gi="83"><a href="https://calendar.google.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=calendar.google.com&amp;sz=16" width="16" height="16" data-domain="calendar.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">g calender</span></a></li><li class="link-row" draggable="true" data-gi="84"><a href="https://contacts.google.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=contacts.google.com&amp;sz=16" width="16" height="16" data-domain="contacts.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">g contacts</span></a></li><li class="link-row" draggable="true" data-gi="85"><a href="https://photos.google.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=photos.google.com&amp;sz=16" width="16" height="16" data-domain="photos.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">g photos</span></a></li><li class="link-row" draggable="true" data-gi="86"><a href="https://google.com/maps/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=google.com&amp;sz=16" width="16" height="16" data-domain="google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">g maps</span></a></li><li class="link-row" draggable="true" data-gi="87"><a href="https://google.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=google.com&amp;sz=16" width="16" height="16" data-domain="google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">google</span></a></li><li class="link-row" draggable="true" data-gi="88"><a href="https://messages.google.com/web/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=messages.google.com&amp;sz=16" width="16" height="16" data-domain="messages.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">g FiMsg</span></a></li><li class="link-row" draggable="true" data-gi="89"><a href="https://earth.google.com/web/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=earth.google.com&amp;sz=16" width="16" height="16" data-domain="earth.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">g earth</span></a></li><li class="link-row" draggable="true" data-gi="90"><a href="https://mail.google.com/mail/u/0/?tab=mm#inbox" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=mail.google.com&amp;sz=16" width="16" height="16" data-domain="mail.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">g mail</span></a></li><li class="link-row" draggable="true" data-gi="91"><a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;tf=1" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=mail.google.com&amp;sz=16" width="16" height="16" data-domain="mail.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt; compose</span></a></li><li class="link-row" draggable="true" data-gi="92"><a href="https://youtube.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=youtube.com&amp;sz=16" width="16" height="16" data-domain="youtube.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">youtube</span></a></li><li class="link-row" draggable="true" data-gi="93"><a href="https://fi.google.com" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=fi.google.com&amp;sz=16" width="16" height="16" data-domain="fi.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">g fiAccnt</span></a></li></ul></div><div class="cat-block"><div class="cat-head"><span class="cat-toggle">▼</span><span class="cat-name" title="MoreGoogle (6 links)">MoreGoogl</span></div><ul class="link-list" data-cat="c1772423750289_10"><li class="link-row" draggable="true" data-gi="94"><a href="https://chat.google.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=chat.google.com&amp;sz=16" width="16" height="16" data-domain="chat.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">g chat</span></a></li><li class="link-row" draggable="true" data-gi="95"><a href="https://design.google/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=design.google&amp;sz=16" width="16" height="16" data-domain="design.google" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">g design</span></a></li><li class="link-row" draggable="true" data-gi="96"><a href="https://domains.google/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=domains.google&amp;sz=16" width="16" height="16" data-domain="domains.google" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">g domains</span></a></li><li class="link-row" draggable="true" data-gi="97"><a href="https://experiments.withgoogle.com/experiments" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=experiments.withgoogle.com&amp;sz=16" width="16" height="16" data-domain="experiments.withgoogle.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">g experimt</span></a></li><li class="link-row" draggable="true" data-gi="98"><a href="https://groups.google.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=groups.google.com&amp;sz=16" width="16" height="16" data-domain="groups.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">g groups</span></a></li><li class="link-row" draggable="true" data-gi="99"><a href="https://sites.google.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=sites.google.com&amp;sz=16" width="16" height="16" data-domain="sites.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">g sites</span></a></li></ul></div><div class="cat-block"><div class="cat-head"><span class="cat-toggle">▼</span><span class="cat-name" title="Apps (25 links)">Apps</span></div><ul class="link-list" data-cat="c1772423750289_11"><li class="link-row" draggable="true" data-gi="100"><a href="https://geni.com/family-tree/index/6000000004118029730" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=geni.com&amp;sz=16" width="16" height="16" data-domain="geni.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">geni</span></a></li><li class="link-row" draggable="true" data-gi="101"><a href="https://pewu.github.io/topola-viewer/#/view?url=https://theo-armour.github.io/genealogy/gedcom-files/2025-08-18-export-geni/export-BloodTree.ged" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=pewu.github.io&amp;sz=16" width="16" height="16" data-domain="pewu.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">gedcom</span></a></li><li class="link-row" draggable="true" data-gi="102"><a href="https://www.myheritage.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=www.myheritage.com&amp;sz=16" width="16" height="16" data-domain="www.myheritage.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">myheritage</span></a></li><li class="link-row" draggable="true" data-gi="103"><a href="https://www.ancestry.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=www.ancestry.com&amp;sz=16" width="16" height="16" data-domain="www.ancestry.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">ancestry</span></a></li><li class="link-row" draggable="true" data-gi="104"><a href="https://www.wikitree.com/wiki/Main_Page" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=www.wikitree.com&amp;sz=16" width="16" height="16" data-domain="www.wikitree.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">wikitree</span></a></li><li class="link-row" draggable="true" data-gi="105"><a href="https://my.promptsmart.com/scripts" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=my.promptsmart.com&amp;sz=16" width="16" height="16" data-domain="my.promptsmart.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">prompt</span></a></li><li class="link-row" draggable="true" data-gi="106"><a href="https://web.whatsapp.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=web.whatsapp.com&amp;sz=16" width="16" height="16" data-domain="web.whatsapp.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">whatsapp</span></a></li><li class="link-row" draggable="true" data-gi="107"><a href="https://app.raindrop.io/my/-1" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=app.raindrop.io&amp;sz=16" width="16" height="16" data-domain="app.raindrop.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">raindrop</span></a></li><li class="link-row" draggable="true" data-gi="108"><a href="https://linkedin.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=linkedin.com&amp;sz=16" width="16" height="16" data-domain="linkedin.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">linkedin</span></a></li><li class="link-row" draggable="true" data-gi="109"><a href="https://instagram.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=instagram.com&amp;sz=16" width="16" height="16" data-domain="instagram.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">instagram</span></a></li><li class="link-row" draggable="true" data-gi="110"><a href="https://dictanote.co/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=dictanote.co&amp;sz=16" width="16" height="16" data-domain="dictanote.co" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">dictanoth</span></a></li><li class="link-row" draggable="true" data-gi="111"><a href="https://excalidraw.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=excalidraw.com&amp;sz=16" width="16" height="16" data-domain="excalidraw.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">excalidrw</span></a></li><li class="link-row" draggable="true" data-gi="112"><a href="https://bsky.app/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=bsky.app&amp;sz=16" width="16" height="16" data-domain="bsky.app" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">bsky</span></a></li><li class="link-row" draggable="true" data-gi="113"><a href="https://www.threads.net/web/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=www.threads.net&amp;sz=16" width="16" height="16" data-domain="www.threads.net" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">threads</span></a></li><li class="link-row" draggable="true" data-gi="114"><a href="https://nextdoor.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=nextdoor.com&amp;sz=16" width="16" height="16" data-domain="nextdoor.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">nextdoor</span></a></li><li class="link-row" draggable="true" data-gi="115"><a href="https://stackoverflow.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=stackoverflow.com&amp;sz=16" width="16" height="16" data-domain="stackoverflow.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">stackoflow</span></a></li><li class="link-row" draggable="true" data-gi="116"><a href="https://facebook.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=facebook.com&amp;sz=16" width="16" height="16" data-domain="facebook.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">facebook</span></a></li><li class="link-row" draggable="true" data-gi="117"><a href="https://usetrmnl.com/dashboard" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=usetrmnl.com&amp;sz=16" width="16" height="16" data-domain="usetrmnl.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">trmnl</span></a></li><li class="link-row" draggable="true" data-gi="118"><a href="https://audiopen.ai/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=audiopen.ai&amp;sz=16" width="16" height="16" data-domain="audiopen.ai" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">audiopen</span></a></li><li class="link-row" draggable="true" data-gi="119"><a href="https://www.spotify.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=www.spotify.com&amp;sz=16" width="16" height="16" data-domain="www.spotify.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">spotify</span></a></li><li class="link-row" draggable="true" data-gi="120"><a href="https://dropbox.com/home" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=dropbox.com&amp;sz=16" width="16" height="16" data-domain="dropbox.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">dropbox</span></a></li><li class="link-row" draggable="true" data-gi="121"><a href="https://evernote.com/Home.action" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=evernote.com&amp;sz=16" width="16" height="16" data-domain="evernote.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">evernote</span></a></li><li class="link-row" draggable="true" data-gi="122"><a href="https://flickr.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=flickr.com&amp;sz=16" width="16" height="16" data-domain="flickr.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">flickr</span></a></li><li class="link-row" draggable="true" data-gi="123"><a href="https://tumblr.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=tumblr.com&amp;sz=16" width="16" height="16" data-domain="tumblr.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">tumblr</span></a></li><li class="link-row" draggable="true" data-gi="124"><a href="https://www.lowercase.app/workspace/9b004c32-5287-4fe7-8d1f-c66a0cc1a31c/edit" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=www.lowercase.app&amp;sz=16" width="16" height="16" data-domain="www.lowercase.app" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">lowercase</span></a></li></ul></div><div class="cat-block"><div class="cat-head"><span class="cat-toggle">▼</span><span class="cat-name" title="Reference (10 links)">Reference</span></div><ul class="link-list" data-cat="c1772423750289_12"><li class="link-row" draggable="true" data-gi="125"><a href="https://threejs.org" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=threejs.org&amp;sz=16" width="16" height="16" data-domain="threejs.org" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">threejs</span></a></li><li class="link-row" draggable="true" data-gi="126"><a href="https://developer.mozilla.org/en-US/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=developer.mozilla.org&amp;sz=16" width="16" height="16" data-domain="developer.mozilla.org" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">mdn</span></a></li><li class="link-row" draggable="true" data-gi="127"><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions/Cheatsheet" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=developer.mozilla.org&amp;sz=16" width="16" height="16" data-domain="developer.mozilla.org" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">regex</span></a></li><li class="link-row" draggable="true" data-gi="128"><a href="https://en.wikipedia.org" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=en.wikipedia.org&amp;sz=16" width="16" height="16" data-domain="en.wikipedia.org" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">wiki</span></a></li><li class="link-row" draggable="true" data-gi="129"><a href="https://en.wikipedia.org/wiki/Wikipedia:Contents/Categories" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=en.wikipedia.org&amp;sz=16" width="16" height="16" data-domain="en.wikipedia.org" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt; wContent</span></a></li><li class="link-row" draggable="true" data-gi="130"><a href="https://trends.google.com/trends/?geo=US" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=trends.google.com&amp;sz=16" width="16" height="16" data-domain="trends.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">trendsG</span></a></li><li class="link-row" draggable="true" data-gi="131"><a href="https://thesaurus.com" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=thesaurus.com&amp;sz=16" width="16" height="16" data-domain="thesaurus.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">thesaurus</span></a></li><li class="link-row" draggable="true" data-gi="132"><a href="https://translate.google.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=translate.google.com&amp;sz=16" width="16" height="16" data-domain="translate.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">translate</span></a></li><li class="link-row" draggable="true" data-gi="133"><a href="https://validator.w3.org/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=validator.w3.org&amp;sz=16" width="16" height="16" data-domain="validator.w3.org" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">validator</span></a></li><li class="link-row" draggable="true" data-gi="134"><a href="https://speed.cloudflare.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=speed.cloudflare.com&amp;sz=16" width="16" height="16" data-domain="speed.cloudflare.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">speedtest</span></a></li></ul></div><div class="cat-block"><div class="cat-head"><span class="cat-toggle">▼</span><span class="cat-name" title="Groups (7 links)">Groups</span></div><ul class="link-list" data-cat="c1772423750289_13"><li class="link-row" draggable="true" data-gi="135"><a href="https://nextvillagesf.org/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=nextvillagesf.org&amp;sz=16" width="16" height="16" data-domain="nextvillagesf.org" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">nextvilge</span></a></li><li class="link-row" draggable="true" data-gi="136"><a href="https://sensay.io/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=sensay.io&amp;sz=16" width="16" height="16" data-domain="sensay.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">sensay</span></a></li><li class="link-row" draggable="true" data-gi="137"><a href="https://sacsem.net" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=sacsem.net&amp;sz=16" width="16" height="16" data-domain="sacsem.net" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">sacsem</span></a></li><li class="link-row" draggable="true" data-gi="138"><a href="https://manage.wix.com/dashboard/b2537da6-a144-4436-bf40-8f3b36dcd723/home" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=manage.wix.com&amp;sz=16" width="16" height="16" data-domain="manage.wix.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">wix</span></a></li><li class="link-row" draggable="true" data-gi="139"><a href="https://groups.io/groups" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=groups.io&amp;sz=16" width="16" height="16" data-domain="groups.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">groups.io</span></a></li><li class="link-row" draggable="true" data-gi="140"><a href="https://ace-it.groups.io/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=ace-it.groups.io&amp;sz=16" width="16" height="16" data-domain="ace-it.groups.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">ace-it.gr</span></a></li><li class="link-row" draggable="true" data-gi="141"><a href="https://heritage.groups.io/g/residents/messages" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=heritage.groups.io&amp;sz=16" width="16" height="16" data-domain="heritage.groups.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">hertge.gr</span></a></li></ul></div><div class="cat-block"><div class="cat-head"><span class="cat-toggle">▼</span><span class="cat-name" title="Heritage (20 links)">Heritage</span></div><ul class="link-list" data-cat="c1772423750289_14"><li class="link-row" draggable="true" data-gi="142"><a href="https://heritageonthemarina.org/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=heritageonthemarina.org&amp;sz=16" width="16" height="16" data-domain="heritageonthemarina.org" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">hotm</span></a></li><li class="link-row" draggable="true" data-gi="143"><a href="https://photos.fife.usercontent.google.com/pw/AP1GczMD9HRaxaWkG-W4JSgWilu9PVt29jRaMmifj8aZX3qM0I76RQV1RYsvdA=w1473-h831-s-no-gm?authuser=0" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=photos.fife.usercontent.google.com&amp;sz=16" width="16" height="16" data-domain="photos.fife.usercontent.google.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">p</span></a></li><li class="link-row" draggable="true" data-gi="144"><a href="https://theheritagesf.theworxhub.com/Dashboard" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theheritagesf.theworxhub.com&amp;sz=16" width="16" height="16" data-domain="theheritagesf.theworxhub.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">worxhub</span></a></li><li class="link-row" draggable="true" data-gi="145"><a href="https://www.residentapps.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=www.residentapps.com&amp;sz=16" width="16" height="16" data-domain="www.residentapps.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">tchTwn</span></a></li><li class="link-row" draggable="true" data-gi="146"><a href="https://www.pineparkhealth.com/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=www.pineparkhealth.com&amp;sz=16" width="16" height="16" data-domain="www.pineparkhealth.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">pph</span></a></li><li class="link-row" draggable="true" data-gi="147"><a href="https://app.elationpassport.com/passport/login/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=app.elationpassport.com&amp;sz=16" width="16" height="16" data-domain="app.elationpassport.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">elatn</span></a></li><li class="link-row" draggable="true" data-gi="148"><a href="https://github.com/heritage-happenings/heritage-happenings.github.io/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=16" width="16" height="16" data-domain="github.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">g</span></a></li><li class="link-row" draggable="true" data-gi="149"><a href="https://heritage-happenings.github.io/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=heritage-happenings.github.io&amp;sz=16" width="16" height="16" data-domain="heritage-happenings.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">HerHap</span></a></li><li class="link-row" draggable="true" data-gi="150"><a href="https://github.com/heritage-happenings/documents/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=16" width="16" height="16" data-domain="github.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">g</span></a></li><li class="link-row" draggable="true" data-gi="151"><a href="https://heritage-happenings.github.io/documents/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=heritage-happenings.github.io&amp;sz=16" width="16" height="16" data-domain="heritage-happenings.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">documnts</span></a></li><li class="link-row" draggable="true" data-gi="152"><a href="https://heritage-happenings.github.io/kiosk" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=heritage-happenings.github.io&amp;sz=16" width="16" height="16" data-domain="heritage-happenings.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">kiosk</span></a><a class="lg" href="https://github.com/heritage-happenings/kiosk/" draggable="false" title="Repo" target="_blank" rel="noopener"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></li><li class="link-row" draggable="true" data-gi="153"><a href="https://heritage-happenings.github.io/happenings-issues/calendar.html" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=heritage-happenings.github.io&amp;sz=16" width="16" height="16" data-domain="heritage-happenings.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">calendar</span></a></li><li class="link-row" draggable="true" data-gi="154"><a href="https://heritage-happenings.github.io/happenings-issues/newsletter.html" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=heritage-happenings.github.io&amp;sz=16" width="16" height="16" data-domain="heritage-happenings.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">newlettr</span></a></li><li class="link-row" draggable="true" data-gi="155"><a href="https://onedrive.live.com/?id=4348E1419F457EB2%21807727&amp;cid=4348E1419F457EB2" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=onedrive.live.com&amp;sz=16" width="16" height="16" data-domain="onedrive.live.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">theo24hh</span></a></li><li class="link-row" draggable="true" data-gi="156"><a href="https://github.com/heritage-happenings/private" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=16" width="16" height="16" data-domain="github.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">g-priv</span></a></li><li class="link-row" draggable="true" data-gi="157"><a href="https://en.wikipedia.org/wiki/Draft:San_Francisco_Ladies_Protection_and_Relief_Society" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=en.wikipedia.org&amp;sz=16" width="16" height="16" data-domain="en.wikipedia.org" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">wp-sflp</span></a></li><li class="link-row" draggable="true" data-gi="158"><a href="https://heritage-happenings.github.io/pages/reference/2024-05-happenings-floor-plans.pdf" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=heritage-happenings.github.io&amp;sz=16" width="16" height="16" data-domain="heritage-happenings.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">flr plans</span></a></li><li class="link-row" draggable="true" data-gi="159"><a href="https://1drv.ms/x/s!ArJ-RZ9B4UhDzOxNalqGdbMK8F97dA?e=p49UHF" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=1drv.ms&amp;sz=16" width="16" height="16" data-domain="1drv.ms" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">xls</span></a></li><li class="link-row" draggable="true" data-gi="160"><a href="https://1drv.ms/b/s!ArJ-RZ9B4UhDzOxGlz6HYF0kYMpFwA?e=Lh8FYs" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=1drv.ms&amp;sz=16" width="16" height="16" data-domain="1drv.ms" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">resdir</span></a></li><li class="link-row" draggable="true" data-gi="161"><a href="https://EverEverLand.github.io/granucci/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=EverEverLand.github.io&amp;sz=16" width="16" height="16" data-domain="EverEverLand.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">granucci</span></a></li></ul></div><div class="cat-block"><div class="cat-head"><span class="cat-toggle">▼</span><span class="cat-name" title="Orgs &amp; Projects (27 links)">Orgs &amp; Pr</span></div><ul class="link-list" data-cat="c1772423750289_15"><li class="link-row" draggable="true" data-gi="162"><a href="https://theo-armour.github.io/qdata/apps/notesy" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">notesy</span></a><a class="lg" href="https://github.com/theo-armour/qdata/tree/master/apps/notesy" draggable="false" title="Repo" target="_blank" rel="noopener"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></li><li class="link-row" draggable="true" data-gi="163"><a href="https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/README.md" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">read me</span></a></li><li class="link-row" draggable="true" data-gi="164"><a href="https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/axis-of-ordinary.md" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">AxisOrdinry</span></a></li><li class="link-row" draggable="true" data-gi="165"><a href="https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/articles-to-write-video.md" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">Art2Write</span></a></li><li class="link-row" draggable="true" data-gi="166"><a href="https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/inspirations-sources.md" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">Inspiration</span></a></li><li class="link-row" draggable="true" data-gi="167"><a href="https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/jokes-quotes.md" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">jokes</span></a></li><li class="link-row" draggable="true" data-gi="168"><a href="https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/lingo.md" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">lingo</span></a></li><li class="link-row" draggable="true" data-gi="169"><a href="https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/location-marina.md" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">location</span></a></li><li class="link-row" draggable="true" data-gi="170"><a href="https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/shortcuts.md" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">shortcuts</span></a></li><li class="link-row" draggable="true" data-gi="171"><a href="https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/things-i-forget.md" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">iforget</span></a></li><li class="link-row" draggable="true" data-gi="172"><a href="https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/things-i-like.md" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">ilike</span></a></li><li class="link-row" draggable="true" data-gi="173"><a href="https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/tips.md" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=theo-armour.github.io&amp;sz=16" width="16" height="16" data-domain="theo-armour.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">tips</span></a></li><li class="link-row" draggable="true" data-gi="174"><a href="https://poets.org/poem-a-day" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=poets.org&amp;sz=16" width="16" height="16" data-domain="poets.org" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">poem-otd</span></a></li><li class="link-row" draggable="true" data-gi="175"><a href="http://jaanga.github.io/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=jaanga.github.io&amp;sz=16" width="16" height="16" data-domain="jaanga.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">Jaanga</span></a></li><li class="link-row" draggable="true" data-gi="176"><a href="https://github.com/jaanga/jaanga.github.io/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=16" width="16" height="16" data-domain="github.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">gh</span></a></li><li class="link-row" draggable="true" data-gi="177"><a href="https://jaanga.github.io/demo/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=jaanga.github.io&amp;sz=16" width="16" height="16" data-domain="jaanga.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">&gt; demo</span></a></li><li class="link-row" draggable="true" data-gi="178"><a href="https://konturno.github.io/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=konturno.github.io&amp;sz=16" width="16" height="16" data-domain="konturno.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">konturno</span></a></li><li class="link-row" draggable="true" data-gi="179"><a href="https://github.com/konturno/konturno.github.io/" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=16" width="16" height="16" data-domain="github.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">gh</span></a></li><li class="link-row" draggable="true" data-gi="180"><a href="https://konturno.github.io/2023" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=konturno.github.io&amp;sz=16" width="16" height="16" data-domain="konturno.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">2023</span></a></li><li class="link-row" draggable="true" data-gi="181"><a href="https://github.com/konturno/konturno.github.io/2023" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=16" width="16" height="16" data-domain="github.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">gh</span></a></li><li class="link-row" draggable="true" data-gi="182"><a href="https://evereverland.github.io/2019" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=evereverland.github.io&amp;sz=16" width="16" height="16" data-domain="evereverland.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">eel 19</span></a></li><li class="link-row" draggable="true" data-gi="183"><a href="https://github.com/evereverland/2019" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=16" width="16" height="16" data-domain="github.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">gh</span></a></li><li class="link-row" draggable="true" data-gi="184"><a href="https://evereverland.github.io" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=evereverland.github.io&amp;sz=16" width="16" height="16" data-domain="evereverland.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">eel 22</span></a></li><li class="link-row" draggable="true" data-gi="185"><a href="https://github.com/evereverland/evereverland.github.io" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=16" width="16" height="16" data-domain="github.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">gh</span></a></li><li class="link-row" draggable="true" data-gi="186"><a href="https://plain-javascript.github.io" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=plain-javascript.github.io&amp;sz=16" width="16" height="16" data-domain="plain-javascript.github.io" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">plainJS</span></a></li><li class="link-row" draggable="true" data-gi="187"><a href="https://github.com/plain-JavaScript/plain-JavaScript.github.io" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=16" width="16" height="16" data-domain="github.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">gh</span></a></li><li class="link-row" draggable="true" data-gi="188"><a href="https://github.com/plain-JavaScript/awesome-list" draggable="false" target="_blank" rel="noopener"><img class="le" src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=16" width="16" height="16" data-domain="github.com" data-fb="🔗" onerror="favErr(this,this.dataset.fb)"><span class="ln">gh</span></a></li></ul></div></div>
+<div id="status"></div>
+<div id="columns"></div>
 
-<div class="modal-overlay" id="link-modal">
-  <div class="modal">
-    <h2 id="lm-title">Edit Link</h2>
-    <div class="fld"><label>Name</label><input type="text" id="lm-name" placeholder="YouTube"></div>
-    <div class="fld"><label>URL</label><input type="text" id="lm-url" placeholder="youtube.com"></div>
-    <div class="fld"><label>Repo URL</label><input type="text" id="lm-repo" placeholder="github.com/user/repo (optional)"></div>
-    <div class="fld"><label>Icon</label><input type="text" id="lm-emoji" placeholder="🎬" maxlength="4"></div>
-    <div class="fld"><label>Category</label><select id="lm-cat"><option value="c1772423750288_0">📁 Theo</option><option value="c1772501192746">📁 orgs</option><option value="c1772428088465">📁 ta apps</option><option value="c1772423750288_1">📁 VSCode</option><option value="c1772423750288_2">📁 News</option><option value="c1772423750288_3">📁 MoreNews</option><option value="c1772423750289_4">📁 Reads</option><option value="c1772423750289_5">📁 MoreRead</option><option value="c1772423750289_8">📁 GoogleDriv</option><option value="c1772423750289_6">📁 AI Creative</option><option value="c1772423750289_7">📁 AI&amp;OfficeMS</option><option value="c1772423750289_9">📁 Google Apps</option><option value="c1772423750289_10">📁 MoreGoogle</option><option value="c1772423750289_11">📁 Apps</option><option value="c1772423750289_12">📁 Reference</option><option value="c1772423750289_13">📁 Groups</option><option value="c1772423750289_14">📁 Heritage</option><option value="c1772423750289_15">📁 Orgs &amp; Projects</option></select></div>
-    <div class="modal-act">
-      <button class="btn" onclick="closeModal('link-modal')">Cancel</button>
-      <button class="btn btn-accent" id="lm-save" onclick="saveLink()">Save</button>
-    </div>
-  </div>
-</div>
-<div class="modal-overlay" id="cat-modal">
-  <div class="modal">
-    <h2 id="cm-title">Add Category</h2>
-    <div class="fld"><label>Name</label><input type="text" id="cm-name" placeholder="Design Tools"></div>
-    <div class="fld"><label>Icon</label><input type="text" id="cm-emoji" placeholder="🎨" maxlength="4"></div>
-    <div class="fld"><label>Column (0–9)</label><input type="number" id="cm-col" min="0" max="9" placeholder="0"></div>
-    <div class="modal-act">
-      <button class="btn" onclick="closeModal('cat-modal')">Cancel</button>
-      <button class="btn btn-accent" id="cm-save" onclick="saveCat()">Add</button>
-    </div>
-  </div>
-</div>
-<div class="modal-overlay" id="settings-modal">
-  <div class="modal">
-    <h2>Settings</h2>
-    <div class="settings-section">
-      <div class="settings-label">Theme</div>
-      <div class="settings-row">
-        <button class="btn theme-active" id="theme-auto" onclick="setTheme('auto')">Auto</button>
-        <button class="btn" id="theme-light" onclick="setTheme('light')">Light</button>
-        <button class="btn" id="theme-dark" onclick="setTheme('dark')">Dark</button>
-      </div>
-    </div>
-    <div class="settings-section">
-      <div class="settings-label">Accent Color</div>
-      <div class="settings-row" id="accent-row"><div class="color-swatch active" style="background:#b85a3a" title="Terracotta" onclick="setAccent('#b85a3a')"></div><div class="color-swatch" style="background:#3a7d5c" title="Forest" onclick="setAccent('#3a7d5c')"></div><div class="color-swatch" style="background:#3a6eb8" title="Ocean" onclick="setAccent('#3a6eb8')"></div><div class="color-swatch" style="background:#7c3aad" title="Plum" onclick="setAccent('#7c3aad')"></div><div class="color-swatch" style="background:#5a6a7a" title="Slate" onclick="setAccent('#5a6a7a')"></div><div class="color-swatch" style="background:#c4442a" title="Ember" onclick="setAccent('#c4442a')"></div><div class="color-swatch" style="background:#a08020" title="Gold" onclick="setAccent('#a08020')"></div><div class="color-swatch" style="background:#2a9d8f" title="Teal" onclick="setAccent('#2a9d8f')"></div></div>
-    </div>
-    <div class="settings-section">
-      <div class="settings-label">Sync</div>
-      <div class="settings-hint" id="sync-detail" style="margin-top:0">Checking…</div>
-      <div class="settings-row" style="margin-top:6px">
-        <button class="btn" onclick="GHS.forcePull()">Force Pull</button>
-      </div>
-      <div class="settings-hint">Discard unsaved local edits and reload from links.json.</div>
-    </div>
-    <div class="settings-section" id="gh-settings" style="display:none">
-      <div class="settings-label">GitHub Token</div>
-      <div class="settings-row">
-        <button class="btn" id="token-btn" onclick="if(GHS.getToken()){GHS.clearToken();this.textContent='Set Token'}else{GHS.promptToken();this.textContent='Clear Token'}">Set Token</button>
-      </div>
-      <div class="settings-hint">Used to commit links.json back to your repo from GitHub Pages.</div>
-    </div>
-    <div class="modal-act">
-      <button class="btn" onclick="closeModal('settings-modal')">Close</button>
-    </div>
-  </div>
-</div>
-<div class="ctx" id="ctx" style="left: 71px; top: 320px;">
-  <button onclick="ctxEdit()">Edit</button>
-  <button onclick="ctxTop()">Move To Top</button>
-  <div class="ctx-div"></div>
-  <button class="danger" onclick="ctxDel()">Remove</button>
-</div>
-<div class="ctx" id="cat-ctx" style="left: 92px; top: 78px;">
-  <button onclick="catCtxAdd()">Add Link</button>
-  <button onclick="catCtxEdit()">Edit Category</button>
-  <div class="ctx-div"></div>
-  <button onclick="catCtxUp()">Move Up</button>
-  <button onclick="catCtxDn()">Move Down</button>
-  <button onclick="catCtxTop()">Move To Top</button>
-  <div class="ctx-div"></div>
-  <button onclick="catCtxColLeft()">Col ←</button>
-  <button onclick="catCtxColRight()">Col →</button>
-  <div class="ctx-div"></div>
-  <button class="danger" onclick="catCtxDel()">Remove Category</button>
-</div>
-
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
 <script>
-const SK='newtab_v5';
+'use strict';
+// ============================================================
+// NewwwTab  —  loads from ./links.json, saves via GitHub API
+// JSON format: { columns: [{ title, sections: [{ title?, links: [
+//   { title, url, g? (github url), secondary?, secondaryUrl? }
+// ]}]}]}
+// ============================================================
 
+const TOKEN_KEY = 'newwwtab-gat';
+const DATA_FILE = './links.json';
 
-/*BAKE_START*/
-const DD={"categories":[{"id":"c1772423750288_0","name":"Theo","emoji":"📁","col":0},{"id":"c1772501192746","name":"orgs","emoji":"📁","col":1},{"id":"c1772428088465","name":"ta apps","emoji":"📁","col":2},{"id":"c1772423750288_1","name":"VSCode","emoji":"📁","col":3},{"id":"c1772423750288_2","name":"News","emoji":"📁","col":4},{"id":"c1772423750288_3","name":"MoreNews","emoji":"📁","col":5},{"id":"c1772423750289_4","name":"Reads","emoji":"📁","col":6},{"id":"c1772423750289_5","name":"MoreRead","emoji":"📁","col":7},{"id":"c1772423750289_8","name":"GoogleDriv","emoji":"📁","col":8},{"id":"c1772423750289_6","name":"AI Creative","emoji":"📁","col":9},{"id":"c1772423750289_7","name":"AI&OfficeMS","emoji":"📁","col":0},{"id":"c1772423750289_9","name":"Google Apps","emoji":"📁","col":1},{"id":"c1772423750289_10","name":"MoreGoogle","emoji":"📁","col":2},{"id":"c1772423750289_11","name":"Apps","emoji":"📁","col":3},{"id":"c1772423750289_12","name":"Reference","emoji":"📁","col":4},{"id":"c1772423750289_13","name":"Groups","emoji":"📁","col":5},{"id":"c1772423750289_14","name":"Heritage","emoji":"📁","col":6},{"id":"c1772423750289_15","name":"Orgs & Projects","emoji":"📁","col":7}],"links":[{"name":"T-A.g.io","url":"https://theo-armour.github.io/","emoji":"🔗","catId":"c1772423750288_0","repoUrl":"https://github.com/theo-armour/theo-armour.github.io"},{"name":"gT-A","url":"https://github.com/theo-armour","emoji":"🔗","catId":"c1772423750288_0"},{"name":"t2025","url":"https://theo-armour.github.io/2025","emoji":"🔗","catId":"c1772423750288_0","repoUrl":"https://github.com/theo-armour/2025/"},{"name":"agenda","url":"https://theo-armour.github.io/agenda/","emoji":"🔗","catId":"c1772423750288_0","repoUrl":"https://github.com/theo-armour/agenda"},{"name":"genalogy","url":"https://theo-armour.github.io/genealogy/","emoji":"🔗","catId":"c1772423750288_0","repoUrl":"https://github.com/theo-armour/genealogy/"},{"name":"pages","url":"https://theo-armour.github.io/pages/","emoji":"🔗","catId":"c1772423750288_0","repoUrl":"https://github.com/theo-armour/pages"},{"name":"qData","url":"https://theo-armour.github.io/qdata/","emoji":"🔗","catId":"c1772423750288_0","repoUrl":"https://github.com/theo-armour/qdata/"},{"name":"sandbox","url":"https://theo-armour.github.io/sandbox/","emoji":"🔗","catId":"c1772423750288_0","repoUrl":"https://github.com/theo-armour/sandbox/"},{"name":"wikitheo","url":"https://theo-armour.github.io/wikitheo/","emoji":"🔗","catId":"c1772423750288_0","repoUrl":"https://github.com/theo-armour/wikitheo/"},{"name":">ta 2024","url":"https://vscode.dev/github/theo-armour/2024","emoji":"🔗","catId":"c1772423750288_1"},{"name":">ta 23agnd","url":"https://vscode.dev/github/theo-armour/agenda","emoji":"🔗","catId":"c1772423750288_1"},{"name":">ta pages","url":"https://vscode.dev/github/theo-armour/pages","emoji":"🔗","catId":"c1772423750288_1"},{"name":">ta 23qDat","url":"https://vscode.dev/github/theo-armour/qdata","emoji":"🔗","catId":"c1772423750288_1"},{"name":">TooToo23","url":"https://vscode.dev/github/pushme-pullyou/assets/","emoji":"🔗","catId":"c1772423750288_1"},{"name":"nytimes","url":"https://nytimes.com/","emoji":"🔗","catId":"c1772423750288_2"},{"name":"chronic","url":"https://www.sfchronicle.com/","emoji":"🔗","catId":"c1772423750288_2"},{"name":"googN","url":"https://news.google.com/","emoji":"🔗","catId":"c1772423750288_2"},{"name":"drudge","url":"https://drudgereport.com","emoji":"🔗","catId":"c1772423750288_2"},{"name":"techmeme","url":"https://techmeme.com","emoji":"🔗","catId":"c1772423750288_2"},{"name":"slashdot","url":"https://slashdot.org/","emoji":"🔗","catId":"c1772423750288_2"},{"name":"hacker_new","url":"https://news.ycombinator.com/","emoji":"🔗","catId":"c1772423750288_2"},{"name":"xkcd","url":"https://xkcd.com/","emoji":"🔗","catId":"c1772423750288_2"},{"name":"compuserve","url":"http://compuserve.com/","emoji":"🔗","catId":"c1772423750288_3"},{"name":"allTop","url":"https://alltop.com/","emoji":"🔗","catId":"c1772423750288_3"},{"name":"brutalist","url":"https://brutalist.report/","emoji":"🔗","catId":"c1772423750288_3"},{"name":"cnn","url":"https://lite.cnn.io","emoji":"🔗","catId":"c1772423750288_3"},{"name":"npr","url":"https://text.npr.org/","emoji":"🔗","catId":"c1772423750288_3"},{"name":"apnews","url":"https://apnews.com","emoji":"🔗","catId":"c1772423750288_3"},{"name":"MarktechP","url":"https://www.marktechpost.com/","emoji":"🔗","catId":"c1772423750288_3"},{"name":"swiss-miss","url":"https://swiss-miss.com","emoji":"🔗","catId":"c1772423750288_3"},{"name":"kottke","url":"https://kottke.org","emoji":"🔗","catId":"c1772423750288_3"},{"name":"boing","url":"https://boingboing.net/blog/","emoji":"🔗","catId":"c1772423750288_3"},{"name":"digg","url":"https://digg.com/","emoji":"🔗","catId":"c1772423750288_3"},{"name":"lifehacker","url":"https://lifehacker.com/","emoji":"🔗","catId":"c1772423750288_3"},{"name":"techcrunch","url":"https://techcrunch.com","emoji":"🔗","catId":"c1772423750288_3"},{"name":"atlantic","url":"https://www.theatlantic.com/","emoji":"🔗","catId":"c1772423750288_3"},{"name":"wired.com","url":"https://www.wired.com/","emoji":"🔗","catId":"c1772423750288_3"},{"name":"twitter.com","url":"https://twitter.com/","emoji":"🔗","catId":"c1772423750288_3"},{"name":"reddit","url":"https://reddit.com/","emoji":"🔗","catId":"c1772423750288_3"},{"name":"substack","url":"https://substack.com/inbox","emoji":"🔗","catId":"c1772423750289_4"},{"name":"medium","url":"https://medium.com/","emoji":"🔗","catId":"c1772423750289_4"},{"name":"scanalyst","url":"https://scanalyst.fourmilab.ch/","emoji":"🔗","catId":"c1772423750289_4"},{"name":"kindle","url":"https://read.amazon.com/kindle-library","emoji":"🔗","catId":"c1772423750289_4"},{"name":"aeon","url":"https://aeon.co/","emoji":"🔗","catId":"c1772423750289_5"},{"name":"axios","url":"https://axios.com/","emoji":"🔗","catId":"c1772423750289_5"},{"name":"lesswrong","url":"https://www.lesswrong.com/","emoji":"🔗","catId":"c1772423750289_5"},{"name":"marginal","url":"https://www.themarginalian.org/","emoji":"🔗","catId":"c1772423750289_5"},{"name":"nautilus","url":"https://nautil.us/","emoji":"🔗","catId":"c1772423750289_5"},{"name":"noema","url":"https://www.noemamag.com/","emoji":"🔗","catId":"c1772423750289_5"},{"name":"quanta","url":"https://www.quantamagazine.org/","emoji":"🔗","catId":"c1772423750289_5"},{"name":"feedly","url":"https://feedly.com/","emoji":"🔗","catId":"c1772423750289_5"},{"name":"libbyapp.com","url":"https://libbyapp.com/","emoji":"🔗","catId":"c1772423750289_5"},{"name":"sfpl.org","url":"https://sfpl.org/","emoji":"🔗","catId":"c1772423750289_5"},{"name":"sora","url":"https://sora.com","emoji":"🔗","catId":"c1772423750289_6"},{"name":"midjourny","url":"https://www.midjourney.com/","emoji":"🔗","catId":"c1772423750289_6"},{"name":"> dd","url":"https://discord.com/channels/662267976984297473/@home","emoji":"🔗","catId":"c1772423750289_6"},{"name":"ideogram","url":"https://ideogram.ai/","emoji":"🔗","catId":"c1772423750289_6"},{"name":"> dd","url":"https://discord.com/channels/662267976984297473/@home","emoji":"🔗","catId":"c1772423750289_6"},{"name":"kaiber","url":"https://kaiber.ai","emoji":"🔗","catId":"c1772423750289_6"},{"name":"suno/chirp","url":"https://suno.com","emoji":"🔗","catId":"c1772423750289_6"},{"name":"copilotp","url":"https://copilot.microsoft.com/","emoji":"🔗","catId":"c1772423750289_7"},{"name":"grok","url":"https://x.ai/grok","emoji":"🔗","catId":"c1772423750289_7"},{"name":"ms365","url":"https://office.com","emoji":"🔗","catId":"c1772423750289_7"},{"name":"onedrv","url":"https://onedrive.live.com","emoji":"🔗","catId":"c1772423750289_7"},{"name":"outlook","url":"https://outlook.live.com","emoji":"🔗","catId":"c1772423750289_7"},{"name":"g drive","url":"https://drive.google.com/?authuser=0#my-drive","emoji":"🔗","catId":"c1772423750289_8"},{"name":"> stars","url":"https://drive.google.com/drive/starred","emoji":"🔗","catId":"c1772423750289_8"},{"name":"> theo22","url":"https://drive.google.com/drive/folders/15KhLE7zV4TZhqu4d89x9K-HrubUm6rxV","emoji":"🔗","catId":"c1772423750289_8"},{"name":"> ace-it22","url":"https://drive.google.com/drive/folders/0B0g809SWki8tMjcwM2IwNjItNDk3ZC00NzhiLTk0NDEtZDYxZjJiYWRhMTU5","emoji":"🔗","catId":"c1772423750289_8"},{"name":"> heritage","url":"https://drive.google.com/drive/folders/15M2I16bU8Tt5-w5EOLBiCmUiI1Wm2phD","emoji":"🔗","catId":"c1772423750289_8"},{"name":"> my sdg 123456789","url":"https://docs.google.com/document/d/1YsbP8hE83vkrvW-bmjmXNcfxtKYjQh1IhKUuDCaBfyE/edit#","emoji":"🔗","catId":"c1772423750289_8"},{"name":"> eel","url":"https://drive.google.com/drive/folders/1Qg5BGI1jeWAiwPyHnWpF_aIawiI7qvAO","emoji":"🔗","catId":"c1772423750289_8"},{"name":"scc eel","url":"https://drive.google.com/drive/folders/1_jB0axW28CIvjH0gTW44T9fSOxkl8frC","emoji":"🔗","catId":"c1772423750289_8"},{"name":"heritage","url":"https://drive.google.com/drive/folders/15M2I16bU8Tt5-w5EOLBiCmUiI1Wm2phD","emoji":"🔗","catId":"c1772423750289_8"},{"name":"> resiSS","url":"https://docs.google.com/spreadsheets/d/1BtqRUotYqAKiJSTiir5h4sLrTfMFg8XdtWvn46DYti8/edit#gid=1362604872","emoji":"🔗","catId":"c1772423750289_8"},{"name":"> folder","url":"https://drive.google.com/drive/folders/1MqjSUaIlRb7zjYd3886tlCMAQ0-Xk0Nk","emoji":"🔗","catId":"c1772423750289_8"},{"name":"> refman","url":"https://docs.google.com/document/d/1oO8sRRqVAj7g4FI-beDok11l9t590svvMwLJt5VUg5s","emoji":"🔗","catId":"c1772423750289_8"},{"name":"> 08","url":"https://docs.google.com/document/d/1iI9j5Ort73PLMPnUndQc7JEpPYQtoD3TickliqqSTb0/edit","emoji":"🔗","catId":"c1772423750289_8"},{"name":"> 09","url":"https://docs.google.com/document/d/1dC7MseGDhCl2x1fEOtmhGxenrMsGGxS9GR2dwJ-qDX8/edit","emoji":"🔗","catId":"c1772423750289_8"},{"name":"> 10","url":"https://docs.google.com/document/d/1Es--zDC4I4XYoklRJnSuMyhS1iggsuK2Y1KDTdHAMNQ/edit","emoji":"🔗","catId":"c1772423750289_8"},{"name":"g calender","url":"https://calendar.google.com/","emoji":"🔗","catId":"c1772423750289_9"},{"name":"g contacts","url":"https://contacts.google.com/","emoji":"🔗","catId":"c1772423750289_9"},{"name":"g photos","url":"https://photos.google.com/","emoji":"🔗","catId":"c1772423750289_9"},{"name":"g maps","url":"https://google.com/maps/","emoji":"🔗","catId":"c1772423750289_9"},{"name":"google","url":"https://google.com/","emoji":"🔗","catId":"c1772423750289_9"},{"name":"g FiMsg","url":"https://messages.google.com/web/","emoji":"🔗","catId":"c1772423750289_9"},{"name":"g earth","url":"https://earth.google.com/web/","emoji":"🔗","catId":"c1772423750289_9"},{"name":"g mail","url":"https://mail.google.com/mail/u/0/?tab=mm#inbox","emoji":"🔗","catId":"c1772423750289_9"},{"name":"> compose","url":"https://mail.google.com/mail/?view=cm&fs=1&tf=1","emoji":"🔗","catId":"c1772423750289_9"},{"name":"youtube","url":"https://youtube.com/","emoji":"🔗","catId":"c1772423750289_9"},{"name":"g fiAccnt","url":"https://fi.google.com","emoji":"🔗","catId":"c1772423750289_9"},{"name":"g chat","url":"https://chat.google.com/","emoji":"🔗","catId":"c1772423750289_10"},{"name":"g design","url":"https://design.google/","emoji":"🔗","catId":"c1772423750289_10"},{"name":"g domains","url":"https://domains.google/","emoji":"🔗","catId":"c1772423750289_10"},{"name":"g experimt","url":"https://experiments.withgoogle.com/experiments","emoji":"🔗","catId":"c1772423750289_10"},{"name":"g groups","url":"https://groups.google.com/","emoji":"🔗","catId":"c1772423750289_10"},{"name":"g sites","url":"https://sites.google.com/","emoji":"🔗","catId":"c1772423750289_10"},{"name":"geni","url":"https://geni.com/family-tree/index/6000000004118029730","emoji":"🔗","catId":"c1772423750289_11"},{"name":"gedcom","url":"https://pewu.github.io/topola-viewer/#/view?url=https://theo-armour.github.io/genealogy/gedcom-files/2025-08-18-export-geni/export-BloodTree.ged","emoji":"🔗","catId":"c1772423750289_11"},{"name":"myheritage","url":"https://www.myheritage.com/","emoji":"🔗","catId":"c1772423750289_11"},{"name":"ancestry","url":"https://www.ancestry.com/","emoji":"🔗","catId":"c1772423750289_11"},{"name":"wikitree","url":"https://www.wikitree.com/wiki/Main_Page","emoji":"🔗","catId":"c1772423750289_11"},{"name":"prompt","url":"https://my.promptsmart.com/scripts","emoji":"🔗","catId":"c1772423750289_11"},{"name":"whatsapp","url":"https://web.whatsapp.com/","emoji":"🔗","catId":"c1772423750289_11"},{"name":"raindrop","url":"https://app.raindrop.io/my/-1","emoji":"🔗","catId":"c1772423750289_11"},{"name":"linkedin","url":"https://linkedin.com/","emoji":"🔗","catId":"c1772423750289_11"},{"name":"instagram","url":"https://instagram.com/","emoji":"🔗","catId":"c1772423750289_11"},{"name":"dictanoth","url":"https://dictanote.co/","emoji":"🔗","catId":"c1772423750289_11"},{"name":"excalidrw","url":"https://excalidraw.com/","emoji":"🔗","catId":"c1772423750289_11"},{"name":"bsky","url":"https://bsky.app/","emoji":"🔗","catId":"c1772423750289_11"},{"name":"threads","url":"https://www.threads.net/web/","emoji":"🔗","catId":"c1772423750289_11"},{"name":"nextdoor","url":"https://nextdoor.com/","emoji":"🔗","catId":"c1772423750289_11"},{"name":"stackoflow","url":"https://stackoverflow.com/","emoji":"🔗","catId":"c1772423750289_11"},{"name":"facebook","url":"https://facebook.com/","emoji":"🔗","catId":"c1772423750289_11"},{"name":"trmnl","url":"https://usetrmnl.com/dashboard","emoji":"🔗","catId":"c1772423750289_11"},{"name":"audiopen","url":"https://audiopen.ai/","emoji":"🔗","catId":"c1772423750289_11"},{"name":"spotify","url":"https://www.spotify.com/","emoji":"🔗","catId":"c1772423750289_11"},{"name":"dropbox","url":"https://dropbox.com/home","emoji":"🔗","catId":"c1772423750289_11"},{"name":"evernote","url":"https://evernote.com/Home.action","emoji":"🔗","catId":"c1772423750289_11"},{"name":"flickr","url":"https://flickr.com/","emoji":"🔗","catId":"c1772423750289_11"},{"name":"tumblr","url":"https://tumblr.com/","emoji":"🔗","catId":"c1772423750289_11"},{"name":"lowercase","url":"https://www.lowercase.app/workspace/9b004c32-5287-4fe7-8d1f-c66a0cc1a31c/edit","emoji":"🔗","catId":"c1772423750289_11"},{"name":"threejs","url":"https://threejs.org","emoji":"🔗","catId":"c1772423750289_12"},{"name":"mdn","url":"https://developer.mozilla.org/en-US/","emoji":"🔗","catId":"c1772423750289_12"},{"name":"regex","url":"https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions/Cheatsheet","emoji":"🔗","catId":"c1772423750289_12"},{"name":"wiki","url":"https://en.wikipedia.org","emoji":"🔗","catId":"c1772423750289_12"},{"name":"> wContent","url":"https://en.wikipedia.org/wiki/Wikipedia:Contents/Categories","emoji":"🔗","catId":"c1772423750289_12"},{"name":"trendsG","url":"https://trends.google.com/trends/?geo=US","emoji":"🔗","catId":"c1772423750289_12"},{"name":"thesaurus","url":"https://thesaurus.com","emoji":"🔗","catId":"c1772423750289_12"},{"name":"translate","url":"https://translate.google.com/","emoji":"🔗","catId":"c1772423750289_12"},{"name":"validator","url":"https://validator.w3.org/","emoji":"🔗","catId":"c1772423750289_12"},{"name":"speedtest","url":"https://speed.cloudflare.com/","emoji":"🔗","catId":"c1772423750289_12"},{"name":"nextvilge","url":"https://nextvillagesf.org/","emoji":"🔗","catId":"c1772423750289_13"},{"name":"sensay","url":"https://sensay.io/","emoji":"🔗","catId":"c1772423750289_13"},{"name":"sacsem","url":"https://sacsem.net","emoji":"🔗","catId":"c1772423750289_13"},{"name":"wix","url":"https://manage.wix.com/dashboard/b2537da6-a144-4436-bf40-8f3b36dcd723/home","emoji":"🔗","catId":"c1772423750289_13"},{"name":"groups.io","url":"https://groups.io/groups","emoji":"🔗","catId":"c1772423750289_13"},{"name":"ace-it.gr","url":"https://ace-it.groups.io/","emoji":"🔗","catId":"c1772423750289_13"},{"name":"hertge.gr","url":"https://heritage.groups.io/g/residents/messages","emoji":"🔗","catId":"c1772423750289_13"},{"name":"hotm","url":"https://heritageonthemarina.org/","emoji":"🔗","catId":"c1772423750289_14"},{"name":"p","url":"https://photos.fife.usercontent.google.com/pw/AP1GczMD9HRaxaWkG-W4JSgWilu9PVt29jRaMmifj8aZX3qM0I76RQV1RYsvdA=w1473-h831-s-no-gm?authuser=0","emoji":"🔗","catId":"c1772423750289_14"},{"name":"worxhub","url":"https://theheritagesf.theworxhub.com/Dashboard","emoji":"🔗","catId":"c1772423750289_14"},{"name":"tchTwn","url":"https://www.residentapps.com/","emoji":"🔗","catId":"c1772423750289_14"},{"name":"pph","url":"https://www.pineparkhealth.com/","emoji":"🔗","catId":"c1772423750289_14"},{"name":"elatn","url":"https://app.elationpassport.com/passport/login/","emoji":"🔗","catId":"c1772423750289_14"},{"name":"g","url":"https://github.com/heritage-happenings/heritage-happenings.github.io/","emoji":"🔗","catId":"c1772423750289_14"},{"name":"HerHap","url":"https://heritage-happenings.github.io/","emoji":"🔗","catId":"c1772423750289_14"},{"name":"g","url":"https://github.com/heritage-happenings/documents/","emoji":"🔗","catId":"c1772423750289_14"},{"name":"documnts","url":"https://heritage-happenings.github.io/documents/","emoji":"🔗","catId":"c1772423750289_14"},{"name":"kiosk","url":"https://heritage-happenings.github.io/kiosk","emoji":"🔗","catId":"c1772423750289_14","repoUrl":"https://github.com/heritage-happenings/kiosk/"},{"name":"calendar","url":"https://heritage-happenings.github.io/happenings-issues/calendar.html","emoji":"🔗","catId":"c1772423750289_14"},{"name":"newlettr","url":"https://heritage-happenings.github.io/happenings-issues/newsletter.html","emoji":"🔗","catId":"c1772423750289_14"},{"name":"theo24hh","url":"https://onedrive.live.com/?id=4348E1419F457EB2%21807727&cid=4348E1419F457EB2","emoji":"🔗","catId":"c1772423750289_14"},{"name":"g-priv","url":"https://github.com/heritage-happenings/private","emoji":"🔗","catId":"c1772423750289_14"},{"name":"wp-sflp","url":"https://en.wikipedia.org/wiki/Draft:San_Francisco_Ladies_Protection_and_Relief_Society","emoji":"🔗","catId":"c1772423750289_14"},{"name":"flr plans","url":"https://heritage-happenings.github.io/pages/reference/2024-05-happenings-floor-plans.pdf","emoji":"🔗","catId":"c1772423750289_14"},{"name":"xls","url":"https://1drv.ms/x/s!ArJ-RZ9B4UhDzOxNalqGdbMK8F97dA?e=p49UHF","emoji":"🔗","catId":"c1772423750289_14"},{"name":"resdir","url":"https://1drv.ms/b/s!ArJ-RZ9B4UhDzOxGlz6HYF0kYMpFwA?e=Lh8FYs","emoji":"🔗","catId":"c1772423750289_14"},{"name":"granucci","url":"https://EverEverLand.github.io/granucci/","emoji":"🔗","catId":"c1772423750289_14"},{"name":"notesy","url":"https://theo-armour.github.io/qdata/apps/notesy","emoji":"🔗","catId":"c1772423750289_15","repoUrl":"https://github.com/theo-armour/qdata/tree/master/apps/notesy"},{"name":"read me","url":"https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/README.md","emoji":"🔗","catId":"c1772423750289_15"},{"name":"AxisOrdinry","url":"https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/axis-of-ordinary.md","emoji":"🔗","catId":"c1772423750289_15"},{"name":"Art2Write","url":"https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/articles-to-write-video.md","emoji":"🔗","catId":"c1772423750289_15"},{"name":"Inspiration","url":"https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/inspirations-sources.md","emoji":"🔗","catId":"c1772423750289_15"},{"name":"jokes","url":"https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/jokes-quotes.md","emoji":"🔗","catId":"c1772423750289_15"},{"name":"lingo","url":"https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/lingo.md","emoji":"🔗","catId":"c1772423750289_15"},{"name":"location","url":"https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/location-marina.md","emoji":"🔗","catId":"c1772423750289_15"},{"name":"shortcuts","url":"https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/shortcuts.md","emoji":"🔗","catId":"c1772423750289_15"},{"name":"iforget","url":"https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/things-i-forget.md","emoji":"🔗","catId":"c1772423750289_15"},{"name":"ilike","url":"https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/things-i-like.md","emoji":"🔗","catId":"c1772423750289_15"},{"name":"tips","url":"https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/tips.md","emoji":"🔗","catId":"c1772423750289_15"},{"name":"poem-otd","url":"https://poets.org/poem-a-day","emoji":"🔗","catId":"c1772423750289_15"},{"name":"Jaanga","url":"http://jaanga.github.io/","emoji":"🔗","catId":"c1772423750289_15"},{"name":"gh","url":"https://github.com/jaanga/jaanga.github.io/","emoji":"🔗","catId":"c1772423750289_15"},{"name":"> demo","url":"https://jaanga.github.io/demo/","emoji":"🔗","catId":"c1772423750289_15"},{"name":"konturno","url":"https://konturno.github.io/","emoji":"🔗","catId":"c1772423750289_15"},{"name":"gh","url":"https://github.com/konturno/konturno.github.io/","emoji":"🔗","catId":"c1772423750289_15"},{"name":"2023","url":"https://konturno.github.io/2023","emoji":"🔗","catId":"c1772423750289_15"},{"name":"gh","url":"https://github.com/konturno/konturno.github.io/2023","emoji":"🔗","catId":"c1772423750289_15"},{"name":"eel 19","url":"https://evereverland.github.io/2019","emoji":"🔗","catId":"c1772423750289_15"},{"name":"gh","url":"https://github.com/evereverland/2019","emoji":"🔗","catId":"c1772423750289_15"},{"name":"eel 22","url":"https://evereverland.github.io","emoji":"🔗","catId":"c1772423750289_15"},{"name":"gh","url":"https://github.com/evereverland/evereverland.github.io","emoji":"🔗","catId":"c1772423750289_15"},{"name":"plainJS","url":"https://plain-javascript.github.io","emoji":"🔗","catId":"c1772423750289_15"},{"name":"gh","url":"https://github.com/plain-JavaScript/plain-JavaScript.github.io","emoji":"🔗","catId":"c1772423750289_15"},{"name":"gh","url":"https://github.com/plain-JavaScript/awesome-list","emoji":"🔗","catId":"c1772423750289_15"},{"name":"bizcard","url":"https://theo-armour.github.io/2024/about/theo-business-card.html","emoji":"🔗","catId":"c1772428088465"},{"name":"days","url":"https://theo-armour.github.io/qdata/apps/notesy/days.html","emoji":"🔗","catId":"c1772428088465","repoUrl":"https://github.com/theo-armour/qdata/tree/master/apps/notesy"},{"name":"demo","url":"https://theo-armour.github.io/2021/demo-reel/v-2021-08-31/iframe-carousel-r1.html","emoji":"🔗","catId":"c1772428088465"},{"name":"mouth","url":"https://theo-armour.github.io/mouth-stl-2022/simple-stl","emoji":"🔗","catId":"c1772428088465"},{"name":"newTab","url":"https://theo-armour.github.io/qdata/apps/newww-tab/","emoji":"🔗","catId":"c1772428088465","repoUrl":"https://github.com/theo-armour/qdata/tree/master/apps/newww-tab"},{"name":"notesy","url":"https://theo-armour.github.io/qdata/apps/notesy","emoji":"🔗","catId":"c1772428088465","repoUrl":"https://github.com/theo-armour/qdata/tree/master/apps/notesy"},{"name":"ifrStuff","url":"https://theo-armour.github.io/qdata/apps/iframe-stuff","emoji":"🔗","catId":"c1772428088465","repoUrl":"https://github.com/theo-armour/qdata/blob/main/apps/iframe-stuff/2023-05-02/iframe-stuff.html"},{"name":"teodori","url":"https://theo-armour.github.io/qdata/apps/teodori","emoji":"🔗","catId":"c1772428088465","repoUrl":"https://github.com/theo-armour/qdata/tree/master/apps/teodori"},{"name":"trayo","url":"https://theo-armour.github.io/qdata/apps/trayo/","emoji":"🔗","catId":"c1772428088465","repoUrl":"https://github.com/theo-armour/qdata/tree/master/apps/trayo"},{"name":"evrlnd","url":"https://evereverland.github.io/","emoji":"🔗","catId":"c1772501192746","repoUrl":"https://github.com/evereverland/"},{"name":"2019","url":"https://evereverland.github.io/2019","emoji":"🔗","catId":"c1772501192746","repoUrl":"https://github.com/evereverland/2019/"},{"name":"gbxml","url":"https://www.gbxml.org","emoji":"🔗","catId":"c1772501192746"},{"name":"ppAssets","url":"https://pushme-pullyou.github.io/assets/","emoji":"🔗","catId":"c1772501192746","repoUrl":"https://github.com/pushme-pullyou/assets/"},{"name":"g","url":"https://github.com/pushme-pullyou/2024/","emoji":"🔗","catId":"c1772501192746"},{"name":"PshPll","url":"https://pushme-pullyou.github.io/","emoji":"🔗","catId":"c1772501192746","repoUrl":"https://github.com/pushme-pullyou/"}],"collapsed":{}};
-/*BAKE_END*/
+// ── State ─────────────────────────────────────────────────
+let state = null;
+let isDirty = false;
+let allCollapsed = false;
 
+// ── Utils ─────────────────────────────────────────────────
+const uid  = () => 'id' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const esc  = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const deep = o => JSON.parse(JSON.stringify(o));
 
-let D,eLI=-1,eCI=null,cI=-1;
-const $=id=>document.getElementById(id);
-const OCTOCAT='<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>';
-let dirty=localStorage.getItem('newtab_dirty')==='1'; // true when localStorage has edits not yet saved
-function setDirty(v){dirty=v;localStorage.setItem('newtab_dirty',v?'1':'0')}
-function load(){try{const s=localStorage.getItem(SK);D=s?JSON.parse(s):JSON.parse(JSON.stringify(DD))}catch{D=JSON.parse(JSON.stringify(DD))}}
-function sv(){localStorage.setItem(SK,JSON.stringify(D))}
-function h(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
-function getQ(){return $('search-input').value}
-function update(){setDirty(true);sv();render(getQ())}
+// ── Normalize file → runtime state (adds IDs) ─────────────
+const normalize = data => ({
+  columns: (data.columns || []).map(col => ({
+    id:        uid(),
+    title:     col.title || '',
+    collapsed: false,
+    sections:  (col.sections || []).map(sec => ({
+      id:        uid(),
+      title:     sec.title || '',
+      collapsed: false,
+      links:     (sec.links || []).map(lk => ({
+        id:             uid(),
+        title:          lk.title          || '',
+        url:            lk.url            || '',
+        secondaryTitle: lk.g ? 'g' : (lk.secondary || lk.secondaryTitle || ''),
+        secondaryUrl:   lk.g || lk.secondaryUrl || '',
+      }))
+    }))
+  }))
+});
 
-function setG(){
-  $('greeting-text').textContent='NewwwTab';
-  const now=new Date();
-  const hr=now.getHours();
-  const greet=hr<12?'Good Morning':hr<17?'Good Afternoon':'Good Evening';
-  $('date-text').textContent=greet+' · '+now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
-}
-setInterval(setG,60000);
-
-function trunc(s,n){return s.length>n?s.slice(0,n):s}
-const favFailed=new Set();
-function favErr(img,emoji){favFailed.add(img.dataset.domain);const s=document.createElement('span');s.className='le';s.textContent=emoji||'🔗';img.replaceWith(s)}
-
-function getColCount(){
-  const w=window.innerWidth;
-  if(w<=500)return 1;
-  if(w<=800)return 4;
-  if(w<=1100)return 6;
-  if(w<=1400)return 8;
-  return 10;
-}
-
-function render(f=''){
-  const box=$('columns');box.innerHTML='';
-  const q=f.toLowerCase().trim();let any=false;
-  const numCols=getColCount();
-
-  // Create column divs
-  const cols=[];
-  for(let i=0;i<numCols;i++){
-    const col=document.createElement('div');
-    col.className='col';
-    box.appendChild(col);
-    cols.push(col);
-  }
-
-  D.categories.forEach(cat=>{
-    let cl=D.links.filter(l=>l.catId===cat.id);
-    if(q)cl=cl.filter(l=>l.name.toLowerCase().includes(q)||l.url.toLowerCase().includes(q)||cat.name.toLowerCase().includes(q));
-    if(q&&cl.length===0)return;
-    any=true;
-
-    // Place in assigned column (mod numCols for responsive)
-    const colIdx=(cat.col!=null?cat.col:0)%numCols;
-
-    const block=document.createElement('div');
-    block.className='cat-block'+(D.collapsed[cat.id]?' collapsed':'');
-    const catDisplay=trunc(cat.name,9);
-    const catTitle=cat.name+(cl.length?' ('+cl.length+' links)':'')+' · col '+cat.col;
-    block.innerHTML=`<div class="cat-head"><span class="cat-toggle">▼</span><span class="cat-name" title="${h(catTitle)}">${h(catDisplay)}</span></div><ul class="link-list" data-cat="${cat.id}"></ul>`;
-    cols[colIdx].appendChild(block);
-
-    block.querySelector('.cat-head').addEventListener('click',()=>{
-      D.collapsed[cat.id]=!D.collapsed[cat.id];update();
-    });
-    block.querySelector('.cat-head').addEventListener('contextmenu',e=>{
-      e.preventDefault();showCatCtx(e.clientX,e.clientY,cat.id);
-    });
-
-    const ul=block.querySelector('.link-list');
-    cl.forEach(lk=>{
-      const gi=D.links.indexOf(lk);
-      const li=document.createElement('li');li.className='link-row';
-      li.draggable=true;
-      li.dataset.gi=gi;
-      const mainUrl=toUrl(lk.url);
-      const repoHtml=lk.repoUrl?`<a class="lg" href="${toUrl(lk.repoUrl)}" draggable="false" title="Repo" target="_blank" rel="noopener">${OCTOCAT}</a>`:'';
-      const domain=mainUrl.replace(/^https?:\/\//,'').split('/')[0];
-      const faviconUrl='https://www.google.com/s2/favicons?domain='+domain+'&sz=16';
-      const useEmoji=favFailed.has(domain);
-      const iconHtml=useEmoji
-        ?`<span class="le">${lk.emoji||'🔗'}</span>`
-        :`<img class="le" src="${faviconUrl}" width="16" height="16" data-domain="${domain}" data-fb="${h(lk.emoji||'🔗')}" onerror="favErr(this,this.dataset.fb)" />`;
-      const linkDisplay=trunc(lk.name,15);
-      const linkTitle=lk.name.length>15?' title="'+h(lk.name)+'"':'';
-      li.innerHTML=`<a href="${mainUrl}" draggable="false" target="_blank" rel="noopener"${linkTitle}>${iconHtml}<span class="ln">${h(linkDisplay)}</span></a>${repoHtml}`;
-      li.addEventListener('contextmenu',e=>{e.preventDefault();showCtx(e.clientX,e.clientY,gi)});
-
-      li.addEventListener('dragstart',e=>{
-        dragSrcIdx=gi;
-        li.classList.add('dragging');
-        e.dataTransfer.effectAllowed='move';
+// ── Serialize runtime state → clean JSON (removes IDs) ────
+const serialize = () => ({
+  columns: state.columns.map(col => ({
+    title: col.title,
+    sections: col.sections.map(sec => {
+      const out = {};
+      if (sec.title) out.title = sec.title;
+      out.links = sec.links.map(lk => {
+        const o = { title: lk.title, url: lk.url };
+        if (lk.secondaryUrl) {
+          if (!lk.secondaryTitle || lk.secondaryTitle === 'g' || lk.secondaryTitle === 'gh') {
+            o.g = lk.secondaryUrl;
+          } else {
+            o.secondary    = lk.secondaryTitle;
+            o.secondaryUrl = lk.secondaryUrl;
+          }
+        }
+        return o;
       });
-      li.addEventListener('dragend',()=>{li.classList.remove('dragging');clearDragStates()});
-      li.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';clearDragStates();li.classList.add('drag-over')});
-      li.addEventListener('dragleave',()=>{li.classList.remove('drag-over')});
-      li.addEventListener('drop',e=>{
-        e.preventDefault();clearDragStates();
-        if(dragSrcIdx<0)return;
-        const targetIdx=parseInt(li.dataset.gi);
-        dropLink(dragSrcIdx,targetIdx,cat.id);
-      });
-
-      ul.appendChild(li);
-    });
-
-    // Allow dropping into empty category or at end of list
-    ul.addEventListener('dragover',e=>{
-      if(e.target===ul){e.preventDefault();e.dataTransfer.dropEffect='move';ul.classList.add('drag-over-empty')}
-    });
-    ul.addEventListener('dragleave',e=>{if(e.target===ul)ul.classList.remove('drag-over-empty')});
-    ul.addEventListener('drop',e=>{
-      if(e.target===ul){e.preventDefault();ul.classList.remove('drag-over-empty');
-        if(dragSrcIdx<0)return;
-        dropLinkToEnd(dragSrcIdx,cat.id);
-      }
-    });
-  });
-  if(!any){box.innerHTML='';const nr=document.createElement('div');nr.className='no-results';nr.textContent='No Matches Found';box.appendChild(nr)}
-}
-
-// Re-render on resize to adjust column count
-let resizeTimer;
-window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>render(getQ()),150)});
-
-$('search-input').addEventListener('input',e=>render(e.target.value));
-
-function setAllCollapsed(v){D.categories.forEach(c=>D.collapsed[c.id]=v);update()}
-function toggleAll(){D.categories.some(c=>!D.collapsed[c.id])?setAllCollapsed(true):setAllCollapsed(false)}
-
-// Category reorder
-function moveCat(catId,dir){
-  const i=D.categories.findIndex(c=>c.id===catId);
-  const ni=i+dir;
-  if(ni<0||ni>=D.categories.length)return;
-  const tmp=D.categories[i];D.categories[i]=D.categories[ni];D.categories[ni]=tmp;
-  update();
-}
-
-// Link drag and drop
-let dragSrcIdx=-1;
-
-function clearDragStates(){
-  document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));
-  document.querySelectorAll('.drag-over-empty').forEach(el=>el.classList.remove('drag-over-empty'));
-}
-
-function dropLink(fromGI,toGI,toCatId){
-  const lk=D.links[fromGI];
-  D.links.splice(fromGI,1);
-  let newToGI=toGI;
-  if(fromGI<toGI)newToGI--;
-  lk.catId=toCatId;
-  D.links.splice(newToGI,0,lk);
-  dragSrcIdx=-1;update();
-}
-
-function dropLinkToEnd(fromGI,toCatId){
-  const lk=D.links[fromGI];
-  D.links.splice(fromGI,1);
-  lk.catId=toCatId;
-  let insertAt=-1;
-  for(let i=D.links.length-1;i>=0;i--){if(D.links[i].catId===toCatId){insertAt=i+1;break}}
-  if(insertAt<0)insertAt=D.links.length;
-  D.links.splice(insertAt,0,lk);
-  dragSrcIdx=-1;update();
-}
-
-function posCtx(el,x,y){el.style.left=Math.min(x,innerWidth-160)+'px';el.style.top=Math.min(y,innerHeight-180)+'px';el.classList.add('active')}
-function showCtx(x,y,i){cI=i;posCtx($('ctx'),x,y)}
-function hideCtx(){$('ctx').classList.remove('active');$('cat-ctx').classList.remove('active')}
-
-// Category context menu
-let cCatId=null;
-function showCatCtx(x,y,catId){cCatId=catId;posCtx($('cat-ctx'),x,y)}
-function catCtxAdd(){hideCtx();openLinkModal(-1,cCatId)}
-function catCtxEdit(){hideCtx();openCatModal(cCatId)}
-function catCtxUp(){hideCtx();moveCat(cCatId,-1)}
-function catCtxDn(){hideCtx();moveCat(cCatId,1)}
-function catCtxTop(){hideCtx();const i=D.categories.findIndex(c=>c.id===cCatId);if(i>0){const cat=D.categories.splice(i,1)[0];D.categories.unshift(cat);update()}}
-function catCtxColLeft(){hideCtx();const c=D.categories.find(x=>x.id===cCatId);if(c&&c.col>0){c.col--;update()}}
-function catCtxColRight(){hideCtx();const c=D.categories.find(x=>x.id===cCatId);if(c&&(c.col||0)<getColCount()-1){c.col=(c.col||0)+1;update()}}
-function catCtxDel(){hideCtx();if(cCatId){const cat=D.categories.find(c=>c.id===cCatId);if(confirm('Remove "'+cat.name+'"?')){D.links=D.links.filter(l=>l.catId!==cCatId);D.categories=D.categories.filter(c=>c.id!==cCatId);update()}}}
-function ctxEdit(){hideCtx();openLinkModal(cI)}
-function ctxTop(){hideCtx();if(cI>=0){const lk=D.links[cI];D.links.splice(cI,1);const f=D.links.findIndex(l=>l.catId===lk.catId);D.links.splice(f>=0?f:0,0,lk);update()}}
-function ctxDel(){hideCtx();if(cI>=0){D.links.splice(cI,1);update()}}
-
-function openLinkModal(i=-1,pc=null){
-  eLI=i;const cs=$('lm-cat');
-  cs.innerHTML=D.categories.map(c=>'<option value="'+c.id+'">'+c.emoji+' '+h(c.name)+'</option>').join('');
-  if(i>=0){const l=D.links[i];$('lm-title').textContent='Edit Link';$('lm-save').textContent='Save';$('lm-name').value=l.name;$('lm-url').value=l.url;$('lm-repo').value=l.repoUrl||'';$('lm-emoji').value=l.emoji||'';cs.value=l.catId}
-  else{$('lm-title').textContent='Add Link';$('lm-save').textContent='Add';$('lm-name').value='';$('lm-url').value='';$('lm-repo').value='';$('lm-emoji').value='';if(pc)cs.value=pc}
-  $('link-modal').classList.add('active');setTimeout(()=>$('lm-name').focus(),80);
-}
-function saveLink(){
-  const n=$('lm-name').value.trim();let u=$('lm-url').value.trim();const r=$('lm-repo').value.trim();const e=$('lm-emoji').value.trim()||'🔗';const c=$('lm-cat').value;
-  if(!n||!u)return;u=toUrl(u);
-  const obj={name:n,url:u,emoji:e,catId:c};if(r)obj.repoUrl=toUrl(r);
-  if(eLI>=0)D.links[eLI]=obj;else D.links.push(obj);
-  update();closeModal('link-modal');
-}
-function openCatModal(id=null){
-  eCI=id;
-  if(id){const c=D.categories.find(x=>x.id===id);$('cm-title').textContent='Edit Category';$('cm-save').textContent='Save';$('cm-name').value=c.name;$('cm-emoji').value=c.emoji||'';$('cm-col').value=c.col!=null?c.col:0}
-  else{$('cm-title').textContent='Add Category';$('cm-save').textContent='Add';$('cm-name').value='';$('cm-emoji').value='';$('cm-col').value=0}
-  $('cat-modal').classList.add('active');setTimeout(()=>$('cm-name').focus(),80);
-}
-function saveCat(){
-  const n=$('cm-name').value.trim();const e=$('cm-emoji').value.trim()||'📁';const col=parseInt($('cm-col').value)||0;if(!n)return;
-  if(eCI){const c=D.categories.find(x=>x.id===eCI);c.name=n;c.emoji=e;c.col=col}else D.categories.push({id:'c'+Date.now(),name:n,emoji:e,col});
-  update();closeModal('cat-modal');
-}
-function closeModal(id){$(id).classList.remove('active')}
-
-document.addEventListener('click',e=>{if(!e.target.closest('.ctx'))hideCtx();if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('active')});
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){document.querySelectorAll('.modal-overlay.active').forEach(m=>m.classList.remove('active'));hideCtx()}
-  if(e.key==='Enter'){if($('link-modal').classList.contains('active'))saveLink();else if($('cat-modal').classList.contains('active'))saveCat()}
-  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();$('search-input').focus()}
-  if((e.ctrlKey||e.metaKey)&&e.key==='e'){e.preventDefault();toggleAll()}
+      return out;
+    })
+  }))
 });
 
-// Helpers
-function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href)}
-function toUrl(u){return u.startsWith('http')?u:'https://'+u}
+// ── Dirty tracking ────────────────────────────────────────
+const markDirty = () => {
+  isDirty = true;
+  document.getElementById('tb-dirty').classList.add('visible');
+  document.getElementById('btn-save').classList.add('dirty');
+};
+const markClean = () => {
+  isDirty = false;
+  document.getElementById('tb-dirty').classList.remove('visible');
+  document.getElementById('btn-save').classList.remove('dirty');
+};
 
-// Theme (dark mode)
-const ACCENTS=[
-  {name:'Terracotta',color:'#b85a3a'},
-  {name:'Forest',color:'#3a7d5c'},
-  {name:'Ocean',color:'#3a6eb8'},
-  {name:'Plum',color:'#7c3aad'},
-  {name:'Slate',color:'#5a6a7a'},
-  {name:'Ember',color:'#c4442a'},
-  {name:'Gold',color:'#a08020'},
-  {name:'Teal',color:'#2a9d8f'},
-];
+// ── Load from file ────────────────────────────────────────
+const showStatus = (msg, isError) => {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = isError ? 'visible' : 'visible';
+  el.style.color = isError ? 'var(--dirty)' : 'var(--muted)';
+  el.classList.add('visible');
+};
+const hideStatus = () => { document.getElementById('status').classList.remove('visible'); };
 
-function getPrefs(){
-  try{return JSON.parse(localStorage.getItem('newtab_prefs'))||{}}catch{return{}}
-}
-function savePrefs(p){localStorage.setItem('newtab_prefs',JSON.stringify(p))}
-
-function applyTheme(){
-  const p=getPrefs();
-  const mode=p.theme||'auto';
-  let dark=false;
-  if(mode==='dark')dark=true;
-  else if(mode==='auto')dark=window.matchMedia('(prefers-color-scheme:dark)').matches;
-  document.documentElement.setAttribute('data-theme',dark?'dark':'light');
-}
-function setTheme(mode){
-  const p=getPrefs();p.theme=mode;savePrefs(p);
-  applyTheme();updateThemeButtons();
-}
-function updateThemeButtons(){
-  const mode=getPrefs().theme||'auto';
-  ['auto','light','dark'].forEach(t=>{
-    const b=$('theme-'+t);if(b)b.classList.toggle('theme-active',t===mode);
-  });
-}
-
-function applyAccent(){
-  const p=getPrefs();
-  const color=p.accent||'#b85a3a';
-  document.documentElement.style.setProperty('--accent',color);
-  // Update hover-bg to match accent
-  const r=parseInt(color.slice(1,3),16),g=parseInt(color.slice(3,5),16),b=parseInt(color.slice(5,7),16);
-  document.documentElement.style.setProperty('--hover-bg',`rgba(${r},${g},${b},0.06)`);
-}
-function setAccent(color){
-  const p=getPrefs();p.accent=color;savePrefs(p);
-  applyAccent();renderAccentSwatches();
-}
-function renderAccentSwatches(){
-  const row=$('accent-row');if(!row)return;
-  const cur=getPrefs().accent||'#b85a3a';
-  row.innerHTML=ACCENTS.map(a=>
-    `<div class="color-swatch${a.color===cur?' active':''}" style="background:${a.color}" title="${a.name}" onclick="setAccent('${a.color}')"></div>`
-  ).join('');
-}
-
-function openSettings(){
-  $('settings-modal').classList.add('active');
-  updateThemeButtons();renderAccentSwatches();
-  const gs=$('gh-settings');if(gs)gs.style.display=GHS.ghPages()?'':'none';
-  const tb=$('token-btn');if(tb)tb.textContent=GHS.getToken()?'Clear Token':'Set Token';
-  const sd=$('sync-detail');if(sd)sd.textContent=GHS.syncDetail();
-}
-
-// Listen for system theme changes
-window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{
-  if((getPrefs().theme||'auto')==='auto')applyTheme();
-});
-
-// Quick-add: paste a URL anywhere to open Add Link modal
-document.addEventListener('paste',e=>{
-  const active=document.activeElement;
-  if(active&&(active.tagName==='INPUT'||active.tagName==='TEXTAREA'||active.tagName==='SELECT'))return;
-  const txt=(e.clipboardData||window.clipboardData).getData('text').trim();
-  if(!txt.match(/^https?:\/\/\S+/))return;
-  e.preventDefault();
-  openLinkModal(-1);
-  $('lm-url').value=txt;
-  // Guess a name from the domain
-  const name=txt.replace(/^https?:\/\/(www\.)?/,'').split('/')[0].split('.').slice(0,-1).join('.');
-  $('lm-name').value=name||'';
-  setTimeout(()=>$('lm-name').focus(),100);
-});
-
-// === GHS: GitHub Sync (adjacent links.json) ===
-const GHS = (() => {
-  const FILE = 'links.json';
-  const TK_KEY = 'newtab_gh_token';
-  const SHA_KEY = 'newtab_gh_sha';
-  const SAVE_TS_KEY = 'newtab_gh_save_ts';
-  const SAVE_GRACE = 30000; // 30s grace period after save
-  let sha = localStorage.getItem(SHA_KEY) || '';
-
-  const status = msg => { const el = $('sync-status'); if (el) el.textContent = msg; };
-
-  // Detect GitHub Pages: theo-armour.github.io/qdata/apps/newww-tab/
-  function ghPages() {
-    return location.hostname.endsWith('.github.io');
-  }
-
-  // Parse owner/repo/path from GitHub Pages URL
-  function ghInfo() {
-    const owner = location.hostname.split('.')[0]; // theo-armour
-    const parts = location.pathname.split('/').filter(Boolean); // ['qdata','apps','newww-tab']
-    const repo = parts[0] || '';
-    const dir = parts.slice(1).join('/'); // 'apps/newww-tab'
-    const path = dir ? dir + '/' + FILE : FILE;
-    return { owner, repo, path };
-  }
-
-  function getToken() { return localStorage.getItem(TK_KEY) || ''; }
-
-  function promptToken() {
-    const t = prompt(
-      'Enter a GitHub Personal Access Token\n' +
-      '(fine-grained: select repo, Contents → Read and write)\n\n' +
-      'Create one at: https://github.com/settings/tokens'
+const loadFromFile = async () => {
+  showStatus('Loading links.json…');
+  try {
+    const res = await fetch(DATA_FILE + '?t=' + Date.now());
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    state = normalize(data);
+    hideStatus();
+    render();
+    markClean();
+  } catch (e) {
+    showStatus(
+      `Could not load links.json: ${e.message}.\n` +
+      `Run via a local server (python -m http.server) or GitHub Pages. ` +
+      `Or use Import to paste JSON directly.`,
+      true
     );
-    if (t && t.trim()) { localStorage.setItem(TK_KEY, t.trim()); return t.trim(); }
-    return '';
   }
+};
 
-  function clearToken() { localStorage.removeItem(TK_KEY); localStorage.removeItem(SHA_KEY); sha = ''; status('token cleared'); }
+// ── Render ────────────────────────────────────────────────
+const colsEl = document.getElementById('columns');
 
-  async function pull() {
-    // Skip pull if we recently saved via API (CDN may be stale)
-    const lastSave = parseInt(localStorage.getItem(SAVE_TS_KEY) || '0');
-    if (ghPages() && Date.now() - lastSave < SAVE_GRACE) {
-      status('using local (sync pending)');
-      return true;
-    }
-    // Skip pull if localStorage has unsaved edits
-    if (dirty) {
-      status('unsaved local edits');
-      return true;
-    }
-    status('loading…');
-    try {
-      const res = await fetch(FILE + '?t=' + Date.now());
-      if (!res.ok) { status('no links.json found'); return false; }
-      const remote = await res.json();
-      if (remote.categories && remote.links) {
-        const collapsed = D ? D.collapsed : {};
-        D = remote;
-        D.collapsed = collapsed || {};
-        sv();
-        render(getQ());
-        status('loaded ✓');
-        return true;
-      }
-      status('invalid links.json');
-      return false;
-    } catch (e) {
-      status('load error');
-      console.warn('GHS pull error:', e);
-      return false;
-    }
-  }
+const render = () => {
+  colsEl.innerHTML = '';
+  state.columns.forEach(col => colsEl.appendChild(mkColumn(col)));
+  bindColumnSortable();
+  applySearch();
+};
 
-  // Save via GitHub API (on GitHub Pages) or download (local)
-  async function save() {
-    const payload = { categories: D.categories, links: D.links, collapsed: {} };
-    if (!ghPages()) {
-      dl(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }), FILE);
-      setDirty(false);
-      status('downloaded ✓');
+// ── Column ────────────────────────────────────────────────
+const mkColumn = col => {
+  const el = document.createElement('div');
+  el.className = 'col';
+  el.dataset.colId = col.id;
+
+  // Minimal drag/manage handle — visible only on hover
+  const handle = document.createElement('div');
+  handle.className = 'col-handle';
+  handle.innerHTML =
+    `<span class="col-drag" title="Drag column">⠿⠿</span>` +
+    `<span class="col-acts">` +
+      `<button class="ibtn" data-a="left"    title="Move left">◀</button>` +
+      `<button class="ibtn" data-a="right"   title="Move right">▶</button>` +
+      `<button class="ibtn" data-a="add-sec" title="Add section">+sec</button>` +
+      `<button class="ibtn" data-a="del"     title="Delete column">✕col</button>` +
+    `</span>`;
+
+  handle.addEventListener('click', e => {
+    const a = e.target.dataset.a;
+    if (a === 'left')    moveCol(col.id, -1);
+    if (a === 'right')   moveCol(col.id,  1);
+    if (a === 'add-sec') doAddSection(col);
+    if (a === 'del')     delColumn(col);
+  });
+
+  const secsEl = document.createElement('div');
+  secsEl.className = 'col-secs';
+  secsEl.dataset.colId = col.id;
+  col.sections.forEach(sec => secsEl.appendChild(mkSection(sec, col)));
+
+  el.appendChild(handle);
+  el.appendChild(secsEl);
+  bindSectionSortable(secsEl, col);
+  return el;
+};
+
+// ── Section ───────────────────────────────────────────────
+const mkSection = (sec, col) => {
+  const el = document.createElement('div');
+  el.className = 'sec';
+  el.dataset.secId = sec.id;
+
+  const hd = document.createElement('div');
+  hd.className = 'sec-hd';
+  hd.innerHTML =
+    `<span class="sec-toggle">${sec.collapsed ? '▶' : '▼'}</span>` +
+    `<span class="sec-title">${esc(sec.title)}</span>` +
+    `<span class="sec-acts">` +
+      `<button class="ibtn" data-a="rename" title="Rename">✎</button>` +
+      `<button class="ibtn" data-a="del"    title="Delete">✕</button>` +
+    `</span>`;
+
+  hd.addEventListener('click', e => {
+    const a = e.target.dataset.a;
+    if (!a) {
+      sec.collapsed = !sec.collapsed; markDirty();
+      hd.querySelector('.sec-toggle').textContent = sec.collapsed ? '▶' : '▼';
+      body.classList.toggle('collapsed', sec.collapsed);
       return;
     }
-    // GitHub Pages: commit via API
-    let token = getToken();
-    if (!token) { token = promptToken(); if (!token) { status('no token'); return; } }
-    status('saving…');
+    if (a === 'rename') inlineEdit(hd.querySelector('.sec-title'), sec.title, v => { sec.title = v; markDirty(); });
+    if (a === 'del') delSection(col, sec);
+  });
+
+  const body = document.createElement('div');
+  body.className = 'sec-body' + (sec.collapsed ? ' collapsed' : '');
+
+  const listEl = document.createElement('div');
+  listEl.className = 'links-list';
+  listEl.dataset.secId = sec.id;
+  sec.links.forEach(lk => listEl.appendChild(mkLink(lk, sec)));
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-lk-btn';
+  addBtn.textContent = '+ add link';
+  addBtn.addEventListener('click', () => doAddLink(sec));
+
+  // URL drop from address bar
+  body.addEventListener('dragover', e => { e.preventDefault(); body.classList.add('drop-zone-on'); });
+  body.addEventListener('dragleave', () => body.classList.remove('drop-zone-on'));
+  body.addEventListener('drop', e => {
+    e.preventDefault(); body.classList.remove('drop-zone-on');
+    const txt = (e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('text/uri-list') || '').trim();
+    if (!txt.startsWith('http')) return;
+    let title = '';
+    try { title = new URL(txt).hostname.replace(/^www\./, '').slice(0, 10); } catch(x) { title = txt.slice(0, 10); }
+    const newLk = { id: uid(), title, url: txt, secondaryTitle: '', secondaryUrl: '' };
+    sec.links.push(newLk); markDirty();
+    doEditLink(newLk, sec);
+  });
+
+  body.appendChild(listEl);
+  body.appendChild(addBtn);
+  el.appendChild(hd);
+  el.appendChild(body);
+  bindLinkSortable(listEl, sec);
+  return el;
+};
+
+// ── Link ──────────────────────────────────────────────────
+const mkLink = (lk, sec) => {
+  const el = document.createElement('div');
+  el.className = 'lk';
+  el.dataset.linkId = lk.id;
+
+  const display = esc(lk.title.slice(0, 10));
+  const secHtml = lk.secondaryUrl
+    ? `<a class="lk-secondary" href="${esc(lk.secondaryUrl)}" target="_blank" rel="noopener" title="${esc(lk.secondaryUrl)}">[${esc((lk.secondaryTitle||'g').slice(0,3))}]</a>`
+    : '';
+
+  el.innerHTML =
+    `<span class="lk-drag" title="Drag">⠿</span>` +
+    `<span class="lk-main">${secHtml}<a class="lk-primary" href="${esc(lk.url)}" target="_blank" rel="noopener" title="${esc(lk.title)}">${display}</a></span>` +
+    `<span class="lk-acts">` +
+      `<button class="ibtn" data-a="edit" title="Edit">✎</button>` +
+      `<button class="ibtn" data-a="del"  title="Delete">✕</button>` +
+    `</span>`;
+
+  el.querySelector('.lk-acts').addEventListener('click', e => {
+    if (e.target.dataset.a === 'edit') doEditLink(lk, sec);
+    if (e.target.dataset.a === 'del')  delLink(sec, lk);
+  });
+  return el;
+};
+
+// ── Inline rename ─────────────────────────────────────────
+const inlineEdit = (el, current, onSave) => {
+  const inp = document.createElement('input');
+  inp.className = 'inline-edit';
+  inp.value = current;
+  const orig = el.textContent;
+  el.textContent = ''; el.appendChild(inp);
+  inp.focus(); inp.select();
+  const finish = ok => {
+    const v = inp.value.trim();
+    el.textContent = (ok && v) ? v : orig;
+    if (ok && v) onSave(v);
+  };
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter')  { finish(true);  e.stopPropagation(); }
+    if (e.key === 'Escape') { finish(false); e.stopPropagation(); }
+  });
+  inp.addEventListener('blur', () => finish(true));
+};
+
+// ── Modal helper ──────────────────────────────────────────
+const modal = (bodyHtml, btns) => {
+  const ov = document.createElement('div');
+  ov.className = 'modal-ov';
+  const btnHtml = btns.map(b => `<button class="tbtn" data-mid="${b.id}">${esc(b.label)}</button>`).join('');
+  ov.innerHTML = `<div class="modal">${bodyHtml}<div class="modal-btns">${btnHtml}</div></div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click', e => {
+    const mid = e.target.dataset.mid;
+    if (mid) { btns.find(b => b.id === mid)?.fn(ov); return; }
+    if (e.target === ov) ov.remove();
+  });
+  setTimeout(() => { const f = ov.querySelector('input,textarea'); if (f) f.focus(); }, 30);
+  return ov;
+};
+const closeModal = ov => ov.remove();
+
+// ── CRUD ──────────────────────────────────────────────────
+const doAddSection = col => modal(
+  `<h2>Add Section</h2><label>Title (leave blank for untitled)</label><input id="mi-t" value="">`,
+  [{ id:'cancel', label:'Cancel', fn: closeModal },
+   { id:'ok', label:'OK', fn: ov => {
+     col.sections.push({ id: uid(), title: ov.querySelector('#mi-t').value.trim(), collapsed: false, links: [] });
+     markDirty(); render(); closeModal(ov);
+   }}]
+);
+
+const doAddLink = sec => modal(
+  `<h2>Add Link</h2>` +
+  `<label>URL</label><input id="mi-url" placeholder="https://...">` +
+  `<label>Title (optional)</label><input id="mi-t">` +
+  `<label>GitHub URL (optional)</label><input id="mi-g" placeholder="https://github.com/...">`,
+  [{ id:'cancel', label:'Cancel', fn: closeModal },
+   { id:'ok', label:'OK', fn: ov => {
+     const url = ov.querySelector('#mi-url').value.trim();
+     if (!url) return;
+     let title = ov.querySelector('#mi-t').value.trim();
+     if (!title) { try { title = new URL(url).hostname.replace(/^www\./,'').slice(0,10); } catch(x) { title = url.slice(0,10); } }
+     sec.links.push({ id: uid(), title, url, secondaryTitle: ov.querySelector('#mi-g').value.trim() ? 'g' : '', secondaryUrl: ov.querySelector('#mi-g').value.trim() });
+     markDirty(); render(); closeModal(ov);
+   }}]
+);
+
+const doEditLink = (lk, sec) => modal(
+  `<h2>Edit Link</h2>` +
+  `<label>Title</label><input id="mi-t"   value="${esc(lk.title)}">` +
+  `<label>URL</label><input id="mi-url" value="${esc(lk.url)}">` +
+  `<label>GitHub URL (shorthand "g" label)</label><input id="mi-g" value="${esc(lk.secondaryTitle==='g'||!lk.secondaryTitle ? lk.secondaryUrl : '')}">` +
+  `<label>Other secondary label</label><input id="mi-sl" value="${esc(lk.secondaryTitle!=='g' ? lk.secondaryTitle : '')}">` +
+  `<label>Other secondary URL</label><input id="mi-su" value="${esc(lk.secondaryTitle!=='g' ? lk.secondaryUrl : '')}">`,
+  [{ id:'cancel', label:'Cancel', fn: closeModal },
+   { id:'ok', label:'OK', fn: ov => {
+     const url = ov.querySelector('#mi-url').value.trim();
+     if (!url) return;
+     const g  = ov.querySelector('#mi-g').value.trim();
+     const sl = ov.querySelector('#mi-sl').value.trim();
+     const su = ov.querySelector('#mi-su').value.trim();
+     lk.title          = ov.querySelector('#mi-t').value.trim() || url;
+     lk.url            = url;
+     lk.secondaryTitle = g ? 'g' : sl;
+     lk.secondaryUrl   = g || su;
+     markDirty(); render(); closeModal(ov);
+   }}]
+);
+
+const delColumn  = col  => { if (col.sections.some(s => s.links.length) && !confirm(`Delete column "${col.title}"?`)) return; state.columns = state.columns.filter(c => c.id !== col.id); markDirty(); render(); };
+const delSection = (col, sec) => { if (sec.links.length && !confirm(`Delete section "${sec.title}" with ${sec.links.length} link(s)?`)) return; col.sections = col.sections.filter(s => s.id !== sec.id); markDirty(); render(); };
+const delLink    = (sec, lk) => { sec.links = sec.links.filter(l => l.id !== lk.id); markDirty(); render(); };
+const moveCol    = (id, dir) => { const i = state.columns.findIndex(c => c.id === id); const j = i + dir; if (j < 0 || j >= state.columns.length) return; [state.columns[i], state.columns[j]] = [state.columns[j], state.columns[i]]; markDirty(); render(); };
+
+// ── Search ────────────────────────────────────────────────
+const searchEl = document.getElementById('tb-search');
+let searchTimer;
+const applySearch = () => {
+  const q = searchEl.value.trim().toLowerCase();
+  document.querySelectorAll('.lk').forEach(el => {
+    const a = el.querySelector('a.lk-primary');
+    if (!a) return;
+    const match = !q || (a.textContent + a.href).toLowerCase().includes(q);
+    el.classList.toggle('search-hidden', !match);
+    a.classList.toggle('search-match', !!q && match);
+  });
+};
+searchEl.addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(applySearch, 80); });
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); searchEl.focus(); searchEl.select(); }
+  if (e.key === 'Escape' && document.activeElement === searchEl) { searchEl.value = ''; applySearch(); searchEl.blur(); }
+});
+
+// ── Toggle all ────────────────────────────────────────────
+document.getElementById('btn-toggle-all').addEventListener('click', () => {
+  allCollapsed = !allCollapsed;
+  state.columns.forEach(col => { col.collapsed = allCollapsed; col.sections.forEach(sec => sec.collapsed = allCollapsed); });
+  markDirty(); render();
+});
+
+// ── Add column ────────────────────────────────────────────
+document.getElementById('btn-add-col').addEventListener('click', () => modal(
+  `<h2>Add Column</h2><label>Title</label><input id="mi-t" value="New Column">`,
+  [{ id:'cancel', label:'Cancel', fn: closeModal },
+   { id:'ok', label:'OK', fn: ov => {
+     const t = ov.querySelector('#mi-t').value.trim();
+     if (!t) return;
+     state.columns.push({ id: uid(), title: t, collapsed: false, sections: [{ id: uid(), title: '', collapsed: false, links: [] }] });
+     markDirty(); render(); closeModal(ov);
+   }}]
+));
+
+// ── SortableJS ────────────────────────────────────────────
+const bindColumnSortable = () => Sortable.create(colsEl, {
+  animation: 150, handle: '.col-handle',
+  ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen',
+  onEnd: () => {
+    const order = Array.from(colsEl.querySelectorAll('[data-col-id]')).map(e => e.dataset.colId);
+    state.columns = order.map(id => state.columns.find(c => c.id === id)).filter(Boolean);
+    markDirty();
+  }
+});
+
+const bindSectionSortable = (el, col) => Sortable.create(el, {
+  group: 'secs', animation: 150, handle: '.sec-hd',
+  ghostClass: 'sortable-ghost',
+  onEnd: evt => {
+    const srcCol = state.columns.find(c => c.id === evt.from.dataset.colId);
+    const tgtCol = state.columns.find(c => c.id === evt.to.dataset.colId);
+    if (!srcCol || !tgtCol) return;
+    const si = srcCol.sections.findIndex(s => s.id === evt.item.dataset.secId);
+    const [sec] = srcCol.sections.splice(si, 1);
+    tgtCol.sections.splice(Math.max(Array.from(evt.to.children).indexOf(evt.item), 0), 0, sec);
+    markDirty(); render();
+  }
+});
+
+const bindLinkSortable = (el, sec) => Sortable.create(el, {
+  group: 'links', animation: 150, handle: '.lk-drag',
+  ghostClass: 'sortable-ghost',
+  onEnd: evt => {
+    let srcSec = null, tgtSec = null;
+    state.columns.forEach(c => c.sections.forEach(s => {
+      if (s.id === evt.from.dataset.secId) srcSec = s;
+      if (s.id === evt.to.dataset.secId)   tgtSec = s;
+    }));
+    if (!srcSec || !tgtSec) return;
+    const li = srcSec.links.findIndex(l => l.id === evt.item.dataset.linkId);
+    const [lk] = srcSec.links.splice(li, 1);
+    tgtSec.links.splice(Math.max(Array.from(evt.to.children).indexOf(evt.item), 0), 0, lk);
+    markDirty(); render();
+  }
+});
+
+// ── Save (push to GitHub) ─────────────────────────────────
+document.getElementById('btn-save').addEventListener('click', () => {
+  const token = localStorage.getItem(TOKEN_KEY) || '';
+  const ov = document.createElement('div');
+  ov.className = 'modal-ov';
+  ov.innerHTML = `<div class="modal">
+    <h2>⬆ Save to GitHub</h2>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:8px">Pushes current data to <code>links.json</code> in your repo.</p>
+    <label>Repository</label><input id="s-repo" value="theo-armour/sandbox">
+    <label>File path</label><input id="s-path" value="cookbook/newwtab/links.json">
+    <label>GitHub Token</label><input id="s-tok" type="password" value="${esc(token)}" placeholder="ghp_...">
+    <div class="modal-btns">
+      <button class="tbtn" id="s-cancel">Cancel</button>
+      <button class="tbtn" id="s-push">⬆ Push</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+
+  ov.querySelector('#s-cancel').addEventListener('click', () => ov.remove());
+  ov.querySelector('#s-push').addEventListener('click', async () => {
+    const tok  = ov.querySelector('#s-tok').value.trim();
+    const repo = ov.querySelector('#s-repo').value.trim();
+    const path = ov.querySelector('#s-path').value.trim();
+    if (!tok) { alert('Token required.'); return; }
+    localStorage.setItem(TOKEN_KEY, tok);
+    const hdrs = { Authorization: `token ${tok}`, 'Content-Type': 'application/json' };
     try {
-      const { owner, repo, path } = ghInfo();
-      const api = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-      const headers = { Accept: 'application/vnd.github.v3+json', Authorization: 'Bearer ' + token };
-      // Get current SHA
-      const getRes = await fetch(api + '?t=' + Date.now(), { headers });
-      let remoteSha = '';
-      if (getRes.ok) {
-        const getJson = await getRes.json();
-        remoteSha = getJson.sha;
-        if (sha && remoteSha !== sha) {
-          if (!confirm('Remote changed since you loaded. Overwrite?')) { status('cancelled'); return; }
-        }
-      }
-      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
-      const body = { message: 'Update links.json', content: encoded, branch: 'main' };
-      if (remoteSha) body.sha = remoteSha;
-      const putRes = await fetch(api, {
-        method: 'PUT',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+      let sha = '';
+      const gr = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, { headers: hdrs });
+      if (gr.ok) sha = (await gr.json()).sha || '';
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify(serialize(), null, 2))));
+      const pr = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+        method: 'PUT', headers: hdrs,
+        body: JSON.stringify({ message: 'newwwtab: update links', content, sha })
       });
-      if (putRes.ok) {
-        const putJson = await putRes.json();
-        sha = putJson.content.sha;
-        localStorage.setItem(SHA_KEY, sha);
-        localStorage.setItem(SAVE_TS_KEY, String(Date.now()));
-        setDirty(false);
-        status('saved ✓ ' + new Date().toLocaleTimeString());
-      } else {
-        const err = await putRes.json();
-        status('save failed: ' + (err.message || putRes.status));
-        if (putRes.status === 401) { localStorage.removeItem(TK_KEY); status('bad token — cleared, try again'); }
-      }
-    } catch (e) {
-      status('save error');
-      console.warn('GHS save error:', e);
-    }
-  }
+      if (!pr.ok) throw new Error(`${pr.status} ${pr.statusText}`);
+      markClean(); ov.remove(); alert('Saved ✓');
+    } catch(e) { alert('Save failed: ' + e.message); }
+  });
+  ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+});
 
-  function syncDetail(){
-    if(dirty) return 'Unsaved local edits — press Save to keep them.';
-    return 'In sync with links.json.';
-  }
+// ── Export ────────────────────────────────────────────────
+document.getElementById('btn-export').addEventListener('click', () => {
+  const jsonStr = JSON.stringify(serialize(), null, 2);
+  const mdLines = [];
+  state.columns.forEach(col => {
+    mdLines.push(`# ${col.title}`);
+    col.sections.forEach(sec => {
+      if (sec.title) mdLines.push(`\n## ${sec.title}`);
+      sec.links.forEach(l => mdLines.push(`[${l.title}](${l.url})` + (l.secondaryUrl ? ` [${l.secondaryTitle||'g'}](${l.secondaryUrl})` : '')));
+    });
+    mdLines.push('');
+  });
+  const mdStr = mdLines.join('\n');
+  let mode = 'json';
 
-  async function forcePull(){
-    if(!confirm('Discard unsaved edits and reload from links.json?')) return;
-    setDirty(false);
-    localStorage.removeItem(SAVE_TS_KEY);
-    await pull();
-    status('force-pulled');
-  }
+  const ov = document.createElement('div');
+  ov.className = 'modal-ov';
+  ov.innerHTML = `<div class="modal">
+    <h2>Export</h2>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <button class="tbtn" id="ex-json">JSON</button>
+      <button class="tbtn" id="ex-md">Markdown</button>
+      <button class="tbtn" id="ex-copy">Copy</button>
+    </div>
+    <textarea id="ex-ta">${esc(jsonStr)}</textarea>
+    <div class="modal-btns">
+      <button class="tbtn" id="ex-dl">Download</button>
+      <button class="tbtn" id="ex-close">Close</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  const ta = ov.querySelector('#ex-ta');
+  ov.querySelector('#ex-json').addEventListener('click',  () => { mode = 'json'; ta.value = jsonStr; });
+  ov.querySelector('#ex-md').addEventListener('click',    () => { mode = 'md';   ta.value = mdStr; });
+  ov.querySelector('#ex-copy').addEventListener('click',  () => navigator.clipboard.writeText(ta.value).then(() => alert('Copied!')));
+  ov.querySelector('#ex-dl').addEventListener('click',    () => {
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([ta.value], {type:'text/plain'})), download: 'links.' + mode });
+    a.click();
+  });
+  ov.querySelector('#ex-close').addEventListener('click', () => ov.remove());
+  ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+});
 
-  return { pull, save, clearToken, getToken, promptToken, ghPages, status, syncDetail, forcePull };
-})();
+// ── Settings ──────────────────────────────────────────────
+document.getElementById('btn-settings').addEventListener('click', () => modal(
+  `<h2>Settings</h2>` +
+  `<label><input type="checkbox" id="mi-reload"> Reload data from links.json</label><br><br>` +
+  `<p style="font-size:11px;color:var(--muted)">To import data: Export → copy JSON → edit links.json → reload page.</p>`,
+  [{ id:'cancel', label:'Cancel', fn: closeModal },
+   { id:'ok', label:'OK', fn: ov => {
+     if (ov.querySelector('#mi-reload').checked) { closeModal(ov); loadFromFile(); }
+     else closeModal(ov);
+   }}]
+));
 
-// Load: local first, then pull adjacent links.json
-(async () => {
-  load(); applyTheme(); applyAccent(); setG(); render();
-  const sb = $('save-btn');
-  if (sb) sb.textContent = GHS.ghPages() ? 'Save ↑' : 'Save JSON';
-  await GHS.pull();
-})();
+// ── Date ──────────────────────────────────────────────────
+const tick = () => {
+  const n = new Date();
+  document.getElementById('tb-date').textContent =
+    n.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + ' · ' +
+    n.toLocaleDateString([], {weekday:'long', month:'long', day:'numeric', year:'numeric'});
+};
+tick(); setInterval(tick, 30000);
 
-// Clean up address bar to show directory URL
-if(location.protocol.startsWith('http')&&location.pathname.endsWith('.html')){
-  const dir=location.pathname.substring(0,location.pathname.lastIndexOf('/')+1);
-  history.replaceState(null,'',dir+location.search+location.hash);
-}
+// ── Boot ──────────────────────────────────────────────────
+loadFromFile();
 </script>
-</body></html>
+</body>
+</html>
