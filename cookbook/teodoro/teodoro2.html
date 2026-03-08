@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teodoro 2</title>
+  <style>
+    :root {
+      --bg: #1a1a2e;
+      --card-bg: #16213e;
+      --shadow: rgba(0,0,0,0.4);
+      --text: #ccd6f6;
+      --muted: #8892b0;
+      --accent: #64ffda;
+      --btn-bg: #1a1a2e;
+      --btn-border: #555;
+      --btn-hover-bg: #2a2a4e;
+      --preset-border: #3a3a5e;
+      --slider-bg: #333;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f0f2f5;
+        --card-bg: #ffffff;
+        --shadow: rgba(0,0,0,0.12);
+        --text: #1a1a2e;
+        --muted: #5a6077;
+        --accent: #0a8a6a;
+        --btn-bg: #f5f6f8;
+        --btn-border: #c0c4cc;
+        --btn-hover-bg: #e8eaf0;
+        --preset-border: #d0d3da;
+        --slider-bg: #ccc;
+      }
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: clamp(6px, 2vmin, 16px);
+      padding: clamp(10px, 2.5vmin, 20px);
+      width: min(96vw, 380px);
+      max-height: 98vh;
+      box-shadow: 0 8px 32px var(--shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(4px, 1.2vmin, 10px);
+      overflow-y: auto;
+    }
+
+    h1 {
+      font-size: clamp(14px, 2.5vmin, 18px);
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    /* MM:SS display */
+    .display {
+      font-size: clamp(28px, 11vmin, 72px);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+
+    /* Status line */
+    .status {
+      font-size: clamp(13px, 2.2vmin, 17px);
+      font-weight: 700;
+      color: var(--accent);
+      min-height: 1.3em;
+    }
+
+    .status.music {
+      color: #ff6b6b;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
+
+    /* Generic row */
+    .row {
+      display: flex;
+      gap: clamp(4px, 1.2vmin, 8px);
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+
+    /* All buttons */
+    button {
+      background: var(--btn-bg);
+      color: var(--text);
+      border: 2px solid var(--btn-border);
+      border-radius: clamp(6px, 1.5vmin, 10px);
+      padding: clamp(5px, 1.1vmin, 9px) clamp(12px, 2.8vmin, 26px);
+      font-size: clamp(15px, 2.8vmin, 20px);
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+
+    button:hover { background: var(--btn-hover-bg); border-color: var(--accent); color: var(--accent); }
+    button:active { transform: scale(0.95); }
+
+    /* Preset row buttons */
+    .presets button {
+      padding: clamp(3px, 0.8vmin, 6px) clamp(8px, 2vmin, 16px);
+      border-radius: clamp(8px, 2vmin, 16px);
+      color: var(--muted);
+      border-color: var(--preset-border);
+      font-size: clamp(13px, 2.2vmin, 16px);
+    }
+
+    .presets button.active {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--btn-hover-bg);
+    }
+
+    /* Music stop button */
+    .stop-btn {
+      background: #ff6b6b22;
+      border-color: #ff6b6b;
+      color: #ff6b6b;
+    }
+
+    .stop-btn:hover { background: #ff6b6b44; border-color: #ff6b6b; color: #ff6b6b; }
+
+    /* +/- interval row */
+    .adj-btn {
+      width: clamp(28px, 5vmin, 42px);
+      height: clamp(28px, 5vmin, 42px);
+      padding: 0;
+      font-size: clamp(16px, 3.2vmin, 24px);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .adj-label {
+      font-size: clamp(15px, 2.8vmin, 20px);
+      font-weight: 700;
+      color: var(--muted);
+      min-width: clamp(50px, 10vmin, 80px);
+      text-align: center;
+    }
+
+    .adj-label span { color: var(--text); }
+
+    /* Volume row */
+    .vol-row {
+      display: flex;
+      align-items: center;
+      gap: clamp(4px, 1.2vmin, 10px);
+      width: 100%;
+      justify-content: center;
+    }
+
+    .vol-icon {
+      font-size: clamp(16px, 2.8vmin, 22px);
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    .vol-icon:hover { color: var(--accent); }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: clamp(60px, 45vw, 190px);
+      height: clamp(4px, 0.8vmin, 6px);
+      border-radius: 3px;
+      background: var(--slider-bg);
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: clamp(14px, 2.5vmin, 20px);
+      height: clamp(14px, 2.5vmin, 20px);
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+
+    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.3); }
+
+    input[type=range]::-moz-range-thumb {
+      width: clamp(14px, 2.5vmin, 20px);
+      height: clamp(14px, 2.5vmin, 20px);
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: none;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>Teodoro 2</h1>
+
+    <div class="display" id="display">18:00</div>
+    <div class="status" id="status">Ready</div>
+
+    <!-- Pause/Resume — hidden while music plays -->
+    <div class="row" id="timerControls">
+      <button id="pauseBtn" onclick="togglePause()">Start</button>
+    </div>
+
+    <!-- Restart — shown while music plays -->
+    <div class="row hidden" id="musicControls">
+      <button class="stop-btn" onclick="restartFromMusic()">Restart</button>
+    </div>
+
+    <!-- Preset buttons — pressing one starts the timer immediately -->
+    <div class="row presets" id="presets">
+      <button onclick="setPreset(5, true)">5 sec</button>
+      <button onclick="setPreset(5)">5 min</button>
+      <button onclick="setPreset(8)">8 min</button>
+      <button onclick="setPreset(18)">18 min</button>
+    </div>
+
+    <!-- +/- to add/subtract seconds (when in sec mode) or minutes -->
+    <div class="row">
+      <button class="adj-btn" onclick="adjust(-1)">−</button>
+      <div class="adj-label"><span id="adjVal">18</span> <span id="adjUnit">min</span></div>
+      <button class="adj-btn" onclick="adjust(1)">+</button>
+    </div>
+
+    <!-- Volume -->
+    <div class="vol-row">
+      <span class="vol-icon" id="volIcon" onclick="toggleMute()">🔊</span>
+      <input type="range" id="volSlider" min="0" max="100" value="80" oninput="onVolume(this.value)">
+    </div>
+  </div>
+
+  <script>
+    // ── State ──────────────────────────────────────────────────────────────────
+    let intervalVal = 18;       // numeric value shown in +/- row
+    let inSeconds = false;      // true when 5-sec preset is active
+    let remaining = 18 * 60;    // seconds left on the clock
+    let duration = remaining;   // total seconds at start of current run (for halfway chime)
+    let ticker = null;
+    let running = false;
+    let audio = null;
+    let musicOn = false;
+
+    const saved = localStorage.getItem( "teodoro2Volume" );
+    let vol = saved !== null ? parseFloat( saved ) : 0.8;
+    let muted = false;
+
+    // ── DOM refs ───────────────────────────────────────────────────────────────
+    const displayEl    = document.getElementById( "display" );
+    const statusEl     = document.getElementById( "status" );
+    const pauseBtn     = document.getElementById( "pauseBtn" );
+    const timerCtrls   = document.getElementById( "timerControls" );
+    const musicCtrls   = document.getElementById( "musicControls" );
+    const adjValEl     = document.getElementById( "adjVal" );
+    const adjUnitEl    = document.getElementById( "adjUnit" );
+    const volSlider    = document.getElementById( "volSlider" );
+    const volIcon      = document.getElementById( "volIcon" );
+
+    // ── Web Audio chime engine ─────────────────────────────────────────────────
+    let audioCtx = null;
+
+    const getCtx = () => {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if ( !AC ) return null;
+      if ( !audioCtx || audioCtx.state === "closed" ) audioCtx = new AC();
+      if ( audioCtx.state === "suspended" ) audioCtx.resume();
+      return audioCtx;
+    };
+
+    // Ten distinct melodic patterns
+    const chimeSets = [
+      [ { f:880,t:0,d:.1 }, { f:1109,t:.1,d:.1 }, { f:880,t:.2,d:.1 }, { f:1318,t:.3,d:.4 },
+        { f:880,t:1.0,d:.1 }, { f:1109,t:1.1,d:.1 }, { f:880,t:1.2,d:.1 }, { f:1318,t:1.3,d:.4 } ],
+      [ { f:523,t:0,d:.15 }, { f:659,t:.15,d:.15 }, { f:784,t:.3,d:.15 }, { f:1047,t:.45,d:.5 } ],
+      [ { f:988,t:0,d:.3 }, { f:784,t:.35,d:.5 }, { f:988,t:1.1,d:.3 }, { f:784,t:1.45,d:.5 } ],
+      [ { f:1319,t:0,d:.12 }, { f:1109,t:.12,d:.12 }, { f:880,t:.24,d:.12 },
+        { f:659,t:.36,d:.12 }, { f:523,t:.48,d:.5 } ],
+      [ { f:659,t:0,d:.2 }, { f:784,t:.15,d:.2 }, { f:880,t:.5,d:.2 },
+        { f:1047,t:.65,d:.2 }, { f:1175,t:1.0,d:.5 } ],
+      [ { f:587,t:0,d:.08 }, { f:740,t:.08,d:.08 }, { f:880,t:.16,d:.08 },
+        { f:1109,t:.24,d:.08 }, { f:1318,t:.32,d:.6 } ],
+      [ { f:784,t:0,d:.12 }, { f:988,t:.15,d:.12 }, { f:784,t:.3,d:.12 },
+        { f:1175,t:.45,d:.12 }, { f:988,t:.6,d:.12 }, { f:1318,t:.75,d:.4 } ],
+      [ { f:740,t:0,d:.5 }, { f:1109,t:.05,d:.4 }, { f:740,t:.8,d:.5 }, { f:1175,t:.85,d:.4 } ],
+      [ { f:659,t:0,d:.25 }, { f:523,t:.3,d:.25 }, { f:587,t:.6,d:.25 }, { f:392,t:.9,d:.6 } ],
+      [ { f:1047,t:0,d:.08 }, { f:1319,t:.1,d:.08 }, { f:1047,t:.2,d:.08 },
+        { f:1319,t:.3,d:.08 }, { f:1047,t:.4,d:.08 }, { f:1568,t:.5,d:.5 } ]
+    ];
+
+    const playChime = () => {
+      const ctx = getCtx();
+      if ( !ctx ) return;
+      const v = muted ? 0 : vol;
+      if ( v <= 0 ) return;
+      const notes = chimeSets[ Math.floor( Math.random() * chimeSets.length ) ];
+      const now = ctx.currentTime;
+      notes.forEach( n => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect( gain );
+        gain.connect( ctx.destination );
+        osc.type = "sine";
+        osc.frequency.setValueAtTime( n.f, now + n.t );
+        gain.gain.setValueAtTime( 0, now + n.t );
+        gain.gain.linearRampToValueAtTime( v * 0.5, now + n.t + 0.02 );
+        gain.gain.exponentialRampToValueAtTime( 0.01, now + n.t + n.d );
+        osc.start( now + n.t );
+        osc.stop( now + n.t + n.d + 0.1 );
+      } );
+    };
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+    const fmt = s => {
+      const m = Math.floor( s / 60 ).toString().padStart( 2, "0" );
+      const sec = ( s % 60 ).toString().padStart( 2, "0" );
+      return `${ m }:${ sec }`;
+    };
+
+    const refreshDisplay = () => { displayEl.textContent = fmt( remaining ); };
+
+    const refreshVolIcon = () => {
+      volIcon.textContent = ( muted || vol === 0 ) ? "🔇" : vol < 0.5 ? "🔈" : "🔊";
+    };
+
+    const highlightPreset = ( val, sec ) => {
+      document.querySelectorAll( "#presets button" ).forEach( b => {
+        b.classList.toggle( "active",
+          sec ? b.textContent === `${ val } sec` : b.textContent === `${ val } min` );
+      } );
+    };
+
+    // ── Timer core ─────────────────────────────────────────────────────────────
+    const tick = () => {
+      remaining--;
+      refreshDisplay();
+
+      // Halfway chime
+      if ( remaining > 0 && remaining === Math.floor( duration / 2 ) ) {
+        playChime();
+      }
+
+      // Timer finished → start music
+      if ( remaining <= 0 ) {
+        clearInterval( ticker );
+        ticker = null;
+        running = false;
+        startMusic();
+      }
+    };
+
+    const startCountdown = () => {
+      if ( running ) return;
+      if ( remaining <= 0 ) {
+        remaining = inSeconds ? intervalVal : intervalVal * 60;
+        duration = remaining;
+        refreshDisplay();
+      }
+      ticker = setInterval( tick, 1000 );
+      running = true;
+      pauseBtn.textContent = "Pause";
+      statusEl.textContent = "Counting down…";
+      statusEl.className = "status";
+    };
+
+    const pauseCountdown = () => {
+      clearInterval( ticker );
+      ticker = null;
+      running = false;
+      pauseBtn.textContent = "Resume";
+      statusEl.textContent = "Paused";
+      statusEl.className = "status";
+    };
+
+    const togglePause = () => { running ? pauseCountdown() : startCountdown(); };
+
+    // ── Music ──────────────────────────────────────────────────────────────────
+    const startMusic = () => {
+      audio = new Audio( "https://ice1.somafm.com/groovesalad-128-mp3" );
+      audio.volume = muted ? 0 : vol;
+      audio.play().catch( () => {
+        statusEl.textContent = "Tap anywhere to play music";
+        document.addEventListener( "click", () => audio && audio.play().catch( () => {} ), { once: true } );
+      } );
+      musicOn = true;
+      statusEl.textContent = "Time to walk! 🚶";
+      statusEl.className = "status music";
+      timerCtrls.classList.add( "hidden" );
+      musicCtrls.classList.remove( "hidden" );
+    };
+
+    const stopMusic = () => {
+      if ( audio ) { audio.pause(); audio.src = ""; audio = null; }
+      musicOn = false;
+      timerCtrls.classList.remove( "hidden" );
+      musicCtrls.classList.add( "hidden" );
+      remaining = inSeconds ? intervalVal : intervalVal * 60;
+      duration = remaining;
+      refreshDisplay();
+      pauseBtn.textContent = "Start";
+      statusEl.textContent = "Ready";
+      statusEl.className = "status";
+    };
+
+    const restartFromMusic = () => { stopMusic(); startCountdown(); };
+
+    // ── Presets ────────────────────────────────────────────────────────────────
+    // Pressing a preset stops any running timer/music and immediately starts counting
+    const setPreset = ( val, sec = false ) => {
+      if ( musicOn ) stopMusic();
+      clearInterval( ticker );
+      ticker = null;
+      running = false;
+
+      intervalVal = val;
+      inSeconds = sec;
+      remaining = sec ? val : val * 60;
+      duration = remaining;
+
+      adjValEl.textContent = val;
+      adjUnitEl.textContent = sec ? "sec" : "min";
+
+      refreshDisplay();
+      highlightPreset( val, sec );
+
+      // Auto-start immediately
+      startCountdown();
+    };
+
+    // ── +/- adjustment ─────────────────────────────────────────────────────────
+    // Adjusts seconds when in sec mode, otherwise minutes
+    const adjust = ( delta ) => {
+      if ( inSeconds ) {
+        intervalVal = Math.max( 1, Math.min( 300, intervalVal + delta ) );
+        adjValEl.textContent = intervalVal;
+        adjUnitEl.textContent = "sec";
+        if ( !running && !musicOn ) {
+          remaining = intervalVal;
+          duration = remaining;
+          refreshDisplay();
+        }
+      } else {
+        intervalVal = Math.max( 1, Math.min( 60, intervalVal + delta ) );
+        adjValEl.textContent = intervalVal;
+        adjUnitEl.textContent = "min";
+        if ( !running && !musicOn ) {
+          remaining = intervalVal * 60;
+          duration = remaining;
+          refreshDisplay();
+        }
+      }
+      highlightPreset( intervalVal, inSeconds );
+    };
+
+    // ── Volume ─────────────────────────────────────────────────────────────────
+    const onVolume = ( value ) => {
+      vol = value / 100;
+      muted = vol === 0;
+      refreshVolIcon();
+      localStorage.setItem( "teodoro2Volume", vol );
+      if ( audio ) audio.volume = muted ? 0 : vol;
+    };
+
+    const toggleMute = () => {
+      muted = !muted;
+      if ( !muted && vol === 0 ) { vol = 0.8; volSlider.value = 80; }
+      volSlider.value = muted ? 0 : vol * 100;
+      if ( audio ) audio.volume = muted ? 0 : vol;
+      refreshVolIcon();
+    };
+
+    // ── Keyboard: space = pause/resume or restart ──────────────────────────────
+    document.addEventListener( "keydown", e => {
+      if ( e.code === "Space" && e.target === document.body ) {
+        e.preventDefault();
+        musicOn ? restartFromMusic() : togglePause();
+      }
+    } );
+
+    // ── Init ───────────────────────────────────────────────────────────────────
+    volSlider.value = vol * 100;
+    refreshDisplay();
+    refreshVolIcon();
+    highlightPreset( intervalVal, inSeconds );
+  </script>
+</body>
+
+</html>

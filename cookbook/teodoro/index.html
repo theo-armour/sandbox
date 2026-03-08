@@ -64,30 +64,29 @@
 
     .card {
       background: var(--card-bg);
-      border-radius: clamp(6px, 2vmin, 16px);
-      padding: clamp(8px, 2vmin, 16px);
-      width: min(96vw, 96vh * 0.7, 360px);
-      min-width: 200px;
+      border-radius: clamp(4px, 2vmin, 16px);
+      padding: clamp(6px, 2vmin, 16px);
+      width: min(96vw, 360px);
       max-height: 98vh;
       box-shadow: 0 8px 32px var(--card-shadow);
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: clamp(2px, 1vmin, 8px);
+      gap: clamp(1px, 1vmin, 8px);
       overflow-y: auto;
       overflow-x: hidden;
     }
 
     h1 {
-      font-size: clamp(14px, 2.5vmin, 18px);
+      font-size: clamp(10px, 2.5vmin, 18px);
       font-weight: 700;
       color: var(--text-muted);
       letter-spacing: 1px;
     }
 
     .timer-display {
-      font-size: clamp(24px, 10vmin, 64px);
+      font-size: clamp(14px, 10vmin, 64px);
       font-weight: 700;
       font-variant-numeric: tabular-nums;
       color: var(--text);
@@ -95,7 +94,7 @@
     }
 
     .status {
-      font-size: clamp(14px, 2.2vmin, 18px);
+      font-size: clamp(10px, 2.2vmin, 18px);
       font-weight: 700;
       color: var(--accent);
       min-height: 1.2em;
@@ -134,7 +133,7 @@
       border: 2px solid var(--btn-border);
       border-radius: clamp(6px, 1.5vmin, 10px);
       padding: clamp(4px, 1vmin, 8px) clamp(10px, 2.5vmin, 24px);
-      font-size: clamp(15px, 2.8vmin, 20px);
+      font-size: clamp(11px, 2.8vmin, 20px);
       font-weight: 700;
       cursor: pointer;
       transition: all 0.2s;
@@ -167,7 +166,7 @@
       border-radius: clamp(8px, 2vmin, 16px);
       color: var(--text-preset);
       border-color: var(--preset-border);
-      font-size: clamp(13px, 2.2vmin, 16px);
+      font-size: clamp(10px, 2.2vmin, 16px);
       font-weight: 700;
     }
 
@@ -183,8 +182,8 @@
     }
 
     .interval-control button {
-      width: clamp(26px, 4.5vmin, 40px);
-      height: clamp(26px, 4.5vmin, 40px);
+      width: clamp(18px, 4.5vmin, 40px);
+      height: clamp(18px, 4.5vmin, 40px);
       padding: 0;
       font-size: clamp(14px, 3vmin, 22px);
       border-radius: 50%;
@@ -194,7 +193,7 @@
     }
 
     .interval-label {
-      font-size: clamp(15px, 2.8vmin, 20px);
+      font-size: clamp(11px, 2.8vmin, 20px);
       font-weight: 700;
       color: var(--text-muted);
       min-width: clamp(36px, 8vmin, 70px);
@@ -228,7 +227,7 @@
     .volume-slider {
       -webkit-appearance: none;
       appearance: none;
-      width: clamp(50px, 45vw, 180px);
+      width: clamp(30px, 45vw, 180px);
       height: clamp(4px, 0.8vmin, 6px);
       border-radius: 3px;
       background: var(--slider-bg);
@@ -527,9 +526,7 @@
       }
       updateDisplay();
       highlightMatchingPreset( value, isSeconds );
-      startPauseBtn.textContent = "Start";
-      statusEl.textContent = "Ready";
-      statusEl.className = "status";
+      toggleTimer();
     };
 
     // Play SomaFM Groove Salad stream

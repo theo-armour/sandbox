@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teodoro 3</title>
+  <style>
+    :root {
+      --bg: #0f0f14;
+      --track: #2a2a3a;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --accent: #34d399;
+      --amber: #f59e0b;
+      --red: #f87171;
+      --btn-bg: rgba(255,255,255,0.06);
+      --btn-border: rgba(255,255,255,0.12);
+      --btn-hover: rgba(255,255,255,0.12);
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f8fafc;
+        --track: #e2e8f0;
+        --text: #1e293b;
+        --muted: #94a3b8;
+        --accent: #059669;
+        --amber: #d97706;
+        --red: #dc2626;
+        --btn-bg: rgba(0,0,0,0.04);
+        --btn-border: rgba(0,0,0,0.1);
+        --btn-hover: rgba(0,0,0,0.08);
+      }
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      transition: background 0.6s;
+    }
+
+    /* Music-playing background pulse */
+    body.music-mode {
+      animation: bgpulse 2s ease-in-out infinite;
+    }
+
+    @keyframes bgpulse {
+      0%,100% { background: #0f1a14; }
+      50%      { background: #0a1f18; }
+    }
+
+    @media (prefers-color-scheme: light) {
+      body.music-mode { animation: bgpulse-light 2s ease-in-out infinite; }
+      @keyframes bgpulse-light { 0%,100%{background:#e8f5f0} 50%{background:#d1ede3} }
+    }
+
+    /* ── Layout ── */
+    .scene {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(6px, 1.8vmin, 14px);
+      padding: clamp(8px, 2vmin, 20px);
+    }
+
+    /* ── Ring ── */
+    .ring-wrap {
+      position: relative;
+      width: min(58vmin, 58vw, 300px);
+      height: min(58vmin, 58vw, 300px);
+      flex-shrink: 0;
+    }
+
+    .ring-wrap svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .track-circle {
+      fill: none;
+      stroke: var(--track);
+      stroke-width: 7;
+    }
+
+    .progress-arc {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 7;
+      stroke-linecap: round;
+      transform-origin: center;
+      transform: rotate(-90deg);
+      transition: stroke 0.4s;
+      /* dasharray set by JS */
+    }
+
+    /* Clickable center overlay */
+    .ring-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 50%;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .ring-center:hover .time-num { opacity: 0.85; }
+
+    .time-num {
+      font-size: clamp(28px, 10vmin, 64px);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -1px;
+      line-height: 1;
+      transition: opacity 0.2s;
+    }
+
+    .ring-status {
+      font-size: clamp(11px, 2vmin, 15px);
+      font-weight: 600;
+      color: var(--muted);
+      margin-top: 4px;
+      text-align: center;
+    }
+
+    .ring-status.active { color: var(--accent); }
+    .ring-status.music  { color: var(--red); animation: fadepulse 1.5s ease-in-out infinite; }
+
+    @keyframes fadepulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    .play-icon {
+      font-size: clamp(12px, 2.2vmin, 18px);
+      color: var(--muted);
+      margin-top: 6px;
+      opacity: 0.7;
+    }
+
+    /* ── Preset pills ── */
+    .presets {
+      display: flex;
+      gap: clamp(4px, 1.2vmin, 8px);
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .presets button {
+      background: var(--btn-bg);
+      color: var(--muted);
+      border: 1.5px solid var(--btn-border);
+      border-radius: 999px;
+      padding: clamp(4px, 0.9vmin, 7px) clamp(10px, 2.2vmin, 18px);
+      font-size: clamp(13px, 2.2vmin, 16px);
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .presets button:hover,
+    .presets button.active {
+      background: var(--btn-hover);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* ── Adjust row ── */
+    .adj-row {
+      display: flex;
+      align-items: center;
+      gap: clamp(6px, 1.5vmin, 12px);
+    }
+
+    .adj-btn {
+      background: var(--btn-bg);
+      color: var(--text);
+      border: 1.5px solid var(--btn-border);
+      border-radius: 50%;
+      width: clamp(28px, 5vmin, 40px);
+      height: clamp(28px, 5vmin, 40px);
+      font-size: clamp(16px, 3vmin, 22px);
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      line-height: 1;
+    }
+
+    .adj-btn:hover { background: var(--btn-hover); border-color: var(--accent); color: var(--accent); }
+    .adj-btn:active { transform: scale(0.92); }
+
+    .adj-label {
+      font-size: clamp(14px, 2.5vmin, 18px);
+      font-weight: 700;
+      color: var(--muted);
+      min-width: clamp(52px, 10vmin, 80px);
+      text-align: center;
+    }
+
+    .adj-label span { color: var(--text); }
+
+    /* ── Music stop overlay ── */
+    .music-stop {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .music-stop.visible { display: flex; }
+
+    .stop-btn {
+      background: rgba(248,113,113,0.15);
+      color: var(--red);
+      border: 2px solid var(--red);
+      border-radius: 999px;
+      padding: clamp(5px, 1vmin, 9px) clamp(16px, 3.5vmin, 32px);
+      font-size: clamp(14px, 2.5vmin, 18px);
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .stop-btn:hover { background: rgba(248,113,113,0.28); }
+
+    /* ── Volume ── */
+    .vol-row {
+      display: flex;
+      align-items: center;
+      gap: clamp(6px, 1.2vmin, 10px);
+      width: min(260px, 70vw);
+    }
+
+    .vol-icon {
+      font-size: clamp(15px, 2.6vmin, 20px);
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    .vol-icon:hover { color: var(--accent); }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 1;
+      height: clamp(3px, 0.6vmin, 5px);
+      border-radius: 3px;
+      background: var(--track);
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: clamp(14px, 2.4vmin, 18px);
+      height: clamp(14px, 2.4vmin, 18px);
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+
+    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.35); }
+
+    input[type=range]::-moz-range-thumb {
+      width: clamp(14px, 2.4vmin, 18px);
+      height: clamp(14px, 2.4vmin, 18px);
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="scene">
+
+    <!-- Ring -->
+    <div class="ring-wrap">
+      <svg viewBox="0 0 200 200">
+        <circle class="track-circle" cx="100" cy="100" r="85"/>
+        <circle class="progress-arc" id="arc" cx="100" cy="100" r="85"/>
+      </svg>
+      <div class="ring-center" onclick="togglePause()">
+        <div class="time-num" id="display">18:00</div>
+        <div class="ring-status" id="status">tap to start</div>
+        <div class="play-icon" id="playIcon">▶</div>
+      </div>
+    </div>
+
+    <!-- Presets -->
+    <div class="presets" id="presets">
+      <button onclick="setPreset(5, true)">5 sec</button>
+      <button onclick="setPreset(5)">5 min</button>
+      <button onclick="setPreset(8)">8 min</button>
+      <button onclick="setPreset(18)">18 min</button>
+    </div>
+
+    <!-- Adjust interval -->
+    <div class="adj-row">
+      <button class="adj-btn" onclick="adjust(-1)">−</button>
+      <div class="adj-label"><span id="adjVal">18</span> <span id="adjUnit">min</span></div>
+      <button class="adj-btn" onclick="adjust(1)">+</button>
+    </div>
+
+    <!-- Music mode restart -->
+    <div class="music-stop" id="musicStop">
+      <button class="stop-btn" onclick="restartFromMusic()">↺ Restart</button>
+    </div>
+
+    <!-- Volume -->
+    <div class="vol-row">
+      <span class="vol-icon" id="volIcon" onclick="toggleMute()">🔊</span>
+      <input type="range" id="volSlider" min="0" max="100" value="80" oninput="onVolume(this.value)">
+    </div>
+
+  </div>
+
+  <script>
+    // ── Constants ───────────────────────────────────────────────────────────────
+    const R    = 85;
+    const CIRC = 2 * Math.PI * R; // ~534
+
+    // ── State ───────────────────────────────────────────────────────────────────
+    let intervalVal = 18;
+    let inSeconds   = false;
+    let remaining   = 18 * 60;
+    let duration    = remaining;
+    let ticker      = null;
+    let running     = false;
+    let audio       = null;
+    let musicOn     = false;
+
+    const saved = localStorage.getItem( "teodoro3Volume" );
+    let vol   = saved !== null ? parseFloat( saved ) : 0.8;
+    let muted = false;
+
+    // ── DOM ─────────────────────────────────────────────────────────────────────
+    const displayEl  = document.getElementById( "display" );
+    const statusEl   = document.getElementById( "status" );
+    const playIcon   = document.getElementById( "playIcon" );
+    const arc        = document.getElementById( "arc" );
+    const adjValEl   = document.getElementById( "adjVal" );
+    const adjUnitEl  = document.getElementById( "adjUnit" );
+    const musicStop  = document.getElementById( "musicStop" );
+    const volSlider  = document.getElementById( "volSlider" );
+    const volIconEl  = document.getElementById( "volIcon" );
+
+    // ── Arc helpers ──────────────────────────────────────────────────────────────
+    arc.style.strokeDasharray  = CIRC;
+    arc.style.strokeDashoffset = 0;
+
+    const refreshArc = () => {
+      const frac = duration > 0 ? remaining / duration : 0;
+      arc.style.strokeDashoffset = CIRC * ( 1 - frac );
+
+      // Color shift as time runs low
+      const color = frac > 0.5 ? "var(--accent)"
+                  : frac > 0.2 ? "var(--amber)"
+                  :               "var(--red)";
+      arc.style.stroke = color;
+    };
+
+    // ── Chime engine ─────────────────────────────────────────────────────────────
+    let audioCtx = null;
+
+    const getCtx = () => {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if ( !AC ) return null;
+      if ( !audioCtx || audioCtx.state === "closed" ) audioCtx = new AC();
+      if ( audioCtx.state === "suspended" ) audioCtx.resume();
+      return audioCtx;
+    };
+
+    const chimeSets = [
+      [ {f:880,t:0,d:.1},{f:1109,t:.1,d:.1},{f:880,t:.2,d:.1},{f:1318,t:.3,d:.4},
+        {f:880,t:1.0,d:.1},{f:1109,t:1.1,d:.1},{f:880,t:1.2,d:.1},{f:1318,t:1.3,d:.4} ],
+      [ {f:523,t:0,d:.15},{f:659,t:.15,d:.15},{f:784,t:.3,d:.15},{f:1047,t:.45,d:.5} ],
+      [ {f:988,t:0,d:.3},{f:784,t:.35,d:.5},{f:988,t:1.1,d:.3},{f:784,t:1.45,d:.5} ],
+      [ {f:1319,t:0,d:.12},{f:1109,t:.12,d:.12},{f:880,t:.24,d:.12},
+        {f:659,t:.36,d:.12},{f:523,t:.48,d:.5} ],
+      [ {f:659,t:0,d:.2},{f:784,t:.15,d:.2},{f:880,t:.5,d:.2},
+        {f:1047,t:.65,d:.2},{f:1175,t:1.0,d:.5} ],
+      [ {f:587,t:0,d:.08},{f:740,t:.08,d:.08},{f:880,t:.16,d:.08},
+        {f:1109,t:.24,d:.08},{f:1318,t:.32,d:.6} ],
+      [ {f:784,t:0,d:.12},{f:988,t:.15,d:.12},{f:784,t:.3,d:.12},
+        {f:1175,t:.45,d:.12},{f:988,t:.6,d:.12},{f:1318,t:.75,d:.4} ],
+      [ {f:740,t:0,d:.5},{f:1109,t:.05,d:.4},{f:740,t:.8,d:.5},{f:1175,t:.85,d:.4} ],
+      [ {f:659,t:0,d:.25},{f:523,t:.3,d:.25},{f:587,t:.6,d:.25},{f:392,t:.9,d:.6} ],
+      [ {f:1047,t:0,d:.08},{f:1319,t:.1,d:.08},{f:1047,t:.2,d:.08},
+        {f:1319,t:.3,d:.08},{f:1047,t:.4,d:.08},{f:1568,t:.5,d:.5} ]
+    ];
+
+    const playChime = () => {
+      const ctx = getCtx();
+      if ( !ctx ) return;
+      const v = muted ? 0 : vol;
+      if ( v <= 0 ) return;
+      const notes = chimeSets[ Math.floor( Math.random() * chimeSets.length ) ];
+      const now = ctx.currentTime;
+      notes.forEach( n => {
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.connect( gain ); gain.connect( ctx.destination );
+        osc.type = "sine";
+        osc.frequency.setValueAtTime( n.f, now + n.t );
+        gain.gain.setValueAtTime( 0, now + n.t );
+        gain.gain.linearRampToValueAtTime( v * 0.5, now + n.t + 0.02 );
+        gain.gain.exponentialRampToValueAtTime( 0.01, now + n.t + n.d );
+        osc.start( now + n.t );
+        osc.stop( now + n.t + n.d + 0.1 );
+      } );
+    };
+
+    // ── Display helpers ──────────────────────────────────────────────────────────
+    const fmt = s => {
+      const m = Math.floor( s / 60 ).toString().padStart( 2, "0" );
+      const sec = ( s % 60 ).toString().padStart( 2, "0" );
+      return `${ m }:${ sec }`;
+    };
+
+    const setStatus = ( text, cls = "" ) => {
+      statusEl.textContent = text;
+      statusEl.className = "ring-status" + ( cls ? " " + cls : "" );
+    };
+
+    const refreshVolIcon = () => {
+      volIconEl.textContent = ( muted || vol === 0 ) ? "🔇" : vol < 0.5 ? "🔈" : "🔊";
+    };
+
+    const highlightPreset = ( val, sec ) => {
+      document.querySelectorAll( "#presets button" ).forEach( b => {
+        b.classList.toggle( "active",
+          sec ? b.textContent === `${ val } sec` : b.textContent === `${ val } min` );
+      } );
+    };
+
+    // ── Timer core ───────────────────────────────────────────────────────────────
+    const tick = () => {
+      remaining--;
+      displayEl.textContent = fmt( remaining );
+      refreshArc();
+
+      if ( remaining > 0 && remaining === Math.floor( duration / 2 ) ) playChime();
+
+      if ( remaining <= 0 ) {
+        clearInterval( ticker ); ticker = null; running = false;
+        startMusic();
+      }
+    };
+
+    const startCountdown = () => {
+      if ( running ) return;
+      if ( remaining <= 0 ) {
+        remaining = inSeconds ? intervalVal : intervalVal * 60;
+        duration = remaining;
+        displayEl.textContent = fmt( remaining );
+        refreshArc();
+      }
+      ticker = setInterval( tick, 1000 );
+      running = true;
+      setStatus( "counting down…", "active" );
+      playIcon.textContent = "∥";
+    };
+
+    const pauseCountdown = () => {
+      clearInterval( ticker ); ticker = null; running = false;
+      setStatus( "paused" );
+      playIcon.textContent = "▶";
+    };
+
+    const togglePause = () => {
+      if ( musicOn ) return;
+      running ? pauseCountdown() : startCountdown();
+    };
+
+    // ── Music ────────────────────────────────────────────────────────────────────
+    const startMusic = () => {
+      audio = new Audio( "https://ice1.somafm.com/groovesalad-128-mp3" );
+      audio.volume = muted ? 0 : vol;
+      audio.play().catch( () => {
+        setStatus( "tap to play music", "music" );
+        document.addEventListener( "click", () => audio && audio.play().catch( () => {} ), { once: true } );
+      } );
+      musicOn = true;
+      document.body.classList.add( "music-mode" );
+      setStatus( "🚶 time to walk!", "music" );
+      playIcon.textContent = "♪";
+      arc.style.stroke = "var(--accent)";
+      arc.style.strokeDashoffset = 0;
+      musicStop.classList.add( "visible" );
+    };
+
+    const stopMusic = () => {
+      if ( audio ) { audio.pause(); audio.src = ""; audio = null; }
+      musicOn = false;
+      document.body.classList.remove( "music-mode" );
+      musicStop.classList.remove( "visible" );
+      remaining = inSeconds ? intervalVal : intervalVal * 60;
+      duration = remaining;
+      displayEl.textContent = fmt( remaining );
+      refreshArc();
+      setStatus( "tap to start" );
+      playIcon.textContent = "▶";
+    };
+
+    const restartFromMusic = () => { stopMusic(); startCountdown(); };
+
+    // ── Presets ──────────────────────────────────────────────────────────────────
+    const setPreset = ( val, sec = false ) => {
+      if ( musicOn ) stopMusic();
+      clearInterval( ticker ); ticker = null; running = false;
+
+      intervalVal = val;
+      inSeconds = sec;
+      remaining = sec ? val : val * 60;
+      duration = remaining;
+
+      adjValEl.textContent = val;
+      adjUnitEl.textContent = sec ? "sec" : "min";
+
+      displayEl.textContent = fmt( remaining );
+      refreshArc();
+      highlightPreset( val, sec );
+
+      startCountdown();
+    };
+
+    // ── Adjust ───────────────────────────────────────────────────────────────────
+    const adjust = ( delta ) => {
+      if ( inSeconds ) {
+        intervalVal = Math.max( 1, Math.min( 300, intervalVal + delta ) );
+        adjUnitEl.textContent = "sec";
+        if ( !running && !musicOn ) { remaining = intervalVal; duration = remaining; }
+      } else {
+        intervalVal = Math.max( 1, Math.min( 60, intervalVal + delta ) );
+        adjUnitEl.textContent = "min";
+        if ( !running && !musicOn ) { remaining = intervalVal * 60; duration = remaining; }
+      }
+      adjValEl.textContent = intervalVal;
+      if ( !running && !musicOn ) { displayEl.textContent = fmt( remaining ); refreshArc(); }
+      highlightPreset( intervalVal, inSeconds );
+    };
+
+    // ── Volume ───────────────────────────────────────────────────────────────────
+    const onVolume = ( value ) => {
+      vol = value / 100; muted = vol === 0;
+      refreshVolIcon();
+      localStorage.setItem( "teodoro3Volume", vol );
+      if ( audio ) audio.volume = muted ? 0 : vol;
+    };
+
+    const toggleMute = () => {
+      muted = !muted;
+      if ( !muted && vol === 0 ) { vol = 0.8; volSlider.value = 80; }
+      volSlider.value = muted ? 0 : vol * 100;
+      if ( audio ) audio.volume = muted ? 0 : vol;
+      refreshVolIcon();
+    };
+
+    // ── Keyboard ─────────────────────────────────────────────────────────────────
+    document.addEventListener( "keydown", e => {
+      if ( e.code === "Space" && e.target === document.body ) {
+        e.preventDefault();
+        musicOn ? restartFromMusic() : togglePause();
+      }
+    } );
+
+    // ── Init ──────────────────────────────────────────────────────────────────────
+    volSlider.value = vol * 100;
+    displayEl.textContent = fmt( remaining );
+    refreshArc();
+    refreshVolIcon();
+    highlightPreset( intervalVal, inSeconds );
+  </script>
+</body>
+</html>
