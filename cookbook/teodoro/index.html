@@ -4,39 +4,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Teodoro — a walk-break countdown timer that reminds you to get up and move">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚶</text></svg>">
   <title>Teodoro</title>
   <style>
     :root {
-      --bg: #1a1a2e;
-      --card-bg: #16213e;
-      --card-shadow: rgba(0, 0, 0, 0.4);
-      --text: #ccd6f6;
-      --text-muted: #8892b0;
-      --text-preset: #a0a8c0;
-      --accent: #64ffda;
-      --btn-bg: #1a1a2e;
-      --btn-border: #555;
-      --btn-hover-bg: #2a2a4e;
-      --preset-border: #3a3a5e;
-      --slider-bg: #333;
+      --bg: #f5f5f5;
+      --surface: #fff;
+      --text: #111;
+      --text-dim: #666;
+      --border: #ccc;
+      --border-active: #333;
+      --hover-bg: #eee;
     }
 
-    @media (prefers-color-scheme: light) {
+    @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #f0f2f5;
-        --card-bg: #ffffff;
-        --card-shadow: rgba(0, 0, 0, 0.12);
-        --text: #1a1a2e;
-        --text-muted: #5a6077;
-        --text-preset: #5a6077;
-        --accent: #0a8a6a;
-        --btn-bg: #f5f6f8;
-        --btn-border: #c0c4cc;
-        --btn-hover-bg: #e8eaf0;
-        --preset-border: #d0d3da;
-        --slider-bg: #ccc;
+        --bg: #111;
+        --surface: #1a1a1a;
+        --text: #eee;
+        --text-dim: #888;
+        --border: #444;
+        --border-active: #ccc;
+        --hover-bg: #252525;
       }
     }
 
@@ -46,15 +34,14 @@
       box-sizing: border-box;
     }
 
-    html,
-    body {
+    html, body {
       height: 100%;
       width: 100%;
       overflow: hidden;
     }
 
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
       color: var(--text);
       display: flex;
@@ -62,60 +49,41 @@
       align-items: center;
     }
 
-    .card {
-      background: var(--card-bg);
-      border-radius: clamp(4px, 2vmin, 16px);
-      padding: clamp(6px, 2vmin, 16px);
-      width: min(96vw, 360px);
+    .app {
+      background: var(--surface);
+      border-radius: clamp(4px, 1.5vmin, 12px);
+      padding: clamp(6px, 2vmin, 20px);
+      width: min(96vw, 340px);
       max-height: 98vh;
-      box-shadow: 0 8px 32px var(--card-shadow);
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: clamp(1px, 1vmin, 8px);
+      gap: clamp(4px, 1.5vmin, 12px);
       overflow-y: auto;
       overflow-x: hidden;
     }
 
     h1 {
-      font-size: clamp(10px, 2.5vmin, 18px);
+      font-size: clamp(10px, 2.5vmin, 16px);
       font-weight: 700;
-      color: var(--text-muted);
-      letter-spacing: 1px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
     }
 
-    .timer-display {
-      font-size: clamp(14px, 10vmin, 64px);
+    #display {
+      font-size: clamp(20px, 12vmin, 72px);
       font-weight: 700;
       font-variant-numeric: tabular-nums;
-      color: var(--text);
       line-height: 1.1;
     }
 
-    .status {
-      font-size: clamp(10px, 2.2vmin, 18px);
-      font-weight: 700;
-      color: var(--accent);
+    #status {
+      font-size: clamp(9px, 2vmin, 14px);
+      font-weight: 600;
+      color: var(--text-dim);
       min-height: 1.2em;
-      transition: color 0.3s;
-    }
-
-    .status.music-on {
-      color: #ff6b6b;
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-
-      0%,
-      100% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0.5;
-      }
     }
 
     .row {
@@ -128,524 +96,431 @@
     }
 
     button {
-      background: var(--btn-bg);
+      font-family: inherit;
+      background: var(--surface);
       color: var(--text);
-      border: 2px solid var(--btn-border);
-      border-radius: clamp(6px, 1.5vmin, 10px);
-      padding: clamp(4px, 1vmin, 8px) clamp(10px, 2.5vmin, 24px);
-      font-size: clamp(11px, 2.8vmin, 20px);
+      border: 2px solid var(--border);
+      border-radius: clamp(4px, 1vmin, 8px);
+      padding: clamp(4px, 1vmin, 8px) clamp(8px, 2vmin, 20px);
+      font-size: clamp(11px, 2.6vmin, 18px);
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: background 0.15s, border-color 0.15s;
       white-space: nowrap;
     }
 
     button:hover {
-      background: var(--btn-hover-bg);
-      border-color: var(--accent);
-      color: var(--accent);
+      background: var(--hover-bg);
+      border-color: var(--border-active);
     }
 
     button:active {
-      transform: scale(0.95);
+      transform: scale(0.96);
     }
 
-    button.stop-music {
-      background: #ff6b6b22;
-      border-color: #ff6b6b;
-      color: #ff6b6b;
-      font-size: clamp(14px, 3vmin, 22px);
+    .preset {
+      padding: clamp(3px, 0.7vmin, 6px) clamp(6px, 1.5vmin, 14px);
+      font-size: clamp(10px, 2.2vmin, 15px);
+      border-radius: clamp(10px, 2vmin, 20px);
+      color: var(--text-dim);
     }
 
-    button.stop-music:hover {
-      background: #ff6b6b44;
+    .preset.active {
+      color: var(--text);
+      border-color: var(--border-active);
     }
 
-    .presets button {
-      padding: clamp(3px, 0.8vmin, 6px) clamp(8px, 2vmin, 16px);
-      border-radius: clamp(8px, 2vmin, 16px);
-      color: var(--text-preset);
-      border-color: var(--preset-border);
-      font-size: clamp(10px, 2.2vmin, 16px);
-      font-weight: 700;
-    }
-
-    .presets button.active {
-      color: var(--accent);
-      border-color: var(--accent);
-      background: var(--btn-hover-bg);
-    }
-
-    .presets button:hover {
-      color: var(--accent);
-      border-color: var(--accent);
-    }
-
-    .interval-control button {
-      width: clamp(18px, 4.5vmin, 40px);
-      height: clamp(18px, 4.5vmin, 40px);
+    .adj {
+      width: clamp(22px, 5vmin, 38px);
+      height: clamp(22px, 5vmin, 38px);
       padding: 0;
-      font-size: clamp(14px, 3vmin, 22px);
       border-radius: 50%;
+      font-size: clamp(14px, 3vmin, 20px);
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .interval-label {
-      font-size: clamp(11px, 2.8vmin, 20px);
+    .adj-label {
+      font-size: clamp(11px, 2.6vmin, 18px);
       font-weight: 700;
-      color: var(--text-muted);
-      min-width: clamp(36px, 8vmin, 70px);
+      color: var(--text-dim);
+      min-width: clamp(30px, 8vmin, 60px);
       text-align: center;
     }
 
-    .interval-label span {
-      color: var(--text);
-    }
-
-    .volume-row {
+    .vol-row {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: clamp(4px, 1.2vmin, 10px);
+      gap: clamp(4px, 1vmin, 10px);
       width: 100%;
     }
 
-    .volume-icon {
-      font-size: clamp(16px, 2.8vmin, 22px);
-      color: var(--text-muted);
+    #volIcon {
+      font-size: clamp(14px, 2.8vmin, 20px);
       cursor: pointer;
       user-select: none;
-      flex-shrink: 0;
+      color: var(--text-dim);
     }
 
-    .volume-icon:hover {
-      color: var(--accent);
+    #volIcon:hover {
+      color: var(--text);
     }
 
-    .volume-slider {
+    #volSlider {
       -webkit-appearance: none;
       appearance: none;
-      width: clamp(30px, 45vw, 180px);
-      height: clamp(4px, 0.8vmin, 6px);
+      width: clamp(40px, 40vw, 160px);
+      height: clamp(3px, 0.6vmin, 5px);
       border-radius: 3px;
-      background: var(--slider-bg);
+      background: var(--border);
       outline: none;
       cursor: pointer;
-      flex-shrink: 1;
     }
 
-    .volume-slider::-webkit-slider-thumb {
+    #volSlider::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: clamp(14px, 2.5vmin, 20px);
-      height: clamp(14px, 2.5vmin, 20px);
+      width: clamp(12px, 2.2vmin, 18px);
+      height: clamp(12px, 2.2vmin, 18px);
       border-radius: 50%;
-      background: var(--accent);
+      background: var(--text);
       cursor: pointer;
-      transition: transform 0.15s;
     }
 
-    .volume-slider::-webkit-slider-thumb:hover {
-      transform: scale(1.3);
-    }
-
-    .volume-slider::-moz-range-thumb {
-      width: clamp(14px, 2.5vmin, 20px);
-      height: clamp(14px, 2.5vmin, 20px);
+    #volSlider::-moz-range-thumb {
+      width: clamp(12px, 2.2vmin, 18px);
+      height: clamp(12px, 2.2vmin, 18px);
       border-radius: 50%;
-      background: var(--accent);
-      cursor: pointer;
+      background: var(--text);
       border: none;
-    }
-
-    .hidden {
-      display: none;
+      cursor: pointer;
     }
   </style>
 </head>
 
 <body>
-  <div class="card">
+  <div class="app">
     <h1>Teodoro</h1>
-    <div class="timer-display" id="timerDisplay">18:00</div>
-    <div class="status" id="status">Ready</div>
+    <div id="display">18:00</div>
+    <div id="status">Ready</div>
 
-    <div class="row" id="timerControls">
-      <button id="startPauseBtn" onclick="toggleTimer()">Start</button>
+    <div class="row">
+      <button id="mainBtn">Start</button>
     </div>
 
-    <div class="row hidden" id="musicControls">
-      <button class="stop-music" onclick="restartTimer()">Restart</button>
+    <div class="row">
+      <button class="preset" data-sec="5" onclick="applyPreset(5,true)">5 sec</button>
+      <button class="preset" data-min="5" onclick="applyPreset(5)">5 min</button>
+      <button class="preset" data-min="8" onclick="applyPreset(8)">8 min</button>
+      <button class="preset active" data-min="18" onclick="applyPreset(18)">18 min</button>
     </div>
 
-    <div class="row presets">
-      <button onclick="setPreset(5, true)">5 sec</button>
-      <button onclick="setPreset(5)">5 min</button>
-      <button onclick="setPreset(8)">8 min</button>
-      <button onclick="setPreset(18)">18 min</button>
+    <div class="row">
+      <button class="adj" onclick="adjust(-1)">&minus;</button>
+      <div class="adj-label"><span id="adjVal">18</span> <span id="adjUnit">min</span></div>
+      <button class="adj" onclick="adjust(1)">+</button>
     </div>
 
-    <div class="row interval-control">
-      <button onclick="adjustInterval(-1)">-</button>
-      <div class="interval-label"><span id="intervalValue">18</span> <span id="intervalUnit">min</span></div>
-      <button onclick="adjustInterval(1)">+</button>
-    </div>
-
-    <div class="volume-row">
-      <span class="volume-icon" id="volumeIcon" onclick="toggleMute()">&#128264;</span>
-      <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80"
-        oninput="onVolumeChange(this.value)">
+    <div class="vol-row">
+      <span id="volIcon" onclick="toggleMute()">&#128264;</span>
+      <input type="range" id="volSlider" min="0" max="100" value="80" oninput="setVolume(this.value)">
     </div>
   </div>
 
   <script>
-    let intervalMinutes = 18;
-    let intervalIsSeconds = false;
-    let remainingSeconds = intervalMinutes * 60;
-    let activeDuration = remainingSeconds;
-    let timerInterval = null;
-    let isRunning = false;
+    // State
+    let total = 18 * 60;
+    let remaining = total;
+    let unitIsSec = false;
+    let rawValue = 18;
+    let interval = null;
+    let running = false;
+    let musicMode = false;
+    let chimePlayed = false;
     let audio = null;
-    // Restore saved volume
-    const savedVolume = localStorage.getItem( "walkTimerVolume" );
-    let currentVolume = savedVolume !== null ? parseFloat( savedVolume ) : 0.8;
-    let isMuted = false;
-    let musicIsPlaying = false;
 
-    const timerDisplay = document.getElementById( "timerDisplay" );
-    const statusEl = document.getElementById( "status" );
-    const startPauseBtn = document.getElementById( "startPauseBtn" );
-    const timerControls = document.getElementById( "timerControls" );
-    const musicControls = document.getElementById( "musicControls" );
-    const intervalValue = document.getElementById( "intervalValue" );
-    const volumeSlider = document.getElementById( "volumeSlider" );
-    const volumeIcon = document.getElementById( "volumeIcon" );
-    const intervalUnit = document.getElementById( "intervalUnit" );
+    const saved = localStorage.getItem("teodoro-vol");
+    let vol = saved !== null ? parseFloat(saved) : 0.8;
+    let muted = false;
 
+    // DOM
+    const display = document.getElementById("display");
+    const status = document.getElementById("status");
+    const mainBtn = document.getElementById("mainBtn");
+    const adjVal = document.getElementById("adjVal");
+    const adjUnit = document.getElementById("adjUnit");
+    const volSlider = document.getElementById("volSlider");
+    const volIcon = document.getElementById("volIcon");
 
-    // Shared AudioContext for chimes (created on first use)
-    let chimeCtx = null;
-    const getChimeCtx = () => {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if ( !AudioContext ) return null;
-      if ( !chimeCtx || chimeCtx.state === "closed" ) {
-        chimeCtx = new AudioContext();
-      }
-      if ( chimeCtx.state === "suspended" ) {
-        chimeCtx.resume();
-      }
-      return chimeCtx;
+    volSlider.value = vol * 100;
+    updateVolIcon();
+
+    // Format MM:SS
+    const fmt = (s) => {
+      const m = Math.floor(s / 60).toString().padStart(2, "0");
+      const sec = (s % 60).toString().padStart(2, "0");
+      return m + ":" + sec;
     };
 
-    // Chime melody variations — each is a full note sequence with distinct contour
-    const chimePatterns = [
-      // Phone ring: up-down-up-high, repeated
-      [
-        { freq: 880, start: 0, dur: 0.1 }, { freq: 1109, start: 0.1, dur: 0.1 },
-        { freq: 880, start: 0.2, dur: 0.1 }, { freq: 1318, start: 0.3, dur: 0.4 },
-        { freq: 880, start: 1.0, dur: 0.1 }, { freq: 1109, start: 1.1, dur: 0.1 },
-        { freq: 880, start: 1.2, dur: 0.1 }, { freq: 1318, start: 1.3, dur: 0.4 }
-      ],
-      // Rising arpeggio: C-E-G-C
-      [
-        { freq: 523, start: 0, dur: 0.15 }, { freq: 659, start: 0.15, dur: 0.15 },
-        { freq: 784, start: 0.3, dur: 0.15 }, { freq: 1047, start: 0.45, dur: 0.5 }
-      ],
-      // Doorbell: ding-dong, ding-dong
-      [
-        { freq: 988, start: 0, dur: 0.3 }, { freq: 784, start: 0.35, dur: 0.5 },
-        { freq: 988, start: 1.1, dur: 0.3 }, { freq: 784, start: 1.45, dur: 0.5 }
-      ],
-      // Descending cascade: high to low
-      [
-        { freq: 1319, start: 0, dur: 0.12 }, { freq: 1109, start: 0.12, dur: 0.12 },
-        { freq: 880, start: 0.24, dur: 0.12 }, { freq: 659, start: 0.36, dur: 0.12 },
-        { freq: 523, start: 0.48, dur: 0.5 }
-      ],
-      // Gentle thirds: two-note pairs stepping up
-      [
-        { freq: 659, start: 0, dur: 0.2 }, { freq: 784, start: 0.15, dur: 0.2 },
-        { freq: 880, start: 0.5, dur: 0.2 }, { freq: 1047, start: 0.65, dur: 0.2 },
-        { freq: 1175, start: 1.0, dur: 0.5 }
-      ],
-      // Bright fanfare: quick rising then sustained
-      [
-        { freq: 587, start: 0, dur: 0.08 }, { freq: 740, start: 0.08, dur: 0.08 },
-        { freq: 880, start: 0.16, dur: 0.08 }, { freq: 1109, start: 0.24, dur: 0.08 },
-        { freq: 1318, start: 0.32, dur: 0.6 }
-      ],
-      // Pentatonic bounce: playful intervals
-      [
-        { freq: 784, start: 0, dur: 0.12 }, { freq: 988, start: 0.15, dur: 0.12 },
-        { freq: 784, start: 0.3, dur: 0.12 }, { freq: 1175, start: 0.45, dur: 0.12 },
-        { freq: 988, start: 0.6, dur: 0.12 }, { freq: 1318, start: 0.75, dur: 0.4 }
-      ],
-      // Soft bell: two slow tones with overtone
-      [
-        { freq: 740, start: 0, dur: 0.5 }, { freq: 1109, start: 0.05, dur: 0.4 },
-        { freq: 740, start: 0.8, dur: 0.5 }, { freq: 1175, start: 0.85, dur: 0.4 }
-      ],
-      // Westminster chime fragment: E-C-D-G
-      [
-        { freq: 659, start: 0, dur: 0.25 }, { freq: 523, start: 0.3, dur: 0.25 },
-        { freq: 587, start: 0.6, dur: 0.25 }, { freq: 392, start: 0.9, dur: 0.6 }
-      ],
-      // Twinkling: rapid high alternation
-      [
-        { freq: 1047, start: 0, dur: 0.08 }, { freq: 1319, start: 0.1, dur: 0.08 },
-        { freq: 1047, start: 0.2, dur: 0.08 }, { freq: 1319, start: 0.3, dur: 0.08 },
-        { freq: 1047, start: 0.4, dur: 0.08 }, { freq: 1568, start: 0.5, dur: 0.5 }
-      ]
-    ];
+    const render = () => { display.textContent = fmt(remaining); };
 
-    // Play a random chime melody
-    const playChime = () => {
-      const ctx = getChimeCtx();
-      if ( !ctx ) return;
-
-      const volume = isMuted ? 0 : currentVolume;
-      if ( volume <= 0 ) return;
-
-      const notes = chimePatterns[Math.floor( Math.random() * chimePatterns.length )];
-      const now = ctx.currentTime;
-
-      notes.forEach( note => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.connect( gain );
-        gain.connect( ctx.destination );
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime( note.freq, now + note.start );
-
-        // Envelope
-        gain.gain.setValueAtTime( 0, now + note.start );
-        gain.gain.linearRampToValueAtTime( volume * 0.5, now + note.start + 0.02 );
-        gain.gain.exponentialRampToValueAtTime( 0.01, now + note.start + note.dur );
-
-        osc.start( now + note.start );
-        osc.stop( now + note.start + note.dur + 0.1 );
-      } );
-    };
-
-    // Format seconds as MM:SS
-    const formatTime = ( seconds ) => {
-      const m = Math.floor( seconds / 60 ).toString().padStart( 2, "0" );
-      const s = ( seconds % 60 ).toString().padStart( 2, "0" );
-      return `${ m }:${ s }`;
-    };
-
-    const updateDisplay = () => {
-      timerDisplay.textContent = formatTime( remainingSeconds );
-    };
-
-    const updateVolumeIcon = () => {
-      if ( isMuted || currentVolume === 0 ) {
-        volumeIcon.innerHTML = "&#128263;";
-      } else if ( currentVolume < 0.5 ) {
-        volumeIcon.innerHTML = "&#128264;";
+    // Main button logic
+    mainBtn.onclick = () => {
+      if (musicMode) {
+        // Restart: stop music, reset, start countdown
+        stopMusic();
+        remaining = total;
+        chimePlayed = false;
+        render();
+        startCountdown();
+      } else if (running) {
+        // Pause
+        pause();
       } else {
-        volumeIcon.innerHTML = "&#128266;";
+        // Start or Resume
+        if (remaining <= 0) {
+          remaining = total;
+          chimePlayed = false;
+          render();
+        }
+        startCountdown();
       }
+    };
+
+    const startCountdown = () => {
+      interval = setInterval(tick, 1000);
+      running = true;
+      mainBtn.textContent = "Pause";
+      status.textContent = "Counting down\u2026";
+    };
+
+    const pause = () => {
+      clearInterval(interval);
+      interval = null;
+      running = false;
+      mainBtn.textContent = "Resume";
+      status.textContent = "Paused";
     };
 
     const tick = () => {
-      remainingSeconds--;
-      updateDisplay();
+      remaining--;
+      render();
 
-      if ( remainingSeconds > 0 && remainingSeconds === Math.floor( activeDuration / 2 ) ) {
+      // Halfway chime
+      if (!chimePlayed && remaining > 0 && remaining === Math.floor(total / 2)) {
         playChime();
+        chimePlayed = true;
       }
 
-      if ( remainingSeconds <= 0 ) {
-        clearInterval( timerInterval );
-        timerInterval = null;
-        isRunning = false;
-        playMusic();
+      if (remaining <= 0) {
+        clearInterval(interval);
+        interval = null;
+        running = false;
+        startMusic();
       }
     };
 
-    const toggleTimer = () => {
-      if ( isRunning ) {
-        clearInterval( timerInterval );
-        timerInterval = null;
-        isRunning = false;
-        startPauseBtn.textContent = "Resume";
-        statusEl.textContent = "Paused";
-        statusEl.className = "status";
+    // Presets
+    const applyPreset = (value, isSec = false) => {
+      stopMusic();
+      clearInterval(interval);
+      interval = null;
+      running = false;
+
+      rawValue = value;
+      unitIsSec = isSec;
+      total = isSec ? value : value * 60;
+      remaining = total;
+      chimePlayed = false;
+
+      adjVal.textContent = value;
+      adjUnit.textContent = isSec ? "sec" : "min";
+      render();
+      highlightPreset();
+      startCountdown();
+    };
+
+    const highlightPreset = () => {
+      document.querySelectorAll(".preset").forEach(b => {
+        const match = unitIsSec
+          ? b.dataset.sec === String(rawValue)
+          : b.dataset.min === String(rawValue);
+        b.classList.toggle("active", match);
+      });
+    };
+
+    // +/- adjust
+    const adjust = (delta) => {
+      if (unitIsSec) {
+        rawValue = Math.max(1, Math.min(300, rawValue + delta));
       } else {
-        if ( remainingSeconds <= 0 ) {
-          remainingSeconds = intervalIsSeconds ? intervalMinutes : intervalMinutes * 60;
-          activeDuration = remainingSeconds;
-          updateDisplay();
-        }
-        timerInterval = setInterval( tick, 1000 );
-        isRunning = true;
-        startPauseBtn.textContent = "Pause";
-        statusEl.textContent = "Counting down...";
-        statusEl.className = "status";
+        rawValue = Math.max(1, Math.min(60, rawValue + delta));
       }
-    };
+      adjVal.textContent = rawValue;
+      adjUnit.textContent = unitIsSec ? "sec" : "min";
 
-    const clearPresetHighlight = () => {
-      document.querySelectorAll( ".presets button" ).forEach( b => b.classList.remove( "active" ) );
-    };
-
-    const highlightMatchingPreset = ( value, isSeconds = false ) => {
-      clearPresetHighlight();
-      document.querySelectorAll( ".presets button" ).forEach( b => {
-        const match = isSeconds
-          ? b.textContent === `${ value } sec`
-          : b.textContent === `${ value } min`;
-        if ( match ) b.classList.add( "active" );
-      } );
-    };
-
-    const setPreset = ( value, isSeconds = false ) => {
-      if ( musicIsPlaying ) stopMusic();
-      clearInterval( timerInterval );
-      timerInterval = null;
-      isRunning = false;
-
-      intervalMinutes = value;
-      intervalIsSeconds = isSeconds;
-
-      if ( isSeconds ) {
-        remainingSeconds = value;
-        activeDuration = remainingSeconds;
-        intervalValue.textContent = value;
-        intervalUnit.textContent = "sec";
-      } else {
-        remainingSeconds = value * 60;
-        activeDuration = remainingSeconds;
-        intervalValue.textContent = value;
-        intervalUnit.textContent = "min";
+      if (!running && !musicMode) {
+        total = unitIsSec ? rawValue : rawValue * 60;
+        remaining = total;
+        chimePlayed = false;
+        render();
       }
-      updateDisplay();
-      highlightMatchingPreset( value, isSeconds );
-      toggleTimer();
+      highlightPreset();
     };
 
-    // Play SomaFM Groove Salad stream
-    const playMusic = () => {
-      audio = new Audio( "https://ice1.somafm.com/groovesalad-128-mp3" );
-      audio.volume = isMuted ? 0 : currentVolume;
-      audio.play().catch( () => {
-        statusEl.textContent = "Tap to play music";
-        statusEl.className = "status";
-        document.addEventListener( "click", function resumePlay() {
-          if ( audio ) audio.play().catch( () => {} );
-          document.removeEventListener( "click", resumePlay );
-        }, { once: true } );
-      } );
-      musicIsPlaying = true;
-      statusEl.textContent = "Time to walk!";
-      statusEl.className = "status music-on";
-      timerControls.classList.add( "hidden" );
-      musicControls.classList.remove( "hidden" );
+    // Music
+    const startMusic = () => {
+      audio = new Audio("https://ice1.somafm.com/groovesalad-128-mp3");
+      audio.volume = muted ? 0 : vol;
+      audio.play().catch(() => {
+        status.textContent = "Tap to play music";
+        document.addEventListener("click", function once() {
+          if (audio) audio.play().catch(() => {});
+          document.removeEventListener("click", once);
+        }, { once: true });
+      });
+      musicMode = true;
+      mainBtn.textContent = "Restart";
+      status.textContent = "Time\u2019s up!";
     };
 
-    // Stop music and reset timer
     const stopMusic = () => {
-      if ( audio ) {
+      if (audio) {
         audio.pause();
         audio.src = "";
         audio = null;
       }
-      musicIsPlaying = false;
-      musicControls.classList.add( "hidden" );
-      timerControls.classList.remove( "hidden" );
-      remainingSeconds = intervalIsSeconds ? intervalMinutes : intervalMinutes * 60;
-      activeDuration = remainingSeconds;
-      updateDisplay();
-      startPauseBtn.textContent = "Start";
-      statusEl.textContent = "Ready";
-      statusEl.className = "status";
+      musicMode = false;
+      mainBtn.textContent = "Start";
+      status.textContent = "Ready";
     };
 
-    // Stop music and immediately start a new countdown
-    const restartTimer = () => {
-      stopMusic();
-      toggleTimer();
-    };
-
-    // Save volume to localStorage
-    const saveVolume = () => {
-      localStorage.setItem( "walkTimerVolume", currentVolume );
-    };
-
-    // Volume slider adjusts live; does not stop music
-    const onVolumeChange = ( value ) => {
-      currentVolume = value / 100;
-      isMuted = currentVolume === 0;
-      updateVolumeIcon();
-      saveVolume();
-      if ( audio ) {
-        audio.volume = currentVolume;
-      }
+    // Volume
+    const setVolume = (v) => {
+      vol = v / 100;
+      muted = vol === 0;
+      localStorage.setItem("teodoro-vol", vol);
+      if (audio) audio.volume = muted ? 0 : vol;
+      updateVolIcon();
     };
 
     const toggleMute = () => {
-      if ( isMuted ) {
-        isMuted = false;
-        currentVolume = currentVolume === 0 ? 0.8 : currentVolume;
-        volumeSlider.value = currentVolume * 100;
+      if (muted) {
+        muted = false;
+        if (vol === 0) vol = 0.8;
+        volSlider.value = vol * 100;
       } else {
-        isMuted = true;
-        volumeSlider.value = 0;
+        muted = true;
+        volSlider.value = 0;
       }
-      if ( audio ) {
-        audio.volume = isMuted ? 0 : currentVolume;
-      }
-      updateVolumeIcon();
+      if (audio) audio.volume = muted ? 0 : vol;
+      updateVolIcon();
     };
 
-    const adjustInterval = ( delta ) => {
-      if ( intervalIsSeconds ) {
-        intervalMinutes = Math.max( 1, Math.min( 300, intervalMinutes + delta ) );
-        intervalValue.textContent = intervalMinutes;
-        intervalUnit.textContent = "sec";
-        if ( !isRunning && !musicIsPlaying ) {
-          remainingSeconds = intervalMinutes;
-          activeDuration = remainingSeconds;
-          updateDisplay();
-        }
+    function updateVolIcon() {
+      if (muted || vol === 0) {
+        volIcon.innerHTML = "&#128263;";
+      } else if (vol < 0.5) {
+        volIcon.innerHTML = "&#128264;";
       } else {
-        intervalMinutes = Math.max( 1, Math.min( 60, intervalMinutes + delta ) );
-        intervalValue.textContent = intervalMinutes;
-        intervalUnit.textContent = "min";
-        if ( !isRunning && !musicIsPlaying ) {
-          remainingSeconds = intervalMinutes * 60;
-          activeDuration = remainingSeconds;
-          updateDisplay();
-        }
+        volIcon.innerHTML = "&#128266;";
       }
-      highlightMatchingPreset( intervalMinutes, intervalIsSeconds );
+    }
+
+    // Web Audio chimes
+    let chimeCtx = null;
+
+    const getCtx = () => {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      if (!chimeCtx || chimeCtx.state === "closed") chimeCtx = new AC();
+      if (chimeCtx.state === "suspended") chimeCtx.resume();
+      return chimeCtx;
     };
 
-    // Init slider to saved volume
-    volumeSlider.value = currentVolume * 100;
-    updateDisplay();
-    updateVolumeIcon();
-    highlightMatchingPreset( intervalMinutes, intervalIsSeconds );
+    const chimes = [
+      // Rising arpeggio C-E-G-C
+      [
+        { f: 523, t: 0, d: 0.15 }, { f: 659, t: 0.15, d: 0.15 },
+        { f: 784, t: 0.3, d: 0.15 }, { f: 1047, t: 0.45, d: 0.5 }
+      ],
+      // Doorbell ding-dong
+      [
+        { f: 988, t: 0, d: 0.3 }, { f: 784, t: 0.35, d: 0.5 },
+        { f: 988, t: 1.1, d: 0.3 }, { f: 784, t: 1.45, d: 0.5 }
+      ],
+      // Descending cascade
+      [
+        { f: 1319, t: 0, d: 0.12 }, { f: 1109, t: 0.12, d: 0.12 },
+        { f: 880, t: 0.24, d: 0.12 }, { f: 659, t: 0.36, d: 0.12 },
+        { f: 523, t: 0.48, d: 0.5 }
+      ],
+      // Gentle thirds stepping up
+      [
+        { f: 659, t: 0, d: 0.2 }, { f: 784, t: 0.15, d: 0.2 },
+        { f: 880, t: 0.5, d: 0.2 }, { f: 1047, t: 0.65, d: 0.2 },
+        { f: 1175, t: 1.0, d: 0.5 }
+      ],
+      // Bright fanfare
+      [
+        { f: 587, t: 0, d: 0.08 }, { f: 740, t: 0.08, d: 0.08 },
+        { f: 880, t: 0.16, d: 0.08 }, { f: 1109, t: 0.24, d: 0.08 },
+        { f: 1318, t: 0.32, d: 0.6 }
+      ],
+      // Pentatonic bounce
+      [
+        { f: 784, t: 0, d: 0.12 }, { f: 988, t: 0.15, d: 0.12 },
+        { f: 784, t: 0.3, d: 0.12 }, { f: 1175, t: 0.45, d: 0.12 },
+        { f: 988, t: 0.6, d: 0.12 }, { f: 1318, t: 0.75, d: 0.4 }
+      ],
+      // Westminster fragment E-C-D-G
+      [
+        { f: 659, t: 0, d: 0.25 }, { f: 523, t: 0.3, d: 0.25 },
+        { f: 587, t: 0.6, d: 0.25 }, { f: 392, t: 0.9, d: 0.6 }
+      ],
+      // Twinkling
+      [
+        { f: 1047, t: 0, d: 0.08 }, { f: 1319, t: 0.1, d: 0.08 },
+        { f: 1047, t: 0.2, d: 0.08 }, { f: 1319, t: 0.3, d: 0.08 },
+        { f: 1047, t: 0.4, d: 0.08 }, { f: 1568, t: 0.5, d: 0.5 }
+      ]
+    ];
 
-    // Spacebar: start/pause during countdown, restart after music
-    document.addEventListener( "keydown", ( e ) => {
-      if ( e.code === "Space" && e.target === document.body ) {
+    const playChime = () => {
+      const ctx = getCtx();
+      if (!ctx) return;
+      const v = muted ? 0 : vol;
+      if (v <= 0) return;
+
+      const notes = chimes[Math.floor(Math.random() * chimes.length)];
+      const now = ctx.currentTime;
+
+      notes.forEach(n => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(n.f, now + n.t);
+        gain.gain.setValueAtTime(0, now + n.t);
+        gain.gain.linearRampToValueAtTime(v * 0.45, now + n.t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + n.t + n.d);
+        osc.start(now + n.t);
+        osc.stop(now + n.t + n.d + 0.1);
+      });
+    };
+
+    // Spacebar shortcut
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space" && e.target === document.body) {
         e.preventDefault();
-        if ( musicIsPlaying ) {
-          restartTimer();
-        } else {
-          toggleTimer();
-        }
+        mainBtn.click();
       }
-    } );
+    });
 
-    // Do NOT auto-start: a user gesture is required before
-    // the browser will allow AudioContext / Audio playback.
+    render();
   </script>
 </body>
 

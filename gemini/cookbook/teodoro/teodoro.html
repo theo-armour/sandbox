@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teodoro Timer</title>
+  <style>
+    :root {
+      --bg: #f0f0f0;
+      --text: #222;
+      --btn-bg: #ddd;
+      --btn-hover: #ccc;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #121212;
+        --text: #eee;
+        --btn-bg: #333;
+        --btn-hover: #444;
+      }
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+      box-sizing: border-box;
+      padding: clamp(0.25rem, 2vw, 2rem);
+    }
+
+    #display {
+      font-size: clamp(2rem, 20vw, 15rem);
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: clamp(0.25rem, 4vh, 2rem);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: clamp(0.15rem, 1vw, 1rem);
+      justify-content: center;
+      margin-bottom: clamp(0.25rem, 2vh, 2rem);
+      width: 100%;
+    }
+
+    button {
+      background: var(--btn-bg);
+      color: var(--text);
+      border: none;
+      border-radius: clamp(0.25rem, 1vw, 0.5rem);
+      padding: clamp(0.25rem, 1vh, 1.5rem) clamp(0.25rem, 1vw, 2rem);
+      font-size: clamp(0.7rem, 5vw, 2rem);
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+      flex: 1 1 0;
+      min-width: 25px;
+      word-wrap: break-word;
+    }
+
+    button:hover {
+      background: var(--btn-hover);
+    }
+
+    .audio-controls {
+      display: flex;
+      align-items: center;
+      gap: clamp(0.25rem, 2vw, 1rem);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .speaker-icon {
+      font-size: clamp(1.2rem, 6vw, 2.5rem);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="display">00:00</div>
+
+  <div class="controls">
+    <button onclick="setTimer(5)">5s</button>
+    <button onclick="setTimer(300)">5m</button>
+    <button onclick="setTimer(480)">8m</button>
+    <button onclick="setTimer(1080)">18m</button>
+  </div>
+
+  <div class="controls">
+    <button onclick="adjustTime(-1)">-</button>
+    <button id="pauseBtn" onclick="togglePause()">Pause</button>
+    <button onclick="adjustTime(1)">+</button>
+  </div>
+
+  <div class="audio-controls">
+    <div class="speaker-icon" id="muteBtn" onclick="toggleMute()">🔊</div>
+    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5">
+  </div>
+
+  <audio id="bgMusic" src="https://ice1.somafm.com/groovesalad-128-mp3" preload="none"></audio>
+
+  <script>
+    const display = document.getElementById( 'display' );
+    const pauseBtn = document.getElementById( 'pauseBtn' );
+    const muteBtn = document.getElementById( 'muteBtn' );
+    const volumeSlider = document.getElementById( 'volumeSlider' );
+    const bgMusic = document.getElementById( 'bgMusic' );
+
+    let totalTime = 0;
+    let timeRemaining = 0;
+    let timerInterval = null;
+    let isPaused = false;
+    let lastPresetWasSeconds = false;
+    let isMuted = false;
+    let halfwayPlayed = false;
+
+    // Audio Context for Chime
+    const audioCtx = new ( window.AudioContext || window.webkitAudioContext )();
+
+    function updateDisplay () {
+      const minutes = Math.floor( timeRemaining / 60 );
+      const seconds = timeRemaining % 60;
+      display.textContent = `${ minutes.toString().padStart( 2, '0' ) }:${ seconds.toString().padStart( 2, '0' ) }`;
+    }
+
+    function setTimer ( seconds ) {
+      clearInterval( timerInterval );
+      totalTime = seconds;
+      timeRemaining = seconds;
+      isPaused = false;
+      halfwayPlayed = false;
+      lastPresetWasSeconds = ( seconds === 5 );
+      pauseBtn.textContent = 'Pause';
+      bgMusic.pause();
+      updateDisplay();
+      startTimer();
+    }
+
+    function adjustTime ( amount ) {
+      const multiplier = lastPresetWasSeconds ? 1 : 60;
+      timeRemaining = Math.max( 0, timeRemaining + ( amount * multiplier ) );
+      updateDisplay();
+    }
+
+    function togglePause () {
+      if ( timeRemaining <= 0 ) {
+        if ( totalTime > 0 ) setTimer( totalTime );
+        return;
+      }
+      isPaused = !isPaused;
+      pauseBtn.textContent = isPaused ? 'Resume' : 'Pause';
+    }
+
+    function startTimer () {
+      clearInterval( timerInterval );
+      timerInterval = setInterval( () => {
+        if ( !isPaused && timeRemaining > 0 ) {
+          timeRemaining--;
+          updateDisplay();
+
+          if ( timeRemaining === Math.floor( totalTime / 2 ) && !halfwayPlayed && totalTime > 2 ) {
+            playHalfwayChime();
+            halfwayPlayed = true;
+          }
+
+          if ( timeRemaining === 0 ) {
+            clearInterval( timerInterval );
+            pauseBtn.textContent = 'Restart';
+            bgMusic.play().catch( e => console.log( 'Audio play failed:', e ) );
+          }
+        }
+      }, 1000 );
+    }
+
+    function playHalfwayChime () {
+      if ( audioCtx.state === 'suspended' ) audioCtx.resume();
+      const numNotes = Math.floor( Math.random() * 3 ) + 3; // 3 to 5 notes
+      let startTime = audioCtx.currentTime;
+
+      const frequencies = [ 440, 523.25, 659.25, 783.99, 880, 1046.50 ];
+
+      for ( let i = 0; i < numNotes; i++ ) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const freq = frequencies[ Math.floor( Math.random() * frequencies.length ) ];
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime( freq, startTime );
+
+        gain.gain.setValueAtTime( 0, startTime );
+        gain.gain.linearRampToValueAtTime( 0.3, startTime + 0.05 );
+        gain.gain.exponentialRampToValueAtTime( 0.01, startTime + 0.4 );
+
+        osc.connect( gain );
+        gain.connect( audioCtx.destination );
+
+        osc.start( startTime );
+        osc.stop( startTime + 0.5 );
+
+        startTime += 0.2;
+      }
+    }
+
+    // Volume & Mute
+    const savedVol = localStorage.getItem( 'teodoroVolume' );
+    if ( savedVol !== null ) {
+      const vol = parseFloat( savedVol );
+      volumeSlider.value = vol;
+      bgMusic.volume = vol;
+    } else {
+      bgMusic.volume = 0.5;
+    }
+
+    volumeSlider.addEventListener( 'input', ( e ) => {
+      const vol = e.target.value;
+      bgMusic.volume = vol;
+      localStorage.setItem( 'teodoroVolume', vol );
+      if ( vol > 0 && isMuted ) toggleMute();
+    } );
+
+    function toggleMute () {
+      isMuted = !isMuted;
+      bgMusic.muted = isMuted;
+      muteBtn.textContent = isMuted ? '🔇' : ( bgMusic.volume > 0.5 ? '🔊' : '🔉' );
+    }
+
+    // Resume audio context on first interaction
+    document.body.addEventListener( 'click', () => {
+      if ( audioCtx.state === 'suspended' ) audioCtx.resume();
+    }, { once: true } );
+
+  </script>
+</body>
+
+</html>
