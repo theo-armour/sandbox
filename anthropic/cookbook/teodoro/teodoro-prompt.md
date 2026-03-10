@@ -2,6 +2,7 @@
 
 Create a single-file HTML countdown timer app with these features:
 
+
 ## Timer Display & Controls
 * Show remaining time as MM:SS, counting down to 00:00
 * Preset buttons for 5 seconds, 5 minutes, 8 minutes, and 18 minutes — pressing a preset immediately starts the countdown
@@ -21,3 +22,15 @@ Create a single-file HTML countdown timer app with these features:
 * All buttons use bold, large, easy-to-read text
 * Layout adapts fluidly from very small windows (down to ~120px wide) up to full screen using `clamp()` and viewport units — no fixed minimum widths, no overflow, text and controls scale down gracefully
 * Single self-contained HTML file — no build tools, no frameworks, no external dependencies except the audio stream URL
+
+## Routing & Clean URLs (Anti-Tab Soup Pattern)
+* Development occurs in a specifically named file (e.g., `teodoro.html`) to ensure distinct tab names in code editors, preventing "tab soup" from multiple `index.html` files.
+* At the very top of the `<script>` tag in `teodoro.html`, before any variables are declared, include this code to force the browser's address bar back to the canonical folder path (`./`) when hosted online, while checking the protocol to prevent local `file://` security errors:
+
+  ```javascript
+  if (location.protocol !== "file:") {
+    window.history.replaceState(null, '', './');
+  }
+  ```
+
+* Include a minimal `index.html` in the folder acting strictly as a "dumb forwarder" that redirects to `teodoro.html` using a meta refresh and a JavaScript `window.location.replace()`.

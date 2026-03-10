@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teodoro</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f4f4f1;
+      --panel: #ffffff;
+      --panel-alt: #ecece7;
+      --text: #161616;
+      --muted: #66665f;
+      --line: #c8c8c1;
+      --accent: #111111;
+      --accent-contrast: #fafaf8;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #101010;
+        --panel: #181818;
+        --panel-alt: #242424;
+        --text: #f4f4ef;
+        --muted: #b2b2aa;
+        --line: #393939;
+        --accent: #f3f3ee;
+        --accent-contrast: #111111;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      padding: clamp(0.35rem, 2.5vw, 1.5rem);
+      background:
+        radial-gradient(circle at top, color-mix(in srgb, var(--panel) 78%, transparent), transparent 58%),
+        linear-gradient(180deg, var(--bg), color-mix(in srgb, var(--bg) 82%, var(--panel-alt)));
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .app {
+      width: min(100%, 42rem);
+      padding: clamp(0.45rem, 2.4vw, 1.25rem);
+      border: 1px solid var(--line);
+      border-radius: clamp(0.8rem, 3vw, 1.5rem);
+      background: color-mix(in srgb, var(--panel) 92%, transparent);
+    }
+
+    .heading {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      align-items: baseline;
+      margin-bottom: clamp(0.45rem, 1.8vw, 1rem);
+    }
+
+    .title {
+      margin: 0;
+      font-size: clamp(0.9rem, 3.4vw, 1.15rem);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+
+    .status {
+      margin: 0;
+      font-size: clamp(0.72rem, 2.6vw, 0.95rem);
+      color: var(--muted);
+      text-align: right;
+    }
+
+    .display {
+      display: grid;
+      place-items: center;
+      min-height: 0;
+      padding: clamp(0.5rem, 2vw, 1rem);
+      margin-bottom: clamp(0.45rem, 1.8vw, 1rem);
+      border-radius: clamp(0.75rem, 2.8vw, 1.2rem);
+      background: var(--panel-alt);
+      border: 1px solid var(--line);
+      font-size: clamp(1.8rem, 18vw, 7rem);
+      line-height: 0.95;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.06em;
+      text-align: center;
+    }
+
+    .controls {
+      display: grid;
+      gap: clamp(0.4rem, 1.8vw, 0.85rem);
+    }
+
+    .preset-grid,
+    .timer-grid {
+      display: grid;
+      gap: clamp(0.35rem, 1.4vw, 0.7rem);
+    }
+
+    .preset-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .timer-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .audio-row {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: clamp(0.4rem, 1.8vw, 0.85rem);
+      align-items: center;
+    }
+
+    .button,
+    .icon-button {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.45rem;
+      width: 100%;
+      min-height: clamp(2.3rem, 12vw, 3.4rem);
+      padding: clamp(0.45rem, 2vw, 0.85rem);
+      border: 1px solid var(--line);
+      border-radius: clamp(0.7rem, 2.6vw, 1rem);
+      background: var(--panel);
+      color: var(--text);
+      font-size: clamp(0.8rem, 4vw, 1.15rem);
+      font-weight: 850;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease, transform 140ms ease;
+    }
+
+    .button:hover,
+    .button:focus-visible,
+    .icon-button:hover,
+    .icon-button:focus-visible {
+      background: color-mix(in srgb, var(--panel-alt) 70%, var(--panel));
+      outline: none;
+    }
+
+    .button:active,
+    .icon-button:active {
+      transform: scale(0.985);
+    }
+
+    .button[data-active="true"],
+    .button[data-variant="solid"] {
+      background: var(--accent);
+      color: var(--accent-contrast);
+      border-color: var(--accent);
+    }
+
+    .button:disabled,
+    .icon-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+      transform: none;
+    }
+
+    .icon-button {
+      width: clamp(2.75rem, 13vw, 3.6rem);
+      padding-inline: 0;
+    }
+
+    .icon-button svg {
+      width: clamp(1rem, 4.4vw, 1.35rem);
+      height: clamp(1rem, 4.4vw, 1.35rem);
+      fill: currentColor;
+      flex: none;
+    }
+
+    .slider-wrap {
+      display: grid;
+      gap: 0.2rem;
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      font-size: clamp(0.72rem, 2.7vw, 0.92rem);
+      color: var(--muted);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      margin: 0;
+      accent-color: var(--accent);
+    }
+
+    @media (max-width: 18rem) {
+      .heading {
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+
+      .status {
+        text-align: left;
+      }
+    }
+
+    @media (max-width: 11rem) {
+
+      .preset-grid,
+      .timer-grid,
+      .audio-row {
+        grid-template-columns: 1fr;
+      }
+
+      .icon-button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <header class="heading">
+      <h1 class="title">Teodoro</h1>
+      <p class="status" id="status">Select a preset to begin.</p>
+    </header>
+
+    <section class="display" id="timeDisplay" aria-live="polite">00:00</section>
+
+    <section class="controls" aria-label="Timer controls">
+      <div class="preset-grid" id="presetGrid">
+        <button class="button" type="button" data-preset="5" data-key="5sec">5 sec</button>
+        <button class="button" type="button" data-preset="300" data-key="5min">5 min</button>
+        <button class="button" type="button" data-preset="480" data-key="8min">8 min</button>
+        <button class="button" type="button" data-preset="1080" data-key="18min">18 min</button>
+      </div>
+
+      <div class="timer-grid">
+        <button class="button" type="button" id="subtractButton">-</button>
+        <button class="button" type="button" id="pauseButton" disabled>Pause</button>
+        <button class="button" type="button" id="addButton">+</button>
+      </div>
+
+      <div class="audio-row">
+        <button class="icon-button" type="button" id="muteButton" aria-label="Mute audio" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path id="speakerIcon"
+              d="M3 9v6h4l5 4V5L7 9H3Zm12.5 3a4.5 4.5 0 0 0-2.03-3.76v7.51A4.5 4.5 0 0 0 15.5 12Zm0-8.5v2.11a7 7 0 0 1 0 12.77v2.12a9 9 0 0 0 0-17Z">
+            </path>
+          </svg>
+        </button>
+
+        <div class="slider-wrap">
+          <div class="slider-label">
+            <span>Stream volume</span>
+            <span id="volumeValue">60%</span>
+          </div>
+          <input id="volumeSlider" type="range" min="0" max="100" step="1" value="60"
+            aria-label="Background stream volume">
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <audio id="streamAudio" preload="none" playsinline src="https://ice1.somafm.com/groovesalad-128-mp3"></audio>
+
+  <script>
+    const STORAGE_KEY_VOLUME = "teodoro-volume";
+    const STORAGE_KEY_MUTED = "teodoro-muted";
+
+    const presets = {
+      "5sec": { seconds: 5, label: "5 sec" },
+      "5min": { seconds: 300, label: "5 min" },
+      "8min": { seconds: 480, label: "8 min" },
+      "18min": { seconds: 1080, label: "18 min" }
+    };
+
+    const chimePatterns = [
+      [
+        { beat: 0.0, note: 0, length: 0.20 },
+        { beat: 0.18, note: 4, length: 0.22 },
+        { beat: 0.40, note: 7, length: 0.38 }
+      ],
+      [
+        { beat: 0.0, note: 0, length: 0.16 },
+        { beat: 0.14, note: 7, length: 0.20 },
+        { beat: 0.30, note: 12, length: 0.32 }
+      ],
+      [
+        { beat: 0.0, note: 0, length: 0.18 },
+        { beat: 0.16, note: 3, length: 0.20 },
+        { beat: 0.34, note: 7, length: 0.22 },
+        { beat: 0.54, note: 10, length: 0.36 }
+      ],
+      [
+        { beat: 0.0, note: 0, length: 0.24 },
+        { beat: 0.22, note: 5, length: 0.18 },
+        { beat: 0.38, note: 9, length: 0.20 },
+        { beat: 0.58, note: 12, length: 0.34 }
+      ]
+    ];
+
+    const timeDisplay = document.getElementById( "timeDisplay" );
+    const status = document.getElementById( "status" );
+    const pauseButton = document.getElementById( "pauseButton" );
+    const addButton = document.getElementById( "addButton" );
+    const subtractButton = document.getElementById( "subtractButton" );
+    const volumeSlider = document.getElementById( "volumeSlider" );
+    const volumeValue = document.getElementById( "volumeValue" );
+    const muteButton = document.getElementById( "muteButton" );
+    const speakerIcon = document.getElementById( "speakerIcon" );
+    const presetButtons = Array.from( document.querySelectorAll( "[data-preset]" ) );
+    const streamAudio = document.getElementById( "streamAudio" );
+
+    const state = {
+      activePresetKey: null,
+      totalMs: 0,
+      remainingMs: 0,
+      restartMs: 0,
+      isRunning: false,
+      isPaused: false,
+      hasFinished: false,
+      halfwayTriggered: false,
+      timerId: null,
+      endTime: 0,
+      audioContext: null,
+      streamPrimed: false,
+      volume: 0.6,
+      isMuted: false
+    };
+
+    const clamp = ( value, min, max ) => Math.min( max, Math.max( min, value ) );
+
+    const getAudibleVolume = () => state.isMuted ? 0 : state.volume;
+
+    const formatTime = ( milliseconds ) => {
+      const seconds = Math.max( 0, Math.ceil( milliseconds / 1000 ) );
+      const minutesPart = Math.floor( seconds / 60 );
+      const secondsPart = seconds % 60;
+      return `${ String( minutesPart ).padStart( 2, "0" ) }:${ String( secondsPart ).padStart( 2, "0" ) }`;
+    };
+
+    const updateSpeakerIcon = () => {
+      const isSilent = state.isMuted || state.volume === 0;
+      speakerIcon.setAttribute(
+        "d",
+        isSilent
+          ? "M3 9v6h4l5 4V5L7 9H3Zm10.75 3 2.75 2.75 1.41-1.41L15.16 10.6l2.73-2.72-1.41-1.42L13.75 9.2 11.02 6.46 9.61 7.88l2.73 2.72-2.73 2.73 1.41 1.41L13.75 12Z"
+          : "M3 9v6h4l5 4V5L7 9H3Zm12.5 3a4.5 4.5 0 0 0-2.03-3.76v7.51A4.5 4.5 0 0 0 15.5 12Zm0-8.5v2.11a7 7 0 0 1 0 12.77v2.12a9 9 0 0 0 0-17Z"
+      );
+    };
+
+    const applyVolume = () => {
+      streamAudio.volume = getAudibleVolume();
+      volumeValue.textContent = `${ Math.round( state.volume * 100 ) }%`;
+      muteButton.setAttribute( "aria-pressed", String( state.isMuted ) );
+      muteButton.setAttribute( "aria-label", state.isMuted ? "Unmute audio" : "Mute audio" );
+      updateSpeakerIcon();
+      localStorage.setItem( STORAGE_KEY_VOLUME, String( state.volume ) );
+      localStorage.setItem( STORAGE_KEY_MUTED, String( state.isMuted ) );
+    };
+
+    const updatePresetButtons = () => {
+      presetButtons.forEach( ( button ) => {
+        button.dataset.active = String( button.dataset.key === state.activePresetKey );
+      } );
+    };
+
+    const getAdjustmentMs = () => state.activePresetKey === "5sec" ? 1000 : 60000;
+
+    const setStatus = ( message ) => {
+      status.textContent = message;
+    };
+
+    const clearTimerLoop = () => {
+      if ( state.timerId !== null ) {
+        window.clearInterval( state.timerId );
+        state.timerId = null;
+      }
+    };
+
+    const stopStream = () => {
+      streamAudio.pause();
+    };
+
+    const updateControls = () => {
+      if ( state.hasFinished ) {
+        pauseButton.disabled = false;
+        pauseButton.textContent = "Restart";
+        pauseButton.dataset.variant = "solid";
+        return;
+      }
+
+      pauseButton.dataset.variant = "";
+
+      if ( state.isRunning ) {
+        pauseButton.disabled = false;
+        pauseButton.textContent = "Pause";
+        return;
+      }
+
+      if ( state.isPaused ) {
+        pauseButton.disabled = false;
+        pauseButton.textContent = "Resume";
+        return;
+      }
+
+      pauseButton.disabled = state.remainingMs <= 0;
+      pauseButton.textContent = "Pause";
+    };
+
+    const render = () => {
+      timeDisplay.textContent = formatTime( state.remainingMs );
+      updateControls();
+      updatePresetButtons();
+    };
+
+    const ensureAudioContext = async () => {
+      if ( !state.audioContext ) {
+        state.audioContext = new window.AudioContext();
+      }
+
+      if ( state.audioContext.state === "suspended" ) {
+        await state.audioContext.resume();
+      }
+
+      return state.audioContext;
+    };
+
+    const playHalfwayChime = async () => {
+      if ( getAudibleVolume() === 0 ) {
+        return;
+      }
+
+      try {
+        const audioContext = await ensureAudioContext();
+        const pattern = chimePatterns[ Math.floor( Math.random() * chimePatterns.length ) ];
+        const root = 523.25;
+        const startTime = audioContext.currentTime + 0.02;
+        const gainScale = clamp( getAudibleVolume(), 0.08, 0.7 ) * 0.18;
+
+        pattern.forEach( ( step ) => {
+          const time = startTime + step.beat;
+          const frequency = root * Math.pow( 2, step.note / 12 );
+          const tone = audioContext.createOscillator();
+          const shimmer = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+
+          tone.type = "triangle";
+          tone.frequency.setValueAtTime( frequency, time );
+          shimmer.type = "sine";
+          shimmer.frequency.setValueAtTime( frequency * 2, time );
+
+          gain.gain.setValueAtTime( 0.0001, time );
+          gain.gain.exponentialRampToValueAtTime( gainScale, time + 0.03 );
+          gain.gain.exponentialRampToValueAtTime( 0.0001, time + step.length );
+
+          tone.connect( gain );
+          shimmer.connect( gain );
+          gain.connect( audioContext.destination );
+
+          tone.start( time );
+          shimmer.start( time );
+          tone.stop( time + step.length + 0.05 );
+          shimmer.stop( time + step.length + 0.05 );
+        } );
+      } catch ( error ) {
+        console.error( "Unable to play halfway chime", error );
+      }
+    };
+
+    const syncRemainingTime = () => {
+      if ( !state.isRunning ) {
+        return;
+      }
+
+      state.remainingMs = Math.max( 0, state.endTime - Date.now() );
+
+      if ( !state.halfwayTriggered && state.totalMs > 0 && state.remainingMs <= state.totalMs / 2 ) {
+        state.halfwayTriggered = true;
+        playHalfwayChime();
+        setStatus( "Halfway point." );
+      }
+
+      if ( state.remainingMs <= 0 ) {
+        finishTimer();
+        return;
+      }
+
+      render();
+    };
+
+    const runTimerLoop = () => {
+      clearTimerLoop();
+      state.timerId = window.setInterval( syncRemainingTime, 125 );
+    };
+
+    const startPlayback = async () => {
+      applyVolume();
+
+      try {
+        await streamAudio.play();
+        setStatus( "Time is up. Stream playing." );
+      } catch ( error ) {
+        console.error( "Unable to start stream", error );
+        setStatus( "Time is up. Tap mute or volume to enable stream." );
+      }
+    };
+
+    const finishTimer = () => {
+      clearTimerLoop();
+      state.isRunning = false;
+      state.isPaused = false;
+      state.hasFinished = true;
+      state.remainingMs = 0;
+      render();
+      startPlayback();
+    };
+
+    const prepareStream = async () => {
+      if ( state.streamPrimed ) {
+        return;
+      }
+
+      state.streamPrimed = true;
+      streamAudio.load();
+
+      try {
+        const previousMuted = streamAudio.muted;
+        const previousVolume = streamAudio.volume;
+        streamAudio.muted = true;
+        streamAudio.volume = 0;
+        const playback = streamAudio.play();
+        if ( playback ) {
+          await playback;
+          streamAudio.pause();
+        }
+        streamAudio.muted = previousMuted;
+        streamAudio.volume = previousVolume;
+      } catch ( error ) {
+        streamAudio.pause();
+      } finally {
+        applyVolume();
+      }
+    };
+
+    const beginCountdown = ( durationMs, statusMessage ) => {
+      if ( durationMs <= 0 ) {
+        state.totalMs = 0;
+        state.restartMs = 0;
+        state.remainingMs = 0;
+        state.isRunning = false;
+        state.isPaused = false;
+        state.hasFinished = false;
+        state.halfwayTriggered = false;
+        clearTimerLoop();
+        render();
+        setStatus( "Timer cleared." );
+        stopStream();
+        return;
+      }
+
+      stopStream();
+      state.totalMs = durationMs;
+      state.restartMs = durationMs;
+      state.remainingMs = durationMs;
+      state.isRunning = true;
+      state.isPaused = false;
+      state.hasFinished = false;
+      state.halfwayTriggered = false;
+      state.endTime = Date.now() + durationMs;
+      render();
+      setStatus( statusMessage );
+      runTimerLoop();
+    };
+
+    const startPreset = async ( presetKey ) => {
+      const preset = presets[ presetKey ];
+      if ( !preset ) {
+        return;
+      }
+
+      state.activePresetKey = presetKey;
+      await prepareStream();
+      try {
+        await ensureAudioContext();
+      } catch ( error ) {
+        console.error( "Unable to initialize audio context", error );
+      }
+      beginCountdown( preset.seconds * 1000, `${ preset.label } running.` );
+    };
+
+    const pauseTimer = () => {
+      if ( !state.isRunning ) {
+        return;
+      }
+
+      syncRemainingTime();
+      clearTimerLoop();
+      state.isRunning = false;
+      state.isPaused = true;
+      render();
+      setStatus( "Paused." );
+    };
+
+    const resumeTimer = () => {
+      if ( !state.isPaused || state.remainingMs <= 0 ) {
+        return;
+      }
+
+      stopStream();
+      state.isRunning = true;
+      state.isPaused = false;
+      state.hasFinished = false;
+      state.endTime = Date.now() + state.remainingMs;
+      render();
+      setStatus( "Resumed." );
+      runTimerLoop();
+    };
+
+    const restartTimer = () => {
+      if ( state.restartMs <= 0 ) {
+        return;
+      }
+
+      beginCountdown( state.restartMs, "Restarted." );
+    };
+
+    const adjustTimer = ( direction ) => {
+      const deltaMs = direction * getAdjustmentMs();
+
+      if ( state.activePresetKey === null ) {
+        state.activePresetKey = "5min";
+      }
+
+      const nextRemaining = Math.max( 0, state.remainingMs + deltaMs );
+      const nextTotal = Math.max( 0, state.totalMs + deltaMs );
+
+      if ( state.isRunning ) {
+        state.remainingMs = nextRemaining;
+        state.totalMs = nextTotal;
+        state.restartMs = nextTotal;
+        state.endTime = Date.now() + state.remainingMs;
+      } else {
+        state.remainingMs = nextRemaining;
+        state.totalMs = nextTotal;
+        state.restartMs = nextTotal;
+        state.hasFinished = false;
+      }
+
+      if ( state.totalMs > 0 && state.remainingMs > state.totalMs / 2 ) {
+        state.halfwayTriggered = false;
+      }
+
+      if ( state.remainingMs === 0 ) {
+        clearTimerLoop();
+        state.isRunning = false;
+        state.isPaused = false;
+        state.hasFinished = false;
+        stopStream();
+        setStatus( "Timer cleared." );
+      } else if ( state.isRunning ) {
+        setStatus( `Adjusted by ${ Math.abs( deltaMs ) === 1000 ? "1 second" : "1 minute" }.` );
+      } else {
+        setStatus( `Set to ${ formatTime( state.remainingMs ) }.` );
+      }
+
+      render();
+    };
+
+    presetButtons.forEach( ( button ) => {
+      button.addEventListener( "click", () => {
+        startPreset( button.dataset.key );
+      } );
+    } );
+
+    pauseButton.addEventListener( "click", () => {
+      if ( state.hasFinished ) {
+        restartTimer();
+        return;
+      }
+
+      if ( state.isRunning ) {
+        pauseTimer();
+        return;
+      }
+
+      if ( state.isPaused ) {
+        resumeTimer();
+      }
+    } );
+
+    addButton.addEventListener( "click", () => {
+      adjustTimer( 1 );
+    } );
+
+    subtractButton.addEventListener( "click", () => {
+      adjustTimer( -1 );
+    } );
+
+    volumeSlider.addEventListener( "input", ( event ) => {
+      state.volume = Number( event.target.value ) / 100;
+      if ( state.volume > 0 && state.isMuted ) {
+        state.isMuted = false;
+      }
+      applyVolume();
+    } );
+
+    muteButton.addEventListener( "click", () => {
+      state.isMuted = !state.isMuted;
+      applyVolume();
+    } );
+
+    const savedVolume = Number( localStorage.getItem( STORAGE_KEY_VOLUME ) );
+    const savedMuted = localStorage.getItem( STORAGE_KEY_MUTED );
+
+    if ( !Number.isNaN( savedVolume ) && savedVolume >= 0 && savedVolume <= 1 ) {
+      state.volume = savedVolume;
+    }
+
+    if ( savedMuted === "true" || savedMuted === "false" ) {
+      state.isMuted = savedMuted === "true";
+    }
+
+    volumeSlider.value = String( Math.round( state.volume * 100 ) );
+    applyVolume();
+    render();
+  </script>
+</body>
+
+</html>

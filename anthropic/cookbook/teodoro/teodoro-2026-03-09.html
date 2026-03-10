@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teodoro</title>
+  <style>
+    :root {
+      --bg: #f5f5f5;
+      --surface: #fff;
+      --text: #111;
+      --text-dim: #666;
+      --border: #ccc;
+      --border-active: #333;
+      --hover-bg: #eee;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111;
+        --surface: #1a1a1a;
+        --text: #eee;
+        --text-dim: #888;
+        --border: #444;
+        --border-active: #ccc;
+        --hover-bg: #252525;
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .app {
+      background: var(--surface);
+      border-radius: clamp(4px, 1.5vmin, 12px);
+      padding: clamp(6px, 2vmin, 20px);
+      width: min(96vw, 340px);
+      max-height: 98vh;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(4px, 1.5vmin, 12px);
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      font-size: clamp(10px, 2.5vmin, 16px);
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    #display {
+      font-size: clamp(20px, 12vmin, 72px);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+    }
+
+    #status {
+      font-size: clamp(9px, 2vmin, 14px);
+      font-weight: 600;
+      color: var(--text-dim);
+      min-height: 1.2em;
+    }
+
+    .row {
+      display: flex;
+      gap: clamp(4px, 1.2vmin, 8px);
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+
+    button {
+      font-family: inherit;
+      background: var(--surface);
+      color: var(--text);
+      border: 2px solid var(--border);
+      border-radius: clamp(4px, 1vmin, 8px);
+      padding: clamp(4px, 1vmin, 8px) clamp(8px, 2vmin, 20px);
+      font-size: clamp(11px, 2.6vmin, 18px);
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+
+    button:hover {
+      background: var(--hover-bg);
+      border-color: var(--border-active);
+    }
+
+    button:active {
+      transform: scale(0.96);
+    }
+
+    .preset {
+      padding: clamp(3px, 0.7vmin, 6px) clamp(6px, 1.5vmin, 14px);
+      font-size: clamp(10px, 2.2vmin, 15px);
+      border-radius: clamp(10px, 2vmin, 20px);
+      color: var(--text-dim);
+    }
+
+    .preset.active {
+      color: var(--text);
+      border-color: var(--border-active);
+    }
+
+    .adj {
+      width: clamp(22px, 5vmin, 38px);
+      height: clamp(22px, 5vmin, 38px);
+      padding: 0;
+      border-radius: 50%;
+      font-size: clamp(14px, 3vmin, 20px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .adj-label {
+      font-size: clamp(11px, 2.6vmin, 18px);
+      font-weight: 700;
+      color: var(--text-dim);
+      min-width: clamp(30px, 8vmin, 60px);
+      text-align: center;
+    }
+
+    .vol-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(4px, 1vmin, 10px);
+      width: 100%;
+    }
+
+    #volIcon {
+      font-size: clamp(14px, 2.8vmin, 20px);
+      cursor: pointer;
+      user-select: none;
+      color: var(--text-dim);
+    }
+
+    #volIcon:hover {
+      color: var(--text);
+    }
+
+    #volSlider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: clamp(40px, 40vw, 160px);
+      height: clamp(3px, 0.6vmin, 5px);
+      border-radius: 3px;
+      background: var(--border);
+      outline: none;
+      cursor: pointer;
+    }
+
+    #volSlider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: clamp(12px, 2.2vmin, 18px);
+      height: clamp(12px, 2.2vmin, 18px);
+      border-radius: 50%;
+      background: var(--text);
+      cursor: pointer;
+    }
+
+    #volSlider::-moz-range-thumb {
+      width: clamp(12px, 2.2vmin, 18px);
+      height: clamp(12px, 2.2vmin, 18px);
+      border-radius: 50%;
+      background: var(--text);
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app">
+    <h1>Teodoro</h1>
+    <div id="display">18:00</div>
+    <div id="status">Ready</div>
+
+    <div class="row">
+      <button id="mainBtn">Start</button>
+    </div>
+
+    <div class="row">
+      <button class="preset" data-sec="5" onclick="applyPreset(5,true)">5 sec</button>
+      <button class="preset" data-min="5" onclick="applyPreset(5)">5 min</button>
+      <button class="preset" data-min="8" onclick="applyPreset(8)">8 min</button>
+      <button class="preset active" data-min="18" onclick="applyPreset(18)">18 min</button>
+    </div>
+
+    <div class="row">
+      <button class="adj" onclick="adjust(-1)">&minus;</button>
+      <div class="adj-label"><span id="adjVal">18</span> <span id="adjUnit">min</span></div>
+      <button class="adj" onclick="adjust(1)">+</button>
+    </div>
+
+    <div class="vol-row">
+      <span id="volIcon" onclick="toggleMute()">&#128264;</span>
+      <input type="range" id="volSlider" min="0" max="100" value="80" oninput="setVolume(this.value)">
+    </div>
+  </div>
+
+  <script>
+    // rewrite the URL if we are running on a web server
+    if ( location.protocol !== "file:" ) {
+      window.history.replaceState( null, '', './' );
+    }
+    // State
+    let total = 18 * 60;
+    let remaining = total;
+    let unitIsSec = false;
+    let rawValue = 18;
+    let interval = null;
+    let running = false;
+    let musicMode = false;
+    let chimePlayed = false;
+    let audio = null;
+
+    const saved = localStorage.getItem( "teodoro-vol" );
+    let vol = saved !== null ? parseFloat( saved ) : 0.8;
+    let muted = false;
+
+    // DOM
+    const display = document.getElementById( "display" );
+    const status = document.getElementById( "status" );
+    const mainBtn = document.getElementById( "mainBtn" );
+    const adjVal = document.getElementById( "adjVal" );
+    const adjUnit = document.getElementById( "adjUnit" );
+    const volSlider = document.getElementById( "volSlider" );
+    const volIcon = document.getElementById( "volIcon" );
+
+    volSlider.value = vol * 100;
+    updateVolIcon();
+
+    // Format MM:SS
+    const fmt = ( s ) => {
+      const m = Math.floor( s / 60 ).toString().padStart( 2, "0" );
+      const sec = ( s % 60 ).toString().padStart( 2, "0" );
+      return m + ":" + sec;
+    };
+
+    const render = () => { display.textContent = fmt( remaining ); };
+
+    // Main button logic
+    mainBtn.onclick = () => {
+      if ( musicMode ) {
+        // Restart: stop music, reset, start countdown
+        stopMusic();
+        remaining = total;
+        chimePlayed = false;
+        render();
+        startCountdown();
+      } else if ( running ) {
+        // Pause
+        pause();
+      } else {
+        // Start or Resume
+        if ( remaining <= 0 ) {
+          remaining = total;
+          chimePlayed = false;
+          render();
+        }
+        startCountdown();
+      }
+    };
+
+    const startCountdown = () => {
+      interval = setInterval( tick, 1000 );
+      running = true;
+      mainBtn.textContent = "Pause";
+      status.textContent = "Counting down\u2026";
+    };
+
+    const pause = () => {
+      clearInterval( interval );
+      interval = null;
+      running = false;
+      mainBtn.textContent = "Resume";
+      status.textContent = "Paused";
+    };
+
+    const tick = () => {
+      remaining--;
+      render();
+
+      // Halfway chime
+      if ( !chimePlayed && remaining > 0 && remaining === Math.floor( total / 2 ) ) {
+        playChime();
+        chimePlayed = true;
+      }
+
+      if ( remaining <= 0 ) {
+        clearInterval( interval );
+        interval = null;
+        running = false;
+        startMusic();
+      }
+    };
+
+    // Presets
+    const applyPreset = ( value, isSec = false ) => {
+      stopMusic();
+      clearInterval( interval );
+      interval = null;
+      running = false;
+
+      rawValue = value;
+      unitIsSec = isSec;
+      total = isSec ? value : value * 60;
+      remaining = total;
+      chimePlayed = false;
+
+      adjVal.textContent = value;
+      adjUnit.textContent = isSec ? "sec" : "min";
+      render();
+      highlightPreset();
+      startCountdown();
+    };
+
+    const highlightPreset = () => {
+      document.querySelectorAll( ".preset" ).forEach( b => {
+        const match = unitIsSec
+          ? b.dataset.sec === String( rawValue )
+          : b.dataset.min === String( rawValue );
+        b.classList.toggle( "active", match );
+      } );
+    };
+
+    // +/- adjust
+    const adjust = ( delta ) => {
+      if ( unitIsSec ) {
+        rawValue = Math.max( 1, Math.min( 300, rawValue + delta ) );
+      } else {
+        rawValue = Math.max( 1, Math.min( 60, rawValue + delta ) );
+      }
+      adjVal.textContent = rawValue;
+      adjUnit.textContent = unitIsSec ? "sec" : "min";
+
+      if ( !running && !musicMode ) {
+        total = unitIsSec ? rawValue : rawValue * 60;
+        remaining = total;
+        chimePlayed = false;
+        render();
+      }
+      highlightPreset();
+    };
+
+    // Music
+    const startMusic = () => {
+      audio = new Audio( "https://ice1.somafm.com/groovesalad-128-mp3" );
+      audio.volume = muted ? 0 : vol;
+      audio.play().catch( () => {
+        status.textContent = "Tap to play music";
+        document.addEventListener( "click", function once () {
+          if ( audio ) audio.play().catch( () => { } );
+          document.removeEventListener( "click", once );
+        }, { once: true } );
+      } );
+      musicMode = true;
+      mainBtn.textContent = "Restart";
+      status.textContent = "Time\u2019s up!";
+    };
+
+    const stopMusic = () => {
+      if ( audio ) {
+        audio.pause();
+        audio.src = "";
+        audio = null;
+      }
+      musicMode = false;
+      mainBtn.textContent = "Start";
+      status.textContent = "Ready";
+    };
+
+    // Volume
+    const setVolume = ( v ) => {
+      vol = v / 100;
+      muted = vol === 0;
+      localStorage.setItem( "teodoro-vol", vol );
+      if ( audio ) audio.volume = muted ? 0 : vol;
+      updateVolIcon();
+    };
+
+    const toggleMute = () => {
+      if ( muted ) {
+        muted = false;
+        if ( vol === 0 ) vol = 0.8;
+        volSlider.value = vol * 100;
+      } else {
+        muted = true;
+        volSlider.value = 0;
+      }
+      if ( audio ) audio.volume = muted ? 0 : vol;
+      updateVolIcon();
+    };
+
+    function updateVolIcon () {
+      if ( muted || vol === 0 ) {
+        volIcon.innerHTML = "&#128263;";
+      } else if ( vol < 0.5 ) {
+        volIcon.innerHTML = "&#128264;";
+      } else {
+        volIcon.innerHTML = "&#128266;";
+      }
+    }
+
+    // Web Audio chimes
+    let chimeCtx = null;
+
+    const getCtx = () => {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if ( !AC ) return null;
+      if ( !chimeCtx || chimeCtx.state === "closed" ) chimeCtx = new AC();
+      if ( chimeCtx.state === "suspended" ) chimeCtx.resume();
+      return chimeCtx;
+    };
+
+    const chimes = [
+      // Rising arpeggio C-E-G-C
+      [
+        { f: 523, t: 0, d: 0.15 }, { f: 659, t: 0.15, d: 0.15 },
+        { f: 784, t: 0.3, d: 0.15 }, { f: 1047, t: 0.45, d: 0.5 }
+      ],
+      // Doorbell ding-dong
+      [
+        { f: 988, t: 0, d: 0.3 }, { f: 784, t: 0.35, d: 0.5 },
+        { f: 988, t: 1.1, d: 0.3 }, { f: 784, t: 1.45, d: 0.5 }
+      ],
+      // Descending cascade
+      [
+        { f: 1319, t: 0, d: 0.12 }, { f: 1109, t: 0.12, d: 0.12 },
+        { f: 880, t: 0.24, d: 0.12 }, { f: 659, t: 0.36, d: 0.12 },
+        { f: 523, t: 0.48, d: 0.5 }
+      ],
+      // Gentle thirds stepping up
+      [
+        { f: 659, t: 0, d: 0.2 }, { f: 784, t: 0.15, d: 0.2 },
+        { f: 880, t: 0.5, d: 0.2 }, { f: 1047, t: 0.65, d: 0.2 },
+        { f: 1175, t: 1.0, d: 0.5 }
+      ],
+      // Bright fanfare
+      [
+        { f: 587, t: 0, d: 0.08 }, { f: 740, t: 0.08, d: 0.08 },
+        { f: 880, t: 0.16, d: 0.08 }, { f: 1109, t: 0.24, d: 0.08 },
+        { f: 1318, t: 0.32, d: 0.6 }
+      ],
+      // Pentatonic bounce
+      [
+        { f: 784, t: 0, d: 0.12 }, { f: 988, t: 0.15, d: 0.12 },
+        { f: 784, t: 0.3, d: 0.12 }, { f: 1175, t: 0.45, d: 0.12 },
+        { f: 988, t: 0.6, d: 0.12 }, { f: 1318, t: 0.75, d: 0.4 }
+      ],
+      // Westminster fragment E-C-D-G
+      [
+        { f: 659, t: 0, d: 0.25 }, { f: 523, t: 0.3, d: 0.25 },
+        { f: 587, t: 0.6, d: 0.25 }, { f: 392, t: 0.9, d: 0.6 }
+      ],
+      // Twinkling
+      [
+        { f: 1047, t: 0, d: 0.08 }, { f: 1319, t: 0.1, d: 0.08 },
+        { f: 1047, t: 0.2, d: 0.08 }, { f: 1319, t: 0.3, d: 0.08 },
+        { f: 1047, t: 0.4, d: 0.08 }, { f: 1568, t: 0.5, d: 0.5 }
+      ]
+    ];
+
+    const playChime = () => {
+      const ctx = getCtx();
+      if ( !ctx ) return;
+      const v = muted ? 0 : vol;
+      if ( v <= 0 ) return;
+
+      const notes = chimes[ Math.floor( Math.random() * chimes.length ) ];
+      const now = ctx.currentTime;
+
+      notes.forEach( n => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect( gain );
+        gain.connect( ctx.destination );
+        osc.type = "sine";
+        osc.frequency.setValueAtTime( n.f, now + n.t );
+        gain.gain.setValueAtTime( 0, now + n.t );
+        gain.gain.linearRampToValueAtTime( v * 0.45, now + n.t + 0.02 );
+        gain.gain.exponentialRampToValueAtTime( 0.01, now + n.t + n.d );
+        osc.start( now + n.t );
+        osc.stop( now + n.t + n.d + 0.1 );
+      } );
+    };
+
+    // Spacebar shortcut
+    document.addEventListener( "keydown", ( e ) => {
+      if ( e.code === "Space" && e.target === document.body ) {
+        e.preventDefault();
+        mainBtn.click();
+      }
+    } );
+
+    render();
+  </script>
+</body>
+
+</html>
