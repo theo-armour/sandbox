@@ -1,6 +1,6 @@
 # NewwwTab Prompt
 
-Browser home page / new tab page for quick access to ~100 frequently used URLs.
+A personal customisable browser home page / new tab page for quick access to ~100 frequently used URLs.
 
 Single self-contained `index.html` — no build step, no framework, no backend.
 
