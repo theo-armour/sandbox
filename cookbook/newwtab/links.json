@@ -253,7 +253,9 @@
             },
             {
               "title": "midjourny",
-              "url": "https://midjourney.com"
+              "url": "https://midjourney.com",
+              "secondary": "tv",
+              "secondaryUrl": "https://www.midjourney.tv/"
             },
             {
               "title": "> dd",
@@ -295,6 +297,10 @@
             {
               "title": "outlook",
               "url": "https://outlook.com"
+            },
+            {
+              "title": "outlook.co",
+              "url": "https://outlook.com/"
             }
           ]
         },
