@@ -106,6 +106,15 @@
               "url": "https://vscode.dev/github/theo-armour/tootoo23"
             }
           ]
+        },
+        {
+          "title": "theo apps",
+          "links": [
+            {
+              "title": "newww tab",
+              "url": "https://theo-armour.github.io/sandbox/gemini/cookbook/newww-tab/"
+            }
+          ]
         }
       ]
     },
@@ -295,6 +304,10 @@
             {
               "title": "outlook",
               "url": "https://outlook.com"
+            },
+            {
+              "title": "outlook.co",
+              "url": "https://outlook.com/"
             }
           ]
         },
