@@ -106,6 +106,15 @@
               "url": "https://vscode.dev/github/theo-armour/tootoo23"
             }
           ]
+        },
+        {
+          "title": "theo apps",
+          "links": [
+            {
+              "title": "newww tab",
+              "url": "https://theo-armour.github.io/sandbox/gemini/cookbook/newww-tab/"
+            }
+          ]
         }
       ]
     },
@@ -253,9 +262,7 @@
             },
             {
               "title": "midjourny",
-              "url": "https://midjourney.com",
-              "secondary": "tv",
-              "secondaryUrl": "https://www.midjourney.tv/"
+              "url": "https://midjourney.com"
             },
             {
               "title": "> dd",
