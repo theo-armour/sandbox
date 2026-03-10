@@ -182,6 +182,7 @@
         },
         {
           "title": "MoreRead",
+          "collapsed": true,
           "links": [
             {
               "title": "aeon",
@@ -236,6 +237,10 @@
             {
               "title": "gemini",
               "url": "https://gemini.google.com"
+            },
+            {
+              "title": "Claude",
+              "url": "https://claude.ai/"
             }
           ]
         },
@@ -301,14 +306,6 @@
           "title": "mr softy",
           "collapsed": true,
           "links": [
-            {
-              "title": "test",
-              "url": "test"
-            },
-            {
-              "title": "outlook.co",
-              "url": "https://outlook.com/"
-            },
             {
               "title": "outlook.co",
               "url": "https://outlook.com/"
@@ -382,6 +379,10 @@
               "url": "https://domains.google"
             },
             {
+              "title": "test",
+              "url": "test"
+            },
+            {
               "title": "g experimt",
               "url": "https://experiments.withgoogle.com"
             },
@@ -446,6 +447,19 @@
             {
               "title": "libbyapp",
               "url": "https://libbyapp.com/"
+            },
+            {
+              "title": "feedly.com",
+              "url": "https://feedly.com/"
+            }
+          ]
+        },
+        {
+          "title": "test",
+          "links": [
+            {
+              "title": "outlook.co",
+              "url": "https://outlook.com/"
             }
           ]
         }

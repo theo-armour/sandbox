@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NewwwTab</title>
+  <title>Newww-Tab</title>
   <style>
     /* ── Variables ───────────────────────────────────────────── */
     :root {
@@ -162,7 +162,6 @@
       overflow: hidden;
     }
 
-    /* Minimal column handle — drag grip + management buttons, always visible */
     .col-handle {
       height: 26px;
       display: flex;
@@ -235,6 +234,7 @@
     /* ── Links list ──────────────────────────────────────────── */
     .links-list {
       padding: 1px 2px;
+      min-height: 20px;
     }
 
     .lk {
@@ -307,7 +307,6 @@
     a.lk-secondary:hover {
       opacity: 0.7;
     }
-
 
     /* ── Icon buttons ────────────────────────────────────────── */
     .ibtn {
@@ -462,14 +461,11 @@
   <script>
     'use strict';
     // ============================================================
-    // NewwwTab  —  loads from ./links.json, saves locally or to GitHub
-    // JSON format: { columns: [{ title, sections: [{ title?, links: [
-    //   { title, url, g? (github url), secondary?, secondaryUrl? }
-    // ]}]}]}
+    // NewwwTab — loads from ./links.json, saves locally or to GitHub
     // ============================================================
 
-    // rewrite the URL if we are running on a web server
-    if ( location.protocol !== "file:" ) {
+    // Normalize URL on web servers so relative fetch works
+    if ( location.protocol !== 'file:' ) {
       window.history.replaceState( null, '', './' );
     }
 
@@ -478,8 +474,8 @@
 
     // ── Environment ───────────────────────────────────────────
     const isLocal = () => {
-      const h = window.location.hostname;
-      return h === 'localhost' || h === '127.0.0.1' || h === '' || window.location.protocol === 'file:';
+      const h = location.hostname;
+      return h === 'localhost' || h === '127.0.0.1' || h === '' || location.protocol === 'file:';
     };
 
     // ── IndexedDB helpers (for caching FSA file handle) ───────
@@ -494,7 +490,8 @@
       return new Promise( ( res, rej ) => {
         const tx = db.transaction( 'fs', 'readwrite' );
         tx.objectStore( 'fs' ).put( val, key );
-        tx.oncomplete = res; tx.onerror = e => rej( e.target.error );
+        tx.oncomplete = res;
+        tx.onerror = e => rej( e.target.error );
       } );
     };
     const idbGet = async ( key ) => {
@@ -513,46 +510,35 @@
       const HKEY = 'links-json-handle';
 
       if ( !window.showSaveFilePicker ) {
-        // Fallback for browsers without FSA: download the file
+        // Fallback: trigger download
         const a = document.createElement( 'a' );
         const blobUrl = URL.createObjectURL( new Blob( [ json ], { type: 'application/json' } ) );
-        a.href = blobUrl; a.download = 'links.json'; a.click();
+        a.href = blobUrl;
+        a.download = 'links.json';
+        a.click();
         URL.revokeObjectURL( blobUrl );
-        markClean(); return;
+        markClean();
+        return;
       }
-
-      const pickNew = async () => {
-        const h = await window.showSaveFilePicker( {
-          suggestedName: 'links.json',
-          types: [ { description: 'JSON', accept: { 'application/json': [ '.json' ] } } ]
-        } );
-        await idbPut( HKEY, h );
-        return h;
-      };
 
       let handle = await idbGet( HKEY );
       if ( handle ) {
-        // Re-verify permission (may lapse after page reload)
-        try {
-          const perm = await handle.queryPermission( { mode: 'readwrite' } );
-          if ( perm !== 'granted' ) {
-            if ( await handle.requestPermission( { mode: 'readwrite' } ) !== 'granted' ) handle = null;
-          }
-        } catch ( e ) {
-          handle = null;  // stale handle — file moved or deleted
+        const perm = await handle.queryPermission( { mode: 'readwrite' } );
+        if ( perm !== 'granted' ) {
+          if ( await handle.requestPermission( { mode: 'readwrite' } ) !== 'granted' ) handle = null;
         }
       }
-      if ( !handle ) handle = await pickNew();
-
-      try {
-        const writable = await handle.createWritable();
-        await writable.write( json ); await writable.close();
-      } catch ( e ) {
-        // Cached handle is stale (file moved/deleted) — re-pick
-        handle = await pickNew();
-        const writable = await handle.createWritable();
-        await writable.write( json ); await writable.close();
+      if ( !handle ) {
+        handle = await window.showSaveFilePicker( {
+          suggestedName: 'links.json',
+          types: [ { description: 'JSON', accept: { 'application/json': [ '.json' ] } } ]
+        } );
+        await idbPut( HKEY, handle );
       }
+
+      const writable = await handle.createWritable();
+      await writable.write( json );
+      await writable.close();
       markClean();
     };
 
@@ -560,8 +546,7 @@
     let state = null;
     let isDirty = false;
     let allCollapsed = false;
-    let colSortable = null;  // track instance so we can destroy before re-create
-    let isSortableDrag = false;  // flag to distinguish SortableJS drags from external URL drops
+    let colSortable = null;
 
     // ── Utils ─────────────────────────────────────────────────
     const uid = () => 'id' + Date.now().toString( 36 ) + Math.random().toString( 36 ).slice( 2, 6 );
@@ -631,7 +616,7 @@
       el.style.color = isError ? 'var(--dirty)' : 'var(--muted)';
       el.classList.add( 'visible' );
     };
-    const hideStatus = () => { document.getElementById( 'status' ).classList.remove( 'visible' ); };
+    const hideStatus = () => document.getElementById( 'status' ).classList.remove( 'visible' );
 
     const loadFromFile = async () => {
       showStatus( 'Loading links.json…' );
@@ -669,7 +654,6 @@
       el.className = 'col';
       el.dataset.colId = col.id;
 
-      // Minimal drag/manage handle — visible only on hover
       const handle = document.createElement( 'div' );
       handle.className = 'col-handle';
       handle.innerHTML =
@@ -717,12 +701,31 @@
         `<button class="ibtn" data-a="del"    title="Delete">✕</button>` +
         `</span>`;
 
+      // URL drop on section header (works even when collapsed or empty)
+      const handleDrop = e => {
+        e.preventDefault();
+        hd.classList.remove( 'drop-zone-on' );
+        const txt = ( e.dataTransfer.getData( 'text/plain' ) || e.dataTransfer.getData( 'text/uri-list' ) || '' ).trim();
+        if ( !txt.startsWith( 'http' ) ) return;
+        let title = '';
+        try { title = new URL( txt ).hostname.replace( /^www\./, '' ).slice( 0, 10 ); } catch ( x ) { title = txt.slice( 0, 10 ); }
+        const newLk = { id: uid(), title, url: txt, secondaryTitle: '', secondaryUrl: '' };
+        sec.links.push( newLk );
+        if ( sec.collapsed ) { sec.collapsed = false; }
+        markDirty(); render();
+        doEditLink( newLk, sec );
+      };
+      hd.addEventListener( 'dragover', e => { e.preventDefault(); hd.classList.add( 'drop-zone-on' ); } );
+      hd.addEventListener( 'dragleave', () => hd.classList.remove( 'drop-zone-on' ) );
+      hd.addEventListener( 'drop', handleDrop );
+
       hd.addEventListener( 'click', e => {
         const a = e.target.dataset.a;
         if ( !a ) {
-          sec.collapsed = !sec.collapsed; markDirty();
+          sec.collapsed = !sec.collapsed;
           hd.querySelector( '.sec-toggle' ).textContent = sec.collapsed ? '▶' : '▼';
           body.classList.toggle( 'collapsed', sec.collapsed );
+          markDirty();
           return;
         }
         if ( a === 'add-lk' ) doAddLink( sec );
@@ -738,18 +741,19 @@
       listEl.dataset.secId = sec.id;
       sec.links.forEach( lk => listEl.appendChild( mkLink( lk, sec ) ) );
 
-      // URL drop from address bar (external drops only — not SortableJS reorder)
-      body.addEventListener( 'dragover', e => { if ( !isSortableDrag ) { e.preventDefault(); body.classList.add( 'drop-zone-on' ); } } );
+      // URL drop from address bar
+      body.addEventListener( 'dragover', e => { e.preventDefault(); body.classList.add( 'drop-zone-on' ); } );
       body.addEventListener( 'dragleave', () => body.classList.remove( 'drop-zone-on' ) );
       body.addEventListener( 'drop', e => {
-        e.preventDefault(); body.classList.remove( 'drop-zone-on' );
-        if ( isSortableDrag ) return;
+        e.preventDefault();
+        body.classList.remove( 'drop-zone-on' );
         const txt = ( e.dataTransfer.getData( 'text/plain' ) || e.dataTransfer.getData( 'text/uri-list' ) || '' ).trim();
         if ( !txt.startsWith( 'http' ) ) return;
         let title = '';
         try { title = new URL( txt ).hostname.replace( /^www\./, '' ).slice( 0, 10 ); } catch ( x ) { title = txt.slice( 0, 10 ); }
         const newLk = { id: uid(), title, url: txt, secondaryTitle: '', secondaryUrl: '' };
-        sec.links.push( newLk ); markDirty();
+        sec.links.push( newLk );
+        markDirty();
         doEditLink( newLk, sec );
       } );
 
@@ -792,8 +796,10 @@
       inp.className = 'inline-edit';
       inp.value = current;
       const orig = el.textContent;
-      el.textContent = ''; el.appendChild( inp );
-      inp.focus(); inp.select();
+      el.textContent = '';
+      el.appendChild( inp );
+      inp.focus();
+      inp.select();
       const finish = ok => {
         const v = inp.value.trim();
         el.textContent = ( ok && v ) ? v : orig;
@@ -878,10 +884,27 @@
       } ]
     );
 
-    const delColumn = col => { if ( col.sections.some( s => s.links.length ) && !confirm( `Delete column "${ col.title }"?` ) ) return; state.columns = state.columns.filter( c => c.id !== col.id ); markDirty(); render(); };
-    const delSection = ( col, sec ) => { if ( sec.links.length && !confirm( `Delete section "${ sec.title }" with ${ sec.links.length } link(s)?` ) ) return; col.sections = col.sections.filter( s => s.id !== sec.id ); markDirty(); render(); };
-    const delLink = ( sec, lk ) => { sec.links = sec.links.filter( l => l.id !== lk.id ); markDirty(); render(); };
-    const moveCol = ( id, dir ) => { const i = state.columns.findIndex( c => c.id === id ); const j = i + dir; if ( j < 0 || j >= state.columns.length ) return;[ state.columns[ i ], state.columns[ j ] ] = [ state.columns[ j ], state.columns[ i ] ]; markDirty(); render(); };
+    const delColumn = col => {
+      if ( col.sections.some( s => s.links.length ) && !confirm( `Delete column "${ col.title }"?` ) ) return;
+      state.columns = state.columns.filter( c => c.id !== col.id );
+      markDirty(); render();
+    };
+    const delSection = ( col, sec ) => {
+      if ( sec.links.length && !confirm( `Delete section "${ sec.title }" with ${ sec.links.length } link(s)?` ) ) return;
+      col.sections = col.sections.filter( s => s.id !== sec.id );
+      markDirty(); render();
+    };
+    const delLink = ( sec, lk ) => {
+      sec.links = sec.links.filter( l => l.id !== lk.id );
+      markDirty(); render();
+    };
+    const moveCol = ( id, dir ) => {
+      const i = state.columns.findIndex( c => c.id === id );
+      const j = i + dir;
+      if ( j < 0 || j >= state.columns.length ) return;
+      [ state.columns[ i ], state.columns[ j ] ] = [ state.columns[ j ], state.columns[ i ] ];
+      markDirty(); render();
+    };
 
     // ── Search ────────────────────────────────────────────────
     const searchEl = document.getElementById( 'tb-search' );
@@ -904,7 +927,6 @@
 
     // ── Toggle all ────────────────────────────────────────────
     document.getElementById( 'btn-toggle-all' ).addEventListener( 'click', () => {
-      // Collapse all if anything is expanded; expand all if everything is already collapsed
       const anyExpanded = state.columns.some( col => col.sections.some( sec => !sec.collapsed ) );
       allCollapsed = anyExpanded;
       state.columns.forEach( col => col.sections.forEach( sec => sec.collapsed = allCollapsed ) );
@@ -919,7 +941,7 @@
         id: 'ok', label: 'OK', fn: ov => {
           const t = ov.querySelector( '#mi-t' ).value.trim();
           if ( !t ) return;
-          state.columns.push( { id: uid(), title: t, collapsed: false, sections: [ { id: uid(), title: '', collapsed: false, links: [] } ] } );
+          state.columns.push( { id: uid(), title: t, sections: [ { id: uid(), title: '', collapsed: false, links: [] } ] } );
           markDirty(); render(); closeModal( ov );
         }
       } ]
@@ -927,12 +949,12 @@
 
     // ── SortableJS ────────────────────────────────────────────
     const bindColumnSortable = () => {
-      if ( colSortable ) colSortable.destroy();  // prevent stacking instances across re-renders
+      if ( colSortable ) colSortable.destroy();
       colSortable = Sortable.create( colsEl, {
         animation: 150, handle: '.col-handle',
         ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen',
         onEnd: () => {
-          const order = Array.from( colsEl.querySelectorAll( ':scope > [data-col-id]' ) ).map( e => e.dataset.colId );
+          const order = Array.from( colsEl.querySelectorAll( '[data-col-id]' ) ).map( e => e.dataset.colId );
           state.columns = order.map( id => state.columns.find( c => c.id === id ) ).filter( Boolean );
           markDirty();
         }
@@ -942,25 +964,21 @@
     const bindSectionSortable = ( el, col ) => Sortable.create( el, {
       group: 'secs', animation: 150, handle: '.sec-hd',
       ghostClass: 'sortable-ghost',
-      onStart: () => { isSortableDrag = true; },
       onEnd: evt => {
-        isSortableDrag = false;
         const srcCol = state.columns.find( c => c.id === evt.from.dataset.colId );
         const tgtCol = state.columns.find( c => c.id === evt.to.dataset.colId );
         if ( !srcCol || !tgtCol ) return;
         const si = srcCol.sections.findIndex( s => s.id === evt.item.dataset.secId );
         const [ sec ] = srcCol.sections.splice( si, 1 );
         tgtCol.sections.splice( Math.max( Array.from( evt.to.children ).indexOf( evt.item ), 0 ), 0, sec );
-        markDirty(); requestAnimationFrame( render );
+        markDirty(); render();
       }
     } );
 
     const bindLinkSortable = ( el, sec ) => Sortable.create( el, {
       group: 'links', animation: 150, handle: '.lk-drag',
       ghostClass: 'sortable-ghost',
-      onStart: () => { isSortableDrag = true; },
       onEnd: evt => {
-        isSortableDrag = false;
         let srcSec = null, tgtSec = null;
         state.columns.forEach( c => c.sections.forEach( s => {
           if ( s.id === evt.from.dataset.secId ) srcSec = s;
@@ -970,11 +988,11 @@
         const li = srcSec.links.findIndex( l => l.id === evt.item.dataset.linkId );
         const [ lk ] = srcSec.links.splice( li, 1 );
         tgtSec.links.splice( Math.max( Array.from( evt.to.children ).indexOf( evt.item ), 0 ), 0, lk );
-        markDirty(); requestAnimationFrame( render );
+        markDirty(); render();
       }
     } );
 
-    // ── Save — routes to local file or GitHub based on environment ──
+    // ── Save — routes to local file or GitHub ─────────────────
     const showGitHubSaveModal = () => {
       const token = localStorage.getItem( TOKEN_KEY ) || '';
       const ov = document.createElement( 'div' );
@@ -1002,10 +1020,10 @@
         const hdrs = { Authorization: `token ${ tok }`, 'Content-Type': 'application/json' };
         try {
           let sha = '';
-          const gr = await fetch( `https://api.github.com/repos/${ repo }/contents/${ path }`, { headers: hdrs } );
+          const gr = await fetch( `https://api.github.com/repos/${ encodeURI( repo ) }/contents/${ encodeURI( path ) }`, { headers: hdrs } );
           if ( gr.ok ) sha = ( await gr.json() ).sha || '';
           const content = btoa( unescape( encodeURIComponent( JSON.stringify( serialize(), null, 2 ) ) ) );
-          const pr = await fetch( `https://api.github.com/repos/${ repo }/contents/${ path }`, {
+          const pr = await fetch( `https://api.github.com/repos/${ encodeURI( repo ) }/contents/${ encodeURI( path ) }`, {
             method: 'PUT', headers: hdrs,
             body: JSON.stringify( { message: 'newwwtab: update links', content, sha } )
           } );
@@ -1018,16 +1036,14 @@
 
     document.getElementById( 'btn-save' ).addEventListener( 'click', async () => {
       if ( isLocal() ) {
-        // Write directly to links.json on disk via File System Access API
         try { await saveToLocalFile(); }
         catch ( e ) { if ( e.name !== 'AbortError' ) alert( 'Save failed: ' + e.message ); }
         return;
       }
-      // GitHub Pages: push via GitHub Contents API
       showGitHubSaveModal();
     } );
 
-    // ── Export ────────────────────────────────────────────────
+    // ── Export ─────────────────────────────────────────────────
     document.getElementById( 'btn-export' ).addEventListener( 'click', () => {
       const jsonStr = JSON.stringify( serialize(), null, 2 );
       const mdLines = [];
@@ -1065,7 +1081,8 @@
       ov.querySelector( '#ex-dl' ).addEventListener( 'click', () => {
         const blobUrl = URL.createObjectURL( new Blob( [ ta.value ], { type: 'text/plain' } ) );
         const a = Object.assign( document.createElement( 'a' ), { href: blobUrl, download: 'links.' + mode } );
-        a.click(); URL.revokeObjectURL( blobUrl );
+        a.click();
+        URL.revokeObjectURL( blobUrl );
       } );
       ov.querySelector( '#ex-close' ).addEventListener( 'click', () => ov.remove() );
       ov.addEventListener( 'click', e => { if ( e.target === ov ) ov.remove(); } );
@@ -1085,14 +1102,15 @@
       } ]
     ) );
 
-    // ── Date ──────────────────────────────────────────────────
+    // ── Clock ─────────────────────────────────────────────────
     const tick = () => {
       const n = new Date();
       document.getElementById( 'tb-date' ).textContent =
         n.toLocaleTimeString( [], { hour: '2-digit', minute: '2-digit' } ) + ' · ' +
         n.toLocaleDateString( [], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' } );
     };
-    tick(); setInterval( tick, 60000 );
+    tick();
+    setInterval( tick, 60000 );
 
     // ── Boot ──────────────────────────────────────────────────
     loadFromFile();

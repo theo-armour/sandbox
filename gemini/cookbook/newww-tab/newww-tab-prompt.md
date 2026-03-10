@@ -30,6 +30,7 @@ No localStorage for link data — only the GitHub personal access token is store
     "title": "string",
     "sections": [{
       "title": "string (optional, can be empty)",
+      "collapsed": "boolean (optional — if true, section is collapsed on load)",
       "links": [{
         "title": "string",
         "url": "string",
@@ -44,17 +45,17 @@ No localStorage for link data — only the GitHub personal access token is store
 
 **Rules**:
 - `"g"` is a shorthand: if present, renders as a `[g]` badge linking to the GitHub URL. Mutually exclusive with `secondary` + `secondaryUrl`.
-- File must be clean, human-readable JSON — no runtime IDs, no UI state.
+- File must be clean, human-readable JSON — no runtime IDs.
 
 ### Runtime normalization
 
-On load, `normalize()` decorates every column, section, and link with a unique runtime `id` (for drag-and-drop tracking) and default values. On save, `serialize()` strips IDs and transient state, producing clean JSON matching the schema above.
+On load, `normalize()` decorates every column, section, and link with a unique runtime `id` (for drag-and-drop tracking) and default values. It also reads the `collapsed` flag from each section. On save, `serialize()` strips IDs, producing clean JSON matching the schema above (including `"collapsed": true` on collapsed sections, omitted when false).
 
 ### Dirty tracking
 
 Any data mutation sets a dirty flag → shows `● unsaved` indicator in the toolbar and turns the Save button border orange. Saving clears the flag.
 
-**Important**: Toggling section collapse is a UI-only action — do NOT mark dirty when collapsing/expanding, since collapse state is not persisted.
+Toggling section collapse (individual or Toggle All) marks dirty, since collapse state is persisted in `links.json`.
 
 ---
 
@@ -132,7 +133,7 @@ Each `onEnd` callback reconciles DOM order back into the `state` arrays by splic
 
 ### URL drop
 
-Drag a URL from the browser address bar onto any section body → creates a new link using the hostname as title → opens the edit modal immediately for refinement.
+Drag a URL from the browser address bar onto any section **header or body** → creates a new link using the hostname as title → opens the edit modal immediately for refinement. Dropping on a collapsed section auto-expands it. Empty link lists have a `min-height: 20px` so there is always a visible drop target in the body.
 
 ### Search
 
