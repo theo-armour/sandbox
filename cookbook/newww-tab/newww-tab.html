@@ -1,824 +1,1082 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NewwwTab</title>
-<style>
-/* ── Variables ───────────────────────────────────────────── */
-:root {
-  --bg:        #fff;
-  --text:      #111;
-  --link:      #007700;
-  --link2:     #005599;
-  --muted:     #666;
-  --border:    #ccc;
-  --hover:     #f0f0f0;
-  --toolbar:   #f5f5f5;
-  --scrollbar: #00aa00;
-  --highlight: rgba(0,180,0,.2);
-  --dirty:     #c05000;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg:        #222;
-    --text:      #ddd;
-    --link:      #55cc55;
-    --link2:     #55aaff;
-    --muted:     #888;
-    --border:    #444;
-    --hover:     #2e2e2e;
-    --toolbar:   #2a2a2a;
-    --scrollbar: #44bb44;
-    --highlight: rgba(80,200,80,.25);
-    --dirty:     #e07030;
-  }
-}
-/* ── Reset ───────────────────────────────────────────────── */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
-  font-size: 18px;
-  line-height: 1.15;
-  background: var(--bg);
-  color: var(--text);
-}
-button, input, textarea, select { font-family: inherit; font-size: inherit; }
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 2px; }
-::-webkit-scrollbar-track { background: transparent; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NewwwTab</title>
+  <style>
+    /* ── Variables ───────────────────────────────────────────── */
+    :root {
+      --bg: #fff;
+      --text: #111;
+      --link: #007700;
+      --link2: #005599;
+      --muted: #666;
+      --border: #ccc;
+      --hover: #f0f0f0;
+      --toolbar: #f5f5f5;
+      --scrollbar: #00aa00;
+      --highlight: rgba(0, 180, 0, .2);
+      --dirty: #c05000;
+    }
 
-/* ── Toolbar ─────────────────────────────────────────────── */
-#toolbar {
-  position: sticky; top: 0; z-index: 100;
-  background: var(--toolbar);
-  border-bottom: 1px solid var(--border);
-  padding: 4px 8px;
-  display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
-}
-#tb-title { font-size: 14px; font-weight: bold; margin-right: 6px; user-select: none; }
-#tb-date  { font-size: 11px; color: var(--muted); margin-right: 6px; white-space: nowrap; }
-#tb-search {
-  border: 1px solid var(--border);
-  background: var(--bg); color: var(--text);
-  padding: 2px 6px; border-radius: 3px; width: 160px;
-}
-#tb-search::placeholder { color: var(--muted); }
-#tb-dirty {
-  font-size: 11px; color: var(--dirty);
-  display: none; margin-left: 4px;
-}
-#tb-dirty.visible { display: inline; }
-.tbtn {
-  padding: 2px 8px; border: 1px solid var(--border);
-  background: var(--bg); color: var(--text);
-  border-radius: 3px; cursor: pointer; white-space: nowrap;
-}
-.tbtn:hover { border-color: var(--link); color: var(--link); }
-.tbtn.dirty { border-color: var(--dirty); color: var(--dirty); }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #222;
+        --text: #ddd;
+        --link: #55cc55;
+        --link2: #55aaff;
+        --muted: #888;
+        --border: #444;
+        --hover: #2e2e2e;
+        --toolbar: #2a2a2a;
+        --scrollbar: #44bb44;
+        --highlight: rgba(80, 200, 80, .25);
+        --dirty: #e07030;
+      }
+    }
 
-/* ── Columns container ───────────────────────────────────── */
-#columns {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  padding: 6px;
-  gap: 6px;
-}
+    /* ── Reset ───────────────────────────────────────────────── */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-/* ── Column ──────────────────────────────────────────────── */
-.col {
-  flex: 1 1 0;
-  min-width: 0;
-  overflow: hidden;
-}
-/* Minimal column handle — drag grip + management buttons, always visible */
-.col-handle {
-  height: 26px;
-  display: flex; align-items: center; gap: 2px;
-  cursor: grab; background: transparent;
-}
-.col-drag { color: var(--muted); padding: 0 2px; flex-shrink: 0; }
-.col-acts { display: flex; align-items: center; gap: 1px; }
+    body {
+      font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
+      font-size: 18px;
+      line-height: 1.15;
+      background: var(--bg);
+      color: var(--text);
+    }
 
-/* ── Section ─────────────────────────────────────────────── */
-.sec { border-top: 1px solid var(--border); }
-.sec-hd {
-  display: flex; align-items: center; gap: 3px;
-  padding: 2px 4px;
-  cursor: pointer; color: var(--muted);
-  font-weight: 700; user-select: none;
-}
-.sec-hd:hover { background: var(--hover); color: var(--text); }
-.sec-toggle { font-size: 8px; flex-shrink: 0; }
-.sec-title  { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sec-acts   { display: none; align-items: center; gap: 1px; flex-shrink: 0; }
-.sec-hd:hover .sec-acts { display: flex; }
-.sec-body.collapsed { display: none; }
+    button,
+    input,
+    textarea,
+    select {
+      font-family: inherit;
+      font-size: inherit;
+    }
 
-/* ── Links list ──────────────────────────────────────────── */
-.links-list { padding: 1px 2px; }
-.lk {
-  display: flex; align-items: center; gap: 3px;
-  padding: 1px 2px; border-radius: 2px;
-}
-.lk:hover { background: var(--hover); }
-.lk-drag { display: none; cursor: grab; color: var(--muted); font-size: 10px; flex-shrink: 0; }
-.lk:hover .lk-drag { display: block; }
-.lk-main { flex: 1; display: flex; align-items: center; gap: 3px; overflow: hidden; min-width: 0; }
-.lk-acts { display: none; align-items: center; gap: 1px; flex-shrink: 0; }
-.lk:hover .lk-acts { display: flex; }
-a.lk-primary {
-  color: var(--link); text-decoration: none;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-a.lk-primary:hover { text-decoration: underline; }
-a.lk-secondary {
-  font-size: 10px; color: var(--link2); text-decoration: none;
-  border: 1px solid var(--link2); border-radius: 2px;
-  padding: 0 2px; white-space: nowrap; flex-shrink: 0;
-}
-a.lk-secondary:hover { opacity: 0.7; }
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--scrollbar);
+      border-radius: 2px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    /* ── Toolbar ─────────────────────────────────────────────── */
+    #toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--toolbar);
+      border-bottom: 1px solid var(--border);
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    #tb-title {
+      font-size: 14px;
+      font-weight: bold;
+      margin-right: 6px;
+      user-select: none;
+    }
+
+    #tb-date {
+      font-size: 11px;
+      color: var(--muted);
+      margin-right: 6px;
+      white-space: nowrap;
+    }
+
+    #tb-search {
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      padding: 2px 6px;
+      border-radius: 3px;
+      width: 160px;
+    }
+
+    #tb-search::placeholder {
+      color: var(--muted);
+    }
+
+    #tb-dirty {
+      font-size: 11px;
+      color: var(--dirty);
+      display: none;
+      margin-left: 4px;
+    }
+
+    #tb-dirty.visible {
+      display: inline;
+    }
+
+    .tbtn {
+      padding: 2px 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      border-radius: 3px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .tbtn:hover {
+      border-color: var(--link);
+      color: var(--link);
+    }
+
+    .tbtn.dirty {
+      border-color: var(--dirty);
+      color: var(--dirty);
+    }
+
+    /* ── Columns container ───────────────────────────────────── */
+    #columns {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      padding: 6px;
+      gap: 6px;
+    }
+
+    /* ── Column ──────────────────────────────────────────────── */
+    .col {
+      flex: 1 1 0;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    /* Minimal column handle — drag grip + management buttons, always visible */
+    .col-handle {
+      height: 26px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      cursor: grab;
+      background: transparent;
+    }
+
+    .col-drag {
+      color: var(--muted);
+      padding: 0 2px;
+      flex-shrink: 0;
+    }
+
+    .col-acts {
+      display: flex;
+      align-items: center;
+      gap: 1px;
+    }
+
+    /* ── Section ─────────────────────────────────────────────── */
+    .sec {
+      border-top: 1px solid var(--border);
+    }
+
+    .sec-hd {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 4px;
+      cursor: pointer;
+      color: var(--muted);
+      font-weight: 700;
+      user-select: none;
+    }
+
+    .sec-hd:hover {
+      background: var(--hover);
+      color: var(--text);
+    }
+
+    .sec-toggle {
+      font-size: 8px;
+      flex-shrink: 0;
+    }
+
+    .sec-title {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .sec-acts {
+      display: none;
+      align-items: center;
+      gap: 1px;
+      flex-shrink: 0;
+    }
+
+    .sec-hd:hover .sec-acts {
+      display: flex;
+    }
+
+    .sec-body.collapsed {
+      display: none;
+    }
+
+    /* ── Links list ──────────────────────────────────────────── */
+    .links-list {
+      padding: 1px 2px;
+    }
+
+    .lk {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      padding: 1px 2px;
+      border-radius: 2px;
+    }
+
+    .lk:hover {
+      background: var(--hover);
+    }
+
+    .lk-drag {
+      display: none;
+      cursor: grab;
+      color: var(--muted);
+      font-size: 10px;
+      flex-shrink: 0;
+    }
+
+    .lk:hover .lk-drag {
+      display: block;
+    }
+
+    .lk-main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .lk-acts {
+      display: none;
+      align-items: center;
+      gap: 1px;
+      flex-shrink: 0;
+    }
+
+    .lk:hover .lk-acts {
+      display: flex;
+    }
+
+    a.lk-primary {
+      color: var(--link);
+      text-decoration: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    a.lk-primary:hover {
+      text-decoration: underline;
+    }
+
+    a.lk-secondary {
+      font-size: 10px;
+      color: var(--link2);
+      text-decoration: none;
+      border: 1px solid var(--link2);
+      border-radius: 2px;
+      padding: 0 2px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    a.lk-secondary:hover {
+      opacity: 0.7;
+    }
 
 
-/* ── Icon buttons ────────────────────────────────────────── */
-.ibtn {
-  background: none; border: none; cursor: pointer;
-  color: var(--muted); font-size: 11px; padding: 0 2px;
-  line-height: 1; border-radius: 2px;
-}
-.ibtn:hover { color: var(--text); background: var(--hover); }
+    /* ── Icon buttons ────────────────────────────────────────── */
+    .ibtn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 11px;
+      padding: 0 2px;
+      line-height: 1;
+      border-radius: 2px;
+    }
 
-/* ── Drag feedback ───────────────────────────────────────── */
-.sortable-ghost  { opacity: 0.3; }
-.sortable-chosen { background: var(--hover); }
-.drop-zone-on    { outline: 2px dashed var(--link); outline-offset: 2px; }
+    .ibtn:hover {
+      color: var(--text);
+      background: var(--hover);
+    }
 
-/* ── Search ──────────────────────────────────────────────── */
-.lk.search-hidden { display: none; }
-.search-match     { background: var(--highlight); border-radius: 2px; }
+    /* ── Drag feedback ───────────────────────────────────────── */
+    .sortable-ghost {
+      opacity: 0.3;
+    }
 
-/* ── Inline edit ─────────────────────────────────────────── */
-.inline-edit {
-  border: 1px solid var(--link);
-  background: var(--bg); color: var(--text);
-  padding: 0 2px; border-radius: 2px; width: 100%;
-  font-family: inherit; font-size: inherit;
-}
+    .sortable-chosen {
+      background: var(--hover);
+    }
 
-/* ── Modal ───────────────────────────────────────────────── */
-.modal-ov {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.45); z-index: 500;
-  display: flex; align-items: center; justify-content: center;
-}
-.modal {
-  background: var(--toolbar);
-  border: 1px solid var(--border); border-radius: 5px;
-  padding: 16px; min-width: 300px; max-width: 480px; width: 92%;
-}
-.modal h2 { font-size: 14px; margin-bottom: 10px; }
-.modal label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 1px; }
-.modal input, .modal textarea, .modal select {
-  display: block; width: 100%;
-  border: 1px solid var(--border); border-radius: 3px;
-  background: var(--bg); color: var(--text);
-  padding: 4px 6px; margin-bottom: 8px;
-  font-family: inherit; font-size: 12px;
-}
-.modal textarea { height: 200px; resize: vertical; }
-.modal-btns { display: flex; gap: 6px; justify-content: flex-end; margin-top: 4px; }
-.modal input:focus, .modal textarea:focus { outline: 1px solid var(--link); }
+    .drop-zone-on {
+      outline: 2px dashed var(--link);
+      outline-offset: 2px;
+    }
 
-/* ── Loading / error ─────────────────────────────────────── */
-#status {
-  padding: 24px; font-size: 13px; color: var(--muted);
-  display: none;
-}
-#status.visible { display: block; }
-</style>
+    /* ── Search ──────────────────────────────────────────────── */
+    .lk.search-hidden {
+      display: none;
+    }
+
+    .search-match {
+      background: var(--highlight);
+      border-radius: 2px;
+    }
+
+    /* ── Inline edit ─────────────────────────────────────────── */
+    .inline-edit {
+      border: 1px solid var(--link);
+      background: var(--bg);
+      color: var(--text);
+      padding: 0 2px;
+      border-radius: 2px;
+      width: 100%;
+      font-family: inherit;
+      font-size: inherit;
+    }
+
+    /* ── Modal ───────────────────────────────────────────────── */
+    .modal-ov {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .45);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal {
+      background: var(--toolbar);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 16px;
+      min-width: 300px;
+      max-width: 480px;
+      width: 92%;
+    }
+
+    .modal h2 {
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .modal label {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 1px;
+    }
+
+    .modal input,
+    .modal textarea,
+    .modal select {
+      display: block;
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      background: var(--bg);
+      color: var(--text);
+      padding: 4px 6px;
+      margin-bottom: 8px;
+      font-family: inherit;
+      font-size: 12px;
+    }
+
+    .modal textarea {
+      height: 200px;
+      resize: vertical;
+    }
+
+    .modal-btns {
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+      margin-top: 4px;
+    }
+
+    .modal input:focus,
+    .modal textarea:focus {
+      outline: 1px solid var(--link);
+    }
+
+    /* ── Loading / error ─────────────────────────────────────── */
+    #status {
+      padding: 24px;
+      font-size: 13px;
+      color: var(--muted);
+      display: none;
+    }
+
+    #status.visible {
+      display: block;
+    }
+  </style>
 </head>
+
 <body>
 
-<div id="toolbar">
-  <span id="tb-title">NewwwTab</span>
-  <span id="tb-date"></span>
-  <input id="tb-search" type="text" placeholder="🔍 Filter Links..." autocomplete="off">
-  <span id="tb-dirty">● unsaved</span>
-  <button class="tbtn" id="btn-toggle-all">Toggle All</button>
-  <button class="tbtn" id="btn-add-col">+ Column</button>
-  <button class="tbtn" id="btn-save">⬆ Save</button>
-  <button class="tbtn" id="btn-export">Export</button>
-  <button class="tbtn" id="btn-settings">Settings</button>
-</div>
+  <div id="toolbar">
+    <span id="tb-title">NewwwTab</span>
+    <span id="tb-date"></span>
+    <input id="tb-search" type="text" placeholder="🔍 Filter Links..." autocomplete="off">
+    <span id="tb-dirty">● unsaved</span>
+    <button class="tbtn" id="btn-toggle-all">Toggle All</button>
+    <button class="tbtn" id="btn-add-col">+ Column</button>
+    <button class="tbtn" id="btn-save">⬆ Save</button>
+    <button class="tbtn" id="btn-export">Export</button>
+    <button class="tbtn" id="btn-settings">Settings</button>
+  </div>
 
-<div id="status"></div>
-<div id="columns"></div>
+  <div id="status"></div>
+  <div id="columns"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
-<script>
-'use strict';
-// ============================================================
-// NewwwTab  —  loads from ./links.json, saves locally or to GitHub
-// JSON format: { columns: [{ title, sections: [{ title?, links: [
-//   { title, url, g? (github url), secondary?, secondaryUrl? }
-// ]}]}]}
-// ============================================================
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
+  <script>
+    'use strict';
+    // ============================================================
+    // NewwwTab  —  loads from ./links.json, saves locally or to GitHub
+    // JSON format: { columns: [{ title, sections: [{ title?, links: [
+    //   { title, url, g? (github url), secondary?, secondaryUrl? }
+    // ]}]}]}
+    // ============================================================
 
-
-const TOKEN_KEY = 'newwwtab-gat';
-const DATA_FILE = './links.json';
-
-// ── Environment ───────────────────────────────────────────
-const isLocal = () => {
-  const h = window.location.hostname;
-  return h === 'localhost' || h === '127.0.0.1' || h === '' || window.location.protocol === 'file:';
-};
-
-// ── IndexedDB helpers (for caching FSA file handle) ───────
-const idbOpen = () => new Promise((res, rej) => {
-  const req = indexedDB.open('newwwtab-fs', 1);
-  req.onupgradeneeded = e => e.target.result.createObjectStore('fs');
-  req.onsuccess = e => res(e.target.result);
-  req.onerror   = e => rej(e.target.error);
-});
-const idbPut = async (key, val) => {
-  const db = await idbOpen();
-  return new Promise((res, rej) => {
-    const tx = db.transaction('fs', 'readwrite');
-    tx.objectStore('fs').put(val, key);
-    tx.oncomplete = res; tx.onerror = e => rej(e.target.error);
-  });
-};
-const idbGet = async (key) => {
-  const db = await idbOpen();
-  return new Promise((res, rej) => {
-    const tx = db.transaction('fs', 'readonly');
-    const req = tx.objectStore('fs').get(key);
-    req.onsuccess = e => res(e.target.result ?? null);
-    req.onerror   = e => rej(e.target.error);
-  });
-};
-
-// ── Local file save (File System Access API) ──────────────
-const saveToLocalFile = async () => {
-  const json = JSON.stringify(serialize(), null, 2);
-  const HKEY = 'links-json-handle';
-
-  if (!window.showSaveFilePicker) {
-    // Fallback for browsers without FSA: download the file
-    const a = document.createElement('a');
-    const blobUrl = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
-    a.href = blobUrl; a.download = 'links.json'; a.click();
-    URL.revokeObjectURL(blobUrl);
-    markClean(); return;
-  }
-
-  let handle = await idbGet(HKEY);
-  if (handle) {
-    // Re-verify permission (may lapse after page reload)
-    const perm = await handle.queryPermission({ mode: 'readwrite' });
-    if (perm !== 'granted') {
-      if (await handle.requestPermission({ mode: 'readwrite' }) !== 'granted') handle = null;
+    // rewrite the URL if we are running on a web server
+    if ( location.protocol !== "file:" ) {
+      window.history.replaceState( null, '', './' );
     }
-  }
-  if (!handle) {
-    // First time: show file picker so user can select their links.json
-    handle = await window.showSaveFilePicker({
-      suggestedName: 'links.json',
-      types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }]
-    });
-    await idbPut(HKEY, handle);   // cache for next time
-  }
 
-  const writable = await handle.createWritable();
-  await writable.write(json); await writable.close();
-  markClean();
-};
+    const TOKEN_KEY = 'newwwtab-gat';
+    const DATA_FILE = './links.json';
 
-// ── State ─────────────────────────────────────────────────
-let state = null;
-let isDirty = false;
-let allCollapsed = false;
-let colSortable = null;  // track instance so we can destroy before re-create
+    // ── Environment ───────────────────────────────────────────
+    const isLocal = () => {
+      const h = window.location.hostname;
+      return h === 'localhost' || h === '127.0.0.1' || h === '' || window.location.protocol === 'file:';
+    };
 
-// ── Utils ─────────────────────────────────────────────────
-const uid = () => 'id' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
-const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    // ── IndexedDB helpers (for caching FSA file handle) ───────
+    const idbOpen = () => new Promise( ( res, rej ) => {
+      const req = indexedDB.open( 'newwwtab-fs', 1 );
+      req.onupgradeneeded = e => e.target.result.createObjectStore( 'fs' );
+      req.onsuccess = e => res( e.target.result );
+      req.onerror = e => rej( e.target.error );
+    } );
+    const idbPut = async ( key, val ) => {
+      const db = await idbOpen();
+      return new Promise( ( res, rej ) => {
+        const tx = db.transaction( 'fs', 'readwrite' );
+        tx.objectStore( 'fs' ).put( val, key );
+        tx.oncomplete = res; tx.onerror = e => rej( e.target.error );
+      } );
+    };
+    const idbGet = async ( key ) => {
+      const db = await idbOpen();
+      return new Promise( ( res, rej ) => {
+        const tx = db.transaction( 'fs', 'readonly' );
+        const req = tx.objectStore( 'fs' ).get( key );
+        req.onsuccess = e => res( e.target.result ?? null );
+        req.onerror = e => rej( e.target.error );
+      } );
+    };
 
-// ── Normalize file → runtime state (adds IDs) ─────────────
-const normalize = data => ({
-  columns: (data.columns || []).map(col => ({
-    id:       uid(),
-    title:    col.title || '',
-    sections: (col.sections || []).map(sec => ({
-      id:        uid(),
-      title:     sec.title || '',
-      collapsed: false,
-      links:     (sec.links || []).map(lk => ({
-        id:             uid(),
-        title:          lk.title          || '',
-        url:            lk.url            || '',
-        secondaryTitle: lk.g ? 'g' : (lk.secondary || lk.secondaryTitle || ''),
-        secondaryUrl:   lk.g || lk.secondaryUrl || '',
-      }))
-    }))
-  }))
-});
+    // ── Local file save (File System Access API) ──────────────
+    const saveToLocalFile = async () => {
+      const json = JSON.stringify( serialize(), null, 2 );
+      const HKEY = 'links-json-handle';
 
-// ── Serialize runtime state → clean JSON (removes IDs) ────
-const serialize = () => ({
-  columns: state.columns.map(col => ({
-    title: col.title,
-    sections: col.sections.map(sec => {
-      const out = {};
-      if (sec.title) out.title = sec.title;
-      out.links = sec.links.map(lk => {
-        const o = { title: lk.title, url: lk.url };
-        if (lk.secondaryUrl) {
-          if (!lk.secondaryTitle || lk.secondaryTitle === 'g' || lk.secondaryTitle === 'gh') {
-            o.g = lk.secondaryUrl;
-          } else {
-            o.secondary    = lk.secondaryTitle;
-            o.secondaryUrl = lk.secondaryUrl;
-          }
+      if ( !window.showSaveFilePicker ) {
+        // Fallback for browsers without FSA: download the file
+        const a = document.createElement( 'a' );
+        const blobUrl = URL.createObjectURL( new Blob( [ json ], { type: 'application/json' } ) );
+        a.href = blobUrl; a.download = 'links.json'; a.click();
+        URL.revokeObjectURL( blobUrl );
+        markClean(); return;
+      }
+
+      let handle = await idbGet( HKEY );
+      if ( handle ) {
+        // Re-verify permission (may lapse after page reload)
+        const perm = await handle.queryPermission( { mode: 'readwrite' } );
+        if ( perm !== 'granted' ) {
+          if ( await handle.requestPermission( { mode: 'readwrite' } ) !== 'granted' ) handle = null;
         }
-        return o;
-      });
-      return out;
-    })
-  }))
-});
+      }
+      if ( !handle ) {
+        // First time: show file picker so user can select their links.json
+        handle = await window.showSaveFilePicker( {
+          suggestedName: 'links.json',
+          types: [ { description: 'JSON', accept: { 'application/json': [ '.json' ] } } ]
+        } );
+        await idbPut( HKEY, handle );   // cache for next time
+      }
 
-// ── Dirty tracking ────────────────────────────────────────
-const markDirty = () => {
-  isDirty = true;
-  document.getElementById('tb-dirty').classList.add('visible');
-  document.getElementById('btn-save').classList.add('dirty');
-};
-const markClean = () => {
-  isDirty = false;
-  document.getElementById('tb-dirty').classList.remove('visible');
-  document.getElementById('btn-save').classList.remove('dirty');
-};
+      const writable = await handle.createWritable();
+      await writable.write( json ); await writable.close();
+      markClean();
+    };
 
-// ── Load from file ────────────────────────────────────────
-const showStatus = (msg, isError) => {
-  const el = document.getElementById('status');
-  el.textContent = msg;
-  el.style.color = isError ? 'var(--dirty)' : 'var(--muted)';
-  el.classList.add('visible');
-};
-const hideStatus = () => { document.getElementById('status').classList.remove('visible'); };
+    // ── State ─────────────────────────────────────────────────
+    let state = null;
+    let isDirty = false;
+    let allCollapsed = false;
+    let colSortable = null;  // track instance so we can destroy before re-create
 
-const loadFromFile = async () => {
-  showStatus('Loading links.json…');
-  try {
-    const res = await fetch(DATA_FILE + '?t=' + Date.now());
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    state = normalize(data);
-    hideStatus();
-    render();
-    markClean();
-  } catch (e) {
-    showStatus(
-      `Could not load links.json: ${e.message}.\n` +
-      `Run via a local server (python -m http.server) or GitHub Pages. ` +
-      `Or use Import to paste JSON directly.`,
-      true
+    // ── Utils ─────────────────────────────────────────────────
+    const uid = () => 'id' + Date.now().toString( 36 ) + Math.random().toString( 36 ).slice( 2, 6 );
+    const esc = s => String( s || '' ).replace( /&/g, '&amp;' ).replace( /</g, '&lt;' ).replace( />/g, '&gt;' ).replace( /"/g, '&quot;' );
+
+    // ── Normalize file → runtime state (adds IDs) ─────────────
+    const normalize = data => ( {
+      columns: ( data.columns || [] ).map( col => ( {
+        id: uid(),
+        title: col.title || '',
+        sections: ( col.sections || [] ).map( sec => ( {
+          id: uid(),
+          title: sec.title || '',
+          collapsed: false,
+          links: ( sec.links || [] ).map( lk => ( {
+            id: uid(),
+            title: lk.title || '',
+            url: lk.url || '',
+            secondaryTitle: lk.g ? 'g' : ( lk.secondary || lk.secondaryTitle || '' ),
+            secondaryUrl: lk.g || lk.secondaryUrl || '',
+          } ) )
+        } ) )
+      } ) )
+    } );
+
+    // ── Serialize runtime state → clean JSON (removes IDs) ────
+    const serialize = () => ( {
+      columns: state.columns.map( col => ( {
+        title: col.title,
+        sections: col.sections.map( sec => {
+          const out = {};
+          if ( sec.title ) out.title = sec.title;
+          out.links = sec.links.map( lk => {
+            const o = { title: lk.title, url: lk.url };
+            if ( lk.secondaryUrl ) {
+              if ( !lk.secondaryTitle || lk.secondaryTitle === 'g' || lk.secondaryTitle === 'gh' ) {
+                o.g = lk.secondaryUrl;
+              } else {
+                o.secondary = lk.secondaryTitle;
+                o.secondaryUrl = lk.secondaryUrl;
+              }
+            }
+            return o;
+          } );
+          return out;
+        } )
+      } ) )
+    } );
+
+    // ── Dirty tracking ────────────────────────────────────────
+    const markDirty = () => {
+      isDirty = true;
+      document.getElementById( 'tb-dirty' ).classList.add( 'visible' );
+      document.getElementById( 'btn-save' ).classList.add( 'dirty' );
+    };
+    const markClean = () => {
+      isDirty = false;
+      document.getElementById( 'tb-dirty' ).classList.remove( 'visible' );
+      document.getElementById( 'btn-save' ).classList.remove( 'dirty' );
+    };
+
+    // ── Load from file ────────────────────────────────────────
+    const showStatus = ( msg, isError ) => {
+      const el = document.getElementById( 'status' );
+      el.textContent = msg;
+      el.style.color = isError ? 'var(--dirty)' : 'var(--muted)';
+      el.classList.add( 'visible' );
+    };
+    const hideStatus = () => { document.getElementById( 'status' ).classList.remove( 'visible' ); };
+
+    const loadFromFile = async () => {
+      showStatus( 'Loading links.json…' );
+      try {
+        const res = await fetch( DATA_FILE + '?t=' + Date.now() );
+        if ( !res.ok ) throw new Error( `HTTP ${ res.status }` );
+        const data = await res.json();
+        state = normalize( data );
+        hideStatus();
+        render();
+        markClean();
+      } catch ( e ) {
+        showStatus(
+          `Could not load links.json: ${ e.message }.\n` +
+          `Run via a local server (python -m http.server) or GitHub Pages. ` +
+          `Or use Import to paste JSON directly.`,
+          true
+        );
+      }
+    };
+
+    // ── Render ────────────────────────────────────────────────
+    const colsEl = document.getElementById( 'columns' );
+
+    const render = () => {
+      colsEl.innerHTML = '';
+      state.columns.forEach( col => colsEl.appendChild( mkColumn( col ) ) );
+      bindColumnSortable();
+      applySearch();
+    };
+
+    // ── Column ────────────────────────────────────────────────
+    const mkColumn = col => {
+      const el = document.createElement( 'div' );
+      el.className = 'col';
+      el.dataset.colId = col.id;
+
+      // Minimal drag/manage handle — visible only on hover
+      const handle = document.createElement( 'div' );
+      handle.className = 'col-handle';
+      handle.innerHTML =
+        `<span class="col-drag" title="Drag column">⠿⠿</span>` +
+        `<span class="col-acts">` +
+        `<button class="ibtn" data-a="left"    title="Move left">◀</button>` +
+        `<button class="ibtn" data-a="right"   title="Move right">▶</button>` +
+        `<button class="ibtn" data-a="add-sec" title="Add section">+sec</button>` +
+        `<button class="ibtn" data-a="del"     title="Delete column">✕col</button>` +
+        `</span>`;
+
+      handle.addEventListener( 'click', e => {
+        const a = e.target.dataset.a;
+        if ( a === 'left' ) moveCol( col.id, -1 );
+        if ( a === 'right' ) moveCol( col.id, 1 );
+        if ( a === 'add-sec' ) doAddSection( col );
+        if ( a === 'del' ) delColumn( col );
+      } );
+
+      const secsEl = document.createElement( 'div' );
+      secsEl.className = 'col-secs';
+      secsEl.dataset.colId = col.id;
+      col.sections.forEach( sec => secsEl.appendChild( mkSection( sec, col ) ) );
+
+      el.appendChild( handle );
+      el.appendChild( secsEl );
+      bindSectionSortable( secsEl, col );
+      return el;
+    };
+
+    // ── Section ───────────────────────────────────────────────
+    const mkSection = ( sec, col ) => {
+      const el = document.createElement( 'div' );
+      el.className = 'sec';
+      el.dataset.secId = sec.id;
+
+      const hd = document.createElement( 'div' );
+      hd.className = 'sec-hd';
+      hd.innerHTML =
+        `<span class="sec-toggle">${ sec.collapsed ? '▶' : '▼' }</span>` +
+        `<span class="sec-title">${ esc( sec.title ) }</span>` +
+        `<span class="sec-acts">` +
+        `<button class="ibtn" data-a="add-lk" title="Add link">+</button>` +
+        `<button class="ibtn" data-a="rename" title="Rename">✎</button>` +
+        `<button class="ibtn" data-a="del"    title="Delete">✕</button>` +
+        `</span>`;
+
+      hd.addEventListener( 'click', e => {
+        const a = e.target.dataset.a;
+        if ( !a ) {
+          sec.collapsed = !sec.collapsed; markDirty();
+          hd.querySelector( '.sec-toggle' ).textContent = sec.collapsed ? '▶' : '▼';
+          body.classList.toggle( 'collapsed', sec.collapsed );
+          return;
+        }
+        if ( a === 'add-lk' ) doAddLink( sec );
+        if ( a === 'rename' ) inlineEdit( hd.querySelector( '.sec-title' ), sec.title, v => { sec.title = v; markDirty(); } );
+        if ( a === 'del' ) delSection( col, sec );
+      } );
+
+      const body = document.createElement( 'div' );
+      body.className = 'sec-body' + ( sec.collapsed ? ' collapsed' : '' );
+
+      const listEl = document.createElement( 'div' );
+      listEl.className = 'links-list';
+      listEl.dataset.secId = sec.id;
+      sec.links.forEach( lk => listEl.appendChild( mkLink( lk, sec ) ) );
+
+      // URL drop from address bar
+      body.addEventListener( 'dragover', e => { e.preventDefault(); body.classList.add( 'drop-zone-on' ); } );
+      body.addEventListener( 'dragleave', () => body.classList.remove( 'drop-zone-on' ) );
+      body.addEventListener( 'drop', e => {
+        e.preventDefault(); body.classList.remove( 'drop-zone-on' );
+        const txt = ( e.dataTransfer.getData( 'text/plain' ) || e.dataTransfer.getData( 'text/uri-list' ) || '' ).trim();
+        if ( !txt.startsWith( 'http' ) ) return;
+        let title = '';
+        try { title = new URL( txt ).hostname.replace( /^www\./, '' ).slice( 0, 10 ); } catch ( x ) { title = txt.slice( 0, 10 ); }
+        const newLk = { id: uid(), title, url: txt, secondaryTitle: '', secondaryUrl: '' };
+        sec.links.push( newLk ); markDirty();
+        doEditLink( newLk, sec );
+      } );
+
+      body.appendChild( listEl );
+      el.appendChild( hd );
+      el.appendChild( body );
+      bindLinkSortable( listEl, sec );
+      return el;
+    };
+
+    // ── Link ──────────────────────────────────────────────────
+    const mkLink = ( lk, sec ) => {
+      const el = document.createElement( 'div' );
+      el.className = 'lk';
+      el.dataset.linkId = lk.id;
+
+      const display = esc( lk.title );
+      const secHtml = lk.secondaryUrl
+        ? `<a class="lk-secondary" href="${ esc( lk.secondaryUrl ) }" target="_blank" rel="noopener" title="${ esc( lk.secondaryUrl ) }">[${ esc( ( lk.secondaryTitle || 'g' ).slice( 0, 3 ) ) }]</a>`
+        : '';
+
+      el.innerHTML =
+        `<span class="lk-drag" title="Drag">⠿</span>` +
+        `<span class="lk-main">${ secHtml }<a class="lk-primary" href="${ esc( lk.url ) }" target="_blank" rel="noopener" title="${ esc( lk.title ) }">${ display }</a></span>` +
+        `<span class="lk-acts">` +
+        `<button class="ibtn" data-a="edit" title="Edit">✎</button>` +
+        `<button class="ibtn" data-a="del"  title="Delete">✕</button>` +
+        `</span>`;
+
+      el.querySelector( '.lk-acts' ).addEventListener( 'click', e => {
+        if ( e.target.dataset.a === 'edit' ) doEditLink( lk, sec );
+        if ( e.target.dataset.a === 'del' ) delLink( sec, lk );
+      } );
+      return el;
+    };
+
+    // ── Inline rename ─────────────────────────────────────────
+    const inlineEdit = ( el, current, onSave ) => {
+      const inp = document.createElement( 'input' );
+      inp.className = 'inline-edit';
+      inp.value = current;
+      const orig = el.textContent;
+      el.textContent = ''; el.appendChild( inp );
+      inp.focus(); inp.select();
+      const finish = ok => {
+        const v = inp.value.trim();
+        el.textContent = ( ok && v ) ? v : orig;
+        if ( ok && v ) onSave( v );
+      };
+      inp.addEventListener( 'keydown', e => {
+        if ( e.key === 'Enter' ) { finish( true ); e.stopPropagation(); }
+        if ( e.key === 'Escape' ) { finish( false ); e.stopPropagation(); }
+      } );
+      inp.addEventListener( 'blur', () => finish( true ) );
+    };
+
+    // ── Modal helper ──────────────────────────────────────────
+    const modal = ( bodyHtml, btns ) => {
+      const ov = document.createElement( 'div' );
+      ov.className = 'modal-ov';
+      const btnHtml = btns.map( b => `<button class="tbtn" data-mid="${ b.id }">${ esc( b.label ) }</button>` ).join( '' );
+      ov.innerHTML = `<div class="modal">${ bodyHtml }<div class="modal-btns">${ btnHtml }</div></div>`;
+      document.body.appendChild( ov );
+      ov.addEventListener( 'click', e => {
+        const mid = e.target.dataset.mid;
+        if ( mid ) { btns.find( b => b.id === mid )?.fn( ov ); return; }
+        if ( e.target === ov ) ov.remove();
+      } );
+      setTimeout( () => { const f = ov.querySelector( 'input,textarea' ); if ( f ) f.focus(); }, 30 );
+      return ov;
+    };
+    const closeModal = ov => ov.remove();
+
+    // ── CRUD ──────────────────────────────────────────────────
+    const doAddSection = col => modal(
+      `<h2>Add Section</h2><label>Title (leave blank for untitled)</label><input id="mi-t" value="">`,
+      [ { id: 'cancel', label: 'Cancel', fn: closeModal },
+      {
+        id: 'ok', label: 'OK', fn: ov => {
+          col.sections.push( { id: uid(), title: ov.querySelector( '#mi-t' ).value.trim(), collapsed: false, links: [] } );
+          markDirty(); render(); closeModal( ov );
+        }
+      } ]
     );
-  }
-};
 
-// ── Render ────────────────────────────────────────────────
-const colsEl = document.getElementById('columns');
+    const doAddLink = sec => modal(
+      `<h2>Add Link</h2>` +
+      `<label>URL</label><input id="mi-url" placeholder="https://...">` +
+      `<label>Title (optional)</label><input id="mi-t">` +
+      `<label>GitHub URL (optional)</label><input id="mi-g" placeholder="https://github.com/...">`,
+      [ { id: 'cancel', label: 'Cancel', fn: closeModal },
+      {
+        id: 'ok', label: 'OK', fn: ov => {
+          const url = ov.querySelector( '#mi-url' ).value.trim();
+          if ( !url ) return;
+          let title = ov.querySelector( '#mi-t' ).value.trim();
+          if ( !title ) { try { title = new URL( url ).hostname.replace( /^www\./, '' ).slice( 0, 10 ); } catch ( x ) { title = url.slice( 0, 10 ); } }
+          const g = ov.querySelector( '#mi-g' ).value.trim();
+          sec.links.push( { id: uid(), title, url, secondaryTitle: g ? 'g' : '', secondaryUrl: g } );
+          markDirty(); render(); closeModal( ov );
+        }
+      } ]
+    );
 
-const render = () => {
-  colsEl.innerHTML = '';
-  state.columns.forEach(col => colsEl.appendChild(mkColumn(col)));
-  bindColumnSortable();
-  applySearch();
-};
+    const doEditLink = ( lk, sec ) => modal(
+      `<h2>Edit Link</h2>` +
+      `<label>Title</label><input id="mi-t"   value="${ esc( lk.title ) }">` +
+      `<label>URL</label><input id="mi-url" value="${ esc( lk.url ) }">` +
+      `<label>GitHub URL (shorthand "g" label)</label><input id="mi-g" value="${ esc( lk.secondaryTitle === 'g' || !lk.secondaryTitle ? lk.secondaryUrl : '' ) }">` +
+      `<label>Other secondary label</label><input id="mi-sl" value="${ esc( lk.secondaryTitle !== 'g' ? lk.secondaryTitle : '' ) }">` +
+      `<label>Other secondary URL</label><input id="mi-su" value="${ esc( lk.secondaryTitle !== 'g' ? lk.secondaryUrl : '' ) }">`,
+      [ { id: 'cancel', label: 'Cancel', fn: closeModal },
+      {
+        id: 'ok', label: 'OK', fn: ov => {
+          const url = ov.querySelector( '#mi-url' ).value.trim();
+          if ( !url ) return;
+          const g = ov.querySelector( '#mi-g' ).value.trim();
+          const sl = ov.querySelector( '#mi-sl' ).value.trim();
+          const su = ov.querySelector( '#mi-su' ).value.trim();
+          lk.title = ov.querySelector( '#mi-t' ).value.trim() || url;
+          lk.url = url;
+          lk.secondaryTitle = g ? 'g' : sl;
+          lk.secondaryUrl = g || su;
+          markDirty(); render(); closeModal( ov );
+        }
+      } ]
+    );
 
-// ── Column ────────────────────────────────────────────────
-const mkColumn = col => {
-  const el = document.createElement('div');
-  el.className = 'col';
-  el.dataset.colId = col.id;
+    const delColumn = col => { if ( col.sections.some( s => s.links.length ) && !confirm( `Delete column "${ col.title }"?` ) ) return; state.columns = state.columns.filter( c => c.id !== col.id ); markDirty(); render(); };
+    const delSection = ( col, sec ) => { if ( sec.links.length && !confirm( `Delete section "${ sec.title }" with ${ sec.links.length } link(s)?` ) ) return; col.sections = col.sections.filter( s => s.id !== sec.id ); markDirty(); render(); };
+    const delLink = ( sec, lk ) => { sec.links = sec.links.filter( l => l.id !== lk.id ); markDirty(); render(); };
+    const moveCol = ( id, dir ) => { const i = state.columns.findIndex( c => c.id === id ); const j = i + dir; if ( j < 0 || j >= state.columns.length ) return;[ state.columns[ i ], state.columns[ j ] ] = [ state.columns[ j ], state.columns[ i ] ]; markDirty(); render(); };
 
-  // Minimal drag/manage handle — visible only on hover
-  const handle = document.createElement('div');
-  handle.className = 'col-handle';
-  handle.innerHTML =
-    `<span class="col-drag" title="Drag column">⠿⠿</span>` +
-    `<span class="col-acts">` +
-      `<button class="ibtn" data-a="left"    title="Move left">◀</button>` +
-      `<button class="ibtn" data-a="right"   title="Move right">▶</button>` +
-      `<button class="ibtn" data-a="add-sec" title="Add section">+sec</button>` +
-      `<button class="ibtn" data-a="del"     title="Delete column">✕col</button>` +
-    `</span>`;
+    // ── Search ────────────────────────────────────────────────
+    const searchEl = document.getElementById( 'tb-search' );
+    let searchTimer;
+    const applySearch = () => {
+      const q = searchEl.value.trim().toLowerCase();
+      document.querySelectorAll( '.lk' ).forEach( el => {
+        const a = el.querySelector( 'a.lk-primary' );
+        if ( !a ) return;
+        const match = !q || ( a.textContent + a.href ).toLowerCase().includes( q );
+        el.classList.toggle( 'search-hidden', !match );
+        a.classList.toggle( 'search-match', !!q && match );
+      } );
+    };
+    searchEl.addEventListener( 'input', () => { clearTimeout( searchTimer ); searchTimer = setTimeout( applySearch, 80 ); } );
+    document.addEventListener( 'keydown', e => {
+      if ( ( e.ctrlKey || e.metaKey ) && e.key === 'f' ) { e.preventDefault(); searchEl.focus(); searchEl.select(); }
+      if ( e.key === 'Escape' && document.activeElement === searchEl ) { searchEl.value = ''; applySearch(); searchEl.blur(); }
+    } );
 
-  handle.addEventListener('click', e => {
-    const a = e.target.dataset.a;
-    if (a === 'left')    moveCol(col.id, -1);
-    if (a === 'right')   moveCol(col.id,  1);
-    if (a === 'add-sec') doAddSection(col);
-    if (a === 'del')     delColumn(col);
-  });
+    // ── Toggle all ────────────────────────────────────────────
+    document.getElementById( 'btn-toggle-all' ).addEventListener( 'click', () => {
+      // Collapse all if anything is expanded; expand all if everything is already collapsed
+      const anyExpanded = state.columns.some( col => col.sections.some( sec => !sec.collapsed ) );
+      allCollapsed = anyExpanded;
+      state.columns.forEach( col => col.sections.forEach( sec => sec.collapsed = allCollapsed ) );
+      markDirty(); render();
+    } );
 
-  const secsEl = document.createElement('div');
-  secsEl.className = 'col-secs';
-  secsEl.dataset.colId = col.id;
-  col.sections.forEach(sec => secsEl.appendChild(mkSection(sec, col)));
+    // ── Add column ────────────────────────────────────────────
+    document.getElementById( 'btn-add-col' ).addEventListener( 'click', () => modal(
+      `<h2>Add Column</h2><label>Title</label><input id="mi-t" value="New Column">`,
+      [ { id: 'cancel', label: 'Cancel', fn: closeModal },
+      {
+        id: 'ok', label: 'OK', fn: ov => {
+          const t = ov.querySelector( '#mi-t' ).value.trim();
+          if ( !t ) return;
+          state.columns.push( { id: uid(), title: t, collapsed: false, sections: [ { id: uid(), title: '', collapsed: false, links: [] } ] } );
+          markDirty(); render(); closeModal( ov );
+        }
+      } ]
+    ) );
 
-  el.appendChild(handle);
-  el.appendChild(secsEl);
-  bindSectionSortable(secsEl, col);
-  return el;
-};
+    // ── SortableJS ────────────────────────────────────────────
+    const bindColumnSortable = () => {
+      if ( colSortable ) colSortable.destroy();  // prevent stacking instances across re-renders
+      colSortable = Sortable.create( colsEl, {
+        animation: 150, handle: '.col-handle',
+        ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen',
+        onEnd: () => {
+          const order = Array.from( colsEl.querySelectorAll( '[data-col-id]' ) ).map( e => e.dataset.colId );
+          state.columns = order.map( id => state.columns.find( c => c.id === id ) ).filter( Boolean );
+          markDirty();
+        }
+      } );
+    };
 
-// ── Section ───────────────────────────────────────────────
-const mkSection = (sec, col) => {
-  const el = document.createElement('div');
-  el.className = 'sec';
-  el.dataset.secId = sec.id;
+    const bindSectionSortable = ( el, col ) => Sortable.create( el, {
+      group: 'secs', animation: 150, handle: '.sec-hd',
+      ghostClass: 'sortable-ghost',
+      onEnd: evt => {
+        const srcCol = state.columns.find( c => c.id === evt.from.dataset.colId );
+        const tgtCol = state.columns.find( c => c.id === evt.to.dataset.colId );
+        if ( !srcCol || !tgtCol ) return;
+        const si = srcCol.sections.findIndex( s => s.id === evt.item.dataset.secId );
+        const [ sec ] = srcCol.sections.splice( si, 1 );
+        tgtCol.sections.splice( Math.max( Array.from( evt.to.children ).indexOf( evt.item ), 0 ), 0, sec );
+        markDirty(); render();
+      }
+    } );
 
-  const hd = document.createElement('div');
-  hd.className = 'sec-hd';
-  hd.innerHTML =
-    `<span class="sec-toggle">${sec.collapsed ? '▶' : '▼'}</span>` +
-    `<span class="sec-title">${esc(sec.title)}</span>` +
-    `<span class="sec-acts">` +
-      `<button class="ibtn" data-a="add-lk" title="Add link">+</button>` +
-      `<button class="ibtn" data-a="rename" title="Rename">✎</button>` +
-      `<button class="ibtn" data-a="del"    title="Delete">✕</button>` +
-    `</span>`;
+    const bindLinkSortable = ( el, sec ) => Sortable.create( el, {
+      group: 'links', animation: 150, handle: '.lk-drag',
+      ghostClass: 'sortable-ghost',
+      onEnd: evt => {
+        let srcSec = null, tgtSec = null;
+        state.columns.forEach( c => c.sections.forEach( s => {
+          if ( s.id === evt.from.dataset.secId ) srcSec = s;
+          if ( s.id === evt.to.dataset.secId ) tgtSec = s;
+        } ) );
+        if ( !srcSec || !tgtSec ) return;
+        const li = srcSec.links.findIndex( l => l.id === evt.item.dataset.linkId );
+        const [ lk ] = srcSec.links.splice( li, 1 );
+        tgtSec.links.splice( Math.max( Array.from( evt.to.children ).indexOf( evt.item ), 0 ), 0, lk );
+        markDirty(); render();
+      }
+    } );
 
-  hd.addEventListener('click', e => {
-    const a = e.target.dataset.a;
-    if (!a) {
-      sec.collapsed = !sec.collapsed; markDirty();
-      hd.querySelector('.sec-toggle').textContent = sec.collapsed ? '▶' : '▼';
-      body.classList.toggle('collapsed', sec.collapsed);
-      return;
-    }
-    if (a === 'add-lk') doAddLink(sec);
-    if (a === 'rename') inlineEdit(hd.querySelector('.sec-title'), sec.title, v => { sec.title = v; markDirty(); });
-    if (a === 'del') delSection(col, sec);
-  });
-
-  const body = document.createElement('div');
-  body.className = 'sec-body' + (sec.collapsed ? ' collapsed' : '');
-
-  const listEl = document.createElement('div');
-  listEl.className = 'links-list';
-  listEl.dataset.secId = sec.id;
-  sec.links.forEach(lk => listEl.appendChild(mkLink(lk, sec)));
-
-  // URL drop from address bar
-  body.addEventListener('dragover', e => { e.preventDefault(); body.classList.add('drop-zone-on'); });
-  body.addEventListener('dragleave', () => body.classList.remove('drop-zone-on'));
-  body.addEventListener('drop', e => {
-    e.preventDefault(); body.classList.remove('drop-zone-on');
-    const txt = (e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('text/uri-list') || '').trim();
-    if (!txt.startsWith('http')) return;
-    let title = '';
-    try { title = new URL(txt).hostname.replace(/^www\./, '').slice(0, 10); } catch(x) { title = txt.slice(0, 10); }
-    const newLk = { id: uid(), title, url: txt, secondaryTitle: '', secondaryUrl: '' };
-    sec.links.push(newLk); markDirty();
-    doEditLink(newLk, sec);
-  });
-
-  body.appendChild(listEl);
-  el.appendChild(hd);
-  el.appendChild(body);
-  bindLinkSortable(listEl, sec);
-  return el;
-};
-
-// ── Link ──────────────────────────────────────────────────
-const mkLink = (lk, sec) => {
-  const el = document.createElement('div');
-  el.className = 'lk';
-  el.dataset.linkId = lk.id;
-
-  const display = esc(lk.title);
-  const secHtml = lk.secondaryUrl
-    ? `<a class="lk-secondary" href="${esc(lk.secondaryUrl)}" target="_blank" rel="noopener" title="${esc(lk.secondaryUrl)}">[${esc((lk.secondaryTitle||'g').slice(0,3))}]</a>`
-    : '';
-
-  el.innerHTML =
-    `<span class="lk-drag" title="Drag">⠿</span>` +
-    `<span class="lk-main">${secHtml}<a class="lk-primary" href="${esc(lk.url)}" target="_blank" rel="noopener" title="${esc(lk.title)}">${display}</a></span>` +
-    `<span class="lk-acts">` +
-      `<button class="ibtn" data-a="edit" title="Edit">✎</button>` +
-      `<button class="ibtn" data-a="del"  title="Delete">✕</button>` +
-    `</span>`;
-
-  el.querySelector('.lk-acts').addEventListener('click', e => {
-    if (e.target.dataset.a === 'edit') doEditLink(lk, sec);
-    if (e.target.dataset.a === 'del')  delLink(sec, lk);
-  });
-  return el;
-};
-
-// ── Inline rename ─────────────────────────────────────────
-const inlineEdit = (el, current, onSave) => {
-  const inp = document.createElement('input');
-  inp.className = 'inline-edit';
-  inp.value = current;
-  const orig = el.textContent;
-  el.textContent = ''; el.appendChild(inp);
-  inp.focus(); inp.select();
-  const finish = ok => {
-    const v = inp.value.trim();
-    el.textContent = (ok && v) ? v : orig;
-    if (ok && v) onSave(v);
-  };
-  inp.addEventListener('keydown', e => {
-    if (e.key === 'Enter')  { finish(true);  e.stopPropagation(); }
-    if (e.key === 'Escape') { finish(false); e.stopPropagation(); }
-  });
-  inp.addEventListener('blur', () => finish(true));
-};
-
-// ── Modal helper ──────────────────────────────────────────
-const modal = (bodyHtml, btns) => {
-  const ov = document.createElement('div');
-  ov.className = 'modal-ov';
-  const btnHtml = btns.map(b => `<button class="tbtn" data-mid="${b.id}">${esc(b.label)}</button>`).join('');
-  ov.innerHTML = `<div class="modal">${bodyHtml}<div class="modal-btns">${btnHtml}</div></div>`;
-  document.body.appendChild(ov);
-  ov.addEventListener('click', e => {
-    const mid = e.target.dataset.mid;
-    if (mid) { btns.find(b => b.id === mid)?.fn(ov); return; }
-    if (e.target === ov) ov.remove();
-  });
-  setTimeout(() => { const f = ov.querySelector('input,textarea'); if (f) f.focus(); }, 30);
-  return ov;
-};
-const closeModal = ov => ov.remove();
-
-// ── CRUD ──────────────────────────────────────────────────
-const doAddSection = col => modal(
-  `<h2>Add Section</h2><label>Title (leave blank for untitled)</label><input id="mi-t" value="">`,
-  [{ id:'cancel', label:'Cancel', fn: closeModal },
-   { id:'ok', label:'OK', fn: ov => {
-     col.sections.push({ id: uid(), title: ov.querySelector('#mi-t').value.trim(), collapsed: false, links: [] });
-     markDirty(); render(); closeModal(ov);
-   }}]
-);
-
-const doAddLink = sec => modal(
-  `<h2>Add Link</h2>` +
-  `<label>URL</label><input id="mi-url" placeholder="https://...">` +
-  `<label>Title (optional)</label><input id="mi-t">` +
-  `<label>GitHub URL (optional)</label><input id="mi-g" placeholder="https://github.com/...">`,
-  [{ id:'cancel', label:'Cancel', fn: closeModal },
-   { id:'ok', label:'OK', fn: ov => {
-     const url = ov.querySelector('#mi-url').value.trim();
-     if (!url) return;
-     let title = ov.querySelector('#mi-t').value.trim();
-     if (!title) { try { title = new URL(url).hostname.replace(/^www\./,'').slice(0,10); } catch(x) { title = url.slice(0,10); } }
-     const g = ov.querySelector('#mi-g').value.trim();
-     sec.links.push({ id: uid(), title, url, secondaryTitle: g ? 'g' : '', secondaryUrl: g });
-     markDirty(); render(); closeModal(ov);
-   }}]
-);
-
-const doEditLink = (lk, sec) => modal(
-  `<h2>Edit Link</h2>` +
-  `<label>Title</label><input id="mi-t"   value="${esc(lk.title)}">` +
-  `<label>URL</label><input id="mi-url" value="${esc(lk.url)}">` +
-  `<label>GitHub URL (shorthand "g" label)</label><input id="mi-g" value="${esc(lk.secondaryTitle==='g'||!lk.secondaryTitle ? lk.secondaryUrl : '')}">` +
-  `<label>Other secondary label</label><input id="mi-sl" value="${esc(lk.secondaryTitle!=='g' ? lk.secondaryTitle : '')}">` +
-  `<label>Other secondary URL</label><input id="mi-su" value="${esc(lk.secondaryTitle!=='g' ? lk.secondaryUrl : '')}">`,
-  [{ id:'cancel', label:'Cancel', fn: closeModal },
-   { id:'ok', label:'OK', fn: ov => {
-     const url = ov.querySelector('#mi-url').value.trim();
-     if (!url) return;
-     const g  = ov.querySelector('#mi-g').value.trim();
-     const sl = ov.querySelector('#mi-sl').value.trim();
-     const su = ov.querySelector('#mi-su').value.trim();
-     lk.title          = ov.querySelector('#mi-t').value.trim() || url;
-     lk.url            = url;
-     lk.secondaryTitle = g ? 'g' : sl;
-     lk.secondaryUrl   = g || su;
-     markDirty(); render(); closeModal(ov);
-   }}]
-);
-
-const delColumn  = col  => { if (col.sections.some(s => s.links.length) && !confirm(`Delete column "${col.title}"?`)) return; state.columns = state.columns.filter(c => c.id !== col.id); markDirty(); render(); };
-const delSection = (col, sec) => { if (sec.links.length && !confirm(`Delete section "${sec.title}" with ${sec.links.length} link(s)?`)) return; col.sections = col.sections.filter(s => s.id !== sec.id); markDirty(); render(); };
-const delLink    = (sec, lk) => { sec.links = sec.links.filter(l => l.id !== lk.id); markDirty(); render(); };
-const moveCol    = (id, dir) => { const i = state.columns.findIndex(c => c.id === id); const j = i + dir; if (j < 0 || j >= state.columns.length) return; [state.columns[i], state.columns[j]] = [state.columns[j], state.columns[i]]; markDirty(); render(); };
-
-// ── Search ────────────────────────────────────────────────
-const searchEl = document.getElementById('tb-search');
-let searchTimer;
-const applySearch = () => {
-  const q = searchEl.value.trim().toLowerCase();
-  document.querySelectorAll('.lk').forEach(el => {
-    const a = el.querySelector('a.lk-primary');
-    if (!a) return;
-    const match = !q || (a.textContent + a.href).toLowerCase().includes(q);
-    el.classList.toggle('search-hidden', !match);
-    a.classList.toggle('search-match', !!q && match);
-  });
-};
-searchEl.addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(applySearch, 80); });
-document.addEventListener('keydown', e => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); searchEl.focus(); searchEl.select(); }
-  if (e.key === 'Escape' && document.activeElement === searchEl) { searchEl.value = ''; applySearch(); searchEl.blur(); }
-});
-
-// ── Toggle all ────────────────────────────────────────────
-document.getElementById('btn-toggle-all').addEventListener('click', () => {
-  // Collapse all if anything is expanded; expand all if everything is already collapsed
-  const anyExpanded = state.columns.some(col => col.sections.some(sec => !sec.collapsed));
-  allCollapsed = anyExpanded;
-  state.columns.forEach(col => col.sections.forEach(sec => sec.collapsed = allCollapsed));
-  markDirty(); render();
-});
-
-// ── Add column ────────────────────────────────────────────
-document.getElementById('btn-add-col').addEventListener('click', () => modal(
-  `<h2>Add Column</h2><label>Title</label><input id="mi-t" value="New Column">`,
-  [{ id:'cancel', label:'Cancel', fn: closeModal },
-   { id:'ok', label:'OK', fn: ov => {
-     const t = ov.querySelector('#mi-t').value.trim();
-     if (!t) return;
-     state.columns.push({ id: uid(), title: t, collapsed: false, sections: [{ id: uid(), title: '', collapsed: false, links: [] }] });
-     markDirty(); render(); closeModal(ov);
-   }}]
-));
-
-// ── SortableJS ────────────────────────────────────────────
-const bindColumnSortable = () => {
-  if (colSortable) colSortable.destroy();  // prevent stacking instances across re-renders
-  colSortable = Sortable.create(colsEl, {
-    animation: 150, handle: '.col-handle',
-    ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen',
-    onEnd: () => {
-      const order = Array.from(colsEl.querySelectorAll('[data-col-id]')).map(e => e.dataset.colId);
-      state.columns = order.map(id => state.columns.find(c => c.id === id)).filter(Boolean);
-      markDirty();
-    }
-  });
-};
-
-const bindSectionSortable = (el, col) => Sortable.create(el, {
-  group: 'secs', animation: 150, handle: '.sec-hd',
-  ghostClass: 'sortable-ghost',
-  onEnd: evt => {
-    const srcCol = state.columns.find(c => c.id === evt.from.dataset.colId);
-    const tgtCol = state.columns.find(c => c.id === evt.to.dataset.colId);
-    if (!srcCol || !tgtCol) return;
-    const si = srcCol.sections.findIndex(s => s.id === evt.item.dataset.secId);
-    const [sec] = srcCol.sections.splice(si, 1);
-    tgtCol.sections.splice(Math.max(Array.from(evt.to.children).indexOf(evt.item), 0), 0, sec);
-    markDirty(); render();
-  }
-});
-
-const bindLinkSortable = (el, sec) => Sortable.create(el, {
-  group: 'links', animation: 150, handle: '.lk-drag',
-  ghostClass: 'sortable-ghost',
-  onEnd: evt => {
-    let srcSec = null, tgtSec = null;
-    state.columns.forEach(c => c.sections.forEach(s => {
-      if (s.id === evt.from.dataset.secId) srcSec = s;
-      if (s.id === evt.to.dataset.secId)   tgtSec = s;
-    }));
-    if (!srcSec || !tgtSec) return;
-    const li = srcSec.links.findIndex(l => l.id === evt.item.dataset.linkId);
-    const [lk] = srcSec.links.splice(li, 1);
-    tgtSec.links.splice(Math.max(Array.from(evt.to.children).indexOf(evt.item), 0), 0, lk);
-    markDirty(); render();
-  }
-});
-
-// ── Save — routes to local file or GitHub based on environment ──
-const showGitHubSaveModal = () => {
-  const token = localStorage.getItem(TOKEN_KEY) || '';
-  const ov = document.createElement('div');
-  ov.className = 'modal-ov';
-  ov.innerHTML = `<div class="modal">
+    // ── Save — routes to local file or GitHub based on environment ──
+    const showGitHubSaveModal = () => {
+      const token = localStorage.getItem( TOKEN_KEY ) || '';
+      const ov = document.createElement( 'div' );
+      ov.className = 'modal-ov';
+      ov.innerHTML = `<div class="modal">
     <h2>⬆ Save to GitHub</h2>
     <p style="font-size:11px;color:var(--muted);margin-bottom:8px">Pushes current data to <code>links.json</code> in your repo.</p>
     <label>Repository</label><input id="s-repo" value="theo-armour/sandbox">
     <label>File path</label><input id="s-path" value="cookbook/newwtab/links.json">
-    <label>GitHub Token</label><input id="s-tok" type="password" value="${esc(token)}" placeholder="ghp_...">
+    <label>GitHub Token</label><input id="s-tok" type="password" value="${ esc( token ) }" placeholder="ghp_...">
     <div class="modal-btns">
       <button class="tbtn" id="s-cancel">Cancel</button>
       <button class="tbtn" id="s-push">⬆ Push</button>
     </div>
   </div>`;
-  document.body.appendChild(ov);
+      document.body.appendChild( ov );
 
-  ov.querySelector('#s-cancel').addEventListener('click', () => ov.remove());
-  ov.querySelector('#s-push').addEventListener('click', async () => {
-    const tok  = ov.querySelector('#s-tok').value.trim();
-    const repo = ov.querySelector('#s-repo').value.trim();
-    const path = ov.querySelector('#s-path').value.trim();
-    if (!tok) { alert('Token required.'); return; }
-    localStorage.setItem(TOKEN_KEY, tok);
-    const hdrs = { Authorization: `token ${tok}`, 'Content-Type': 'application/json' };
-    try {
-      let sha = '';
-      const gr = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, { headers: hdrs });
-      if (gr.ok) sha = (await gr.json()).sha || '';
-      const content = btoa(unescape(encodeURIComponent(JSON.stringify(serialize(), null, 2))));
-      const pr = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
-        method: 'PUT', headers: hdrs,
-        body: JSON.stringify({ message: 'newwwtab: update links', content, sha })
-      });
-      if (!pr.ok) throw new Error(`${pr.status} ${pr.statusText}`);
-      markClean(); ov.remove(); alert('Saved ✓');
-    } catch(e) { alert('Save failed: ' + e.message); }
-  });
-  ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
-};
+      ov.querySelector( '#s-cancel' ).addEventListener( 'click', () => ov.remove() );
+      ov.querySelector( '#s-push' ).addEventListener( 'click', async () => {
+        const tok = ov.querySelector( '#s-tok' ).value.trim();
+        const repo = ov.querySelector( '#s-repo' ).value.trim();
+        const path = ov.querySelector( '#s-path' ).value.trim();
+        if ( !tok ) { alert( 'Token required.' ); return; }
+        localStorage.setItem( TOKEN_KEY, tok );
+        const hdrs = { Authorization: `token ${ tok }`, 'Content-Type': 'application/json' };
+        try {
+          let sha = '';
+          const gr = await fetch( `https://api.github.com/repos/${ repo }/contents/${ path }`, { headers: hdrs } );
+          if ( gr.ok ) sha = ( await gr.json() ).sha || '';
+          const content = btoa( unescape( encodeURIComponent( JSON.stringify( serialize(), null, 2 ) ) ) );
+          const pr = await fetch( `https://api.github.com/repos/${ repo }/contents/${ path }`, {
+            method: 'PUT', headers: hdrs,
+            body: JSON.stringify( { message: 'newwwtab: update links', content, sha } )
+          } );
+          if ( !pr.ok ) throw new Error( `${ pr.status } ${ pr.statusText }` );
+          markClean(); ov.remove(); alert( 'Saved ✓' );
+        } catch ( e ) { alert( 'Save failed: ' + e.message ); }
+      } );
+      ov.addEventListener( 'click', e => { if ( e.target === ov ) ov.remove(); } );
+    };
 
-document.getElementById('btn-save').addEventListener('click', async () => {
-  if (isLocal()) {
-    // Write directly to links.json on disk via File System Access API
-    try { await saveToLocalFile(); }
-    catch(e) { if (e.name !== 'AbortError') alert('Save failed: ' + e.message); }
-    return;
-  }
-  // GitHub Pages: push via GitHub Contents API
-  showGitHubSaveModal();
-});
+    document.getElementById( 'btn-save' ).addEventListener( 'click', async () => {
+      if ( isLocal() ) {
+        // Write directly to links.json on disk via File System Access API
+        try { await saveToLocalFile(); }
+        catch ( e ) { if ( e.name !== 'AbortError' ) alert( 'Save failed: ' + e.message ); }
+        return;
+      }
+      // GitHub Pages: push via GitHub Contents API
+      showGitHubSaveModal();
+    } );
 
-// ── Export ────────────────────────────────────────────────
-document.getElementById('btn-export').addEventListener('click', () => {
-  const jsonStr = JSON.stringify(serialize(), null, 2);
-  const mdLines = [];
-  state.columns.forEach(col => {
-    mdLines.push(`# ${col.title}`);
-    col.sections.forEach(sec => {
-      if (sec.title) mdLines.push(`\n## ${sec.title}`);
-      sec.links.forEach(l => mdLines.push(`[${l.title}](${l.url})` + (l.secondaryUrl ? ` [${l.secondaryTitle||'g'}](${l.secondaryUrl})` : '')));
-    });
-    mdLines.push('');
-  });
-  const mdStr = mdLines.join('\n');
-  let mode = 'json';
+    // ── Export ────────────────────────────────────────────────
+    document.getElementById( 'btn-export' ).addEventListener( 'click', () => {
+      const jsonStr = JSON.stringify( serialize(), null, 2 );
+      const mdLines = [];
+      state.columns.forEach( col => {
+        mdLines.push( `# ${ col.title }` );
+        col.sections.forEach( sec => {
+          if ( sec.title ) mdLines.push( `\n## ${ sec.title }` );
+          sec.links.forEach( l => mdLines.push( `[${ l.title }](${ l.url })` + ( l.secondaryUrl ? ` [${ l.secondaryTitle || 'g' }](${ l.secondaryUrl })` : '' ) ) );
+        } );
+        mdLines.push( '' );
+      } );
+      const mdStr = mdLines.join( '\n' );
+      let mode = 'json';
 
-  const ov = document.createElement('div');
-  ov.className = 'modal-ov';
-  ov.innerHTML = `<div class="modal">
+      const ov = document.createElement( 'div' );
+      ov.className = 'modal-ov';
+      ov.innerHTML = `<div class="modal">
     <h2>Export</h2>
     <div style="display:flex;gap:6px;margin-bottom:8px">
       <button class="tbtn" id="ex-json">JSON</button>
       <button class="tbtn" id="ex-md">Markdown</button>
       <button class="tbtn" id="ex-copy">Copy</button>
     </div>
-    <textarea id="ex-ta">${esc(jsonStr)}</textarea>
+    <textarea id="ex-ta">${ esc( jsonStr ) }</textarea>
     <div class="modal-btns">
       <button class="tbtn" id="ex-dl">Download</button>
       <button class="tbtn" id="ex-close">Close</button>
     </div>
   </div>`;
-  document.body.appendChild(ov);
-  const ta = ov.querySelector('#ex-ta');
-  ov.querySelector('#ex-json').addEventListener('click',  () => { mode = 'json'; ta.value = jsonStr; });
-  ov.querySelector('#ex-md').addEventListener('click',    () => { mode = 'md';   ta.value = mdStr; });
-  ov.querySelector('#ex-copy').addEventListener('click',  () => navigator.clipboard.writeText(ta.value).then(() => alert('Copied!')));
-  ov.querySelector('#ex-dl').addEventListener('click',    () => {
-    const blobUrl = URL.createObjectURL(new Blob([ta.value], { type: 'text/plain' }));
-    const a = Object.assign(document.createElement('a'), { href: blobUrl, download: 'links.' + mode });
-    a.click(); URL.revokeObjectURL(blobUrl);
-  });
-  ov.querySelector('#ex-close').addEventListener('click', () => ov.remove());
-  ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
-});
+      document.body.appendChild( ov );
+      const ta = ov.querySelector( '#ex-ta' );
+      ov.querySelector( '#ex-json' ).addEventListener( 'click', () => { mode = 'json'; ta.value = jsonStr; } );
+      ov.querySelector( '#ex-md' ).addEventListener( 'click', () => { mode = 'md'; ta.value = mdStr; } );
+      ov.querySelector( '#ex-copy' ).addEventListener( 'click', () => navigator.clipboard.writeText( ta.value ).then( () => alert( 'Copied!' ) ) );
+      ov.querySelector( '#ex-dl' ).addEventListener( 'click', () => {
+        const blobUrl = URL.createObjectURL( new Blob( [ ta.value ], { type: 'text/plain' } ) );
+        const a = Object.assign( document.createElement( 'a' ), { href: blobUrl, download: 'links.' + mode } );
+        a.click(); URL.revokeObjectURL( blobUrl );
+      } );
+      ov.querySelector( '#ex-close' ).addEventListener( 'click', () => ov.remove() );
+      ov.addEventListener( 'click', e => { if ( e.target === ov ) ov.remove(); } );
+    } );
 
-// ── Settings ──────────────────────────────────────────────
-document.getElementById('btn-settings').addEventListener('click', () => modal(
-  `<h2>Settings</h2>` +
-  `<label><input type="checkbox" id="mi-reload"> Reload data from links.json</label><br><br>` +
-  `<p style="font-size:11px;color:var(--muted)">To import data: Export → copy JSON → edit links.json → reload page.</p>`,
-  [{ id:'cancel', label:'Cancel', fn: closeModal },
-   { id:'ok', label:'OK', fn: ov => {
-     if (ov.querySelector('#mi-reload').checked) { closeModal(ov); loadFromFile(); }
-     else closeModal(ov);
-   }}]
-));
+    // ── Settings ──────────────────────────────────────────────
+    document.getElementById( 'btn-settings' ).addEventListener( 'click', () => modal(
+      `<h2>Settings</h2>` +
+      `<label><input type="checkbox" id="mi-reload"> Reload data from links.json</label><br><br>` +
+      `<p style="font-size:11px;color:var(--muted)">To import data: Export → copy JSON → edit links.json → reload page.</p>`,
+      [ { id: 'cancel', label: 'Cancel', fn: closeModal },
+      {
+        id: 'ok', label: 'OK', fn: ov => {
+          if ( ov.querySelector( '#mi-reload' ).checked ) { closeModal( ov ); loadFromFile(); }
+          else closeModal( ov );
+        }
+      } ]
+    ) );
 
-// ── Date ──────────────────────────────────────────────────
-const tick = () => {
-  const n = new Date();
-  document.getElementById('tb-date').textContent =
-    n.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + ' · ' +
-    n.toLocaleDateString([], {weekday:'long', month:'long', day:'numeric', year:'numeric'});
-};
-tick(); setInterval(tick, 60000);
+    // ── Date ──────────────────────────────────────────────────
+    const tick = () => {
+      const n = new Date();
+      document.getElementById( 'tb-date' ).textContent =
+        n.toLocaleTimeString( [], { hour: '2-digit', minute: '2-digit' } ) + ' · ' +
+        n.toLocaleDateString( [], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' } );
+    };
+    tick(); setInterval( tick, 60000 );
 
-// ── Boot ──────────────────────────────────────────────────
-loadFromFile();
-</script>
+    // ── Boot ──────────────────────────────────────────────────
+    loadFromFile();
+  </script>
 </body>
+
 </html>
