@@ -54,6 +54,7 @@
         },
         {
           "title": "orgs",
+          "collapsed": true,
           "links": [
             {
               "title": "evrlnd",
@@ -250,6 +251,14 @@
             {
               "title": "Claude",
               "url": "https://claude.ai/"
+            },
+            {
+              "title": "grok",
+              "url": "https://grok.x.ai"
+            },
+            {
+              "title": "copilotp",
+              "url": "https://copilot.microsoft.com"
             }
           ]
         },
@@ -285,41 +294,23 @@
           ]
         },
         {
-          "title": "AI&Office",
+          "title": "mr softy",
           "links": [
-            {
-              "title": "copilotp",
-              "url": "https://copilot.microsoft.com"
-            },
-            {
-              "title": "grok",
-              "url": "https://grok.x.ai"
-            },
             {
               "title": "ms365",
               "url": "https://microsoft365.com"
             },
             {
-              "title": "onedrv",
-              "url": "https://onedrive.live.com"
-            },
-            {
               "title": "outlook",
-              "url": "https://outlook.com"
-            }
-          ]
-        },
-        {
-          "title": "mr softy",
-          "collapsed": true,
-          "links": [
-            {
-              "title": "outlook.co",
               "url": "https://outlook.com/"
             },
             {
               "title": "microsoft3",
               "url": "https://microsoft365.com/"
+            },
+            {
+              "title": "onedrv",
+              "url": "https://onedrive.live.com"
             }
           ]
         }

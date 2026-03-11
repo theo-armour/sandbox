@@ -54,6 +54,7 @@
         },
         {
           "title": "orgs",
+          "collapsed": true,
           "links": [
             {
               "title": "evrlnd",
@@ -104,6 +105,15 @@
             {
               "title": ">TooToo23",
               "url": "https://vscode.dev/github/theo-armour/tootoo23"
+            }
+          ]
+        },
+        {
+          "title": "theo apps",
+          "links": [
+            {
+              "title": "newww tab",
+              "url": "https://theo-armour.github.io/sandbox/gemini/cookbook/newww-tab/"
             }
           ]
         }
@@ -253,7 +263,9 @@
             },
             {
               "title": "midjourny",
-              "url": "https://midjourney.com"
+              "url": "https://midjourney.com",
+              "secondary": "tv",
+              "secondaryUrl": "https://www.midjourney.tv/"
             },
             {
               "title": "> dd",
@@ -295,16 +307,11 @@
             {
               "title": "outlook",
               "url": "https://outlook.com"
-            },
-            {
-              "title": "outlook.co",
-              "url": "https://outlook.com/"
             }
           ]
         },
         {
           "title": "mr softy",
-          "collapsed": true,
           "links": [
             {
               "title": "outlook.co",
