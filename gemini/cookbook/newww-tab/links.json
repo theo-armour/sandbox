@@ -53,7 +53,18 @@
           ]
         },
         {
+          "title": "theo apps",
+          "collapsed": true,
+          "links": [
+            {
+              "title": "newww tab",
+              "url": "https://theo-armour.github.io/sandbox/gemini/cookbook/newww-tab/"
+            }
+          ]
+        },
+        {
           "title": "orgs",
+          "collapsed": true,
           "links": [
             {
               "title": "evrlnd",
@@ -83,6 +94,7 @@
         },
         {
           "title": "VSCode",
+          "collapsed": true,
           "links": [
             {
               "title": ">ta 2024",
@@ -103,15 +115,6 @@
             {
               "title": ">TooToo23",
               "url": "https://vscode.dev/github/theo-armour/tootoo23"
-            }
-          ]
-        },
-        {
-          "title": "theo apps",
-          "links": [
-            {
-              "title": "newww tab",
-              "url": "https://theo-armour.github.io/sandbox/gemini/cookbook/newww-tab/"
             }
           ]
         }
@@ -172,6 +175,7 @@
         },
         {
           "title": "MoreNews",
+          "collapsed": true,
           "links": [
             {
               "title": "compuserve",
@@ -181,6 +185,7 @@
         },
         {
           "title": "MoreRead",
+          "collapsed": true,
           "links": [
             {
               "title": "aeon",
