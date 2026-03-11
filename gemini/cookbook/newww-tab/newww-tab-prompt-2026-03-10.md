@@ -173,7 +173,7 @@ Routing is automatic based on `window.location`:
 
 ### Remote (GitHub Pages or any other host)
 
-1. Show a modal: Repository (default: `theo-armour/sandbox`), File path (default: `gemini/cookbook/newww-tab/links.json`), GitHub personal access token
+1. Show a modal: Repository (default: `theo-armour/sandbox`), File path (default: `cookbook/newwtab/links.json`), GitHub personal access token
 2. **GET** `https://api.github.com/repos/{repo}/contents/{path}` to fetch current SHA
 3. **PUT** same endpoint with Base64-encoded JSON content and the SHA to commit
 4. Token stored in localStorage key `newwwtab-gat`
