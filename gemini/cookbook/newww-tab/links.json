@@ -57,7 +57,9 @@
           "links": [
             {
               "title": "newww tab",
-              "url": "https://theo-armour.github.io/sandbox/gemini/cookbook/newww-tab/"
+              "url": "https://theo-armour.github.io/sandbox/gemini/cookbook/newww-tab/",
+              "secondary": "o",
+              "secondaryUrl": "https://theo-armour.github.io/qdata/apps/newww-tab/"
             }
           ]
         },
@@ -537,11 +539,7 @@
           "links": [
             {
               "title": "hotm",
-              "url": "https://hotm.com"
-            },
-            {
-              "title": "p",
-              "url": "https://pinterest.com"
+              "url": "https://www.heritageonthemarina.org/"
             },
             {
               "title": "worxhub",
@@ -552,16 +550,8 @@
               "url": "https://www.residentapps.com/"
             },
             {
-              "title": "pph",
-              "url": "https://pph.com"
-            },
-            {
-              "title": "elatn",
-              "url": "https://elatn.com"
-            },
-            {
               "title": "HerHap",
-              "url": "https://heritagehappiness.com"
+              "url": "https://heritage-happenings.github.io"
             },
             {
               "title": "calendar",
