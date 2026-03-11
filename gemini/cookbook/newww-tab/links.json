@@ -295,6 +295,7 @@
         },
         {
           "title": "mr softy",
+          "collapsed": true,
           "links": [
             {
               "title": "ms365",
@@ -454,12 +455,7 @@
         },
         {
           "title": "test",
-          "links": [
-            {
-              "title": "outlook.co",
-              "url": "https://outlook.com/"
-            }
-          ]
+          "links": []
         }
       ]
     },
