@@ -1,0 +1,692 @@
+{
+  "columns": [
+    {
+      "title": "Theo",
+      "sections": [
+        {
+          "title": "Theo",
+          "links": [
+            {
+              "title": "T-A.g.io",
+              "url": "https://theo-armour.github.io/",
+              "g": "https://github.com/theo-armour/theo-armour.github.io"
+            },
+            {
+              "title": "gT-A",
+              "url": "https://github.com/theo-armour"
+            },
+            {
+              "title": "t2025",
+              "url": "https://theo-armour.github.io/2025",
+              "g": "https://github.com/theo-armour/2025/"
+            },
+            {
+              "title": "agenda",
+              "url": "https://theo-armour.github.io/agenda/",
+              "g": "https://github.com/theo-armour/agenda"
+            },
+            {
+              "title": "genealogy",
+              "url": "https://theo-armour.github.io/genealogy/",
+              "g": "https://github.com/theo-armour/genealogy/"
+            },
+            {
+              "title": "pages",
+              "url": "https://theo-armour.github.io/pages/",
+              "g": "https://github.com/theo-armour/pages"
+            },
+            {
+              "title": "qData",
+              "url": "https://theo-armour.github.io/qdata/",
+              "g": "https://github.com/theo-armour/qdata/"
+            },
+            {
+              "title": "sandbox",
+              "url": "https://theo-armour.github.io/sandbox/",
+              "g": "https://github.com/theo-armour/sandbox/"
+            },
+            {
+              "title": "wikitheo",
+              "url": "https://theo-armour.github.io/wikitheo/",
+              "g": "https://github.com/theo-armour/wikitheo/"
+            }
+          ]
+        },
+        {
+          "title": "orgs",
+          "collapsed": true,
+          "links": [
+            {
+              "title": "evrlnd",
+              "url": "https://everland.io/"
+            },
+            {
+              "title": "2019",
+              "url": "https://theo-armour.github.io/2019/"
+            },
+            {
+              "title": "gbxml",
+              "url": "https://gbxml.org"
+            },
+            {
+              "title": "ppAssets",
+              "url": "https://ppassets.com"
+            },
+            {
+              "title": "g",
+              "url": "https://github.com"
+            },
+            {
+              "title": "PshPll",
+              "url": "https://pushpull.com"
+            }
+          ]
+        },
+        {
+          "title": "VSCode",
+          "collapsed": true,
+          "links": [
+            {
+              "title": ">ta 2024",
+              "url": "https://vscode.dev/github/theo-armour/2024"
+            },
+            {
+              "title": ">ta 23agnd",
+              "url": "https://vscode.dev/github/theo-armour/agenda"
+            },
+            {
+              "title": ">ta pages",
+              "url": "https://vscode.dev/github/theo-armour/pages"
+            },
+            {
+              "title": ">ta 23qDat",
+              "url": "https://vscode.dev/github/theo-armour/qdata"
+            },
+            {
+              "title": ">TooToo23",
+              "url": "https://vscode.dev/github/theo-armour/tootoo23"
+            }
+          ]
+        },
+        {
+          "title": "theo apps",
+          "links": [
+            {
+              "title": "newww tab",
+              "url": "https://theo-armour.github.io/sandbox/gemini/cookbook/newww-tab/"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "VSCode",
+      "sections": [
+        {
+          "title": "News",
+          "links": [
+            {
+              "title": "nytimes",
+              "url": "https://nytimes.com"
+            },
+            {
+              "title": "chronic",
+              "url": "https://sfchronicle.com"
+            },
+            {
+              "title": "googN",
+              "url": "https://news.google.com"
+            },
+            {
+              "title": "drudge",
+              "url": "https://drudgereport.com"
+            },
+            {
+              "title": "techmeme",
+              "url": "https://techmeme.com"
+            },
+            {
+              "title": "slashdot",
+              "url": "https://slashdot.org"
+            },
+            {
+              "title": "hacker_new",
+              "url": "https://news.ycombinator.com"
+            },
+            {
+              "title": "xkcd",
+              "url": "https://xkcd.com"
+            }
+          ]
+        },
+        {
+          "title": "MoreNews",
+          "collapsed": true,
+          "links": [
+            {
+              "title": "compuserve",
+              "url": "https://compuserve.com"
+            }
+          ]
+        },
+        {
+          "title": "Reads",
+          "links": [
+            {
+              "title": "substack",
+              "url": "https://substack.com"
+            },
+            {
+              "title": "medium",
+              "url": "https://medium.com"
+            },
+            {
+              "title": "scanalyst",
+              "url": "https://scanalyst.com"
+            },
+            {
+              "title": "kindle",
+              "url": "https://read.amazon.com"
+            }
+          ]
+        },
+        {
+          "title": "MoreRead",
+          "collapsed": true,
+          "links": [
+            {
+              "title": "aeon",
+              "url": "https://aeon.co"
+            },
+            {
+              "title": "axios",
+              "url": "https://axios.com"
+            },
+            {
+              "title": "lesswrong",
+              "url": "https://lesswrong.com"
+            },
+            {
+              "title": "marginal",
+              "url": "https://marginalrevolution.com"
+            },
+            {
+              "title": "nautilus",
+              "url": "https://nautil.us"
+            },
+            {
+              "title": "noema",
+              "url": "https://noemamag.com"
+            },
+            {
+              "title": "quanta",
+              "url": "https://quantamagazine.org"
+            },
+            {
+              "title": "feedly",
+              "url": "https://feedly.com"
+            },
+            {
+              "title": "libbyapp",
+              "url": "https://libbyapp.com"
+            },
+            {
+              "title": "scanalyst",
+              "url": "https://scanalyst.com/"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "AI Creati",
+      "sections": [
+        {
+          "title": "AI",
+          "links": [
+            {
+              "title": "gemini",
+              "url": "https://gemini.google.com"
+            },
+            {
+              "title": "Claude",
+              "url": "https://claude.ai/"
+            }
+          ]
+        },
+        {
+          "title": "AI Creati",
+          "links": [
+            {
+              "title": "sora",
+              "url": "https://sora.com"
+            },
+            {
+              "title": "midjourny",
+              "url": "https://midjourney.com",
+              "secondary": "tv",
+              "secondaryUrl": "https://www.midjourney.tv/"
+            },
+            {
+              "title": "> dd",
+              "url": "https://www.deepdream.com"
+            },
+            {
+              "title": "ideogram",
+              "url": "https://ideogram.ai"
+            },
+            {
+              "title": "kaiber",
+              "url": "https://kaiber.ai"
+            },
+            {
+              "title": "suno/chirp",
+              "url": "https://suno.com"
+            }
+          ]
+        },
+        {
+          "title": "AI&Office",
+          "links": [
+            {
+              "title": "copilotp",
+              "url": "https://copilot.microsoft.com"
+            },
+            {
+              "title": "grok",
+              "url": "https://grok.x.ai"
+            },
+            {
+              "title": "ms365",
+              "url": "https://microsoft365.com"
+            },
+            {
+              "title": "onedrv",
+              "url": "https://onedrive.live.com"
+            },
+            {
+              "title": "outlook",
+              "url": "https://outlook.com"
+            }
+          ]
+        },
+        {
+          "title": "mr softy",
+          "links": [
+            {
+              "title": "outlook.co",
+              "url": "https://outlook.com/"
+            },
+            {
+              "title": "microsoft3",
+              "url": "https://microsoft365.com/"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Reads",
+      "sections": [
+        {
+          "title": "GoogleDriv",
+          "links": [
+            {
+              "title": "gdrive",
+              "url": "https://drive.google.com"
+            },
+            {
+              "title": "gdocs",
+              "url": "https://docs.google.com"
+            },
+            {
+              "title": "gsheets",
+              "url": "https://sheets.google.com"
+            },
+            {
+              "title": "gslides",
+              "url": "https://slides.google.com"
+            }
+          ]
+        },
+        {
+          "title": "Google Ap",
+          "links": [
+            {
+              "title": "g calender",
+              "url": "https://calendar.google.com"
+            },
+            {
+              "title": "g contacts",
+              "url": "https://contacts.google.com"
+            },
+            {
+              "title": "gmail",
+              "url": "https://mail.google.com"
+            },
+            {
+              "title": "g maps",
+              "url": "https://maps.google.com"
+            }
+          ]
+        },
+        {
+          "title": "MoreGoogl",
+          "links": [
+            {
+              "title": "g chat",
+              "url": "https://chat.google.com"
+            },
+            {
+              "title": "g design",
+              "url": "https://design.google"
+            },
+            {
+              "title": "g domains",
+              "url": "https://domains.google"
+            },
+            {
+              "title": "test",
+              "url": "test"
+            },
+            {
+              "title": "g experimt",
+              "url": "https://experiments.withgoogle.com"
+            },
+            {
+              "title": "g groups",
+              "url": "https://groups.google.com"
+            },
+            {
+              "title": "g sites",
+              "url": "https://sites.google.com"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "MoreGoogl",
+      "sections": [
+        {
+          "title": "Apps",
+          "links": [
+            {
+              "title": "geni",
+              "url": "https://geni.com"
+            },
+            {
+              "title": "gedcom",
+              "url": "https://gramps-project.org"
+            },
+            {
+              "title": "myheritage",
+              "url": "https://myheritage.com"
+            },
+            {
+              "title": "ancestry",
+              "url": "https://ancestry.com"
+            },
+            {
+              "title": "wikitree",
+              "url": "https://wikitree.com"
+            },
+            {
+              "title": "prompt",
+              "url": "https://promptbase.com"
+            },
+            {
+              "title": "whatsapp",
+              "url": "https://web.whatsapp.com"
+            },
+            {
+              "title": "raindrop",
+              "url": "https://raindrop.io"
+            },
+            {
+              "title": "linkedin",
+              "url": "https://linkedin.com"
+            },
+            {
+              "title": "sfpl",
+              "url": "https://sfpl.org/"
+            },
+            {
+              "title": "libbyapp",
+              "url": "https://libbyapp.com/"
+            },
+            {
+              "title": "feedly.com",
+              "url": "https://feedly.com/"
+            }
+          ]
+        },
+        {
+          "title": "test",
+          "links": [
+            {
+              "title": "outlook.co",
+              "url": "https://outlook.com/"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Reference",
+      "sections": [
+        {
+          "title": "Reference",
+          "links": [
+            {
+              "title": "threejs",
+              "url": "https://threejs.org"
+            },
+            {
+              "title": "mdn",
+              "url": "https://developer.mozilla.org"
+            },
+            {
+              "title": "regex",
+              "url": "https://regex101.com"
+            },
+            {
+              "title": "wiki",
+              "url": "https://wikipedia.org"
+            },
+            {
+              "title": "> wContent",
+              "url": "https://www.w3.org/TR/wai-aria"
+            },
+            {
+              "title": "trendsG",
+              "url": "https://trends.google.com"
+            },
+            {
+              "title": "thesaurus",
+              "url": "https://thesaurus.com"
+            },
+            {
+              "title": "translate",
+              "url": "https://translate.google.com"
+            },
+            {
+              "title": "validator",
+              "url": "https://validator.w3.org"
+            },
+            {
+              "title": "speedtest",
+              "url": "https://speedtest.net"
+            }
+          ]
+        },
+        {
+          "title": "Groups",
+          "links": [
+            {
+              "title": "nextvilge",
+              "url": "https://nextdoor.com"
+            },
+            {
+              "title": "sensay",
+              "url": "https://sensay.io"
+            },
+            {
+              "title": "sacsem",
+              "url": "https://sacsem.net"
+            },
+            {
+              "title": "wix",
+              "url": "https://wix.com"
+            },
+            {
+              "title": "groups.io",
+              "url": "https://groups.io"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Heritage",
+      "sections": [
+        {
+          "title": "Heritage",
+          "links": [
+            {
+              "title": "hotm",
+              "url": "https://hotm.com"
+            },
+            {
+              "title": "p",
+              "url": "https://pinterest.com"
+            },
+            {
+              "title": "worxhub",
+              "url": "https://worxhub.com"
+            },
+            {
+              "title": "tchTwn",
+              "url": "https://techtown.com"
+            },
+            {
+              "title": "pph",
+              "url": "https://pph.com"
+            },
+            {
+              "title": "elatn",
+              "url": "https://elatn.com"
+            },
+            {
+              "title": "HerHap",
+              "url": "https://heritagehappiness.com"
+            },
+            {
+              "title": "calendar",
+              "url": "https://calendar.google.com"
+            },
+            {
+              "title": "newlettr",
+              "url": "https://newlettr.com"
+            },
+            {
+              "title": "theo24hh",
+              "url": "https://theo-armour.github.io/2024"
+            },
+            {
+              "title": "g-priv",
+              "url": "https://github.com/theo-armour-private"
+            },
+            {
+              "title": "wp-sflp",
+              "url": "https://wp.sflp.com"
+            },
+            {
+              "title": "kiosk",
+              "url": "https://kiosk.com"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Orgs & Pr",
+      "sections": [
+        {
+          "title": "Orgs & Pr",
+          "links": [
+            {
+              "title": "notesy",
+              "url": "https://notesy.co"
+            },
+            {
+              "title": "read me",
+              "url": "https://readme.io"
+            },
+            {
+              "title": "AxisOrdinr",
+              "url": "https://axisordiante.com"
+            },
+            {
+              "title": "Art2Write",
+              "url": "https://art2write.com"
+            },
+            {
+              "title": "Inspiratio",
+              "url": "https://inspiration.com"
+            },
+            {
+              "title": "jokes",
+              "url": "https://jokes.com"
+            },
+            {
+              "title": "Lingo",
+              "url": "https://lingo.com"
+            },
+            {
+              "title": "location",
+              "url": "https://location.com"
+            },
+            {
+              "title": "shortcuts",
+              "url": "https://shortcuts.design"
+            },
+            {
+              "title": "documnts",
+              "url": "https://docs.google.com"
+            },
+            {
+              "title": "iforget",
+              "url": "https://iforget.com"
+            },
+            {
+              "title": "ilike",
+              "url": "https://ilike.com"
+            },
+            {
+              "title": "tips",
+              "url": "https://tips.com"
+            },
+            {
+              "title": "poem-otd",
+              "url": "https://poems.com"
+            },
+            {
+              "title": "Jaanga",
+              "url": "https://jaanga.github.io",
+              "g": "https://github.com/jaanga"
+            },
+            {
+              "title": "gh",
+              "url": "https://github.com"
+            },
+            {
+              "title": "> demo",
+              "url": "https://demo.com"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
