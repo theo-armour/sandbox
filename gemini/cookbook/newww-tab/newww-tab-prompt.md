@@ -57,6 +57,8 @@ Any data mutation sets a dirty flag → shows `● unsaved` indicator in the too
 
 Toggling section collapse (individual or Toggle All) marks dirty, since collapse state is persisted in `links.json`.
 
+A `beforeunload` listener warns the user if they try to close or navigate away with unsaved changes.
+
 ---
 
 ## Layout
@@ -68,14 +70,15 @@ A single-row sticky toolbar with:
 - Live clock: `HH:MM · Weekday, Month Day, Year` (updates every 60s)
 - Search input: placeholder `🔍 Filter Links...` (160px wide)
 - Unsaved indicator: `● unsaved` (hidden when clean)
-- Buttons: **Toggle All**, **+ Column**, **⬆ Save**, **Export**, **Settings**
+- Buttons: **Toggle All**, **+ Column**, **⬆ Save**, **Export**
 
 ### Columns
 
 - 8 equal-width columns side by side using `display: flex; flex-wrap: wrap` with `flex: 1 1 0; min-width: 0` on each column
 - Each column has a minimal 26px drag-handle bar at top containing:
   - A braille-dot drag grip (`⠿⠿`)
-  - Action buttons: ◀ (move left), ▶ (move right), +sec (add section), ✕col (delete column)
+  - A column title (e.g., "Col 1") — double-click to rename inline
+  - Right-click the handle bar to open a context menu with: Rename column, Add section, Move left, Move right, Delete column
 
 ### Sections
 
@@ -92,7 +95,8 @@ A single-row sticky toolbar with:
 
 ### Typography & theming
 
-- Monospace font stack: SF Mono → Cascadia Code → Fira Code → Consolas, 18px, line-height 1.15
+- Monospace font stack: SF Mono → Cascadia Code → Fira Code → Consolas, 20px body, line-height 1.2
+- Section headers: 18px, bold
 - Full light/dark mode via CSS custom properties and `@media (prefers-color-scheme: dark)`
 - Light: white background, green links (#007700), blue secondary (#005599)
 - Dark: #222 background, bright green links (#55cc55), bright blue secondary (#55aaff)
@@ -109,7 +113,7 @@ Three levels of SortableJS instances:
 
 | Level | Container | Handle | Group | Cross-container? |
 |-------|-----------|--------|-------|------------------|
-| Columns | `#columns` | `.col-handle` | — | No |
+| Columns | `#columns` | `.col-drag` | — | No |
 | Sections | `.col-secs` | `.sec-hd` | `'secs'` | Yes (between columns) |
 | Links | `.links-list` | `.lk-drag` | `'links'` | Yes (between sections) |
 
@@ -122,12 +126,13 @@ Each `onEnd` callback reconciles DOM order back into the `state` arrays by splic
 | Action | Trigger | Behavior |
 |--------|---------|----------|
 | Add column | Toolbar `+ Column` button | Modal → title input → appends column with one empty section |
-| Delete column | `✕col` on handle | Confirm if any section has links, then remove |
-| Move column | ◀ / ▶ on handle | Swap with adjacent column in state array |
-| Add section | `+sec` on column handle | Modal → title input → appends to column |
+| Delete column | Context menu → Delete column | Confirm if any section has links, then remove |
+| Move column | Context menu → Move left / Move right | Swap with adjacent column in state array |
+| Rename column | Double-click title or context menu → Rename | Inline edit on column title |
+| Add section | Context menu → Add section | Modal → title input → appends to column |
 | Delete section | `✕` on section header (hover) | Confirm if section has links, then remove |
 | Rename section | `✎` on section header (hover) | Inline edit: replaces `<span>` with `<input>`, Enter saves, Escape reverts |
-| Add link | `+` on section header (hover) | Modal: URL (required), Title (auto-generated from hostname if blank), GitHub URL |
+| Add link | `+` on section header (hover) | Modal: Title (auto-generated from hostname if blank), URL (required), GitHub URL |
 | Edit link | `✎` on link row (hover) | Modal: Title, URL, GitHub URL, other secondary label, other secondary URL |
 | Delete link | `✕` on link row (hover) | Immediate removal, no confirmation |
 
@@ -187,13 +192,6 @@ Export button opens a modal with:
 - **Markdown** view: `# Column` / `## Section` / `[title](url) [g](github-url)` per link
 - **Copy** button (clipboard)
 - **Download** button (saves as `links.json` or `links.md`)
-
----
-
-## Settings
-
-Settings modal contains:
-- Checkbox: **Reload data from links.json** (re-fetches and re-normalizes; discards unsaved changes)
 
 ---
 

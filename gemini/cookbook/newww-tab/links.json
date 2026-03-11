@@ -54,7 +54,6 @@
         },
         {
           "title": "orgs",
-          "collapsed": true,
           "links": [
             {
               "title": "evrlnd",
@@ -84,7 +83,6 @@
         },
         {
           "title": "VSCode",
-          "collapsed": true,
           "links": [
             {
               "title": ">ta 2024",
@@ -120,7 +118,7 @@
       ]
     },
     {
-      "title": "VSCode",
+      "title": "News",
       "sections": [
         {
           "title": "News",
@@ -160,16 +158,6 @@
           ]
         },
         {
-          "title": "MoreNews",
-          "collapsed": true,
-          "links": [
-            {
-              "title": "compuserve",
-              "url": "https://compuserve.com"
-            }
-          ]
-        },
-        {
           "title": "Reads",
           "links": [
             {
@@ -179,20 +167,20 @@
             {
               "title": "medium",
               "url": "https://medium.com"
-            },
+            }
+          ]
+        },
+        {
+          "title": "MoreNews",
+          "links": [
             {
-              "title": "scanalyst",
-              "url": "https://scanalyst.com"
-            },
-            {
-              "title": "kindle",
-              "url": "https://read.amazon.com"
+              "title": "compuserve",
+              "url": "https://compuserve.com"
             }
           ]
         },
         {
           "title": "MoreRead",
-          "collapsed": true,
           "links": [
             {
               "title": "aeon",
@@ -295,7 +283,6 @@
         },
         {
           "title": "mr softy",
-          "collapsed": true,
           "links": [
             {
               "title": "ms365",
@@ -398,7 +385,7 @@
       ]
     },
     {
-      "title": "MoreGoogl",
+      "title": "apps",
       "sections": [
         {
           "title": "Apps",
@@ -450,6 +437,10 @@
             {
               "title": "feedly.com",
               "url": "https://feedly.com/"
+            },
+            {
+              "title": "kindle",
+              "url": "https://read.amazon.com/"
             }
           ]
         },
