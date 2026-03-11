@@ -54,7 +54,6 @@
         },
         {
           "title": "theo apps",
-          "collapsed": true,
           "links": [
             {
               "title": "newww tab",
@@ -170,12 +169,15 @@
             {
               "title": "medium",
               "url": "https://medium.com"
+            },
+            {
+              "title": "kindle",
+              "url": "https://read.amazon.com/"
             }
           ]
         },
         {
           "title": "MoreNews",
-          "collapsed": true,
           "links": [
             {
               "title": "compuserve",
@@ -185,7 +187,6 @@
         },
         {
           "title": "MoreRead",
-          "collapsed": true,
           "links": [
             {
               "title": "aeon",
@@ -218,21 +219,13 @@
             {
               "title": "feedly",
               "url": "https://feedly.com"
-            },
-            {
-              "title": "libbyapp",
-              "url": "https://libbyapp.com"
-            },
-            {
-              "title": "scanalyst",
-              "url": "https://scanalyst.com/"
             }
           ]
         }
       ]
     },
     {
-      "title": "AI Creati",
+      "title": "ai",
       "sections": [
         {
           "title": "AI",
@@ -242,7 +235,7 @@
               "url": "https://gemini.google.com"
             },
             {
-              "title": "Claude",
+              "title": "claude",
               "url": "https://claude.ai/"
             },
             {
@@ -252,11 +245,16 @@
             {
               "title": "copilotp",
               "url": "https://copilot.microsoft.com"
+            },
+            {
+              "title": "chatgpt",
+              "url": "https://chatgpt.com/"
             }
           ]
         },
         {
           "title": "AI Creati",
+          "collapsed": true,
           "links": [
             {
               "title": "sora",
@@ -288,6 +286,7 @@
         },
         {
           "title": "mr softy",
+          "collapsed": true,
           "links": [
             {
               "title": "ms365",
@@ -310,8 +309,29 @@
       ]
     },
     {
-      "title": "Reads",
+      "title": "google",
       "sections": [
+        {
+          "title": "Google Ap",
+          "links": [
+            {
+              "title": "gmail",
+              "url": "https://mail.google.com"
+            },
+            {
+              "title": "g contacts",
+              "url": "https://contacts.google.com"
+            },
+            {
+              "title": "g calender",
+              "url": "https://calendar.google.com"
+            },
+            {
+              "title": "g maps",
+              "url": "https://maps.google.com"
+            }
+          ]
+        },
         {
           "title": "GoogleDriv",
           "links": [
@@ -330,32 +350,16 @@
             {
               "title": "gslides",
               "url": "https://slides.google.com"
-            }
-          ]
-        },
-        {
-          "title": "Google Ap",
-          "links": [
-            {
-              "title": "g calender",
-              "url": "https://calendar.google.com"
             },
             {
-              "title": "g contacts",
-              "url": "https://contacts.google.com"
-            },
-            {
-              "title": "gmail",
-              "url": "https://mail.google.com"
-            },
-            {
-              "title": "g maps",
-              "url": "https://maps.google.com"
+              "title": "feedly.com",
+              "url": "https://feedly.com/"
             }
           ]
         },
         {
           "title": "MoreGoogl",
+          "collapsed": true,
           "links": [
             {
               "title": "g chat",
@@ -396,8 +400,34 @@
           "title": "Apps",
           "links": [
             {
+              "title": "whatsapp",
+              "url": "https://web.whatsapp.com"
+            },
+            {
+              "title": "linkedin",
+              "url": "https://linkedin.com"
+            },
+            {
+              "title": "raindrop",
+              "url": "https://raindrop.io"
+            }
+          ]
+        },
+        {
+          "title": "genealogy",
+          "collapsed": true,
+          "links": [
+            {
               "title": "geni",
               "url": "https://geni.com"
+            },
+            {
+              "title": "wikitree",
+              "url": "https://wikitree.com/"
+            },
+            {
+              "title": "ancestry",
+              "url": "https://ancestry.com"
             },
             {
               "title": "gedcom",
@@ -406,52 +436,21 @@
             {
               "title": "myheritage",
               "url": "https://myheritage.com"
-            },
-            {
-              "title": "ancestry",
-              "url": "https://ancestry.com"
-            },
-            {
-              "title": "wikitree",
-              "url": "https://wikitree.com"
-            },
-            {
-              "title": "prompt",
-              "url": "https://promptbase.com"
-            },
-            {
-              "title": "whatsapp",
-              "url": "https://web.whatsapp.com"
-            },
-            {
-              "title": "raindrop",
-              "url": "https://raindrop.io"
-            },
-            {
-              "title": "linkedin",
-              "url": "https://linkedin.com"
-            },
-            {
-              "title": "sfpl",
-              "url": "https://sfpl.org/"
-            },
+            }
+          ]
+        },
+        {
+          "title": "library",
+          "links": [
             {
               "title": "libbyapp",
               "url": "https://libbyapp.com/"
             },
             {
-              "title": "feedly.com",
-              "url": "https://feedly.com/"
-            },
-            {
-              "title": "kindle",
-              "url": "https://read.amazon.com/"
+              "title": "sfpl",
+              "url": "https://sfpl.org/"
             }
           ]
-        },
-        {
-          "title": "test",
-          "links": []
         }
       ]
     },
@@ -459,8 +458,37 @@
       "title": "Reference",
       "sections": [
         {
+          "title": "Groups",
+          "links": [
+            {
+              "title": "nextvilge",
+              "url": "https://nextdoor.com"
+            },
+            {
+              "title": "sensay",
+              "url": "https://sensay.io"
+            },
+            {
+              "title": "sacsem",
+              "url": "https://sacsem.net"
+            },
+            {
+              "title": "wix",
+              "url": "https://wix.com"
+            },
+            {
+              "title": "groups.io",
+              "url": "https://groups.io"
+            }
+          ]
+        },
+        {
           "title": "Reference",
           "links": [
+            {
+              "title": "prompt",
+              "url": "https://promptbase.com"
+            },
             {
               "title": "threejs",
               "url": "https://threejs.org"
@@ -500,31 +528,6 @@
             {
               "title": "speedtest",
               "url": "https://speedtest.net"
-            }
-          ]
-        },
-        {
-          "title": "Groups",
-          "links": [
-            {
-              "title": "nextvilge",
-              "url": "https://nextdoor.com"
-            },
-            {
-              "title": "sensay",
-              "url": "https://sensay.io"
-            },
-            {
-              "title": "sacsem",
-              "url": "https://sacsem.net"
-            },
-            {
-              "title": "wix",
-              "url": "https://wix.com"
-            },
-            {
-              "title": "groups.io",
-              "url": "https://groups.io"
             }
           ]
         }
@@ -593,7 +596,7 @@
       ]
     },
     {
-      "title": "Orgs & Pr",
+      "title": "inspire",
       "sections": [
         {
           "title": "Orgs & Pr",
@@ -649,10 +652,6 @@
             {
               "title": "tips",
               "url": "https://tips.com"
-            },
-            {
-              "title": "poem-otd",
-              "url": "https://poems.com"
             },
             {
               "title": "Jaanga",

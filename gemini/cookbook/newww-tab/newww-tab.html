@@ -5,6 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Newww-Tab</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23222'/><text x='16' y='24' font-family='monospace' font-size='24' font-weight='bold' fill='%2355cc55' text-anchor='middle'>N</text></svg>">
   <style>
     /* ── Variables ───────────────────────────────────────────── */
     :root {
@@ -108,7 +110,7 @@
       color: var(--text);
       padding: 2px 6px;
       border-radius: 3px;
-      width: 160px;
+      width: 80px;
     }
 
     #tb-search::placeholder {
@@ -175,6 +177,18 @@
       padding: 0 2px;
       flex-shrink: 0;
       cursor: grab;
+    }
+
+    .col-toggle {
+      font-size: 8px;
+      color: var(--muted);
+      cursor: pointer;
+      flex-shrink: 0;
+      padding: 0 2px;
+    }
+
+    .col-toggle:hover {
+      color: var(--text);
     }
 
     .col-title {
@@ -488,10 +502,9 @@
   <div id="toolbar">
     <span id="tb-title">NewwwTab</span>
     <span id="tb-date"></span>
-    <input id="tb-search" type="text" placeholder="🔍 Filter Links..." autocomplete="off">
+    <input id="tb-search" type="text" placeholder="⌕" autocomplete="off">
     <span id="tb-dirty">● unsaved</span>
-    <button class="tbtn" id="btn-toggle-all">Toggle All</button>
-    <button class="tbtn" id="btn-add-col">+ Column</button>
+    <button class="tbtn" id="btn-collapse-all">Toggle</button>
     <button class="tbtn" id="btn-save">⬆ Save</button>
     <button class="tbtn" id="btn-export">Export</button>
   </div>
@@ -700,7 +713,22 @@
       handle.className = 'col-handle';
       handle.innerHTML =
         `<span class="col-drag" title="Drag column">⠿⠿</span>` +
+        `<span class="col-toggle" title="Toggle sections">${ col.sections.every( s => s.collapsed ) ? '▶' : '▼' }</span>` +
         `<span class="col-title">${ esc( col.title ) }</span>`;
+
+      // Click toggle to collapse/expand all sections in this column
+      handle.querySelector( '.col-toggle' ).addEventListener( 'click', e => {
+        e.stopPropagation();
+        const allCollapsedInCol = col.sections.every( s => s.collapsed );
+        if ( allCollapsedInCol ) {
+          // Restore previous state
+          col.sections.forEach( s => { s.collapsed = s._savedCollapsed ?? false; delete s._savedCollapsed; } );
+        } else {
+          // Save current state, then collapse all
+          col.sections.forEach( s => { s._savedCollapsed = s.collapsed; s.collapsed = true; } );
+        }
+        render();
+      } );
 
       // Double-click to rename column title
       handle.querySelector( '.col-title' ).addEventListener( 'dblclick', e => {
@@ -720,6 +748,7 @@
           { label: 'Move right', fn: () => moveCol( col.id, 1 ) },
           'sep',
           { label: 'Delete column', fn: () => delColumn( col ) },
+          { label: 'Add column', fn: () => doAddColumn() },
         ] );
       } );
 
@@ -1003,16 +1032,23 @@
       if ( e.key === 'Escape' && document.activeElement === searchEl ) { searchEl.value = ''; applySearch(); searchEl.blur(); }
     } );
 
-    // ── Toggle all ────────────────────────────────────────────
-    document.getElementById( 'btn-toggle-all' ).addEventListener( 'click', () => {
-      const anyExpanded = state.columns.some( col => col.sections.some( sec => !sec.collapsed ) );
-      allCollapsed = anyExpanded;
-      state.columns.forEach( col => col.sections.forEach( sec => sec.collapsed = allCollapsed ) );
-      markDirty(); render();
+    // ── Collapse all ──────────────────────────────────────────
+    let globalCollapsed = false;
+    document.getElementById( 'btn-collapse-all' ).addEventListener( 'click', () => {
+      if ( globalCollapsed ) {
+        // Restore previous state
+        state.columns.forEach( col => col.sections.forEach( sec => { sec.collapsed = sec._globalSaved ?? false; delete sec._globalSaved; } ) );
+        globalCollapsed = false;
+      } else {
+        // Save current state, then collapse all
+        state.columns.forEach( col => col.sections.forEach( sec => { sec._globalSaved = sec.collapsed; sec.collapsed = true; } ) );
+        globalCollapsed = true;
+      }
+      render();
     } );
 
     // ── Add column ────────────────────────────────────────────
-    document.getElementById( 'btn-add-col' ).addEventListener( 'click', () => modal(
+    const doAddColumn = () => modal(
       `<h2>Add Column</h2><label>Title</label><input id="mi-t" value="New Column">`,
       [ { id: 'cancel', label: 'Cancel', fn: closeModal },
       {
@@ -1023,7 +1059,7 @@
           markDirty(); render(); closeModal( ov );
         }
       } ]
-    ) );
+    );
 
     // ── SortableJS ────────────────────────────────────────────
     const bindColumnSortable = () => {

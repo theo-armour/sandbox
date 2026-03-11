@@ -49,13 +49,13 @@ No localStorage for link data — only the GitHub personal access token is store
 
 ### Runtime normalization
 
-On load, `normalize()` decorates every column, section, and link with a unique runtime `id` (for drag-and-drop tracking) and default values. It also reads the `collapsed` flag from each section. On save, `serialize()` strips IDs, producing clean JSON matching the schema above (including `"collapsed": true` on collapsed sections, omitted when false).
+On load, `normalize()` decorates every column, section, and link with a unique runtime `id` (for drag-and-drop tracking) and default values. It also reads the `collapsed` flag from each section. On save, `serialize()` strips IDs and transient properties (`_savedCollapsed`, `_globalSaved`), producing clean JSON matching the schema above (including `"collapsed": true` on collapsed sections, omitted when false).
 
 ### Dirty tracking
 
 Any data mutation sets a dirty flag → shows `● unsaved` indicator in the toolbar and turns the Save button border orange. Saving clears the flag.
 
-Toggling section collapse (individual or Toggle All) marks dirty, since collapse state is persisted in `links.json`.
+Toggling **individual section** collapse marks dirty (collapse state is persisted in `links.json`). The **column toggle** (▼/▶) and the global **Toggle** button are visual-only — they do **not** mark dirty, allowing the user to temporarily collapse/expand sections without triggering a save.
 
 A `beforeunload` listener warns the user if they try to close or navigate away with unsaved changes.
 
@@ -68,17 +68,18 @@ A `beforeunload` listener warns the user if they try to close or navigate away w
 A single-row sticky toolbar with:
 - App title: **NewwwTab** (bold, 14px)
 - Live clock: `HH:MM · Weekday, Month Day, Year` (updates every 60s)
-- Search input: placeholder `🔍 Filter Links...` (160px wide)
+- Search input: placeholder `⌕` (80px wide)
 - Unsaved indicator: `● unsaved` (hidden when clean)
-- Buttons: **Toggle All**, **+ Column**, **⬆ Save**, **Export**
+- Buttons: **Toggle**, **⬆ Save**, **Export**
 
 ### Columns
 
-- 8 equal-width columns side by side using `display: flex; flex-wrap: wrap` with `flex: 1 1 0; min-width: 0` on each column
+- Flexible columns side by side using `display: flex; flex-wrap: wrap` with `flex: 1 1 120px; min-width: 120px` on each column (wraps responsively on narrow screens)
 - Each column has a minimal 26px drag-handle bar at top containing:
-  - A braille-dot drag grip (`⠿⠿`)
+  - A braille-dot drag grip (`⠿⠿`) — the only SortableJS drag handle for columns
+  - A column toggle (▼/▶) — click to collapse/expand all sections in the column (visual-only, does not mark dirty; saves/restores each section's previous state)
   - A column title (e.g., "Col 1") — double-click to rename inline
-  - Right-click the handle bar to open a context menu with: Rename column, Add section, Move left, Move right, Delete column
+  - Right-click the handle bar to open a context menu with: Rename column, Add section, Move left, Move right, Delete column, Add column
 
 ### Sections
 
@@ -125,14 +126,14 @@ Each `onEnd` callback reconciles DOM order back into the `state` arrays by splic
 
 | Action | Trigger | Behavior |
 |--------|---------|----------|
-| Add column | Toolbar `+ Column` button | Modal → title input → appends column with one empty section |
+| Add column | Context menu → Add column | Modal → title input → appends column with one empty section |
 | Delete column | Context menu → Delete column | Confirm if any section has links, then remove |
 | Move column | Context menu → Move left / Move right | Swap with adjacent column in state array |
 | Rename column | Double-click title or context menu → Rename | Inline edit on column title |
 | Add section | Context menu → Add section | Modal → title input → appends to column |
 | Delete section | `✕` on section header (hover) | Confirm if section has links, then remove |
 | Rename section | `✎` on section header (hover) | Inline edit: replaces `<span>` with `<input>`, Enter saves, Escape reverts |
-| Add link | `+` on section header (hover) | Modal: Title (auto-generated from hostname if blank), URL (required), GitHub URL |
+| Add link | `+` on section header (hover) | Modal: Title, URL (required), GitHub URL |
 | Edit link | `✎` on link row (hover) | Modal: Title, URL, GitHub URL, other secondary label, other secondary URL |
 | Delete link | `✕` on link row (hover) | Immediate removal, no confirmation |
 
@@ -147,9 +148,18 @@ Drag a URL from the browser address bar onto any section **header or body** → 
 - Non-matching links get `display: none`; matching links get a green highlight background
 - `Escape` clears the filter and blurs the input
 
-### Toggle All
+### Toggle (global)
 
-Click toggles all sections collapsed or expanded. If any section is expanded, collapse all; if all are collapsed, expand all.
+The toolbar **Toggle** button collapses or restores all sections:
+- If any section is expanded: saves each section's current collapsed state into a transient `_globalSaved` property, then collapses all.
+- If all are already collapsed: restores each section from `_globalSaved` (defaults to expanded if no saved state).
+- Visual-only — does not mark dirty.
+
+### Column toggle (per-column ▼/▶)
+
+Each column handle has a ▼/▶ toggle that collapses or restores all sections within that column:
+- Same save/restore pattern as the global toggle, using a transient `_savedCollapsed` property on each section.
+- Visual-only — does not mark dirty.
 
 ---
 
