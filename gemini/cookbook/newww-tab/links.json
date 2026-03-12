@@ -331,6 +331,10 @@
             {
               "title": "g maps",
               "url": "https://maps.google.com"
+            },
+            {
+              "title": "photos",
+              "url": "https://photos.google.com/"
             }
           ]
         },
