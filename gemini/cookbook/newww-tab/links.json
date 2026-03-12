@@ -57,9 +57,7 @@
           "links": [
             {
               "title": "newww tab",
-              "url": "https://theo-armour.github.io/sandbox/gemini/cookbook/newww-tab/",
-              "secondary": "o",
-              "secondaryUrl": "https://theo-armour.github.io/qdata/apps/newww-tab/"
+              "url": "https://theo-armour.github.io/sandbox/gemini/cookbook/newww-tab/"
             }
           ]
         },
@@ -331,10 +329,6 @@
             {
               "title": "g maps",
               "url": "https://maps.google.com"
-            },
-            {
-              "title": "photos",
-              "url": "https://photos.google.com/"
             }
           ]
         },
@@ -543,7 +537,11 @@
           "links": [
             {
               "title": "hotm",
-              "url": "https://www.heritageonthemarina.org/"
+              "url": "https://hotm.com"
+            },
+            {
+              "title": "p",
+              "url": "https://pinterest.com"
             },
             {
               "title": "worxhub",
@@ -551,11 +549,19 @@
             },
             {
               "title": "tchTwn",
-              "url": "https://www.residentapps.com/"
+              "url": "https://touchtown.com"
+            },
+            {
+              "title": "pph",
+              "url": "https://pph.com"
+            },
+            {
+              "title": "elatn",
+              "url": "https://elatn.com"
             },
             {
               "title": "HerHap",
-              "url": "https://heritage-happenings.github.io"
+              "url": "https://heritagehappiness.com"
             },
             {
               "title": "calendar",
@@ -580,6 +586,10 @@
             {
               "title": "kiosk",
               "url": "https://kiosk.com"
+            },
+            {
+              "title": "techtown.c",
+              "url": "https://techtown.com/"
             }
           ]
         }
