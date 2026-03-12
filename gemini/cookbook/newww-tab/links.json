@@ -60,6 +60,11 @@
               "url": "https://theo-armour.github.io/sandbox/gemini/cookbook/newww-tab/",
               "secondary": "f",
               "secondaryUrl": "file:///G:/My%20Drive/2026-theo-github/theo-armour-sandbox/gemini/cookbook/newww-tab/newww-tab.html"
+            },
+            {
+              "title": "old tab",
+              "url": "https://theo-armour.github.io/qdata/apps/newww-tab/",
+              "g": "https://github.com/theo-armour/qdata/tree/main/apps/newww-tab"
             }
           ]
         },
@@ -331,6 +336,10 @@
             {
               "title": "g maps",
               "url": "https://maps.google.com"
+            },
+            {
+              "title": "photos",
+              "url": "https://photos.google.com/"
             }
           ]
         },
@@ -539,7 +548,7 @@
           "links": [
             {
               "title": "hotm",
-              "url": "https://hotm.com"
+              "url": "https://heritageonthemarina.org/"
             },
             {
               "title": "p",
@@ -551,7 +560,7 @@
             },
             {
               "title": "tchTwn",
-              "url": "https://touchtown.com"
+              "url": "https://www.residentapps.com/"
             },
             {
               "title": "pph",
