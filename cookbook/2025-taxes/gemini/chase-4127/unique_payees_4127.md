@@ -46,7 +46,7 @@
 - SF CHRONICLE, Subscription
 - SHOEBOXED.COM, Hosting
 - SILVERSCRIPT INS CO, Insurance
-- SLOW Substack, Subscription
+- SLOW, Subscription
 - SQSP*, Hosting
 - ST. PAULS, Charity
 - SYR UNIV ONLINE GIFTS, Charity
