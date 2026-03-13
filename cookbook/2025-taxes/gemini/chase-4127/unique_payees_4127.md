@@ -1,0 +1,55 @@
+# Unique Credit Card Payees (Chase 4127 - 2025)
+
+- ANNUAL MEMBERSHIP FEE, Credit Card Payments
+- AUTOMATIC PAYMENT - THANK, Credit Card Payments
+- AXIOS, Subscription
+- BLUE SHIELD, Insurance
+- BUCKINGHAM BROWNE &, Charity
+- CALIFORNIA WINE, Restaurant
+- CNP* NEWYORKER - DIGIT, Subscription
+- CNP* WIRED - DIGITAL S, Subscription
+- DREAMHOST, Hosting
+- DROPBOX*6QG1QQKK2C2G, Hosting
+- Evernote, Hosting
+- FLICKR PRO, Hosting
+- GITHUB, Hosting
+- GITHUB INC., Hosting
+- GOOGLE *FI, ISP
+- GOOGLE *GitHub, AI
+- GOOGLE *Google One, Hosting
+- GOOGLE *Google Store, Shopping
+- GOOGLE *OtterAI, AI
+- GOOGLE *Perplexity Ask, AI
+- GOOGLE *SkyFolio OneDr, Software
+- GOOGLE *Snapwood Apps, Software
+- GOOGLE *iZYREC, Hardware
+- GUARDIAN NEWS & MEDIA, Subscription
+- LORENZOLUCCHESI.SUBSTA, Subscription
+- MARINA, Services
+- MEDIUM, Subscription
+- MICROSOFT*MICROSOFT 365 F, Hosting
+- MICROSOFT*MICROSOFT CO, Hosting
+- MIDJOURNEY INC, AI
+- Marina Cleaners Inc, Services
+- Microsoft*Microsoft Copil, AI
+- NETFLIX.COM, Subscription
+- NYTIMES*, Subscription
+- Netflix.com, Subscription
+- ONLINE PASSPORT FEES, Fees
+- OPENAI *CHATGPT, AI
+- PAYPAL *INTERNETARC, Charity
+- PAYPAL *WIKIPEDIA, Charity
+- PERRY'S ON UNION ST, Restaurant
+- PHARMERICA SENIOR LIVIN, Medical
+- PUBLIC STORAGE 08482, Rent
+- PURCHASE INTEREST, Fees
+- SF CHRONICLE, Subscription
+- SHOEBOXED.COM, Hosting
+- SILVERSCRIPT INS CO, Insurance
+- SLOW Substack, Subscription
+- SQSP*, Hosting
+- ST. PAULS, Charity
+- SYR UNIV ONLINE GIFTS, Charity
+- Spotify, Subscription
+- Spotify USA, Subscription
+- WEB*BLUEHOST.COM, Hosting

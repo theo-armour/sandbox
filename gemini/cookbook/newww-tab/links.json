@@ -404,7 +404,7 @@
       "title": "apps",
       "sections": [
         {
-          "title": "Apps",
+          "title": "soc net",
           "links": [
             {
               "title": "whatsapp",
@@ -415,8 +415,12 @@
               "url": "https://linkedin.com"
             },
             {
-              "title": "raindrop",
-              "url": "https://raindrop.io"
+              "title": "instagram",
+              "url": "https://www.instagram.com/"
+            },
+            {
+              "title": "nextdoor",
+              "url": "https://nextdoor.com/news_feed/"
             }
           ]
         },
@@ -448,6 +452,7 @@
         },
         {
           "title": "library",
+          "collapsed": true,
           "links": [
             {
               "title": "libbyapp",
@@ -456,6 +461,15 @@
             {
               "title": "sfpl",
               "url": "https://sfpl.org/"
+            }
+          ]
+        },
+        {
+          "title": "apps",
+          "links": [
+            {
+              "title": "raindrop",
+              "url": "https://raindrop.io"
             }
           ]
         }
