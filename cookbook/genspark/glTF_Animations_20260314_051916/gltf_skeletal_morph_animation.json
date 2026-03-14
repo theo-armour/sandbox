@@ -1,0 +1,403 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "glTF Animation Example with Skeletal and Morph Targets"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "MainScene",
+      "nodes": [0, 1]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "Character",
+      "mesh": 0,
+      "skin": 0,
+      "translation": [0, 0, 0],
+      "rotation": [0, 0, 0, 1],
+      "scale": [1, 1, 1]
+    },
+    {
+      "name": "Skeleton_Root",
+      "children": [2, 3],
+      "translation": [0, 0, 0],
+      "rotation": [0, 0, 0, 1],
+      "scale": [1, 1, 1]
+    },
+    {
+      "name": "Bone_Spine",
+      "children": [4],
+      "translation": [0, 1, 0],
+      "rotation": [0, 0, 0, 1],
+      "scale": [1, 1, 1]
+    },
+    {
+      "name": "Bone_LeftArm",
+      "translation": [-0.5, 1.5, 0],
+      "rotation": [0, 0, 0, 1],
+      "scale": [1, 1, 1]
+    },
+    {
+      "name": "Bone_Head",
+      "translation": [0, 2, 0],
+      "rotation": [0, 0, 0, 1],
+      "scale": [1, 1, 1]
+    }
+  ],
+  "meshes": [
+    {
+      "name": "CharacterMesh",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2,
+            "JOINTS_0": 3,
+            "WEIGHTS_0": 4
+          },
+          "indices": 5,
+          "mode": 4,
+          "material": 0,
+          "targets": [
+            {
+              "POSITION": 6,
+              "NORMAL": 7
+            },
+            {
+              "POSITION": 8,
+              "NORMAL": 9
+            }
+          ]
+        }
+      ],
+      "weights": [0.0, 0.0]
+    }
+  ],
+  "skins": [
+    {
+      "name": "CharacterSkin",
+      "inverseBindMatrices": 10,
+      "joints": [1, 2, 3, 4],
+      "skeleton": 1
+    }
+  ],
+  "animations": [
+    {
+      "name": "SkeletalAnimation_Walk",
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "node": 2,
+            "path": "rotation"
+          }
+        },
+        {
+          "sampler": 1,
+          "target": {
+            "node": 3,
+            "path": "rotation"
+          }
+        },
+        {
+          "sampler": 2,
+          "target": {
+            "node": 4,
+            "path": "translation"
+          }
+        }
+      ],
+      "samplers": [
+        {
+          "input": 11,
+          "interpolation": "LINEAR",
+          "output": 12
+        },
+        {
+          "input": 11,
+          "interpolation": "LINEAR",
+          "output": 13
+        },
+        {
+          "input": 11,
+          "interpolation": "CUBICSPLINE",
+          "output": 14
+        }
+      ]
+    },
+    {
+      "name": "MorphTargetAnimation_FacialExpression",
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "node": 0,
+            "path": "weights"
+          }
+        }
+      ],
+      "samplers": [
+        {
+          "input": 15,
+          "interpolation": "LINEAR",
+          "output": 16
+        }
+      ]
+    }
+  ],
+  "accessors": [
+    {
+      "name": "Position",
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 100,
+      "type": "VEC3",
+      "min": [-1, 0, -1],
+      "max": [1, 2, 1]
+    },
+    {
+      "name": "Normal",
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 100,
+      "type": "VEC3"
+    },
+    {
+      "name": "TexCoord",
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 100,
+      "type": "VEC2"
+    },
+    {
+      "name": "Joints",
+      "bufferView": 3,
+      "componentType": 5121,
+      "count": 100,
+      "type": "VEC4"
+    },
+    {
+      "name": "Weights",
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 100,
+      "type": "VEC4"
+    },
+    {
+      "name": "Indices",
+      "bufferView": 5,
+      "componentType": 5123,
+      "count": 300,
+      "type": "SCALAR"
+    },
+    {
+      "name": "MorphTarget_Smile_Position",
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 100,
+      "type": "VEC3"
+    },
+    {
+      "name": "MorphTarget_Smile_Normal",
+      "bufferView": 7,
+      "componentType": 5126,
+      "count": 100,
+      "type": "VEC3"
+    },
+    {
+      "name": "MorphTarget_Frown_Position",
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 100,
+      "type": "VEC3"
+    },
+    {
+      "name": "MorphTarget_Frown_Normal",
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 100,
+      "type": "VEC3"
+    },
+    {
+      "name": "InverseBindMatrices",
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 4,
+      "type": "MAT4"
+    },
+    {
+      "name": "AnimationTime_Skeletal",
+      "bufferView": 11,
+      "componentType": 5126,
+      "count": 5,
+      "type": "SCALAR",
+      "min": [0.0],
+      "max": [2.0]
+    },
+    {
+      "name": "SpineRotation_Keyframes",
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 5,
+      "type": "VEC4"
+    },
+    {
+      "name": "ArmRotation_Keyframes",
+      "bufferView": 13,
+      "componentType": 5126,
+      "count": 5,
+      "type": "VEC4"
+    },
+    {
+      "name": "HeadTranslation_CubicSpline",
+      "bufferView": 14,
+      "componentType": 5126,
+      "count": 15,
+      "type": "VEC3",
+      "extras": {
+        "note": "Cubic spline: 3 values per keyframe (in-tangent, value, out-tangent)"
+      }
+    },
+    {
+      "name": "AnimationTime_Morph",
+      "bufferView": 15,
+      "componentType": 5126,
+      "count": 6,
+      "type": "SCALAR",
+      "min": [0.0],
+      "max": [3.0]
+    },
+    {
+      "name": "MorphWeights_Keyframes",
+      "bufferView": 16,
+      "componentType": 5126,
+      "count": 6,
+      "type": "VEC2",
+      "extras": {
+        "note": "Weight values for smile and frown morph targets"
+      }
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 1200,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 1200,
+      "byteLength": 1200,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 2400,
+      "byteLength": 800,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 3200,
+      "byteLength": 400,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 3600,
+      "byteLength": 1600,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 5200,
+      "byteLength": 600,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 5800,
+      "byteLength": 1200
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 7000,
+      "byteLength": 1200
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 8200,
+      "byteLength": 1200
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 9400,
+      "byteLength": 1200
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 10600,
+      "byteLength": 256
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 10856,
+      "byteLength": 20
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 10876,
+      "byteLength": 80
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 10956,
+      "byteLength": 80
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 11036,
+      "byteLength": 180
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 11216,
+      "byteLength": 24
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 11240,
+      "byteLength": 48
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 11288,
+      "uri": "animation_data.bin"
+    }
+  ],
+  "materials": [
+    {
+      "name": "CharacterMaterial",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [0.8, 0.8, 0.8, 1.0],
+        "metallicFactor": 0.0,
+        "roughnessFactor": 0.5
+      }
+    }
+  ],
+  "extras": {
+    "description": "Complete glTF animation example with skeletal animation and morph targets",
+    "features": [
+      "Skeletal animation with 4 bones (root, spine, left arm, head)",
+      "Linear and cubic spline interpolation",
+      "Morph target animation for facial expressions (smile and frown)",
+      "Skinned mesh with joint weights",
+      "Inverse bind matrices for proper bone transformations"
+    ]
+  }
+}
