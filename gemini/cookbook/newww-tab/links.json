@@ -65,6 +65,15 @@
               "title": "old tab",
               "url": "https://theo-armour.github.io/qdata/apps/newww-tab/",
               "g": "https://github.com/theo-armour/qdata/tree/main/apps/newww-tab"
+            },
+            {
+              "title": "oold-tab",
+              "url": "https://theo-armour.github.io/qdata/apps/newww-tab/2024-01-05/newww-tab.html#new-tab-content.md",
+              "g": "https://github.com/theo-armour/qdata/blob/main/apps/newww-tab/2024-01-05/newww-tab.html"
+            },
+            {
+              "title": "ifr-stuff",
+              "url": "file:///G:/My%20Drive/2026-theo-github/theo-armour-sandbox/gemini/cookbook/newww-tab/newww-tab.html"
             }
           ]
         },
@@ -178,6 +187,14 @@
               "url": "https://medium.com"
             },
             {
+              "title": "swiss-miss",
+              "url": "https://www.swiss-miss.com/"
+            },
+            {
+              "title": "kottke",
+              "url": "https://kottke.org/"
+            },
+            {
               "title": "kindle",
               "url": "https://read.amazon.com/"
             }
@@ -185,15 +202,25 @@
         },
         {
           "title": "MoreNews",
+          "collapsed": true,
           "links": [
             {
               "title": "compuserve",
               "url": "https://compuserve.com"
+            },
+            {
+              "title": "atlantic",
+              "url": "https://www.theatlantic.com/"
+            },
+            {
+              "title": "wired",
+              "url": "https://www.wired.com/"
             }
           ]
         },
         {
           "title": "MoreRead",
+          "collapsed": true,
           "links": [
             {
               "title": "aeon",
@@ -246,12 +273,12 @@
               "url": "https://claude.ai/"
             },
             {
-              "title": "grok",
-              "url": "https://grok.x.ai"
-            },
-            {
               "title": "copilotp",
               "url": "https://copilot.microsoft.com"
+            },
+            {
+              "title": "grok",
+              "url": "https://grok.x.ai"
             },
             {
               "title": "chatgpt",
