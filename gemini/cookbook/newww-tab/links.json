@@ -596,24 +596,12 @@
               "url": "https://heritageonthemarina.org/"
             },
             {
-              "title": "p",
-              "url": "https://pinterest.com"
-            },
-            {
               "title": "worxhub",
-              "url": "https://worxhub.com"
+              "url": "https://theheritagesf.theworxhub.com/Dashboard"
             },
             {
               "title": "tchTwn",
               "url": "https://www.residentapps.com/"
-            },
-            {
-              "title": "pph",
-              "url": "https://pph.com"
-            },
-            {
-              "title": "elatn",
-              "url": "https://elatn.com"
             },
             {
               "title": "HerHap",
@@ -642,10 +630,6 @@
             {
               "title": "kiosk",
               "url": "https://kiosk.com"
-            },
-            {
-              "title": "techtown.c",
-              "url": "https://techtown.com/"
             }
           ]
         }
