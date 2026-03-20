@@ -513,6 +513,10 @@
             {
               "title": "raindrop",
               "url": "https://raindrop.io"
+            },
+            {
+              "title": "spotify",
+              "url": "https://open.spotify.com/"
             }
           ]
         }
