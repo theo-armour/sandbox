@@ -496,7 +496,6 @@
         },
         {
           "title": "library",
-          "collapsed": true,
           "links": [
             {
               "title": "libbyapp",
@@ -505,6 +504,10 @@
             {
               "title": "sfpl",
               "url": "https://sfpl.org/"
+            },
+            {
+              "title": "oceanpdf",
+              "url": "https://oceanofpdf.com/"
             }
           ]
         },
