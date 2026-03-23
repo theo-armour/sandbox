@@ -496,6 +496,7 @@
         },
         {
           "title": "library",
+          "collapsed": true,
           "links": [
             {
               "title": "libbyapp",
@@ -556,6 +557,7 @@
         },
         {
           "title": "Reference",
+          "collapsed": true,
           "links": [
             {
               "title": "prompt",
