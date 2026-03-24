@@ -7,13 +7,13 @@
           "title": "Theo",
           "links": [
             {
+              "title": "gT-A",
+              "url": "https://github.com/theo-armour"
+            },
+            {
               "title": "T-A.g.io",
               "url": "https://theo-armour.github.io/",
               "g": "https://github.com/theo-armour/theo-armour.github.io"
-            },
-            {
-              "title": "gT-A",
-              "url": "https://github.com/theo-armour"
             },
             {
               "title": "2026",
@@ -54,6 +54,16 @@
               "title": "wikitheo",
               "url": "https://theo-armour.github.io/wikitheo/",
               "g": "https://github.com/theo-armour/wikitheo/"
+            },
+            {
+              "title": "work",
+              "url": "https://theo-armour.github.io/work/",
+              "g": "https://github.com/theo-armour/work"
+            },
+            {
+              "title": "hh-tech",
+              "url": "https://heritage-happenings.github.io/tech/",
+              "g": "https://github.com/heritage-happenings/tech"
             }
           ]
         },
