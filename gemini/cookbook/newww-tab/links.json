@@ -316,6 +316,7 @@
         },
         {
           "title": "AI Creati",
+          "collapsed": true,
           "links": [
             {
               "title": "sora",
@@ -376,10 +377,6 @@
           "title": "Google Ap",
           "links": [
             {
-              "title": "gmail",
-              "url": "https://mail.google.com"
-            },
-            {
               "title": "g contacts",
               "url": "https://contacts.google.com"
             },
@@ -394,6 +391,10 @@
             {
               "title": "photos",
               "url": "https://photos.google.com/"
+            },
+            {
+              "title": "google",
+              "url": "https://google.com/"
             }
           ]
         },
@@ -415,6 +416,10 @@
             {
               "title": "gslides",
               "url": "https://slides.google.com"
+            },
+            {
+              "title": "gmail",
+              "url": "https://mail.google.com"
             }
           ]
         },
@@ -545,7 +550,7 @@
           "links": [
             {
               "title": "nextvilge",
-              "url": "https://nextdoor.com"
+              "url": "https://nextvillagesf.com"
             },
             {
               "title": "sensay",
@@ -571,7 +576,7 @@
           "links": [
             {
               "title": "prompt",
-              "url": "https://promptbase.com"
+              "url": "https://promptsmart.com"
             },
             {
               "title": "threejs",
