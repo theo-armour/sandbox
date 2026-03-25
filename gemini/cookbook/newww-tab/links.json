@@ -185,6 +185,10 @@
             {
               "title": "xkcd",
               "url": "https://xkcd.com"
+            },
+            {
+              "title": "drudgerepo",
+              "url": "https://drudgereport.com/"
             }
           ]
         },
