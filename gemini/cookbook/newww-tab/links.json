@@ -532,6 +532,10 @@
             {
               "title": "spotify",
               "url": "https://open.spotify.com/"
+            },
+            {
+              "title": "dropbox",
+              "url": "https://www.dropbox.com/home"
             }
           ]
         }
