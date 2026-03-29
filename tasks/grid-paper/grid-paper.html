@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>5mm Grid Paper - US Letter</title>
+  <style>
+    @page {
+      size: letter;
+      margin: 0;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 8.5in;
+      height: 11in;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .grid-container {
+      width: 8.5in;
+      height: 11in;
+      position: relative;
+      overflow: hidden;
+      page-break-after: avoid;
+      page-break-inside: avoid;
+    }
+
+    .grid-container svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    @media print {
+
+      html,
+      body {
+        width: 8.5in;
+        height: 11in;
+        overflow: hidden;
+      }
+
+      .grid-container {
+        page-break-after: avoid;
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grid-container">
+    <svg xmlns="http://www.w3.org/2000/svg" width="8.5in" height="11in">
+      <defs>
+        <pattern id="grid" width="5mm" height="5mm" patternUnits="userSpaceOnUse">
+          <path d="M 0 0 L 0 18.9 M 0 0 L 18.9 0" fill="none" stroke="#bbb" stroke-width="0.3" />
+        </pattern>
+      </defs>
+      <!-- Grid with 0.25" border on all sides -->
+      <rect x="0.25in" y="0.25in" width="8in" height="10.5in" fill="url(#grid)" />
+      <!-- Address text -->
+      <text x="5.2in" y="0.5in" font-family="Cascadia Mono, Consolas, monospace" font-size="14pt" fill="#333">
+        <tspan x="5.2in" dy="0">Norman Armour III</tspan>
+        <tspan x="5.2in" dy="1.2em">3400 Laguna Street #227</tspan>
+        <tspan x="5.2in" dy="1.2em">San Francisco CA 94123</tspan>
+        <tspan x="5.2in" dy="1.2em">USA</tspan>
+      </text>
+    </svg>
+  </div>
+</body>
+
+</html>
