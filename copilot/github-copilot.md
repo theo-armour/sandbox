@@ -2,6 +2,10 @@
 
 ## https://github.com/copilot
 
+https://github.com/settings/copilot/features
+
+https://github.com/github/awesome-copilot/tree/main
+
 ## GitHub Copilot Docs
 
 

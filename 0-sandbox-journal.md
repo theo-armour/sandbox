@@ -48,4 +48,3 @@ At the same time, it would be nice to figure out some of the command-line interf
 So in some ways, what I'm looking for is that the command-line interface handles all that stuff in the cloud, and I don't have to do it locally.
 
 
-
