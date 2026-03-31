@@ -1,25 +1,20 @@
 # Project Guidelines
 
-See [CLAUDE.md](../CLAUDE.md) for detailed coding standards.
+See [CLAUDE.md](../CLAUDE.md) for full context.
 
-## Code Style
+## The One Hard Rule
 
-Key constraints:
-- Vanilla JavaScript only (no frameworks, no jQuery)
-- ES2020+ features required
-- Avoid `this`, classes, `var`
-- Static hosting on GitHub Pages
-- HTML5 semantic elements
-- Modern CSS (Grid, Flexbox, Custom Properties)
+Vanilla JavaScript only — no frameworks, no jQuery, no build tools, no Node.js.
+Static hosting on GitHub Pages. Files run directly.
 
-## Build and Test
+## For AI Assistants
 
-No build step—files run directly from GitHub Pages.
+- **Read nearby code** to learn conventions before making changes
+- Match the style of the file or folder you're editing
+- When in doubt, keep it simple and beginner-readable
 
-## Conventions
+## Quick Style Reference
 
-- Single-file HTML preferred (embedded CSS/JS)
-- Functional patterns over OOP
-- camelCase for variables/functions
-- Prefer `const` over `let`
-- Beginner-readable code with clear comments
+- ES2020+ features, functional patterns, no classes/`this`/`var`
+- `const` over `let`, camelCase, single-file HTML preferred
+- HTML5 semantic elements, modern CSS (Grid, Flexbox, Custom Properties)
