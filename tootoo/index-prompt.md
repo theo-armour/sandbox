@@ -25,22 +25,27 @@
 - When a folder is opened, its `README.md` is automatically displayed in the content panel (if it exists), without updating the URL hash
 - File icons by extension using emoji: 📁/📂 folders, 📝 .md, 📕 .pdf, 📊 .xlsx, 📋 .json, 🌐 .html, ⚙️ .yml, 🖼️ images, 📄 default
 - Skip hidden files (dotfiles) and `node_modules`
-- Selected file gets a blue highlight (#ddf4ff)
+- Selected file gets a blue highlight (#ddf4ff); keyboard-navigated items get a separate grey highlight (#eaeef2 `.highlighted` class) so the active file remains visually distinct
+- The app tracks `selectedEl` (active file) and `highlightedEl` (keyboard cursor) as module-level variables for efficient lookups
 - Nested indentation increases by 16px per level, applied as inline `style="padding-left"` during `renderTree` (supports unlimited depth)
-- Each tree item stores its full path in a `data-path` attribute for reliable lookup
+- Each tree item stores its full path in a `data-path` attribute for reliable lookup; queries use `CSS.escape()` on paths to handle special characters
+- Tree items are built with `createElement` + `textContent` (not `innerHTML`) to prevent XSS from file names
+- Tree items have `role="treeitem"`, folders have `aria-expanded`; the tree container has `role="tree"`; children wrappers have `role="group"`
 
 ### Tree Header & Controls
 
 - Sticky tree header (with `z-index: 2`) contains "Files" label, a ⊕ "Focus on active path" button, and a ⊞/⊟ toggle button (expand all / collapse all)
 - ⊕ Focus button collapses everything then expands only the path to the currently selected file, scrolling it into view
 - ⊞/⊟ Toggle button expands all folders or collapses all folders; label switches based on current state
-- Below the header, a sticky `type="search"` filter input ("Filter files...") with a native browser clear (✕) button
+- Below the header, a sticky `type="search"` filter input ("Filter files...") with a native browser clear (✕) button and `aria-label="Filter files"`
 - Filter matches **file names only** (folders and path segments are ignored); matching files are shown with their parent folders auto-expanded (via `filter-expanded` class)
+- Filter input is debounced (150ms) to avoid excessive DOM traversal on fast typing
 - Clearing the filter restores the original tree state
 
 ### Keyboard Navigation
 
-- Arrow Down / Arrow Up moves through visible tree items: **files are activated** (loaded in content panel), **folders are highlight-only** (not expanded)
+- Arrow Down / Arrow Up moves through visible tree items: **files are activated** (loaded in content panel), **folders are highlight-only** (grey background, not expanded); the highlight is cleared when a file is activated
+- Visible items list is cached and invalidated on tree structure changes (fold/unfold, filter, toggle-all) for performance
 - Enter or Space activates the highlighted item (opens/closes a folder, or loads a file)
 - Arrow Right expands a highlighted folder (if collapsed); triggers accordion collapse of siblings
 - Arrow Left collapses a highlighted folder (if expanded)
@@ -57,7 +62,7 @@
 - **Other text files**: show in a monospace `<pre>` block with HTML-escaped content
 - "Raw" button toggles markdown between rendered and raw views
 - "GitHub" button opens the file on GitHub in a new tab
-- "📋 Copy" button copies the current file path to the clipboard; shows "✓ Copied" feedback for 1.5 seconds
+- "📋 Copy" button copies the current file path to the clipboard (wrapped in try/catch for non-secure contexts); shows "✓ Copied" or "✗ Failed" feedback for 1.5 seconds
 - File path displayed as clickable breadcrumbs: folder segments are links that expand the folder in the tree; the filename is plain text
 - Breadcrumbs use `data-folder` attributes with event delegation on the content path element (no inline onclick handlers)
 - Loading spinner animation while fetching
@@ -67,7 +72,7 @@
 
 - Update `location.hash` only when a user explicitly clicks a file in the tree; skip setting the hash if it already matches (avoids duplicate history entries from deep-link navigation)
 - Auto-displayed READMEs (root and folder) do not set the hash
-- On load, if a hash is present, auto-navigate to that file (expand parent folders as needed)
+- On load, if a hash is present, auto-navigate to that file (expand parent folders with accordion awareness — using `CSS.escape` for safe selectors and `aria-expanded` attribute updates)
 - Listen for `hashchange` events
 
 ## GitHub API & Token Authentication
@@ -82,7 +87,7 @@
   };
   ```
 
-- Header contains a password input (`#tokenInput`), Connect button (`#btnConnect`), Disconnect button (`#btnDisconnect`), and status label (`#tokenStatus`)
+- Header contains a password input (`#tokenInput` with `aria-label`), Connect button (`#btnConnect`), Disconnect button (`#btnDisconnect`), and status label (`#tokenStatus`)
 - When no token is stored: input and Connect button are visible; Disconnect is hidden
 - When a token is stored: input and Connect are hidden; "Connected" label and Disconnect button are visible
 - Token is stored in `localStorage` under key `gh-token` (persists across sessions)
@@ -101,6 +106,13 @@
 - No external JavaScript dependencies (no Showdown or other CDN scripts)
 - External stylesheet: `github-markdown-css` 5.5.1 (from CDN, for markdown styling)
 - Inline lightweight markdown-to-HTML converter (`mdToHtml` and `inline` functions); `javascript:` URLs in markdown links are stripped for XSS safety
+- Shared `escapeHtml` helper (single function used everywhere: markdown code blocks, raw text display, error messages, file names)
+- All user-facing error messages are HTML-escaped before insertion
+- File names rendered via `textContent` (not `innerHTML`) in the tree to prevent injection
+- File URLs use `encodeURI()` in content viewer templates
+- CSS selectors use `CSS.escape()` on user-derived paths
+- All inline styles moved to the `<style>` block (header elements, token UI, retry button) via named CSS classes
+- All JavaScript uses arrow function expressions (`const fn = () => {}`); no `function` declarations
 - GitHub Pages compatible (static, no build step)
 - Tree data fetched from GitHub REST API (supports both public and private repos via optional token)
 - File content fetched via relative paths (`"../" + item.path`) since the app lives in a `tootoo/` subfolder; `../` resolves to the repo root both locally and on GitHub Pages

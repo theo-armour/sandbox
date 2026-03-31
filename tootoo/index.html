@@ -190,6 +190,7 @@
       justify-content: space-between;
       position: sticky;
       top: 0;
+      z-index: 2;
     }
 
     .content-path {
@@ -335,29 +336,86 @@
     .image-icon::before {
       content: "🖼️";
     }
+
+    /* Highlight (keyboard nav) vs selected (active file) */
+    .tree-item.highlighted {
+      background: #eaeef2;
+    }
+
+    /* Header inline-style classes */
+    #appTitle {
+      cursor: pointer;
+    }
+
+    .header-spacer {
+      flex: 1;
+    }
+
+    #tokenStatus {
+      color: #3fb950;
+      font-size: 13px;
+    }
+
+    #tokenInput {
+      width: 260px;
+      padding: 5px 10px;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      background: #fff;
+      color: #24292f;
+      font-size: 13px;
+    }
+
+    .btn-connect {
+      padding: 5px 12px;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      background: #238636;
+      color: white;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .btn-disconnect {
+      padding: 5px 12px;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      background: #da3633;
+      color: white;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .btn-retry {
+      padding: 5px 12px;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      background: #f6f8fa;
+      cursor: pointer;
+    }
   </style>
 </head>
 
 <body>
   <header>
-    <h1 id="appTitle" style="cursor:pointer;"></h1>
+    <h1 id="appTitle"></h1>
     <a id="ghLink" href="#" target="_blank">View on GitHub</a>
-    <span style="flex:1"></span>
-    <span id="tokenStatus" style="color:#3fb950;font-size:13px;"></span>
+    <span class="header-spacer"></span>
+    <span id="tokenStatus"></span>
+    <label for="tokenInput" class="sr-only" hidden>GitHub token</label>
     <input id="tokenInput" type="password" placeholder="GitHub token (for private repos)"
-      style="width:260px;padding:5px 10px;border:1px solid #d0d7de;border-radius:6px;background:#fff;color:#24292f;font-size:13px;">
-    <button id="btnConnect"
-      style="padding:5px 12px;border:1px solid #d0d7de;border-radius:6px;background:#238636;color:white;cursor:pointer;font-size:13px;">Connect</button>
-    <button id="btnDisconnect"
-      style="padding:5px 12px;border:1px solid #d0d7de;border-radius:6px;background:#da3633;color:white;cursor:pointer;font-size:13px;display:none;">Disconnect</button>
+      aria-label="GitHub token for private repos">
+    <button id="btnConnect" class="btn-connect">Connect</button>
+    <button id="btnDisconnect" class="btn-disconnect" style="display:none;">Disconnect</button>
   </header>
 
   <div class="container">
     <div class="tree-panel">
       <div class="tree-header"><span>Files</span><button id="btnFocusPath"
           title="Focus on active path">⊕</button><button id="btnToggleAll" title="Expand all">⊞</button></div>
-      <div class="tree-search"><input id="treeFilter" type="search" placeholder="Filter files..."></div>
-      <div class="tree-content" id="tree"></div>
+      <div class="tree-search"><input id="treeFilter" type="search" placeholder="Filter files..."
+          aria-label="Filter files"></div>
+      <div class="tree-content" id="tree" role="tree"></div>
     </div>
 
     <div class="content-panel">
@@ -390,6 +448,10 @@
     let showRaw = false;
     let treeData = null;
     let ghToken = localStorage.getItem( "gh-token" ) || "";
+    let selectedEl = null;   // currently active (loaded) file element
+    let highlightedEl = null; // keyboard-nav highlighted element
+    let visibleItemsCache = null; // cached visible items for keyboard nav
+    let filterDebounceId = null;
 
     // Set title and GitHub link from CONFIG
     const appTitle = document.getElementById( "appTitle" );
@@ -447,14 +509,19 @@
       initTree();
     } );
 
+    // Escape HTML (single shared helper)
+    const escapeHtml = ( text ) => {
+      const div = document.createElement( "div" );
+      div.textContent = text;
+      return div.innerHTML;
+    };
+
     // Lightweight markdown to HTML converter
     const mdToHtml = ( md ) => {
-      const escaped = ( s ) => s.replace( /&/g, "&amp;" ).replace( /</g, "&lt;" ).replace( />/g, "&gt;" );
-
       // Fenced code blocks
       const blocks = [];
       md = md.replace( /```(\w*)\n([\s\S]*?)```/g, ( _, lang, code ) => {
-        blocks.push( `<pre><code>${ escaped( code.trimEnd() ) }</code></pre>` );
+        blocks.push( `<pre><code>${ escapeHtml( code.trimEnd() ) }</code></pre>` );
         return `\x00BLOCK${ blocks.length - 1 }\x00`;
       } );
 
@@ -541,7 +608,7 @@
     const treeFilter = document.getElementById( "treeFilter" );
 
     // Get file icon class
-    function getIconClass ( name, isDir ) {
+    const getIconClass = ( name, isDir ) => {
       if ( isDir ) return "folder-icon";
       const ext = name.split( "." ).pop().toLowerCase();
       const iconMap = {
@@ -562,10 +629,10 @@
         webp: "image-icon"
       };
       return iconMap[ ext ] || "file-icon";
-    }
+    };
 
     // Build tree from flat list
-    function buildTree ( items ) {
+    const buildTree = ( items ) => {
       const tree = { children: {}, isDir: true };
 
       items.forEach( item => {
@@ -586,19 +653,21 @@
       } );
 
       return tree;
-    }
+    };
 
     // Sort tree items (folders first, then alphabetically)
-    function sortTreeItems ( items ) {
-      return Object.values( items ).sort( ( a, b ) => {
+    const sortTreeItems = ( items ) =>
+      Object.values( items ).sort( ( a, b ) => {
         if ( a.isDir && !b.isDir ) return -1;
         if ( !a.isDir && b.isDir ) return 1;
         return a.name.localeCompare( b.name );
       } );
-    }
+
+    // Invalidate keyboard nav cache whenever tree structure changes
+    const invalidateVisibleCache = () => { visibleItemsCache = null; };
 
     // Render tree recursively
-    function renderTree ( node, container, level = 0 ) {
+    const renderTree = ( node, container, level = 0 ) => {
       const items = sortTreeItems( node.children );
 
       items.forEach( item => {
@@ -609,16 +678,23 @@
         itemEl.className = `tree-item ${ item.isDir ? "folder" : "file" }`;
         itemEl.dataset.path = item.path;
         itemEl.style.paddingLeft = `${ 16 + level * 16 }px`;
-        itemEl.innerHTML = `
-          <span class="icon ${ getIconClass( item.name, item.isDir ) }"></span>
-          <span class="name">${ item.name }</span>
-        `;
+        itemEl.setAttribute( "role", "treeitem" );
+        if ( item.isDir ) itemEl.setAttribute( "aria-expanded", "false" );
+
+        const iconSpan = document.createElement( "span" );
+        iconSpan.className = `icon ${ getIconClass( item.name, item.isDir ) }`;
+        const nameSpan = document.createElement( "span" );
+        nameSpan.className = "name";
+        nameSpan.textContent = item.name;
+        itemEl.appendChild( iconSpan );
+        itemEl.appendChild( nameSpan );
 
         // Create children container for folders (even if empty initially)
         let childrenEl = null;
         if ( item.isDir ) {
           childrenEl = document.createElement( "div" );
           childrenEl.className = "tree-children";
+          childrenEl.setAttribute( "role", "group" );
           if ( Object.keys( item.children ).length > 0 ) {
             renderTree( item, childrenEl, level + 1 );
           }
@@ -639,16 +715,17 @@
           container.appendChild( childrenEl );
         }
       } );
-    }
+    };
 
     // Toggle folder open/close (accordion: collapse siblings)
-    function toggleFolder ( itemEl, childrenEl, folderItem ) {
+    const toggleFolder = ( itemEl, childrenEl, folderItem ) => {
       const icon = itemEl.querySelector( ".icon" );
       const isOpen = childrenEl.classList.contains( "expanded" );
 
       if ( isOpen ) {
         childrenEl.classList.remove( "expanded" );
         icon.classList.remove( "open" );
+        itemEl.setAttribute( "aria-expanded", "false" );
       } else {
         // Collapse sibling folders at the same level
         const parent = itemEl.parentElement;
@@ -656,16 +733,19 @@
           parent.querySelectorAll( ":scope > .tree-children.expanded" ).forEach( sib => {
             if ( sib !== childrenEl ) {
               sib.classList.remove( "expanded" );
-              sib.previousElementSibling?.querySelector( ".icon" )?.classList.remove( "open" );
+              const sibItem = sib.previousElementSibling;
+              sibItem?.querySelector( ".icon" )?.classList.remove( "open" );
+              sibItem?.setAttribute( "aria-expanded", "false" );
             }
           } );
         }
 
         childrenEl.classList.add( "expanded" );
         icon.classList.add( "open" );
+        itemEl.setAttribute( "aria-expanded", "true" );
 
         // Auto-display the folder's README.md if it exists
-        if ( folderItem && folderItem.children[ "README.md" ] ) {
+        if ( folderItem?.children[ "README.md" ] ) {
           const readme = folderItem.children[ "README.md" ];
           contentHeader.style.display = "flex";
           contentPath.innerHTML = buildBreadcrumbs( readme.path );
@@ -675,14 +755,16 @@
           loadFileContent( readme );
         }
       }
-    }
+      invalidateVisibleCache();
+    };
 
     // Select file and load content
-    async function selectFile ( item, itemEl ) {
-      // Update selection UI
-      document.querySelectorAll( ".tree-item.selected" ).forEach( el => {
-        el.classList.remove( "selected" );
-      } );
+    const selectFile = async ( item, itemEl ) => {
+      // Update selection UI — clear both highlight and selected
+      highlightedEl?.classList.remove( "highlighted" );
+      highlightedEl = null;
+      selectedEl?.classList.remove( "selected" );
+      selectedEl = itemEl;
       itemEl.classList.add( "selected" );
       itemEl.scrollIntoView( { block: "nearest" } );
 
@@ -702,30 +784,37 @@
 
       // Load content
       await loadFileContent( item );
-    }
+    };
 
     // Load file content
-    async function loadFileContent ( item ) {
+    const loadFileContent = async ( item ) => {
       contentBody.innerHTML = '<div class="loading">Loading</div>';
 
       try {
         const ext = item.name.split( "." ).pop().toLowerCase();
         // "../" because index.html is one level deep in tootoo/
         const fileUrl = "../" + item.path;
+        const safeName = escapeHtml( item.name );
+        const safeUrl = encodeURI( fileUrl );
 
         // Handle different file types
         if ( [ "png", "jpg", "jpeg", "gif", "svg", "webp" ].includes( ext ) ) {
-          contentBody.innerHTML = `<img class="content-image" src="${ fileUrl }" alt="${ item.name }">`;
+          const img = document.createElement( "img" );
+          img.className = "content-image";
+          img.src = safeUrl;
+          img.alt = item.name;
+          contentBody.innerHTML = "";
+          contentBody.appendChild( img );
         } else if ( [ "pdf" ].includes( ext ) ) {
           contentBody.innerHTML = `
-            <p>PDF file: <strong>${ item.name }</strong></p>
-            <p><a href="${ fileUrl }" target="_blank">Open PDF in new tab</a></p>
-            <iframe src="${ fileUrl }" style="width:100%;height:600px;border:1px solid #d0d7de;border-radius:6px;"></iframe>
+            <p>PDF file: <strong>${ safeName }</strong></p>
+            <p><a href="${ safeUrl }" target="_blank">Open PDF in new tab</a></p>
+            <iframe src="${ safeUrl }" style="width:100%;height:600px;border:1px solid #d0d7de;border-radius:6px;"></iframe>
           `;
         } else if ( [ "xlsx", "xls" ].includes( ext ) ) {
           contentBody.innerHTML = `
-            <p>Excel file: <strong>${ item.name }</strong></p>
-            <p><a href="${ fileUrl }" target="_blank">Download ${ item.name }</a></p>
+            <p>Excel file: <strong>${ safeName }</strong></p>
+            <p><a href="${ safeUrl }" target="_blank">Download ${ safeName }</a></p>
           `;
         } else {
           // Fetch text content
@@ -741,16 +830,9 @@
           }
         }
       } catch ( error ) {
-        contentBody.innerHTML = `<div class="error">Error loading file: ${ error.message }</div>`;
+        contentBody.innerHTML = `<div class="error">Error loading file: ${ escapeHtml( error.message ) }</div>`;
       }
-    }
-
-    // Escape HTML
-    function escapeHtml ( text ) {
-      const div = document.createElement( "div" );
-      div.textContent = text;
-      return div.innerHTML;
-    }
+    };
 
     // Toggle raw/rendered view
     btnRaw.addEventListener( "click", async () => {
@@ -761,10 +843,14 @@
     } );
 
     // Copy file path to clipboard
-    btnCopyPath.addEventListener( "click", () => {
+    btnCopyPath.addEventListener( "click", async () => {
       if ( !currentFile ) return;
-      navigator.clipboard.writeText( currentFile.path );
-      btnCopyPath.textContent = "✓ Copied";
+      try {
+        await navigator.clipboard.writeText( currentFile.path );
+        btnCopyPath.textContent = "✓ Copied";
+      } catch {
+        btnCopyPath.textContent = "✗ Failed";
+      }
       setTimeout( () => btnCopyPath.textContent = "📋 Copy", 1500 );
     } );
 
@@ -773,24 +859,28 @@
       // Collapse everything first
       treeEl.querySelectorAll( ".tree-children.expanded" ).forEach( el => {
         el.classList.remove( "expanded" );
-        el.previousElementSibling?.querySelector( ".icon" )?.classList.remove( "open" );
+        const prev = el.previousElementSibling;
+        prev?.querySelector( ".icon" )?.classList.remove( "open" );
+        prev?.setAttribute( "aria-expanded", "false" );
       } );
       btnToggleAll.textContent = "⊞";
       btnToggleAll.title = "Expand all";
 
-      // Expand the path to the currently selected item
-      const selected = treeEl.querySelector( ".tree-item.selected" );
-      if ( selected ) {
-        let parent = selected.parentElement;
+      // Expand the path to the currently selected file
+      if ( selectedEl ) {
+        let parent = selectedEl.parentElement;
         while ( parent && parent !== treeEl ) {
           if ( parent.classList.contains( "tree-children" ) ) {
             parent.classList.add( "expanded" );
-            parent.previousElementSibling?.querySelector( ".icon" )?.classList.add( "open" );
+            const prev = parent.previousElementSibling;
+            prev?.querySelector( ".icon" )?.classList.add( "open" );
+            prev?.setAttribute( "aria-expanded", "true" );
           }
           parent = parent.parentElement;
         }
-        selected.scrollIntoView( { block: "nearest" } );
+        selectedEl.scrollIntoView( { block: "nearest" } );
       }
+      invalidateVisibleCache();
     } );
 
     // Toggle expand/collapse all folders
@@ -802,7 +892,9 @@
         // Collapse all
         allChildren.forEach( el => {
           el.classList.remove( "expanded" );
-          el.previousElementSibling?.querySelector( ".icon" )?.classList.remove( "open" );
+          const prev = el.previousElementSibling;
+          prev?.querySelector( ".icon" )?.classList.remove( "open" );
+          prev?.setAttribute( "aria-expanded", "false" );
         } );
         btnToggleAll.textContent = "⊞";
         btnToggleAll.title = "Expand all";
@@ -810,15 +902,18 @@
         // Expand all
         allChildren.forEach( el => {
           el.classList.add( "expanded" );
-          el.previousElementSibling?.querySelector( ".icon" )?.classList.add( "open" );
+          const prev = el.previousElementSibling;
+          prev?.querySelector( ".icon" )?.classList.add( "open" );
+          prev?.setAttribute( "aria-expanded", "true" );
         } );
         btnToggleAll.textContent = "⊟";
         btnToggleAll.title = "Collapse all";
       }
+      invalidateVisibleCache();
     } );
 
-    // Filter tree items — files only, not folders
-    treeFilter.addEventListener( "input", () => {
+    // Filter tree items — files only, not folders (debounced)
+    const applyFilter = () => {
       const query = treeFilter.value.toLowerCase().trim();
       const allItems = treeEl.querySelectorAll( ".tree-item" );
       const allChildren = treeEl.querySelectorAll( ".tree-children" );
@@ -827,6 +922,7 @@
         // Reset: show all items, remove filter-expanded
         allItems.forEach( el => el.classList.remove( "hidden" ) );
         allChildren.forEach( el => el.classList.remove( "filter-expanded" ) );
+        invalidateVisibleCache();
         return;
       }
 
@@ -853,6 +949,12 @@
           }
         }
       } );
+      invalidateVisibleCache();
+    };
+
+    treeFilter.addEventListener( "input", () => {
+      clearTimeout( filterDebounceId );
+      filterDebounceId = setTimeout( applyFilter, 150 );
     } );
 
     // Build clickable breadcrumb path
@@ -866,14 +968,22 @@
       } ).join( '<span class="separator">/</span>' );
     };
 
+    // Keyboard navigation — highlight is separate from file selection
+    const highlightItem = ( el ) => {
+      highlightedEl?.classList.remove( "highlighted" );
+      highlightedEl = el;
+      el.classList.add( "highlighted" );
+      el.scrollIntoView( { block: "nearest" } );
+    };
+
     // Breadcrumb click delegation
     contentPath.addEventListener( "click", ( e ) => {
       const crumb = e.target.closest( ".breadcrumb" );
-      if ( crumb?.dataset.folder ) window.openFolder( crumb.dataset.folder );
+      if ( crumb?.dataset.folder ) openFolder( crumb.dataset.folder );
     } );
 
     // Open a folder by path (for breadcrumb clicks)
-    window.openFolder = ( path ) => {
+    const openFolder = ( path ) => {
       const parts = path.split( "/" );
       let current = treeData;
       for ( const part of parts ) {
@@ -881,30 +991,36 @@
         else return;
       }
       if ( !current.isDir ) return;
-      // Find and expand the folder in the DOM
-      const folderEl = treeEl.querySelector( `[data-path="${ path }"]` );
+
+      // Expand all parent folders in the DOM first
+      const folderEl = treeEl.querySelector( `[data-path="${ CSS.escape( path ) }"]` );
       if ( folderEl ) {
+        let parent = folderEl.parentElement;
+        while ( parent && parent !== treeEl ) {
+          if ( parent.classList.contains( "tree-children" ) && !parent.classList.contains( "expanded" ) ) {
+            parent.classList.add( "expanded" );
+            parent.previousElementSibling?.querySelector( ".icon" )?.classList.add( "open" );
+          }
+          parent = parent.parentElement;
+        }
+
+        // Now expand the target folder itself
         const childrenEl = folderEl.nextElementSibling;
         if ( childrenEl?.classList.contains( "tree-children" ) && !childrenEl.classList.contains( "expanded" ) ) {
           toggleFolder( folderEl, childrenEl, current );
         }
+
+        // Highlight and scroll into view
+        highlightItem( folderEl );
       }
+      invalidateVisibleCache();
     };
 
-    // Keyboard navigation
-    const highlightItem = ( el ) => {
-      document.querySelectorAll( ".tree-item.selected" ).forEach( s => s.classList.remove( "selected" ) );
-      el.classList.add( "selected" );
-      el.scrollIntoView( { block: "nearest" } );
-    };
-
-    document.addEventListener( "keydown", ( e ) => {
-      // Only handle when not typing in an input
-      if ( e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" ) return;
-
-      const visible = [ ...treeEl.querySelectorAll( ".tree-item:not(.hidden)" ) ]
+    // Build visible items list with caching
+    const getVisibleItems = () => {
+      if ( visibleItemsCache ) return visibleItemsCache;
+      visibleItemsCache = [ ...treeEl.querySelectorAll( ".tree-item:not(.hidden)" ) ]
         .filter( el => {
-          // Only items whose parent tree-children are expanded (or top level)
           let parent = el.parentElement;
           while ( parent && parent !== treeEl ) {
             if ( parent.classList.contains( "tree-children" ) && !parent.classList.contains( "expanded" ) && !parent.classList.contains( "filter-expanded" ) ) return false;
@@ -912,10 +1028,19 @@
           }
           return true;
         } );
+      return visibleItemsCache;
+    };
 
+    document.addEventListener( "keydown", ( e ) => {
+      // Only handle when not typing in an input
+      if ( e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" ) return;
+
+      const visible = getVisibleItems();
       if ( !visible.length ) return;
 
-      const currentIdx = visible.findIndex( el => el.classList.contains( "selected" ) );
+      // Find the currently highlighted or selected item
+      const currentEl = highlightedEl || selectedEl;
+      const currentIdx = currentEl ? visible.indexOf( currentEl ) : -1;
 
       if ( e.key === "ArrowDown" ) {
         e.preventDefault();
@@ -923,6 +1048,8 @@
         if ( next.classList.contains( "folder" ) ) {
           highlightItem( next );
         } else {
+          highlightedEl?.classList.remove( "highlighted" );
+          highlightedEl = null;
           next.click();
         }
       } else if ( e.key === "ArrowUp" ) {
@@ -931,6 +1058,8 @@
         if ( prev.classList.contains( "folder" ) ) {
           highlightItem( prev );
         } else {
+          highlightedEl?.classList.remove( "highlighted" );
+          highlightedEl = null;
           prev.click();
         }
       } else if ( e.key === "Enter" || e.key === " " ) {
@@ -967,7 +1096,7 @@
     } );
 
     // Fetch tree from GitHub API with sessionStorage caching
-    async function fetchTree () {
+    const fetchTree = async () => {
       const cacheKey = `tree-${ CONFIG.owner }-${ CONFIG.repo }-${ CONFIG.branch }`;
       const cached = sessionStorage.getItem( cacheKey );
 
@@ -990,10 +1119,10 @@
       const data = await response.json();
       sessionStorage.setItem( cacheKey, JSON.stringify( data.tree ) );
       return data.tree;
-    }
+    };
 
     // Initialize tree from GitHub API
-    async function initTree () {
+    const initTree = async () => {
       treeEl.innerHTML = '<div class="loading">Loading</div>';
 
       try {
@@ -1001,6 +1130,7 @@
         treeData = buildTree( items );
         treeEl.innerHTML = "";
         renderTree( treeData, treeEl );
+        invalidateVisibleCache();
 
         // Check for hash and load that file, or show root README.md
         if ( location.hash ) {
@@ -1017,21 +1147,21 @@
         }
       } catch ( error ) {
         treeEl.innerHTML = `<div class="error">
-          ${ error.message }
+          ${ escapeHtml( error.message ) }
           <br><br>
-          <button id="btnRetry" style="padding:5px 12px;border:1px solid #d0d7de;border-radius:6px;background:#f6f8fa;cursor:pointer;">Retry</button>
+          <button id="btnRetry" class="btn-retry">Retry</button>
         </div>`;
         document.getElementById( "btnRetry" ).addEventListener( "click", initTree );
       }
-    }
+    };
 
-    // Select file by path (for hash navigation)
-    function selectFileByPath ( path ) {
+    // Select file by path — accordion-aware parent expansion
+    const selectFileByPath = ( path ) => {
       const parts = path.split( "/" );
       let current = treeData;
 
       for ( const part of parts ) {
-        if ( current.children && current.children[ part ] ) {
+        if ( current.children?.[ part ] ) {
           current = current.children[ part ];
         } else {
           return; // Path not found
@@ -1039,25 +1169,28 @@
       }
 
       if ( !current.isDir ) {
-        // Find and click the tree item
-        const items = document.querySelectorAll( ".tree-item" );
-        for ( const item of items ) {
-          if ( item.dataset.path === current.path ) {
-            // Expand parent folders
-            let parent = item.parentElement;
-            while ( parent && parent !== treeEl ) {
-              if ( parent.classList.contains( "tree-children" ) ) {
-                parent.classList.add( "expanded" );
-                parent.previousElementSibling?.querySelector( ".icon" )?.classList.add( "open" );
-              }
-              parent = parent.parentElement;
-            }
-            item.click();
-            break;
+        // Expand parent folders one at a time (triggers accordion)
+        const ancestors = path.split( "/" ).slice( 0, -1 );
+        let folderPath = "";
+        for ( const seg of ancestors ) {
+          folderPath = folderPath ? folderPath + "/" + seg : seg;
+          const folderEl = treeEl.querySelector( `[data-path="${ CSS.escape( folderPath ) }"]` );
+          const childrenEl = folderEl?.nextElementSibling;
+          if ( folderEl && childrenEl?.classList.contains( "tree-children" ) && !childrenEl.classList.contains( "expanded" ) ) {
+            childrenEl.classList.add( "expanded" );
+            folderEl.querySelector( ".icon" )?.classList.add( "open" );
+            folderEl.setAttribute( "aria-expanded", "true" );
           }
         }
+
+        // Find and click the tree item
+        const itemEl = treeEl.querySelector( `[data-path="${ CSS.escape( current.path ) }"]` );
+        if ( itemEl ) {
+          invalidateVisibleCache();
+          itemEl.click();
+        }
       }
-    }
+    };
 
     // Handle hash changes
     window.addEventListener( "hashchange", () => {
