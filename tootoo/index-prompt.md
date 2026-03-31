@@ -1,10 +1,11 @@
 # Index Prompt
 
-**Create a file browser for the `theo-armour/work` GitHub repo as `index.html`, a single HTML file hosted on GitHub Pages.**
+**Create a file browser for the `theo-armour/sandbox` GitHub repo as `index.html`, a single HTML file hosted in the `tootoo/` subfolder on GitHub Pages.**
 
 ## Layout
 
-- Dark header (#24292f) with title "📂 Theo Armour Work" and a "View on GitHub" link to https://github.com/theo-armour/work
+- Light header (#f6f8fa background, #24292f text, bottom border) with title "📂 {owner}/{repo}" (set dynamically from CONFIG) and a "View on GitHub" link to `https://github.com/{owner}/{repo}` (also dynamic)
+- Page `<title>` is set to `File Browser - {owner}/{repo}` on init
 - Clicking the title reloads the app to its initial state (navigates to the page URL without any hash); title uses `#appTitle` with an event listener (no inline `onclick`)
 - Header contains token UI: a password input and green "Connect" button (visible when no token is stored), or a green "Connected" label and red "Disconnect" button (visible when a token is stored)
 - Two-panel layout filling the viewport:
@@ -20,7 +21,7 @@
 - On API error, display an error message in the tree panel with a "Retry" button (`#btnRetry` with event listener, no inline `onclick`); 404 errors hint that the repo may be private
 - All folders are closed when the app first loads
 - Folders sort before files, then alphabetically
-- Folders toggle open/close on click
+- Folders toggle open/close on click; **accordion behavior**: opening a folder auto-collapses its sibling folders at the same level (keeps exactly one path expanded per depth)
 - When a folder is opened, its `README.md` is automatically displayed in the content panel (if it exists), without updating the URL hash
 - File icons by extension using emoji: 📁/📂 folders, 📝 .md, 📕 .pdf, 📊 .xlsx, 📋 .json, 🌐 .html, ⚙️ .yml, 🖼️ images, 📄 default
 - Skip hidden files (dotfiles) and `node_modules`
@@ -30,19 +31,20 @@
 
 ### Tree Header & Controls
 
-- Sticky tree header contains "Files" label and a ⊟ "Collapse all" button
-- Collapse all button closes every expanded folder in the tree (removes `expanded` from `.tree-children`, removes `open` from folder icons)
-- Below the header, a sticky filter input ("Filter files...") searches by file name or path
-- Filter matches show the item and auto-expand all parent folders (via `filter-expanded` class)
+- Sticky tree header (with `z-index: 2`) contains "Files" label, a ⊕ "Focus on active path" button, and a ⊞/⊟ toggle button (expand all / collapse all)
+- ⊕ Focus button collapses everything then expands only the path to the currently selected file, scrolling it into view
+- ⊞/⊟ Toggle button expands all folders or collapses all folders; label switches based on current state
+- Below the header, a sticky `type="search"` filter input ("Filter files...") with a native browser clear (✕) button
+- Filter matches **file names only** (folders and path segments are ignored); matching files are shown with their parent folders auto-expanded (via `filter-expanded` class)
 - Clearing the filter restores the original tree state
 
 ### Keyboard Navigation
 
-- Arrow Down / Arrow Up moves the highlight through visible tree items without activating them (respects expanded/collapsed and filter state)
+- Arrow Down / Arrow Up moves through visible tree items: **files are activated** (loaded in content panel), **folders are highlight-only** (not expanded)
 - Enter or Space activates the highlighted item (opens/closes a folder, or loads a file)
-- Arrow Right expands a highlighted folder (if collapsed)
+- Arrow Right expands a highlighted folder (if collapsed); triggers accordion collapse of siblings
 - Arrow Left collapses a highlighted folder (if expanded)
-- Selected item scrolls into view
+- Selected item scrolls into view; tree items have `scroll-margin-top: 76px` to clear the sticky header and filter bar
 - Keyboard navigation is disabled when focus is in the filter input or other text fields
 
 ## Content Viewer
@@ -59,7 +61,7 @@
 - File path displayed as clickable breadcrumbs: folder segments are links that expand the folder in the tree; the filename is plain text
 - Breadcrumbs use `data-folder` attributes with event delegation on the content path element (no inline onclick handlers)
 - Loading spinner animation while fetching
-- All file content is fetched via relative paths (`"./" + item.path`) since the app is hosted on GitHub Pages in the same repo
+- All file content is fetched via relative paths (`"../" + item.path`) since the app lives in a `tootoo/` subfolder and `../` resolves to the repo root (works both locally and on GitHub Pages)
 
 ## Navigation
 
@@ -75,7 +77,7 @@
   ```js
   const CONFIG = {
     owner: "theo-armour",
-    repo: "work",
+    repo: "sandbox",
     branch: "main"
   };
   ```
@@ -101,7 +103,7 @@
 - Inline lightweight markdown-to-HTML converter (`mdToHtml` and `inline` functions); `javascript:` URLs in markdown links are stripped for XSS safety
 - GitHub Pages compatible (static, no build step)
 - Tree data fetched from GitHub REST API (supports both public and private repos via optional token)
-- File content fetched via relative paths (`"./" + item.path`) since the app is hosted on GitHub Pages in the same repo
+- File content fetched via relative paths (`"../" + item.path`) since the app lives in a `tootoo/` subfolder; `../` resolves to the repo root both locally and on GitHub Pages
 
 ## Style
 
@@ -110,7 +112,7 @@
 - Monospace for code/paths: SFMono-Regular, Consolas, Liberation Mono, Menlo
 - Smooth transitions on hover (0.1s background)
 - Error state styled in red (#cf222e on #ffebe9)
-- Token input styled to match the dark header (#161b22 background, #c9d1d9 text)
+- Token input styled to match the light header (#fff background, #24292f text, #d0d7de border)
 - Connect button styled green (#238636)
 - Disconnect button styled red (#da3633)
 - "Connected" status label in green (#3fb950)
