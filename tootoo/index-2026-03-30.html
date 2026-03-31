@@ -166,15 +166,6 @@
       white-space: nowrap;
     }
 
-    .tree-item .badge {
-      margin-left: auto;
-      padding-left: 8px;
-      font-size: 11px;
-      color: #656d76;
-      flex-shrink: 0;
-      white-space: nowrap;
-    }
-
     .tree-children {
       display: none;
     }
@@ -402,23 +393,12 @@
       background: #f6f8fa;
       cursor: pointer;
     }
-
-    #repoSelect {
-      padding: 5px 8px;
-      font-size: 13px;
-      border: 1px solid #d0d7de;
-      border-radius: 6px;
-      background: #fff;
-      color: #24292f;
-      max-width: 200px;
-    }
   </style>
 </head>
 
 <body>
   <header>
     <h1 id="appTitle"></h1>
-    <select id="repoSelect" aria-label="Select repository"></select>
     <a id="ghLink" href="#" target="_blank">View on GitHub</a>
     <span class="header-spacer"></span>
     <span id="tokenStatus"></span>
@@ -456,12 +436,11 @@
   </div>
 
   <script>
-    // Configuration — repo is mutable (switched via dropdown)
+    // Configuration
     const CONFIG = {
       owner: "theo-armour",
       repo: "sandbox",
-      branch: "main",
-      localRepo: "sandbox" // the repo this app is hosted in (uses relative paths)
+      branch: "main"
     };
 
     // State
@@ -477,65 +456,13 @@
     // Set title and GitHub link from CONFIG
     const appTitle = document.getElementById( "appTitle" );
     const ghLink = document.getElementById( "ghLink" );
-    const repoSelect = document.getElementById( "repoSelect" );
-
-    const updateConfigUI = () => {
-      appTitle.textContent = `📂 ${ CONFIG.owner }`;
-      ghLink.href = `https://github.com/${ CONFIG.owner }/${ CONFIG.repo }`;
-      document.title = `File Browser - ${ CONFIG.owner }/${ CONFIG.repo }`;
-    };
-    updateConfigUI();
+    appTitle.textContent = `📂 ${ CONFIG.owner }/${ CONFIG.repo }`;
+    ghLink.href = `https://github.com/${ CONFIG.owner }/${ CONFIG.repo }`;
+    document.title = `File Browser - ${ CONFIG.owner }/${ CONFIG.repo }`;
 
     // Title click reloads to initial state
     appTitle.addEventListener( "click", () => {
       window.location.href = window.location.pathname;
-    } );
-
-    // Repo selector
-    const fetchRepos = async () => {
-      // Add the current repo as the initial option
-      const defaultOpt = document.createElement( "option" );
-      defaultOpt.value = CONFIG.repo;
-      defaultOpt.textContent = CONFIG.repo;
-      repoSelect.appendChild( defaultOpt );
-
-      try {
-        const url = `https://api.github.com/users/${ CONFIG.owner }/repos?per_page=100&sort=updated`;
-        const headers = {};
-        if ( ghToken ) headers.Authorization = `token ${ ghToken }`;
-        const response = await fetch( url, { headers } );
-        if ( !response.ok ) return; // silently fail — dropdown just shows current repo
-
-        const repos = await response.json();
-        repoSelect.innerHTML = "";
-        repos.forEach( r => {
-          const opt = document.createElement( "option" );
-          opt.value = r.name;
-          opt.dataset.branch = r.default_branch;
-          opt.textContent = r.private ? `🔒 ${ r.name }` : r.name;
-          if ( r.name === CONFIG.repo ) opt.selected = true;
-          repoSelect.appendChild( opt );
-        } );
-      } catch {
-        // silently keep the default option
-      }
-    };
-
-    repoSelect.addEventListener( "change", () => {
-      const selected = repoSelect.selectedOptions[ 0 ];
-      CONFIG.repo = selected.value;
-      CONFIG.branch = selected.dataset.branch || "main";
-      location.hash = "";
-      currentFile = null;
-      selectedEl = null;
-      highlightedEl = null;
-      contentHeader.style.display = "none";
-      contentBody.innerHTML = '<div class="content-placeholder">Select a file from the tree to view its contents</div>';
-      updateConfigUI();
-      // Clear cached tree for the previous repo
-      const cacheKey = `tree-${ CONFIG.owner }-${ CONFIG.repo }-${ CONFIG.branch }`;
-      sessionStorage.removeItem( cacheKey );
-      initTree();
     } );
 
     // Token UI
@@ -570,7 +497,6 @@
       // Clear cached tree so it re-fetches with the token
       const cacheKey = `tree-${ CONFIG.owner }-${ CONFIG.repo }-${ CONFIG.branch }`;
       sessionStorage.removeItem( cacheKey );
-      fetchRepos();
       initTree();
     } );
 
@@ -580,7 +506,6 @@
       updateTokenUI();
       const cacheKey = `tree-${ CONFIG.owner }-${ CONFIG.repo }-${ CONFIG.branch }`;
       sessionStorage.removeItem( cacheKey );
-      fetchRepos();
       initTree();
     } );
 
@@ -720,7 +645,6 @@
               name: part,
               path: parts.slice( 0, i + 1 ).join( "/" ),
               isDir: i < parts.length - 1 || item.type === "tree",
-              size: item.size || 0,
               children: {}
             };
           }
@@ -729,24 +653,6 @@
       } );
 
       return tree;
-    };
-
-    // Count files recursively in a folder (excludes dotfiles and node_modules)
-    const countFiles = ( node ) => {
-      let count = 0;
-      for ( const child of Object.values( node.children ) ) {
-        if ( child.name.startsWith( "." ) || child.name === "node_modules" ) continue;
-        if ( child.isDir ) count += countFiles( child );
-        else count++;
-      }
-      return count;
-    };
-
-    // Format file size for display
-    const formatSize = ( bytes ) => {
-      if ( bytes < 1024 ) return `${ bytes } B`;
-      if ( bytes < 1024 * 1024 ) return `${ ( bytes / 1024 ).toFixed( 1 ) } KB`;
-      return `${ ( bytes / ( 1024 * 1024 ) ).toFixed( 1 ) } MB`;
     };
 
     // Sort tree items (folders first, then alphabetically)
@@ -782,17 +688,6 @@
         nameSpan.textContent = item.name;
         itemEl.appendChild( iconSpan );
         itemEl.appendChild( nameSpan );
-
-        // Badge: file count for folders, file size for files
-        const badgeSpan = document.createElement( "span" );
-        badgeSpan.className = "badge";
-        if ( item.isDir ) {
-          const fileCount = countFiles( item );
-          badgeSpan.textContent = fileCount > 0 ? fileCount : "";
-        } else if ( item.size > 0 ) {
-          badgeSpan.textContent = formatSize( item.size );
-        }
-        if ( badgeSpan.textContent ) itemEl.appendChild( badgeSpan );
 
         // Create children container for folders (even if empty initially)
         let childrenEl = null;
@@ -897,11 +792,8 @@
 
       try {
         const ext = item.name.split( "." ).pop().toLowerCase();
-        // Local repo uses relative paths; remote repos use raw.githubusercontent.com
-        const isLocal = CONFIG.repo === CONFIG.localRepo;
-        const fileUrl = isLocal
-          ? "../" + item.path
-          : `https://raw.githubusercontent.com/${ CONFIG.owner }/${ CONFIG.repo }/${ CONFIG.branch }/${ item.path }`;
+        // "../" because index.html is one level deep in tootoo/
+        const fileUrl = "../" + item.path;
         const safeName = escapeHtml( item.name );
         const safeUrl = encodeURI( fileUrl );
 
@@ -1311,7 +1203,6 @@
     } );
 
     // Initialize
-    fetchRepos();
     initTree();
   </script>
 </body>

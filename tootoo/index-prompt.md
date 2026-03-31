@@ -4,8 +4,9 @@
 
 ## Layout
 
-- Light header (#f6f8fa background, #24292f text, bottom border) with title "📂 {owner}/{repo}" (set dynamically from CONFIG) and a "View on GitHub" link to `https://github.com/{owner}/{repo}` (also dynamic)
-- Page `<title>` is set to `File Browser - {owner}/{repo}` on init
+- Light header (#f6f8fa background, #24292f text, bottom border) with title "📂 {owner}" (set dynamically from CONFIG) and a "View on GitHub" link to `https://github.com/{owner}/{repo}` (also dynamic)
+- A `<select id="repoSelect">` dropdown between the title and the GitHub link lists all repos belonging to the owner; defaults to CONFIG.repo
+- Page `<title>` is set to `File Browser - {owner}/{repo}` on init and on repo switch
 - Clicking the title reloads the app to its initial state (navigates to the page URL without any hash); title uses `#appTitle` with an event listener (no inline `onclick`)
 - Header contains token UI: a password input and green "Connect" button (visible when no token is stored), or a green "Connected" label and red "Disconnect" button (visible when a token is stored)
 - Two-panel layout filling the viewport:
@@ -29,6 +30,8 @@
 - The app tracks `selectedEl` (active file) and `highlightedEl` (keyboard cursor) as module-level variables for efficient lookups
 - Nested indentation increases by 16px per level, applied as inline `style="padding-left"` during `renderTree` (supports unlimited depth)
 - Each tree item stores its full path in a `data-path` attribute for reliable lookup; queries use `CSS.escape()` on paths to handle special characters
+- Folders display a file-count badge (recursive count of non-hidden files); files display their size (from the API `size` field) formatted as B/KB/MB
+- Badges are right-aligned, grey (#656d76), 11px, in a `.badge` span with `margin-left: auto`
 - Tree items are built with `createElement` + `textContent` (not `innerHTML`) to prevent XSS from file names
 - Tree items have `role="treeitem"`, folders have `aria-expanded`; the tree container has `role="tree"`; children wrappers have `role="group"`
 
@@ -66,7 +69,8 @@
 - File path displayed as clickable breadcrumbs: folder segments are links that expand the folder in the tree; the filename is plain text
 - Breadcrumbs use `data-folder` attributes with event delegation on the content path element (no inline onclick handlers)
 - Loading spinner animation while fetching
-- All file content is fetched via relative paths (`"../" + item.path`) since the app lives in a `tootoo/` subfolder and `../` resolves to the repo root (works both locally and on GitHub Pages)
+- All file content is fetched via relative paths (`"../" + item.path`) when browsing the local repo (`CONFIG.localRepo`), since the app lives in a `tootoo/` subfolder and `../` resolves to the repo root (works both locally and on GitHub Pages)
+- For other repos, file content is fetched from `https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}`
 
 ## Navigation
 
@@ -83,7 +87,8 @@
   const CONFIG = {
     owner: "theo-armour",
     repo: "sandbox",
-    branch: "main"
+    branch: "main",
+    localRepo: "sandbox"  // the repo this app is hosted in (uses relative paths)
   };
   ```
 
@@ -91,13 +96,22 @@
 - When no token is stored: input and Connect button are visible; Disconnect is hidden
 - When a token is stored: input and Connect are hidden; "Connected" label and Disconnect button are visible
 - Token is stored in `localStorage` under key `gh-token` (persists across sessions)
-- On Connect: save the token to `localStorage`, hide the input, clear the cached tree from `sessionStorage`, and re-fetch the tree
-- On Disconnect: remove the token from `localStorage`, show the input, clear the cached tree, and re-fetch the tree
+- On Connect: save the token to `localStorage`, hide the input, clear the cached tree from `sessionStorage`, re-fetch repos list, and re-fetch the tree
+- On Disconnect: remove the token from `localStorage`, show the input, clear the cached tree, re-fetch repos list, and re-fetch the tree
 - On init, fetch the recursive tree: `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/git/trees/${CONFIG.branch}?recursive=1`
 - If a token exists, include `Authorization: token <value>` header in API requests
 - The API returns `{ tree: [{ path, type, ... }] }` where `type` is `"blob"` (file) or `"tree"` (folder)
 - Parse the flat array into a nested tree structure for rendering
 - Cache the fetched tree in `sessionStorage` keyed by `tree-{owner}-{repo}-{branch}` to avoid redundant API calls on page reload
+
+## Repo Selector
+
+- On init, fetch repos via `GET /users/{owner}/repos?per_page=100&sort=updated` (includes token if present)
+- Populate `#repoSelect` dropdown with repo names; private repos prefixed with 🔒
+- Default selection is `CONFIG.repo` ("sandbox")
+- On change: update `CONFIG.repo` and `CONFIG.branch` (reset to "main"), clear the hash, reset UI state (currentFile, selectedEl, highlightedEl, content panel), update title/link, clear sessionStorage cache, and re-run `initTree()`
+- Re-fetched on Connect/Disconnect (private repos may appear or disappear)
+- Fails silently — dropdown shows just the current repo if API call fails
 
 ## Tech Stack
 
@@ -115,7 +129,7 @@
 - All JavaScript uses arrow function expressions (`const fn = () => {}`); no `function` declarations
 - GitHub Pages compatible (static, no build step)
 - Tree data fetched from GitHub REST API (supports both public and private repos via optional token)
-- File content fetched via relative paths (`"../" + item.path`) since the app lives in a `tootoo/` subfolder; `../` resolves to the repo root both locally and on GitHub Pages
+- File content fetched via relative paths (`"../" + item.path`) for the local repo, or via `https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}` for other repos
 
 ## Style
 
