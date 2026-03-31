@@ -185,6 +185,11 @@
             {
               "title": "xkcd",
               "url": "https://xkcd.com"
+            },
+            {
+              "title": "wrldmon",
+              "url": "https://www.worldmonitor.app/",
+              "g": "https://github.com/koala73/worldmonitor"
             }
           ]
         },
