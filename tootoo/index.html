@@ -257,6 +257,31 @@
       border: 1px solid #d0d7de;
     }
 
+    .large-file-prompt {
+      text-align: center;
+      padding: 48px 24px;
+      color: #57606a;
+    }
+
+    .large-file-prompt p {
+      margin: 8px 0;
+    }
+
+    .large-file-prompt button {
+      margin-top: 12px;
+      padding: 6px 16px;
+      font-size: 14px;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      background: #f6f8fa;
+      color: #24292f;
+      cursor: pointer;
+    }
+
+    .large-file-prompt button:hover {
+      background: #eaeef2;
+    }
+
     .content-image {
       max-width: 100%;
       height: auto;
@@ -612,6 +637,31 @@
       width: 10px;
       height: 10px;
     }
+
+    .orgs-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 4px 0;
+    }
+
+    .orgs-list img {
+      transition: transform 0.15s;
+    }
+
+    .orgs-list img:hover {
+      transform: scale(1.15);
+    }
+
+    .modal h3 a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .modal h3 a:hover {
+      color: #0969da;
+      text-decoration: underline;
+    }
   </style>
 </head>
 
@@ -908,6 +958,22 @@
       .replace( /"/g, "&quot;" )
       .replace( /'/g, "&#39;" );
 
+    // Escape HTML but make URLs clickable (for plain text / raw views)
+    const linkifyAndEscape = ( text ) => {
+      const urlRe = /(https?:\/\/[^\s<>]*[^\s<>.,;:!?\)\]'"\*])/g;
+      let result = "";
+      let lastIndex = 0;
+      let match;
+      while ( ( match = urlRe.exec( text ) ) !== null ) {
+        result += escapeHtml( text.slice( lastIndex, match.index ) );
+        const url = match[ 1 ];
+        result += `<a href="${ escapeHtml( url ) }" target="_blank">${ escapeHtml( url ) }</a>`;
+        lastIndex = urlRe.lastIndex;
+      }
+      result += escapeHtml( text.slice( lastIndex ) );
+      return result;
+    };
+
     // Lightweight markdown to HTML converter
     const mdToHtml = ( md ) => {
       // Fenced code blocks
@@ -985,7 +1051,11 @@
         .replace( /__([^_]+)__/g, "<strong>$1</strong>" )
         .replace( /\*([^*]+)\*/g, "<em>$1</em>" )
         .replace( /_([^_]+)_/g, "<em>$1</em>" )
-        .replace( /~~([^~]+)~~/g, "<del>$1</del>" );
+        .replace( /~~([^~]+)~~/g, "<del>$1</del>" )
+        .replace( /(<a\s[^>]*>[\s\S]*?<\/a>)|(<[^>]+>)|(https?:\/\/[^\s<>]*[^\s<>.,;:!?\)\]'"&])/g, ( match, aTag, tag, url ) => {
+          if ( aTag || tag ) return match;
+          return `<a href="${ url }" target="_blank">${ url }</a>`;
+        } );
     };
 
     // DOM Elements
@@ -1027,12 +1097,17 @@
           throw new Error( `HTTP ${ userResp.status }` );
         }
 
-        // Fetch recent repos for activity summary
+        // Fetch recent repos and orgs in parallel
         const reposUrl = isOrg
           ? `https://api.github.com/orgs/${ CONFIG.owner }/repos?per_page=100&sort=updated`
           : `https://api.github.com/users/${ CONFIG.owner }/repos?per_page=100&sort=updated`;
-        const reposResp = await fetch( reposUrl, { headers } );
+        const orgsUrl = `https://api.github.com/users/${ CONFIG.owner }/orgs`;
+        const [ reposResp, orgsResp ] = await Promise.all( [
+          fetch( reposUrl, { headers } ),
+          !isOrg ? fetch( orgsUrl, { headers } ) : Promise.resolve( null )
+        ] );
         const repos = reposResp.ok ? await reposResp.json() : [];
+        const orgs = orgsResp?.ok ? await orgsResp.json() : [];
 
         // Compute repo stats
         const totalStars = repos.reduce( ( s, r ) => s + ( r.stargazers_count || 0 ), 0 );
@@ -1060,20 +1135,44 @@
         html += `<span>📅 Joined ${ created.toLocaleDateString( "en-US", { month: "short", year: "numeric" } ) }</span>`;
         html += `</div></div></div>`;
 
+        const ghProfileUrl = `https://github.com/${ CONFIG.owner }`;
+
+        // Contributions graph (requires token, users only)
+        if ( !isOrg && ghToken ) {
+          html += `<h3><a href="${ ghProfileUrl }" target="_blank">Contributions</a></h3><div class="contrib-graph" id="contribGraph"><div class="loading">Loading contributions</div></div>`;
+        }
+
+        // Achievements (requires token, users only)
+        if ( !isOrg && ghToken ) {
+          html += `<h3><a href="${ ghProfileUrl }?tab=achievements" target="_blank">Achievements</a></h3>`;
+          html += `<div id="achievementsSection"><div class="loading">Loading achievements</div></div>`;
+        }
+
         // Numbers
-        html += `<h3>Overview</h3><table>`;
+        html += `<h3><a href="${ ghProfileUrl }" target="_blank">Overview</a></h3><table>`;
         html += `<tr><th>Public repos</th><td>${ data.public_repos }</td></tr>`;
         if ( data.public_gists != null ) html += `<tr><th>Public gists</th><td>${ data.public_gists }</td></tr>`;
-        if ( data.followers != null ) html += `<tr><th>Followers</th><td>${ data.followers }</td></tr>`;
-        if ( data.following != null ) html += `<tr><th>Following</th><td>${ data.following }</td></tr>`;
+        if ( data.followers != null ) html += `<tr><th>Followers</th><td><a href="${ ghProfileUrl }?tab=followers" target="_blank">${ data.followers }</a></td></tr>`;
+        if ( data.following != null ) html += `<tr><th>Following</th><td><a href="${ ghProfileUrl }?tab=following" target="_blank">${ data.following }</a></td></tr>`;
         html += `<tr><th>Total stars earned</th><td>⭐ ${ totalStars }</td></tr>`;
         html += `<tr><th>Total forks</th><td>🍴 ${ totalForks }</td></tr>`;
         html += `<tr><th>Active last 30 days</th><td>${ activeLastMonth } repos</td></tr>`;
         html += `</table>`;
 
+        // Organizations
+        if ( orgs.length ) {
+          html += `<h3><a href="${ ghProfileUrl }" target="_blank">Organizations</a></h3><div class="orgs-list">`;
+          orgs.forEach( org => {
+            html += `<a href="https://github.com/${ encodeURIComponent( org.login ) }" target="_blank" title="${ escapeHtml( org.login ) }">`;
+            html += `<img src="${ org.avatar_url }" alt="${ escapeHtml( org.login ) }" style="width:32px;height:32px;border-radius:6px;">`;
+            html += `</a>`;
+          } );
+          html += `</div>`;
+        }
+
         // Languages
         if ( topLangs.length ) {
-          html += `<h3>Top languages</h3><table>`;
+          html += `<h3><a href="${ ghProfileUrl }?tab=repositories" target="_blank">Top languages</a></h3><table>`;
           html += `<tr><th>Language</th><th style="text-align:right">Repos</th></tr>`;
           topLangs.forEach( ( [ lang, count ] ) => {
             html += `<tr><td>${ escapeHtml( lang ) }</td><td style="text-align:right">${ count }</td></tr>`;
@@ -1083,28 +1182,23 @@
 
         // Recent repos
         if ( recentRepos.length ) {
-          html += `<h3>Recently updated</h3><table>`;
+          html += `<h3><a href="${ ghProfileUrl }?tab=repositories&sort=updated" target="_blank">Recently updated</a></h3><table>`;
           html += `<tr><th>Repository</th><th style="text-align:right">Updated</th></tr>`;
           recentRepos.forEach( r => {
             const updated = new Date( r.pushed_at );
             const ago = Math.floor( ( now - updated ) / 86400000 );
             const when = ago === 0 ? "today" : ago === 1 ? "1 day ago" : `${ ago } days ago`;
-            html += `<tr><td>${ r.private ? "🔒 " : "" }${ escapeHtml( r.name ) }${ r.stargazers_count ? " ⭐" + r.stargazers_count : "" }</td><td style="text-align:right">${ when }</td></tr>`;
+            html += `<tr><td>${ r.private ? "🔒 " : "" }<a href="https://github.com/${ CONFIG.owner }/${ encodeURIComponent( r.name ) }" target="_blank">${ escapeHtml( r.name ) }</a>${ r.stargazers_count ? " ⭐" + r.stargazers_count : "" }</td><td style="text-align:right">${ when }</td></tr>`;
           } );
           html += `</table>`;
         }
 
-        // Contributions graph (requires token, users only)
-        if ( !isOrg && ghToken ) {
-          html += `<h3>Contributions</h3><div class="contrib-graph" id="contribGraph"><div class="loading">Loading contributions</div></div>`;
-        }
-
         ownerBody.innerHTML = html;
 
-        // Fetch contributions via GraphQL (async, fills in after modal renders)
+        // Fetch contributions + achievements via GraphQL (async, fills in after modal renders)
         if ( !isOrg && ghToken ) {
           const graphqlQuery = {
-            query: `query($login:String!){user(login:$login){contributionsCollection{contributionCalendar{totalContributions weeks{contributionDays{contributionCount date color}}}}}}`,
+            query: `query($login:String!){user(login:$login){contributionsCollection{totalCommitContributions totalIssueContributions totalPullRequestContributions totalPullRequestReviewContributions totalRepositoryContributions restrictedContributionsCount contributionCalendar{totalContributions weeks{contributionDays{contributionCount date color}}}}}}`,
             variables: { login: CONFIG.owner }
           };
           try {
@@ -1114,7 +1208,25 @@
               body: JSON.stringify( graphqlQuery )
             } );
             const gqlData = await gqlResp.json();
-            const calendar = gqlData?.data?.user?.contributionsCollection?.contributionCalendar;
+            const contribs = gqlData?.data?.user?.contributionsCollection;
+            const calendar = contribs?.contributionCalendar;
+
+            // Populate achievements
+            if ( contribs ) {
+              const achieveEl = document.getElementById( "achievementsSection" );
+              if ( achieveEl ) {
+                let ahtml = `<table>`;
+                ahtml += `<tr><th>Total commits</th><td>${ ( contribs.totalCommitContributions || 0 ).toLocaleString() }</td></tr>`;
+                ahtml += `<tr><th>Pull requests</th><td>${ ( contribs.totalPullRequestContributions || 0 ).toLocaleString() }</td></tr>`;
+                ahtml += `<tr><th>Issues opened</th><td>${ ( contribs.totalIssueContributions || 0 ).toLocaleString() }</td></tr>`;
+                ahtml += `<tr><th>Code reviews</th><td>${ ( contribs.totalPullRequestReviewContributions || 0 ).toLocaleString() }</td></tr>`;
+                ahtml += `<tr><th>Repositories created</th><td>${ ( contribs.totalRepositoryContributions || 0 ).toLocaleString() }</td></tr>`;
+                if ( contribs.restrictedContributionsCount ) ahtml += `<tr><th>Private contributions</th><td>${ contribs.restrictedContributionsCount.toLocaleString() }</td></tr>`;
+                ahtml += `</table>`;
+                achieveEl.innerHTML = ahtml;
+              }
+            }
+
             if ( calendar ) {
               const contribEl = document.getElementById( "contribGraph" );
               let ghtml = `<div class="contrib-summary">${ calendar.totalContributions.toLocaleString() } contributions in the last year</div>`;
@@ -1138,6 +1250,8 @@
           } catch {
             const contribEl = document.getElementById( "contribGraph" );
             if ( contribEl ) contribEl.innerHTML = `<div style="font-size:12px;color:#57606a;">Could not load contributions</div>`;
+            const achieveEl = document.getElementById( "achievementsSection" );
+            if ( achieveEl ) achieveEl.innerHTML = `<div style="font-size:12px;color:#57606a;">Could not load achievements</div>`;
           }
         }
       } catch ( err ) {
@@ -1434,8 +1548,28 @@
       await loadFileContent( item );
     };
 
+    // Large file threshold (512 KB) for text-based content
+    const LARGE_FILE_THRESHOLD = 512 * 1024;
+
     // Load file content
-    const loadFileContent = async ( item ) => {
+    const loadFileContent = async ( item, skipSizeCheck = false ) => {
+      // For text-based files, prompt before loading large files
+      if ( !skipSizeCheck && item.size > LARGE_FILE_THRESHOLD ) {
+        const ext = item.name.split( "." ).pop().toLowerCase();
+        const mediaExts = [ "png", "jpg", "jpeg", "gif", "svg", "webp", "ico", "bmp", "avif",
+          "mp4", "webm", "mp3", "wav", "ogg", "aac", "flac", "pdf", "xlsx", "xls" ];
+        if ( !mediaExts.includes( ext ) ) {
+          contentStats.textContent = "";
+          contentBody.innerHTML = `<div class="large-file-prompt">
+            <p>⚠️ <strong>${ escapeHtml( item.name ) }</strong> is ${ formatSize( item.size ) }</p>
+            <p>Large files may slow down the browser.</p>
+            <button id="btnLoadAnyway">Load anyway</button>
+          </div>`;
+          document.getElementById( "btnLoadAnyway" ).addEventListener( "click", () => loadFileContent( item, true ) );
+          return;
+        }
+      }
+
       contentBody.innerHTML = '<div class="loading">Loading</div>';
       contentStats.textContent = "";
 
@@ -1525,7 +1659,7 @@
             const html = mdToHtml( text );
             contentBody.innerHTML = `<div class="markdown-body">${ html }</div>`;
           } else {
-            contentBody.innerHTML = `<pre class="content-raw">${ escapeHtml( text ) }</pre>`;
+            contentBody.innerHTML = `<pre class="content-raw">${ linkifyAndEscape( text ) }</pre>`;
           }
         }
       } catch ( error ) {
