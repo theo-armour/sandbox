@@ -508,7 +508,6 @@
 
     // Repo selector
     const fetchRepos = async () => {
-      repoSelect.innerHTML = "";
       // Add the current repo as the initial option
       const defaultOpt = document.createElement( "option" );
       defaultOpt.value = CONFIG.repo;
@@ -612,12 +611,11 @@
     } );
 
     // Escape HTML (single shared helper)
-    const escapeHtml = ( text ) => text
-      .replace( /&/g, "&amp;" )
-      .replace( /</g, "&lt;" )
-      .replace( />/g, "&gt;" )
-      .replace( /"/g, "&quot;" )
-      .replace( /'/g, "&#39;" );
+    const escapeHtml = ( text ) => {
+      const div = document.createElement( "div" );
+      div.textContent = text;
+      return div.innerHTML;
+    };
 
     // Lightweight markdown to HTML converter
     const mdToHtml = ( md ) => {
@@ -689,8 +687,7 @@
         .replace( /!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%">' )
         .replace( /\[([^\]]+)\]\(([^)]+)\)/g, ( _, text, url ) => {
           if ( /^\s*javascript:/i.test( url ) ) return text;
-          const safeUrl = url.replace( /"/g, "&quot;" );
-          return `<a href="${ safeUrl }">${ text }</a>`;
+          return `<a href="${ url }">${ text }</a>`;
         } )
         .replace( /\*\*([^*]+)\*\*/g, "<strong>$1</strong>" )
         .replace( /__([^_]+)__/g, "<strong>$1</strong>" )
@@ -942,7 +939,7 @@
           ? basePath + item.path
           : `https://${ CONFIG.owner }.github.io/${ CONFIG.repo }/${ item.path }`;
         const safeName = escapeHtml( item.name );
-        const safeUrl = encodeURI( fileUrl ).replace( /#/g, "%23" );
+        const safeUrl = encodeURI( fileUrl );
 
         // Handle different file types
         if ( [ "png", "jpg", "jpeg", "gif", "svg", "webp", "ico", "bmp", "avif" ].includes( ext ) ) {
@@ -950,23 +947,21 @@
           img.className = "content-image";
           img.src = safeUrl;
           img.alt = item.name;
-          img.onerror = () => { contentBody.innerHTML = `<div class="error">Failed to load image: ${ escapeHtml( item.name ) }</div>`; };
           contentBody.innerHTML = "";
           contentBody.appendChild( img );
-        } else if ( [ "mp4", "webm" ].includes( ext ) ) {
+        } else if ( [ "mp4", "webm", "ogg" ].includes( ext ) ) {
           contentBody.innerHTML = `
             <p>Video: <strong>${ safeName }</strong></p>
             <video controls style="max-width:100%;border-radius:6px;">
-              <source src="${ safeUrl }" type="video/${ ext }">
+              <source src="${ safeUrl }">
               Your browser does not support the video tag.
             </video>
           `;
-        } else if ( [ "mp3", "wav", "ogg", "aac", "flac" ].includes( ext ) ) {
-          const mimeType = ext === "mp3" ? "mpeg" : ext;
+        } else if ( [ "mp3", "wav", "aac", "flac" ].includes( ext ) ) {
           contentBody.innerHTML = `
             <p>Audio: <strong>${ safeName }</strong></p>
             <audio controls style="width:100%;margin-top:12px;">
-              <source src="${ safeUrl }" type="audio/${ mimeType }">
+              <source src="${ safeUrl }">
               Your browser does not support the audio tag.
             </audio>
           `;
