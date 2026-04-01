@@ -346,6 +346,14 @@
       content: "🖼️";
     }
 
+    .video-icon::before {
+      content: "🎬";
+    }
+
+    .audio-icon::before {
+      content: "🎵";
+    }
+
     /* Highlight (keyboard nav) vs selected (active file) */
     .tree-item.highlighted {
       background: #eaeef2;
@@ -465,7 +473,11 @@
     };
 
     // Auto-detect path prefix: "./" at repo root, "../" in a subfolder
-    const basePath = location.pathname.endsWith( "/" + CONFIG.localRepo + "/" ) ? "./" : "../";
+    // Handles both GitHub Pages (/sandbox/) and local folder (/theo-armour-sandbox/)
+    const _dir = location.pathname.replace( /\/[^/]*\.[^/]*$/, "" ).replace( /\/$/, "" );
+    const _parentDir = _dir.split( "/" ).pop();
+    const atRoot = _parentDir === CONFIG.localRepo || _parentDir.endsWith( "-" + CONFIG.localRepo );
+    const basePath = atRoot ? "./" : "../";
 
     // State
     let currentFile = null;
@@ -704,7 +716,17 @@
         jpeg: "image-icon",
         gif: "image-icon",
         svg: "image-icon",
-        webp: "image-icon"
+        webp: "image-icon",
+        ico: "image-icon",
+        bmp: "image-icon",
+        avif: "image-icon",
+        mp4: "video-icon",
+        webm: "video-icon",
+        ogg: "audio-icon",
+        mp3: "audio-icon",
+        wav: "audio-icon",
+        aac: "audio-icon",
+        flac: "audio-icon"
       };
       return iconMap[ ext ] || "file-icon";
     };
@@ -900,22 +922,44 @@
 
       try {
         const ext = item.name.split( "." ).pop().toLowerCase();
-        // Local repo uses relative paths; remote repos use raw.githubusercontent.com
+        // Local repo uses relative paths; remote repos use GitHub Pages
         const isLocal = CONFIG.repo === CONFIG.localRepo;
         const fileUrl = isLocal
           ? basePath + item.path
-          : `https://raw.githubusercontent.com/${ CONFIG.owner }/${ CONFIG.repo }/${ CONFIG.branch }/${ item.path }`;
+          : `https://${ CONFIG.owner }.github.io/${ CONFIG.repo }/${ item.path }`;
         const safeName = escapeHtml( item.name );
         const safeUrl = encodeURI( fileUrl );
 
         // Handle different file types
-        if ( [ "png", "jpg", "jpeg", "gif", "svg", "webp" ].includes( ext ) ) {
+        if ( [ "png", "jpg", "jpeg", "gif", "svg", "webp", "ico", "bmp", "avif" ].includes( ext ) ) {
           const img = document.createElement( "img" );
           img.className = "content-image";
           img.src = safeUrl;
           img.alt = item.name;
           contentBody.innerHTML = "";
           contentBody.appendChild( img );
+        } else if ( [ "mp4", "webm", "ogg" ].includes( ext ) ) {
+          contentBody.innerHTML = `
+            <p>Video: <strong>${ safeName }</strong></p>
+            <video controls style="max-width:100%;border-radius:6px;">
+              <source src="${ safeUrl }">
+              Your browser does not support the video tag.
+            </video>
+          `;
+        } else if ( [ "mp3", "wav", "aac", "flac" ].includes( ext ) ) {
+          contentBody.innerHTML = `
+            <p>Audio: <strong>${ safeName }</strong></p>
+            <audio controls style="width:100%;margin-top:12px;">
+              <source src="${ safeUrl }">
+              Your browser does not support the audio tag.
+            </audio>
+          `;
+        } else if ( [ "html", "htm" ].includes( ext ) ) {
+          contentBody.innerHTML = `
+            <p>HTML file: <strong>${ safeName }</strong>
+              <a href="${ safeUrl }" target="_blank">Open in new tab</a></p>
+            <iframe src="${ safeUrl }" style="width:100%;height:calc(100vh - 160px);border:1px solid #d0d7de;border-radius:6px;" sandbox="allow-scripts allow-same-origin"></iframe>
+          `;
         } else if ( [ "pdf" ].includes( ext ) ) {
           contentBody.innerHTML = `
             <p>PDF file: <strong>${ safeName }</strong></p>

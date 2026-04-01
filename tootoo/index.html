@@ -473,7 +473,11 @@
     };
 
     // Auto-detect path prefix: "./" at repo root, "../" in a subfolder
-    const basePath = location.pathname.endsWith( "/" + CONFIG.localRepo + "/" ) ? "./" : "../";
+    // Handles both GitHub Pages (/sandbox/) and local folder (/theo-armour-sandbox/)
+    const _dir = location.pathname.replace( /\/[^/]*\.[^/]*$/, "" ).replace( /\/$/, "" );
+    const _parentDir = _dir.split( "/" ).pop();
+    const atRoot = _parentDir === CONFIG.localRepo || _parentDir.endsWith( "-" + CONFIG.localRepo );
+    const basePath = atRoot ? "./" : "../";
 
     // State
     let currentFile = null;
