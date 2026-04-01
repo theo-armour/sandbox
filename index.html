@@ -419,21 +419,110 @@
       color: #24292f;
       max-width: 180px;
     }
+
+    /* Stats modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #d0d7de;
+      width: 460px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .modal-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid #d0d7de;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .modal-header button {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: #57606a;
+      padding: 0 4px;
+    }
+
+    .modal-body {
+      padding: 16px;
+    }
+
+    .modal-body table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .modal-body th,
+    .modal-body td {
+      text-align: left;
+      padding: 4px 8px;
+      border-bottom: 1px solid #d0d7de;
+    }
+
+    .modal-body th {
+      color: #57606a;
+      font-weight: 500;
+    }
+
+    .modal-body td:last-child {
+      text-align: right;
+      font-family: "SFMono-Regular", Consolas, monospace;
+    }
+
+    .modal-body h3 {
+      font-size: 12px;
+      color: #57606a;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 16px 0 6px;
+    }
+
+    .modal-body h3:first-child {
+      margin-top: 0;
+    }
   </style>
 </head>
 
 <body>
   <header>
-    <h1 id="appTitle"></h1>
-    <select id="repoSelect" aria-label="Select repository"></select>
-    <a id="ghLink" href="#" target="_blank">View on GitHub</a>
+    <h1 id="appTitle" title="Click to reload"></h1>
+    <select id="repoSelect" title="Switch repository" aria-label="Select repository"></select>
+    <a id="ghLink" href="#" target="_blank" title="Open this repo on GitHub">View on GitHub</a>
+    <button id="btnStats" title="Repository stats"
+      style="background:none;border:none;cursor:pointer;font-size:14px;">📊</button>
     <span class="header-spacer"></span>
-    <span id="tokenStatus"></span>
+    <span id="tokenStatus" title="GitHub API connection status"></span>
     <label for="tokenInput" class="sr-only" hidden>GitHub token</label>
     <input id="tokenInput" type="password" placeholder="GitHub token (for private repos)"
-      aria-label="GitHub token for private repos">
-    <button id="btnConnect" class="btn-connect">Connect</button>
-    <button id="btnDisconnect" class="btn-disconnect" style="display:none;">Disconnect</button>
+      title="Paste a GitHub personal access token to access private repos" aria-label="GitHub token for private repos">
+    <button id="btnConnect" class="btn-connect" title="Save token and connect">Connect</button>
+    <button id="btnDisconnect" class="btn-disconnect" title="Remove saved token"
+      style="display:none;">Disconnect</button>
   </header>
 
   <div class="container">
@@ -459,6 +548,17 @@
           Select a file from the tree to view its contents
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Stats modal -->
+  <div class="modal-overlay" id="statsModal">
+    <div class="modal">
+      <div class="modal-header">
+        <span>Repository Stats</span>
+        <button id="btnCloseStats">&times;</button>
+      </div>
+      <div class="modal-body" id="statsBody"></div>
     </div>
   </div>
 
@@ -710,6 +810,78 @@
     const btnToggleAll = document.getElementById( "btnToggleAll" );
     const btnFocusPath = document.getElementById( "btnFocusPath" );
     const treeFilter = document.getElementById( "treeFilter" );
+    const statsModal = document.getElementById( "statsModal" );
+    const statsBody = document.getElementById( "statsBody" );
+    const btnStats = document.getElementById( "btnStats" );
+    const btnCloseStats = document.getElementById( "btnCloseStats" );
+
+    // Stats modal
+    btnStats.addEventListener( "click", () => {
+      if ( !treeData ) return;
+      statsBody.innerHTML = buildRepoStats( treeData );
+      statsModal.classList.add( "open" );
+    } );
+
+    btnCloseStats.addEventListener( "click", () => statsModal.classList.remove( "open" ) );
+    statsModal.addEventListener( "click", ( e ) => {
+      if ( e.target === statsModal ) statsModal.classList.remove( "open" );
+    } );
+
+    const buildRepoStats = ( tree ) => {
+      const exts = {};
+      let totalFiles = 0, totalFolders = 0, totalSize = 0;
+      const largest = [];
+
+      const walk = ( node ) => {
+        for ( const child of Object.values( node.children ) ) {
+          if ( child.name.startsWith( "." ) || child.name === "node_modules" ) continue;
+          if ( child.isDir ) {
+            totalFolders++;
+            walk( child );
+          } else {
+            totalFiles++;
+            totalSize += child.size || 0;
+            const ext = child.name.includes( "." ) ? child.name.split( "." ).pop().toLowerCase() : "(none)";
+            exts[ ext ] = ( exts[ ext ] || { count: 0, size: 0 } );
+            exts[ ext ].count++;
+            exts[ ext ].size += child.size || 0;
+            largest.push( { name: child.name, path: child.path, size: child.size || 0 } );
+          }
+        }
+      };
+      walk( tree );
+
+      // Sort extensions by count descending
+      const sortedExts = Object.entries( exts ).sort( ( a, b ) => b[ 1 ].count - a[ 1 ].count );
+
+      // Top 10 largest files
+      largest.sort( ( a, b ) => b.size - a.size );
+      const top10 = largest.slice( 0, 10 );
+
+      let html = `<h3>Overview</h3>
+        <table>
+          <tr><th>Files</th><td>${ totalFiles }</td></tr>
+          <tr><th>Folders</th><td>${ totalFolders }</td></tr>
+          <tr><th>Total size</th><td>${ formatSize( totalSize ) }</td></tr>
+        </table>`;
+
+      html += `<h3>Files by type</h3><table>
+        <tr><th>Extension</th><th style="text-align:right">Count</th><th style="text-align:right">Size</th></tr>`;
+      sortedExts.forEach( ( [ ext, data ] ) => {
+        html += `<tr><td>.${ escapeHtml( ext ) }</td><td style="text-align:right">${ data.count }</td><td style="text-align:right">${ formatSize( data.size ) }</td></tr>`;
+      } );
+      html += `</table>`;
+
+      if ( top10.length ) {
+        html += `<h3>Largest files</h3><table>`;
+        top10.forEach( f => {
+          html += `<tr><td title="${ escapeHtml( f.path ) }">${ escapeHtml( f.name ) }</td><td>${ formatSize( f.size ) }</td></tr>`;
+        } );
+        html += `</table>`;
+      }
+
+      return html;
+    };
 
     // Get file icon class
     const getIconClass = ( name, isDir ) => {
