@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=900, initial-scale=1.0">
   <title>TooToo</title>
   <link rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.1/github-markdown.min.css">
@@ -17,7 +17,8 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       height: 100vh;
-      overflow: hidden;
+      overflow-x: auto;
+      overflow-y: hidden;
       background: #f6f8fa;
     }
 
@@ -49,17 +50,36 @@
     .container {
       display: flex;
       height: calc(100vh - 32px);
+      min-width: 900px;
     }
 
     /* Left Panel - Tree View */
     .tree-panel {
       width: 280px;
-      min-width: 200px;
+      min-width: 120px;
       max-width: 400px;
+      flex-shrink: 0;
       background: #ffffff;
       border-right: 1px solid #d0d7de;
       overflow-y: auto;
-      resize: horizontal;
+      position: relative;
+    }
+
+    .resize-handle {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 6px;
+      height: 100%;
+      cursor: col-resize;
+      background: transparent;
+      z-index: 3;
+      touch-action: none;
+    }
+
+    .resize-handle:hover,
+    .resize-handle.dragging {
+      background: #0969da;
     }
 
     .tree-header {
@@ -130,7 +150,7 @@
       font-size: 14px;
       transition: background 0.1s;
       user-select: none;
-      scroll-margin-top: 28px;
+      scroll-margin-top: 76px;
     }
 
     .tree-item:hover {
@@ -178,6 +198,7 @@
     /* Right Panel - Content View */
     .content-panel {
       flex: 1;
+      min-width: 0;
       overflow-y: auto;
       background: #ffffff;
     }
@@ -686,7 +707,8 @@
   </header>
 
   <div class="container">
-    <div class="tree-panel">
+    <div class="tree-panel" id="treePanel">
+      <div class="resize-handle" id="resizeHandle"></div>
       <div class="tree-header"><span>Files</span><input id="treeFilter" type="search" placeholder="Filter..."
           aria-label="Filter files"><button id="btnFocusPath" title="Focus on active path">⊕</button><button
           id="btnToggleAll" title="Expand all">⊞</button></div>
@@ -1060,6 +1082,33 @@
 
     // DOM Elements
     const treeEl = document.getElementById( "tree" );
+
+    // Resize handle for tree panel
+    const treePanel = document.getElementById( "treePanel" );
+    const resizeHandle = document.getElementById( "resizeHandle" );
+    const startDrag = ( startX ) => {
+      const startWidth = treePanel.offsetWidth;
+      resizeHandle.classList.add( "dragging" );
+      const onMove = ( x ) => {
+        const newWidth = Math.min( 400, Math.max( 120, startWidth + x - startX ) );
+        treePanel.style.width = newWidth + "px";
+      };
+      const onUp = () => {
+        resizeHandle.classList.remove( "dragging" );
+        document.removeEventListener( "mousemove", mouseMove );
+        document.removeEventListener( "mouseup", onUp );
+        document.removeEventListener( "touchmove", touchMove );
+        document.removeEventListener( "touchend", onUp );
+      };
+      const mouseMove = ( e ) => onMove( e.clientX );
+      const touchMove = ( e ) => onMove( e.touches[ 0 ].clientX );
+      document.addEventListener( "mousemove", mouseMove );
+      document.addEventListener( "mouseup", onUp );
+      document.addEventListener( "touchmove", touchMove, { passive: true } );
+      document.addEventListener( "touchend", onUp );
+    };
+    resizeHandle.addEventListener( "mousedown", ( e ) => { e.preventDefault(); startDrag( e.clientX ); } );
+    resizeHandle.addEventListener( "touchstart", ( e ) => { startDrag( e.touches[ 0 ].clientX ); }, { passive: true } );
     const contentHeader = document.getElementById( "contentHeader" );
     const contentPath = document.getElementById( "contentPath" );
     const contentBody = document.getElementById( "contentBody" );

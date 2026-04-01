@@ -5,13 +5,15 @@
 ## Layout
 
 - Light header (#f6f8fa background, #24292f text, bottom border) with title "📂 {owner}" (set dynamically from CONFIG) and a "View on GitHub" link to `https://github.com/{owner}/{repo}` (also dynamic)
-- A `<select id="repoSelect">` dropdown between the title and the GitHub link lists all repos belonging to the owner; defaults to CONFIG.repo
-- Page `<title>` is set to `File Browser - {owner}/{repo}` on init and on repo switch
+- A `<select id="ownerSelect">` dropdown for switching between the configured owner and their organizations; fetches orgs via `GET /users/{owner}/orgs` (with token) on init and on Connect/Disconnect; uses org-aware API endpoints (`/orgs/` vs `/users/`) based on selection
+- A `<select id="repoSelect">` dropdown between the title and the GitHub link lists all repos belonging to the selected owner/org; defaults to CONFIG.repo
+- Page `<title>` is set to `TooToo - {owner}/{repo}` on init and on repo switch
 - Clicking the title reloads the app to its initial state (navigates to the page URL without any hash); title uses `#appTitle` with an event listener (no inline `onclick`)
 - Header contains token UI: a password input and green "Connect" button (visible when no token is stored), or a green "Connected" label and red "Disconnect" button (visible when a token is stored)
 - Two-panel layout filling the viewport:
-  - **Left panel**: resizable tree view (280px default, 200–400px range) with folder/file navigation
+  - **Left panel**: resizable tree view (280px default, 120–400px range) with folder/file navigation; a custom drag handle (6px bar on right edge, blue on hover/drag) supports both mouse and touch resizing
   - **Right panel**: content viewer with a sticky header showing the file path as clickable breadcrumbs and action buttons (📋 Copy, Raw, GitHub)
+- **Viewport & mobile**: `<meta name="viewport" content="width=900">` with `.container { min-width: 900px }` ensures the two-panel layout never shrinks; on narrow/portrait screens the page scrolls horizontally while each panel scrolls vertically independently
 
 ## Tree View
 
