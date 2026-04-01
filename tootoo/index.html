@@ -25,21 +25,21 @@
       background: #f6f8fa;
       color: #24292f;
       border-bottom: 1px solid #d0d7de;
-      padding: 12px 20px;
+      padding: 4px 12px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
     }
 
     header h1 {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 600;
     }
 
     header a {
       color: #0969da;
       text-decoration: none;
-      font-size: 14px;
+      font-size: 12px;
     }
 
     header a:hover {
@@ -48,7 +48,7 @@
 
     .container {
       display: flex;
-      height: calc(100vh - 48px);
+      height: calc(100vh - 32px);
     }
 
     /* Left Panel - Tree View */
@@ -63,17 +63,17 @@
     }
 
     .tree-header {
-      padding: 8px 12px;
+      padding: 4px 8px;
       background: #f6f8fa;
       border-bottom: 1px solid #d0d7de;
-      font-size: 14px;
+      font-size: 12px;
       color: #24292f;
       position: sticky;
       top: 0;
       z-index: 2;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
     }
 
     .tree-header span {
@@ -81,7 +81,7 @@
     }
 
     .tree-header button {
-      padding: 2px 8px;
+      padding: 1px 6px;
       font-size: 11px;
       border: 1px solid #d0d7de;
       border-radius: 4px;
@@ -94,25 +94,17 @@
       background: #eaeef2;
     }
 
-    .tree-search {
-      padding: 6px 12px;
-      background: #f6f8fa;
-      border-bottom: 1px solid #d0d7de;
-      position: sticky;
-      top: 34px;
-      z-index: 2;
-    }
-
-    .tree-search input {
-      width: 100%;
-      padding: 5px 8px;
-      font-size: 13px;
+    .tree-header input {
+      flex: 1;
+      min-width: 0;
+      padding: 2px 6px;
+      font-size: 12px;
       border: 1px solid #d0d7de;
       border-radius: 4px;
       outline: none;
     }
 
-    .tree-search input:focus {
+    .tree-header input:focus {
       border-color: #0969da;
       box-shadow: 0 0 0 2px rgba(9, 105, 218, 0.2);
     }
@@ -138,7 +130,7 @@
       font-size: 14px;
       transition: background 0.1s;
       user-select: none;
-      scroll-margin-top: 76px;
+      scroll-margin-top: 28px;
     }
 
     .tree-item:hover {
@@ -191,7 +183,7 @@
     }
 
     .content-header {
-      padding: 12px 20px;
+      padding: 4px 12px;
       background: #f6f8fa;
       border-bottom: 1px solid #d0d7de;
       display: flex;
@@ -202,8 +194,15 @@
       z-index: 2;
     }
 
+    .content-stats {
+      font-size: 11px;
+      color: #656d76;
+      margin-left: 12px;
+      white-space: nowrap;
+    }
+
     .content-path {
-      font-size: 14px;
+      font-size: 12px;
       color: #57606a;
       font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
     }
@@ -228,8 +227,8 @@
     }
 
     .content-actions button {
-      padding: 5px 12px;
-      font-size: 12px;
+      padding: 2px 8px;
+      font-size: 11px;
       border: 1px solid #d0d7de;
       border-radius: 6px;
       background: #f6f8fa;
@@ -242,7 +241,7 @@
     }
 
     .content-body {
-      padding: 24px;
+      padding: 12px;
     }
 
 
@@ -370,37 +369,37 @@
 
     #tokenStatus {
       color: #3fb950;
-      font-size: 13px;
+      font-size: 12px;
     }
 
     #tokenInput {
-      width: 260px;
-      padding: 5px 10px;
+      width: 220px;
+      padding: 2px 8px;
       border: 1px solid #d0d7de;
-      border-radius: 6px;
+      border-radius: 4px;
       background: #fff;
       color: #24292f;
-      font-size: 13px;
+      font-size: 12px;
     }
 
     .btn-connect {
-      padding: 5px 12px;
+      padding: 2px 8px;
       border: 1px solid #d0d7de;
-      border-radius: 6px;
+      border-radius: 4px;
       background: #238636;
       color: white;
       cursor: pointer;
-      font-size: 13px;
+      font-size: 12px;
     }
 
     .btn-disconnect {
-      padding: 5px 12px;
+      padding: 2px 8px;
       border: 1px solid #d0d7de;
-      border-radius: 6px;
+      border-radius: 4px;
       background: #da3633;
       color: white;
       cursor: pointer;
-      font-size: 13px;
+      font-size: 12px;
     }
 
     .btn-retry {
@@ -412,13 +411,13 @@
     }
 
     #repoSelect {
-      padding: 5px 8px;
-      font-size: 13px;
+      padding: 2px 6px;
+      font-size: 12px;
       border: 1px solid #d0d7de;
-      border-radius: 6px;
+      border-radius: 4px;
       background: #fff;
       color: #24292f;
-      max-width: 200px;
+      max-width: 180px;
     }
   </style>
 </head>
@@ -439,16 +438,16 @@
 
   <div class="container">
     <div class="tree-panel">
-      <div class="tree-header"><span>Files</span><button id="btnFocusPath"
-          title="Focus on active path">⊕</button><button id="btnToggleAll" title="Expand all">⊞</button></div>
-      <div class="tree-search"><input id="treeFilter" type="search" placeholder="Filter files..."
-          aria-label="Filter files"></div>
+      <div class="tree-header"><span>Files</span><input id="treeFilter" type="search" placeholder="Filter..."
+          aria-label="Filter files"><button id="btnFocusPath" title="Focus on active path">⊕</button><button
+          id="btnToggleAll" title="Expand all">⊞</button></div>
       <div class="tree-content" id="tree" role="tree"></div>
     </div>
 
     <div class="content-panel">
       <div class="content-header" id="contentHeader" style="display: none;">
         <span class="content-path" id="contentPath"></span>
+        <span class="content-stats" id="contentStats"></span>
         <div class="content-actions">
           <button id="btnCopyPath" title="Copy file path">📋 Copy</button>
           <button id="btnRaw">Raw</button>
@@ -704,6 +703,7 @@
     const contentHeader = document.getElementById( "contentHeader" );
     const contentPath = document.getElementById( "contentPath" );
     const contentBody = document.getElementById( "contentBody" );
+    const contentStats = document.getElementById( "contentStats" );
     const btnRaw = document.getElementById( "btnRaw" );
     const btnGitHub = document.getElementById( "btnGitHub" );
     const btnCopyPath = document.getElementById( "btnCopyPath" );
@@ -933,6 +933,7 @@
     // Load file content
     const loadFileContent = async ( item ) => {
       contentBody.innerHTML = '<div class="loading">Loading</div>';
+      contentStats.textContent = "";
 
       try {
         const ext = item.name.split( "." ).pop().toLowerCase();
@@ -951,6 +952,7 @@
           img.src = safeUrl;
           img.alt = item.name;
           img.onerror = () => { contentBody.innerHTML = `<div class="error">Failed to load image: ${ escapeHtml( item.name ) }</div>`; };
+          img.onload = () => { contentStats.textContent = `${ img.naturalWidth } × ${ img.naturalHeight } · ${ formatSize( item.size ) }`; };
           contentBody.innerHTML = "";
           contentBody.appendChild( img );
         } else if ( [ "mp4", "webm" ].includes( ext ) ) {
@@ -961,6 +963,12 @@
               Your browser does not support the video tag.
             </video>
           `;
+          contentBody.querySelector( "video" ).addEventListener( "loadedmetadata", ( e ) => {
+            const dur = Math.round( e.target.duration );
+            const min = Math.floor( dur / 60 );
+            const sec = String( dur % 60 ).padStart( 2, "0" );
+            contentStats.textContent = `${ min }:${ sec } · ${ formatSize( item.size ) }`;
+          } );
         } else if ( [ "mp3", "wav", "ogg", "aac", "flac" ].includes( ext ) ) {
           const mimeType = ext === "mp3" ? "mpeg" : ext;
           contentBody.innerHTML = `
@@ -970,6 +978,12 @@
               Your browser does not support the audio tag.
             </audio>
           `;
+          contentBody.querySelector( "audio" ).addEventListener( "loadedmetadata", ( e ) => {
+            const dur = Math.round( e.target.duration );
+            const min = Math.floor( dur / 60 );
+            const sec = String( dur % 60 ).padStart( 2, "0" );
+            contentStats.textContent = `${ min }:${ sec } · ${ formatSize( item.size ) }`;
+          } );
         } else if ( [ "html", "htm" ].includes( ext ) ) {
           contentBody.innerHTML = `
             <p>HTML file: <strong>${ safeName }</strong>
@@ -992,6 +1006,11 @@
           const response = await fetch( fileUrl );
           if ( !response.ok ) throw new Error( `HTTP ${ response.status }` );
           const text = await response.text();
+
+          const lines = text.split( "\n" ).length;
+          const words = text.split( /\s+/ ).filter( Boolean ).length;
+          const readMin = Math.ceil( words / 200 );
+          contentStats.textContent = `${ lines } lines · ${ words } words · ~${ readMin } min read`;
 
           if ( ext === "md" && !showRaw ) {
             const html = mdToHtml( text );

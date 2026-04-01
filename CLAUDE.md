@@ -12,19 +12,19 @@ Hosted on GitHub Pages at theo-armour.github.io/sandbox/
 
 ## What I'm Working On
 
-- **TooToo** — GitHub-hosted file browser/editor using GitHub REST API + Showdown
+- **TooToo** — Single-file HTML GitHub repo browser using GitHub REST API + built-in markdown renderer
 - **Prompt engineering** — Testing workflows across Claude, Copilot, Gemini, ChatGPT
 - **Small tools** — Single-file HTML apps for personal use
 - Check `0-sandbox-agenda.md` for current priorities
 
 ## Multi-Repo Context
 
-TooToo is deployed across multiple repos with shared code and per-repo config:
-- `theo-armour/sandbox` — Reference/templates (this repo)
-- `theo-armour/qdata` — Active instance for qdata files
-- `theo-armour/2025` — Active instance for 2025 files
+TooToo is a single-file `index.html` with an inline `CONFIG` object (owner, repo, branch, localRepo).
+Three copies must be kept in sync when making changes:
+- `theo-armour/sandbox` — `index.html` + `tootoo/index.html` (this repo)
+- `theo-armour/work` — `index.html` (private repo instance)
 
-Each instance has its own `tootoo/` folder with a `config.js` that sets repo, branch, theme, etc.
+Each copy differs only in its CONFIG values. Apply fixes to all three files.
 
 ## Hard Constraints
 
