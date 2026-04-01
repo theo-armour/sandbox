@@ -453,9 +453,14 @@
       border-radius: 8px;
       border: 1px solid #d0d7de;
       width: 460px;
+      max-width: 95vw;
       max-height: 80vh;
       overflow-y: auto;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    #ownerModal .modal {
+      width: 760px;
     }
 
     .modal-header {
@@ -515,6 +520,98 @@
     .modal-body h3:first-child {
       margin-top: 0;
     }
+
+    .owner-profile {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .owner-profile img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 1px solid #d0d7de;
+    }
+
+    .owner-profile .owner-info {
+      flex: 1;
+    }
+
+    .owner-profile .owner-name {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .owner-profile .owner-login {
+      font-size: 13px;
+      color: #57606a;
+    }
+
+    .owner-profile .owner-bio {
+      font-size: 13px;
+      color: #24292f;
+      margin-top: 6px;
+    }
+
+    .owner-meta {
+      font-size: 12px;
+      color: #57606a;
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+    }
+
+    .owner-meta span {
+      white-space: nowrap;
+    }
+
+    .contrib-graph {
+      margin-top: 4px;
+    }
+
+    .contrib-graph .contrib-summary {
+      font-size: 12px;
+      color: #57606a;
+      margin-bottom: 8px;
+    }
+
+    .contrib-grid {
+      display: flex;
+      gap: 2px;
+      overflow-x: auto;
+    }
+
+    .contrib-week {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .contrib-day {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      background: #ebedf0;
+    }
+
+    .contrib-legend {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 6px;
+      font-size: 11px;
+      color: #57606a;
+      justify-content: flex-end;
+    }
+
+    .contrib-legend .contrib-day {
+      width: 10px;
+      height: 10px;
+    }
   </style>
 </head>
 
@@ -524,6 +621,8 @@
     <select id="ownerSelect" title="Switch owner or organization" aria-label="Select owner or organization"></select>
     <select id="repoSelect" title="Switch repository" aria-label="Select repository"></select>
     <a id="ghLink" href="#" target="_blank" title="Open this repo on GitHub">View on GitHub</a>
+    <button id="btnOwnerInfo" title="Owner profile & stats"
+      style="background:none;border:none;cursor:pointer;font-size:14px;">👤</button>
     <button id="btnStats" title="Repository stats"
       style="background:none;border:none;cursor:pointer;font-size:14px;">📊</button>
     <span class="header-spacer"></span>
@@ -558,6 +657,19 @@
         <div class="content-placeholder">
           Select a file from the tree to view its contents
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Owner modal -->
+  <div class="modal-overlay" id="ownerModal">
+    <div class="modal">
+      <div class="modal-header">
+        <span>Owner Profile</span>
+        <button id="btnCloseOwner">&times;</button>
+      </div>
+      <div class="modal-body" id="ownerBody">
+        <div class="loading">Loading</div>
       </div>
     </div>
   </div>
@@ -892,6 +1004,151 @@
     const statsBody = document.getElementById( "statsBody" );
     const btnStats = document.getElementById( "btnStats" );
     const btnCloseStats = document.getElementById( "btnCloseStats" );
+    const ownerModal = document.getElementById( "ownerModal" );
+    const ownerBody = document.getElementById( "ownerBody" );
+    const btnOwnerInfo = document.getElementById( "btnOwnerInfo" );
+    const btnCloseOwner = document.getElementById( "btnCloseOwner" );
+
+    // Owner modal
+    btnOwnerInfo.addEventListener( "click", async () => {
+      ownerBody.innerHTML = '<div class="loading">Loading</div>';
+      ownerModal.classList.add( "open" );
+      try {
+        const headers = {};
+        if ( ghToken ) headers.Authorization = `token ${ ghToken }`;
+        // Try user endpoint first, fall back to org
+        let data;
+        let isOrg = false;
+        const userResp = await fetch( `https://api.github.com/users/${ CONFIG.owner }`, { headers } );
+        if ( userResp.ok ) {
+          data = await userResp.json();
+          isOrg = data.type === "Organization";
+        } else {
+          throw new Error( `HTTP ${ userResp.status }` );
+        }
+
+        // Fetch recent repos for activity summary
+        const reposUrl = isOrg
+          ? `https://api.github.com/orgs/${ CONFIG.owner }/repos?per_page=100&sort=updated`
+          : `https://api.github.com/users/${ CONFIG.owner }/repos?per_page=100&sort=updated`;
+        const reposResp = await fetch( reposUrl, { headers } );
+        const repos = reposResp.ok ? await reposResp.json() : [];
+
+        // Compute repo stats
+        const totalStars = repos.reduce( ( s, r ) => s + ( r.stargazers_count || 0 ), 0 );
+        const totalForks = repos.reduce( ( s, r ) => s + ( r.forks_count || 0 ), 0 );
+        const languages = {};
+        repos.forEach( r => { if ( r.language ) languages[ r.language ] = ( languages[ r.language ] || 0 ) + 1; } );
+        const topLangs = Object.entries( languages ).sort( ( a, b ) => b[ 1 ] - a[ 1 ] ).slice( 0, 8 );
+        const recentRepos = repos.slice( 0, 5 );
+        const now = new Date();
+        const activeLastMonth = repos.filter( r => ( now - new Date( r.pushed_at ) ) < 30 * 86400000 ).length;
+
+        // Build HTML
+        let html = `<div class="owner-profile">`;
+        html += `<img src="${ data.avatar_url }" alt="${ escapeHtml( data.login ) }">`;
+        html += `<div class="owner-info">`;
+        html += `<div class="owner-name">${ escapeHtml( data.name || data.login ) }</div>`;
+        html += `<div class="owner-login">@${ escapeHtml( data.login ) }${ isOrg ? " · Organization" : "" }</div>`;
+        if ( data.bio ) html += `<div class="owner-bio">${ escapeHtml( data.bio ) }</div>`;
+        html += `<div class="owner-meta">`;
+        if ( data.location ) html += `<span>📍 ${ escapeHtml( data.location ) }</span>`;
+        if ( data.company ) html += `<span>🏢 ${ escapeHtml( data.company ) }</span>`;
+        if ( data.blog ) html += `<span>🔗 <a href="${ data.blog.startsWith( "http" ) ? data.blog : "https://" + data.blog }" target="_blank">${ escapeHtml( data.blog ) }</a></span>`;
+        if ( data.twitter_username ) html += `<span>𝕏 @${ escapeHtml( data.twitter_username ) }</span>`;
+        const created = new Date( data.created_at );
+        html += `<span>📅 Joined ${ created.toLocaleDateString( "en-US", { month: "short", year: "numeric" } ) }</span>`;
+        html += `</div></div></div>`;
+
+        // Numbers
+        html += `<h3>Overview</h3><table>`;
+        html += `<tr><th>Public repos</th><td>${ data.public_repos }</td></tr>`;
+        if ( data.public_gists != null ) html += `<tr><th>Public gists</th><td>${ data.public_gists }</td></tr>`;
+        if ( data.followers != null ) html += `<tr><th>Followers</th><td>${ data.followers }</td></tr>`;
+        if ( data.following != null ) html += `<tr><th>Following</th><td>${ data.following }</td></tr>`;
+        html += `<tr><th>Total stars earned</th><td>⭐ ${ totalStars }</td></tr>`;
+        html += `<tr><th>Total forks</th><td>🍴 ${ totalForks }</td></tr>`;
+        html += `<tr><th>Active last 30 days</th><td>${ activeLastMonth } repos</td></tr>`;
+        html += `</table>`;
+
+        // Languages
+        if ( topLangs.length ) {
+          html += `<h3>Top languages</h3><table>`;
+          html += `<tr><th>Language</th><th style="text-align:right">Repos</th></tr>`;
+          topLangs.forEach( ( [ lang, count ] ) => {
+            html += `<tr><td>${ escapeHtml( lang ) }</td><td style="text-align:right">${ count }</td></tr>`;
+          } );
+          html += `</table>`;
+        }
+
+        // Recent repos
+        if ( recentRepos.length ) {
+          html += `<h3>Recently updated</h3><table>`;
+          html += `<tr><th>Repository</th><th style="text-align:right">Updated</th></tr>`;
+          recentRepos.forEach( r => {
+            const updated = new Date( r.pushed_at );
+            const ago = Math.floor( ( now - updated ) / 86400000 );
+            const when = ago === 0 ? "today" : ago === 1 ? "1 day ago" : `${ ago } days ago`;
+            html += `<tr><td>${ r.private ? "🔒 " : "" }${ escapeHtml( r.name ) }${ r.stargazers_count ? " ⭐" + r.stargazers_count : "" }</td><td style="text-align:right">${ when }</td></tr>`;
+          } );
+          html += `</table>`;
+        }
+
+        // Contributions graph (requires token, users only)
+        if ( !isOrg && ghToken ) {
+          html += `<h3>Contributions</h3><div class="contrib-graph" id="contribGraph"><div class="loading">Loading contributions</div></div>`;
+        }
+
+        ownerBody.innerHTML = html;
+
+        // Fetch contributions via GraphQL (async, fills in after modal renders)
+        if ( !isOrg && ghToken ) {
+          const graphqlQuery = {
+            query: `query($login:String!){user(login:$login){contributionsCollection{contributionCalendar{totalContributions weeks{contributionDays{contributionCount date color}}}}}}`,
+            variables: { login: CONFIG.owner }
+          };
+          try {
+            const gqlResp = await fetch( "https://api.github.com/graphql", {
+              method: "POST",
+              headers: { Authorization: `bearer ${ ghToken }`, "Content-Type": "application/json" },
+              body: JSON.stringify( graphqlQuery )
+            } );
+            const gqlData = await gqlResp.json();
+            const calendar = gqlData?.data?.user?.contributionsCollection?.contributionCalendar;
+            if ( calendar ) {
+              const contribEl = document.getElementById( "contribGraph" );
+              let ghtml = `<div class="contrib-summary">${ calendar.totalContributions.toLocaleString() } contributions in the last year</div>`;
+              ghtml += `<div class="contrib-grid">`;
+              calendar.weeks.forEach( week => {
+                ghtml += `<div class="contrib-week">`;
+                week.contributionDays.forEach( day => {
+                  const title = `${ day.contributionCount } contributions on ${ day.date }`;
+                  ghtml += `<div class="contrib-day" style="background:${ day.color }" title="${ title }"></div>`;
+                } );
+                ghtml += `</div>`;
+              } );
+              ghtml += `</div>`;
+              ghtml += `<div class="contrib-legend"><span>Less</span>`;
+              [ "#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39" ].forEach( c => {
+                ghtml += `<div class="contrib-day" style="background:${ c }"></div>`;
+              } );
+              ghtml += `<span>More</span></div>`;
+              contribEl.innerHTML = ghtml;
+            }
+          } catch {
+            const contribEl = document.getElementById( "contribGraph" );
+            if ( contribEl ) contribEl.innerHTML = `<div style="font-size:12px;color:#57606a;">Could not load contributions</div>`;
+          }
+        }
+      } catch ( err ) {
+        ownerBody.innerHTML = `<div class="error">Failed to load owner info: ${ escapeHtml( err.message ) }</div>`;
+      }
+    } );
+
+    btnCloseOwner.addEventListener( "click", () => ownerModal.classList.remove( "open" ) );
+    ownerModal.addEventListener( "click", ( e ) => {
+      if ( e.target === ownerModal ) ownerModal.classList.remove( "open" );
+    } );
 
     // Stats modal
     btnStats.addEventListener( "click", () => {
@@ -1184,19 +1441,24 @@
 
       try {
         const ext = item.name.split( "." ).pop().toLowerCase();
-        // Local repo uses relative paths; remote repos use GitHub Pages
+        // Local repo uses relative paths; remote repos use GitHub URLs
         const isLocal = CONFIG.repo === CONFIG.localRepo && CONFIG.owner === ownerSelect.options[ 0 ]?.value;
-        const fileUrl = isLocal
+        // Pages URL for embeddable content (HTML, images, media); raw URL for text fetches
+        const pagesUrl = isLocal
           ? basePath + item.path
           : `https://${ CONFIG.owner }.github.io/${ CONFIG.repo }/${ item.path }`;
+        const rawUrl = isLocal
+          ? basePath + item.path
+          : `https://raw.githubusercontent.com/${ CONFIG.owner }/${ CONFIG.repo }/${ CONFIG.branch }/${ item.path }`;
         const safeName = escapeHtml( item.name );
-        const safeUrl = encodeURI( fileUrl ).replace( /#/g, "%23" );
+        const safePagesUrl = encodeURI( pagesUrl ).replace( /#/g, "%23" );
+        const safeRawUrl = encodeURI( rawUrl ).replace( /#/g, "%23" );
 
         // Handle different file types
         if ( [ "png", "jpg", "jpeg", "gif", "svg", "webp", "ico", "bmp", "avif" ].includes( ext ) ) {
           const img = document.createElement( "img" );
           img.className = "content-image";
-          img.src = safeUrl;
+          img.src = safeRawUrl;
           img.alt = item.name;
           img.onerror = () => { contentBody.innerHTML = `<div class="error">Failed to load image: ${ escapeHtml( item.name ) }</div>`; };
           img.onload = () => { contentStats.textContent = `${ img.naturalWidth } × ${ img.naturalHeight } · ${ formatSize( item.size ) }`; };
@@ -1206,7 +1468,7 @@
           contentBody.innerHTML = `
             <p>Video: <strong>${ safeName }</strong></p>
             <video controls style="max-width:100%;border-radius:6px;">
-              <source src="${ safeUrl }" type="video/${ ext }">
+              <source src="${ safeRawUrl }" type="video/${ ext }">
               Your browser does not support the video tag.
             </video>
           `;
@@ -1221,7 +1483,7 @@
           contentBody.innerHTML = `
             <p>Audio: <strong>${ safeName }</strong></p>
             <audio controls style="width:100%;margin-top:12px;">
-              <source src="${ safeUrl }" type="audio/${ mimeType }">
+              <source src="${ safeRawUrl }" type="audio/${ mimeType }">
               Your browser does not support the audio tag.
             </audio>
           `;
@@ -1234,23 +1496,23 @@
         } else if ( [ "html", "htm" ].includes( ext ) ) {
           contentBody.innerHTML = `
             <p>HTML file: <strong>${ safeName }</strong>
-              <a href="${ safeUrl }" target="_blank">Open in new tab</a></p>
-            <iframe src="${ safeUrl }" style="width:100%;height:calc(100vh - 160px);border:1px solid #d0d7de;border-radius:6px;" sandbox="allow-scripts allow-same-origin"></iframe>
+              <a href="${ safePagesUrl }" target="_blank">Open in new tab</a></p>
+            <iframe src="${ safePagesUrl }" style="width:100%;height:calc(100vh - 160px);border:1px solid #d0d7de;border-radius:6px;" sandbox="allow-scripts allow-same-origin"></iframe>
           `;
         } else if ( [ "pdf" ].includes( ext ) ) {
           contentBody.innerHTML = `
             <p>PDF file: <strong>${ safeName }</strong></p>
-            <p><a href="${ safeUrl }" target="_blank">Open PDF in new tab</a></p>
-            <iframe src="${ safeUrl }" style="width:100%;height:600px;border:1px solid #d0d7de;border-radius:6px;"></iframe>
+            <p><a href="${ safeRawUrl }" target="_blank">Open PDF in new tab</a></p>
+            <iframe src="${ safeRawUrl }" style="width:100%;height:600px;border:1px solid #d0d7de;border-radius:6px;"></iframe>
           `;
         } else if ( [ "xlsx", "xls" ].includes( ext ) ) {
           contentBody.innerHTML = `
             <p>Excel file: <strong>${ safeName }</strong></p>
-            <p><a href="${ safeUrl }" target="_blank">Download ${ safeName }</a></p>
+            <p><a href="${ safeRawUrl }" target="_blank">Download ${ safeName }</a></p>
           `;
         } else {
-          // Fetch text content
-          const response = await fetch( fileUrl );
+          // Fetch text content via GitHub Pages URL
+          const response = await fetch( pagesUrl );
           if ( !response.ok ) throw new Error( `HTTP ${ response.status }` );
           const text = await response.text();
 
