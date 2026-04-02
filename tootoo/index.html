@@ -1559,6 +1559,12 @@
         // Auto-display the folder's README.md if it exists
         if ( folderItem?.children[ "README.md" ] ) {
           const readme = folderItem.children[ "README.md" ];
+          const readmeEl = treeEl.querySelector( `[data-path="${ CSS.escape( readme.path ) }"]` );
+          if ( readmeEl ) {
+            selectedEl?.classList.remove( "selected" );
+            selectedEl = readmeEl;
+            readmeEl.classList.add( "selected" );
+          }
           contentHeader.style.display = "flex";
           contentPath.innerHTML = buildBreadcrumbs( readme.path );
           currentFile = readme;
@@ -1690,7 +1696,7 @@
           contentBody.innerHTML = `
             <p>PDF file: <strong>${ safeName }</strong></p>
             <p><a href="${ safeRawUrl }" target="_blank">Open PDF in new tab</a></p>
-            <iframe src="${ safeRawUrl }" style="width:100%;height:600px;border:1px solid #d0d7de;border-radius:6px;"></iframe>
+            <iframe src="${ safeRawUrl }" style="width:100%;height:calc(100vh - 160px);border:1px solid #d0d7de;border-radius:6px;"></iframe>
           `;
         } else if ( [ "xlsx", "xls" ].includes( ext ) ) {
           contentBody.innerHTML = `

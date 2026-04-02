@@ -25,7 +25,7 @@
 - All folders are closed when the app first loads
 - Folders sort before files, then alphabetically
 - Folders toggle open/close on click; **accordion behavior**: opening a folder auto-collapses its sibling folders at the same level (keeps exactly one path expanded per depth)
-- When a folder is opened, its `README.md` is automatically displayed in the content panel (if it exists), without updating the URL hash
+- When a folder is opened, its `README.md` is automatically displayed in the content panel (if it exists), with the tree item visually selected, without updating the URL hash
 - File icons by extension using emoji: 📁/📂 folders, 📝 .md, 📕 .pdf, 📊 .xlsx, 📋 .json, 🌐 .html, ⚙️ .yml, 🖼️ images, 📄 default
 - Skip hidden files (dotfiles) and `node_modules`
 - Selected file gets a blue highlight (#ddf4ff); keyboard-navigated items get a separate grey highlight (#eaeef2 `.highlighted` class) so the active file remains visually distinct
@@ -65,7 +65,7 @@
 - **Video** (.mp4, .webm): HTML5 `<video>` player with controls; shows duration and file size on load
 - **Audio** (.mp3, .wav, .ogg, .aac, .flac): HTML5 `<audio>` player with controls; shows duration and file size on load
 - **HTML** (.html, .htm): embedded in a sandboxed `<iframe>` (`allow-scripts allow-same-origin`) with an "Open in new tab" link
-- **PDF**: show an embedded iframe (600px tall) with a download link
+- **PDF**: show an embedded iframe (responsive height, matching HTML iframes) with a download link
 - **Excel** (.xlsx, .xls): show a download link
 - **Other text files**: show in a monospace `<pre>` block; URLs are auto-linked (clickable) using a `linkifyAndEscape` helper that escapes HTML but wraps `http://` and `https://` URLs in `<a>` tags with `target="_blank"`
 - **Large file prompt**: text-based files over 512 KB (`LARGE_FILE_THRESHOLD`) show a centered warning with the file name, size, and a "Load anyway" button instead of auto-loading; media files (images, video, audio, PDF, Excel) are exempt since they stream natively
@@ -136,7 +136,10 @@
 - All JavaScript uses arrow function expressions (`const fn = () => {}`); no `function` declarations
 - GitHub Pages compatible (static, no build step)
 - Tree data fetched from GitHub REST API (supports both public and private repos via optional token)
-- File content fetched via relative paths (`"../" + item.path`) for the local repo, or via `https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}` for other repos
+- File content fetched via relative paths (`basePath + item.path`) for the local repo, or via `https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}` for other repos
+- **`isLocal` detection**: the app only uses relative paths when running over HTTP (not `file://`) and the current repo matches `CONFIG.localRepo`; when opened via `file://` protocol, relative `fetch()` calls are blocked by CORS, so it always uses remote GitHub URLs
+- **`hasPages` detection**: each repo `<option>` stores `data-has-pages` from the GitHub API's `has_pages` field; `pagesUrl` uses `https://{owner}.github.io/{repo}/{path}` when Pages is enabled, falling back to the raw.githubusercontent URL when it's not
+- **URL selection by file type**: text content is always fetched via `rawUrl` (raw.githubusercontent.com has `Access-Control-Allow-Origin: *`); HTML iframes use `pagesUrl` (proper MIME types); images, video, and audio use `rawUrl` (works everywhere via element `src`)
 
 ## Style
 
