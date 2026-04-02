@@ -1,5 +1,16 @@
 # Tootoo Journal
 
+## 2026-04-02
+
+console.log("escapeHtml:", escapeHtml('<b>"hi"</b>') === '&lt;b&gt;&quot;hi&quot;&lt;/b&gt;' ? "PASS" : "FAIL");
+console.log("linkifyAndEscape:", linkifyAndEscape('see https://example.com ok').includes('href="https://example.com"') ? "PASS" : "FAIL");
+console.log("formatSize bytes:", formatSize(500) === "500 B" ? "PASS" : "FAIL");
+console.log("formatSize KB:", formatSize(2048) === "2.0 KB" ? "PASS" : "FAIL");
+console.log("formatSize MB:", formatSize(1500000) === "1.4 MB" ? "PASS" : "FAIL");
+console.log("mdToHtml heading:", mdToHtml("# Hello").includes("<h1>") ? "PASS" : "FAIL");
+console.log("mdToHtml bold:", mdToHtml("**bold**").includes("<strong>") ? "PASS" : "FAIL");
+console.log("Done!");
+
 ## 2026-03-31
 
 Currently, Tootoo is being called on the web using this url: https://theo-armour.github.io/sandbox/tootoo/
