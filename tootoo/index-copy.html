@@ -687,7 +687,7 @@
 </head>
 
 <body>
-  <header title="23:33">
+  <header>
     <h1 id="appTitle" title="Click to reload"></h1>
     <select id="ownerSelect" title="Switch owner or organization" aria-label="Select owner or organization"></select>
     <select id="repoSelect" title="Switch repository" aria-label="Select repository"></select>
@@ -880,7 +880,6 @@
           const opt = document.createElement( "option" );
           opt.value = r.name;
           opt.dataset.branch = r.default_branch;
-          opt.dataset.hasPages = r.has_pages ? "1" : "";
           opt.textContent = r.private ? `🔒 ${ r.name }` : r.name;
           if ( r.name === CONFIG.repo ) opt.selected = true;
           repoSelect.appendChild( opt );
@@ -1625,15 +1624,12 @@
 
       try {
         const ext = item.name.split( "." ).pop().toLowerCase();
-        // Local repo uses relative paths (only works over HTTP, not file://)
-        const isLocal = location.protocol !== "file:" && CONFIG.repo === CONFIG.localRepo && CONFIG.owner === ownerSelect.options[ 0 ]?.value;
-        const hasPages = repoSelect.selectedOptions[ 0 ]?.dataset.hasPages === "1";
+        // Local repo uses relative paths; remote repos use GitHub URLs
+        const isLocal = CONFIG.repo === CONFIG.localRepo && CONFIG.owner === ownerSelect.options[ 0 ]?.value;
         // Pages URL for embeddable content (HTML, images, media); raw URL for text fetches
         const pagesUrl = isLocal
           ? basePath + item.path
-          : hasPages
-            ? `https://${ CONFIG.owner }.github.io/${ CONFIG.repo }/${ item.path }`
-            : `https://raw.githubusercontent.com/${ CONFIG.owner }/${ CONFIG.repo }/${ CONFIG.branch }/${ item.path }`;
+          : `https://${ CONFIG.owner }.github.io/${ CONFIG.repo }/${ item.path }`;
         const rawUrl = isLocal
           ? basePath + item.path
           : `https://raw.githubusercontent.com/${ CONFIG.owner }/${ CONFIG.repo }/${ CONFIG.branch }/${ item.path }`;
@@ -1698,8 +1694,9 @@
             <p><a href="${ safeRawUrl }" target="_blank">Download ${ safeName }</a></p>
           `;
         } else {
-          // Fetch text content via raw URL (has CORS headers, unlike github.io)
+          // Fetch text content via GitHub Pages URL
           const response = await fetch( rawUrl );
+          console.log( "", rawUrl );
           if ( !response.ok ) throw new Error( `HTTP ${ response.status }` );
           const text = await response.text();
 

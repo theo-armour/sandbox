@@ -61,7 +61,10 @@
 
 - On initial load (no hash), the root `README.md` is automatically displayed without setting the hash
 - **Markdown** (.md): rendered with a lightweight inline converter (headings, bold, italic, strikethrough, inline code, fenced code blocks, links, images, ordered/unordered lists, horizontal rules, paragraphs); styled with `github-markdown-css`
-- **Images** (.png, .jpg, .jpeg, .gif, .svg, .webp): display inline with `max-width: 100%`
+- **Images** (.png, .jpg, .jpeg, .gif, .svg, .webp, .ico, .bmp, .avif): display inline with `max-width: 100%`
+- **Video** (.mp4, .webm): HTML5 `<video>` player with controls; shows duration and file size on load
+- **Audio** (.mp3, .wav, .ogg, .aac, .flac): HTML5 `<audio>` player with controls; shows duration and file size on load
+- **HTML** (.html, .htm): embedded in a sandboxed `<iframe>` (`allow-scripts allow-same-origin`) with an "Open in new tab" link
 - **PDF**: show an embedded iframe (600px tall) with a download link
 - **Excel** (.xlsx, .xls): show a download link
 - **Other text files**: show in a monospace `<pre>` block; URLs are auto-linked (clickable) using a `linkifyAndEscape` helper that escapes HTML but wraps `http://` and `https://` URLs in `<a>` tags with `target="_blank"`
@@ -146,6 +149,13 @@
 - Connect button styled green (#238636)
 - Disconnect button styled red (#da3633)
 - "Connected" status label in green (#3fb950)
+
+## Repository Stats Modal
+
+- Triggered by 📊 button in the header; opens a scrollable modal overlay
+- Shows file count and total size by extension (sorted by count descending)
+- Shows the 10 largest files with paths and sizes
+- Built from the cached tree data (no additional API calls)
 
 ## Owner Profile Modal
 
