@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TooToo GitHub Browser</title>
+  <style>
+    :root {
+      --primary-bg: #f6f8fa;
+      --secondary-bg: #ffffff;
+      --text-color: #24292f;
+      --border-color: #d0d7de;
+      --highlight-color: #0969da;
+      --hover-bg: #f3f4f6;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-family);
+      color: var(--text-color);
+      background-color: var(--primary-bg);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    header {
+      padding: 1rem;
+      background-color: var(--secondary-bg);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    input {
+      padding: 0.5rem;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      background-color: var(--highlight-color);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    @media (max-width: 768px) {
+      main {
+        grid-template-columns: 1fr;
+        grid-template-rows: 50% 50%;
+      }
+    }
+
+    .sidebar {
+      background-color: var(--secondary-bg);
+      border-right: 1px solid var(--border-color);
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .content-area {
+      padding: 1rem;
+      overflow-y: auto;
+      background-color: var(--primary-bg);
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      padding: 0.25rem 0;
+    }
+
+    .repo-item {
+      cursor: pointer;
+      color: var(--highlight-color);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+    }
+
+    .repo-item:hover {
+      background-color: var(--hover-bg);
+      text-decoration: underline;
+    }
+
+    .tree-item {
+      cursor: pointer;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-family: monospace;
+      white-space: nowrap;
+    }
+
+    .tree-item:hover {
+      background-color: var(--hover-bg);
+    }
+
+    .tree-folder {
+      font-weight: bold;
+    }
+
+    pre {
+      background-color: var(--secondary-bg);
+      padding: 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      overflow-x: auto;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+
+    .error {
+      color: #cf222e;
+      padding: 1rem;
+    }
+
+    #navTree {
+      display: none;
+    }
+
+    .tree-children {
+      margin-left: 1rem;
+    }
+
+    /* Style summary elements (folders) */
+    .tree-folder {
+      cursor: pointer;
+      padding: 0.2rem;
+      border-radius: 4px;
+      font-weight: bold;
+      font-family: monospace;
+      user-select: none;
+    }
+
+    .tree-folder:hover {
+      background-color: var(--hover-bg);
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <strong style="cursor: pointer;" onclick="location.reload()" title="Reload script">TooToo</strong>
+    <input type="text" id="ownerInput" placeholder="Enter user or org name" value="theo-armour" autocomplete="off"
+      oninput="resetMainAction()" onfocus="this.value=''" onchange="handleFetchRepos()" list="recentUsers" />
+    <datalist id="recentUsers"></datalist>
+    <button onclick="window.open('https://github.com/' + document.getElementById('ownerInput').value.trim(), '_blank')"
+      title="Open user's GitHub profile"
+      style="background: transparent; color: var(--text-color); border: 1px solid var(--border-color); padding: 0.4rem; display: flex; align-items: center; justify-content: center;">
+      <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor">
+        <path
+          d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z">
+        </path>
+      </svg>
+    </button>
+    <button id="btnMainAction" onclick="handleFetchRepos()">Get Repos</button>
+    <button id="btnGetOrgs" onclick="handleFetchOrgs()">Get Orgs</button>
+    <button id="btnGetGists" onclick="handleFetchGists()">Get Gists</button>
+    <button id="btnStats" onclick="handleFetchStats()">Stats</button>
+    <button id="btnDiscover" onclick="handleDiscover()"
+      style="background: var(--text-color); color: var(--primary-bg);">🌍 Discover</button>
+    <button id="btnToggleFolders" onclick="toggleAllFolders()" style="display: none;">Expand All</button>
+    <button onclick="promptForToken()"
+      style="margin-left: auto; background: var(--secondary-bg); color: var(--text-color); border: 1px solid var(--border-color);">⚙️
+      Token</button>
+  </header>
+
+  <main>
+    <div class="sidebar">
+      <div id="repoListContainer">
+        <h3>Repositories</h3>
+        <input type="text" id="filterInput" placeholder="Filter items..." oninput="filterList()"
+          style="width: 100%; box-sizing: border-box; margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px;" />
+        <ul id="repoList"></ul>
+      </div>
+      <div id="navTree">
+        <h3>Files</h3>
+        <div style="margin-top: 1rem;" id="treeList"></div>
+      </div>
+    </div>
+
+    <div class="content-area" id="mainContent">
+      <p>Select a user/organization and click "Get Repos" to begin.</p>
+    </div>
+  </main>
+
+  <script>
+    // --- State Management ---
+    const state = {
+      owner: '',
+      repo: '',
+      branch: 'main',
+      tree: [],
+      isGist: false,
+      currentFilePath: ''
+    };
+    const ghToken = localStorage.getItem( 'githubToken' ) || '';
+    const headers = ghToken ? { Authorization: `token ${ ghToken }` } : {};
+
+    // --- DOM Elements ---
+    const ownerInput = document.getElementById( 'ownerInput' );
+    const repoList = document.getElementById( 'repoList' );
+    const repoListContainer = document.getElementById( 'repoListContainer' );
+    const navTree = document.getElementById( 'navTree' );
+    const treeList = document.getElementById( 'treeList' );
+    const mainContent = document.getElementById( 'mainContent' );
+    const btnMainAction = document.getElementById( 'btnMainAction' );
+    const btnToggleFolders = document.getElementById( 'btnToggleFolders' );
+    const recentUsersDataList = document.getElementById( 'recentUsers' );
+
+    // --- Recent Users Logic ---
+    const updateRecentUsers = ( newUser ) => {
+      let users = JSON.parse( localStorage.getItem( 'tootooRecentUsers' ) || '[]' );
+      if ( newUser ) {
+        users = [ newUser, ...users.filter( u => u !== newUser ) ].slice( 0, 10 );
+        localStorage.setItem( 'tootooRecentUsers', JSON.stringify( users ) );
+      }
+      recentUsersDataList.innerHTML = users.map( u => `<option value="${ u }">${ u }</option>` ).join( '' );
+    };
+
+    const promptForToken = () => {
+      const newToken = prompt( "Enter GitHub Personal Access Token (for higher rate limits):\nLeave blank to clear.", ghToken );
+      if ( newToken !== null ) {
+        localStorage.setItem( 'githubToken', newToken.trim() );
+        location.reload();
+      }
+    };
+
+    // --- Handlers ---
+    const resetMainAction = () => {
+      btnMainAction.textContent = 'Get Repos';
+      btnMainAction.onclick = handleFetchRepos;
+      const bOrg = document.getElementById( 'btnGetOrgs' );
+      if ( bOrg ) bOrg.style.display = 'inline-block';
+      const bGg = document.getElementById( 'btnGetGists' );
+      if ( bGg ) bGg.style.display = 'inline-block';
+    };
+
+    const handleFetchRepos = async ( doUpdateHash = true, page = 1 ) => {
+      const owner = ownerInput.value.trim();
+      if ( !owner ) return;
+
+      if ( page === 1 ) {
+        ownerInput.blur(); // Dismiss pop-up once a user is selected
+        state.owner = owner;
+        state.repo = '';
+        state.currentFilePath = '';
+        state.isGist = false;
+        if ( doUpdateHash ) updateHash();
+
+        mainContent.innerHTML = '<p>Loading repositories...</p>';
+        repoList.innerHTML = '';
+        repoListContainer.querySelector( 'h3' ).textContent = 'Repositories';
+        document.getElementById( 'filterInput' ).value = '';
+
+        repoListContainer.style.display = 'block';
+        navTree.style.display = 'none';
+        btnToggleFolders.style.display = 'none';
+        resetMainAction();
+      }
+
+      try {
+        const response = await fetch( `https://api.github.com/users/${ owner }/repos?per_page=100&sort=updated&page=${ page }`, { headers } );
+        if ( !response.ok ) throw new Error( `Status: ${ response.status } - ${ response.statusText }` );
+
+        const repos = await response.json();
+
+        const oldBtn = document.getElementById( 'btnLoadMoreRepos' );
+        if ( oldBtn ) oldBtn.remove();
+
+        renderRepos( repos, page > 1 );
+        updateRecentUsers( owner );
+
+        const count = repoList.querySelectorAll( '.repo-item' ).length;
+
+        let successHtml = `<p>Loaded ${ count } repositories for ${ owner } (up to page ${ page }). Select one to view contents.</p>`;
+        if ( page === 1 ) {
+          const statsHtml = await handleFetchStats( true );
+          if ( statsHtml ) successHtml += statsHtml;
+        }
+
+        mainContent.innerHTML = successHtml;
+        if ( repos.length === 100 ) {
+          repoList.insertAdjacentHTML( 'beforeend', `<li id="btnLoadMoreRepos" style="text-align: center; margin-top: 1rem;"><button onclick="handleFetchRepos(false, ${ page + 1 })">Load More Repos</button></li>` );
+        }
+      } catch ( error ) {
+        if ( error.message.includes( '403' ) ) {
+          error.message += ' (Rate limit exceeded. Click "⚙️ Token" to increase limit.)';
+        }
+        mainContent.innerHTML = `<p class="error">Error fetching repos: ${ error.message }</p>`;
+      }
+    };
+
+    const handleFetchOrgs = async ( page = 1 ) => {
+      const owner = ownerInput.value.trim();
+      if ( !owner ) return;
+
+      if ( page === 1 ) {
+        ownerInput.blur();
+        state.owner = owner;
+        state.isGist = false;
+        mainContent.innerHTML = '<p>Loading organizations...</p>';
+        repoList.innerHTML = '';
+        repoListContainer.querySelector( 'h3' ).textContent = 'Organizations';
+        document.getElementById( 'filterInput' ).value = '';
+
+        repoListContainer.style.display = 'block';
+        navTree.style.display = 'none';
+        btnToggleFolders.style.display = 'none';
+        resetMainAction();
+      }
+
+      try {
+        const response = await fetch( `https://api.github.com/users/${ owner }/orgs?per_page=100&page=${ page }`, { headers } );
+        if ( !response.ok ) throw new Error( `Status: ${ response.status } - ${ response.statusText }` );
+
+        const orgs = await response.json();
+
+        const oldBtn = document.getElementById( 'btnLoadMoreOrgs' );
+        if ( oldBtn ) oldBtn.remove();
+
+        const html = orgs.map( org => `
+          <li>
+            <div class="repo-item" onclick="ownerInput.value='${ org.login }'; handleFetchRepos();">
+              ${ org.login }
+            </div>
+          </li>
+        `).join( '' );
+
+        if ( page > 1 ) repoList.insertAdjacentHTML( 'beforeend', html );
+        else repoList.innerHTML = html;
+
+        updateRecentUsers( owner );
+        const count = repoList.querySelectorAll( '.repo-item' ).length;
+        mainContent.innerHTML = `<p>Loaded ${ count } organizations for ${ owner } (up to page ${ page }). Select one to view contents.</p>`;
+
+        if ( orgs.length === 100 ) {
+          repoList.insertAdjacentHTML( 'beforeend', `<li id="btnLoadMoreOrgs" style="text-align: center; margin-top: 1rem;"><button onclick="handleFetchOrgs(${ page + 1 })">Load More Orgs</button></li>` );
+        }
+      } catch ( error ) {
+        if ( error.message.includes( '403' ) ) {
+          error.message += ' (Rate limit exceeded. Click "⚙️ Token" to increase limit.)';
+        }
+        mainContent.innerHTML = `<p class="error">Error fetching orgs: ${ error.message }</p>`;
+      }
+    };
+
+    const handleFetchGists = async ( page = 1 ) => {
+      const owner = ownerInput.value.trim();
+      if ( !owner ) return;
+
+      if ( page === 1 ) {
+        ownerInput.blur();
+        state.owner = owner;
+        state.isGist = true;
+        mainContent.innerHTML = '<p>Loading gists...</p>';
+        repoList.innerHTML = '';
+        repoListContainer.querySelector( 'h3' ).textContent = 'Gists';
+        document.getElementById( 'filterInput' ).value = '';
+
+        repoListContainer.style.display = 'block';
+        navTree.style.display = 'none';
+        btnToggleFolders.style.display = 'none';
+        resetMainAction();
+      }
+
+      try {
+        const response = await fetch( `https://api.github.com/users/${ owner }/gists?per_page=100&page=${ page }`, { headers } );
+        if ( !response.ok ) throw new Error( `Status: ${ response.status } - ${ response.statusText }` );
+
+        const gists = await response.json();
+
+        const oldBtn = document.getElementById( 'btnLoadMoreGists' );
+        if ( oldBtn ) oldBtn.remove();
+
+        const html = gists.map( gist => {
+          const files = Object.keys( gist.files );
+          const firstFileName = files.length ? files[ 0 ] : 'gist';
+          const title = gist.description || firstFileName;
+          return `
+          <li>
+            <div class="repo-item" onclick="handleSelectGist('${ gist.id }')">
+              ${ escapeHTML( title ) }
+            </div>
+          </li>
+        `;
+        } ).join( '' );
+
+        if ( page > 1 ) repoList.insertAdjacentHTML( 'beforeend', html );
+        else repoList.innerHTML = html;
+
+        updateRecentUsers( owner );
+        const count = repoList.querySelectorAll( '.repo-item' ).length;
+        mainContent.innerHTML = `<p>Loaded ${ count } gists for ${ owner } (up to page ${ page }). Select one to view contents.</p>`;
+
+        if ( gists.length === 100 ) {
+          repoList.insertAdjacentHTML( 'beforeend', `<li id="btnLoadMoreGists" style="text-align: center; margin-top: 1rem;"><button onclick="handleFetchGists(${ page + 1 })">Load More Gists</button></li>` );
+        }
+      } catch ( error ) {
+        if ( error.message.includes( '403' ) ) {
+          error.message += ' (Rate limit exceeded. Click "⚙️ Token" to increase limit.)';
+        }
+        mainContent.innerHTML = `<p class="error">Error fetching gists: ${ error.message }</p>`;
+      }
+    };
+
+    const handleFetchStats = async ( returnHtml = false ) => {
+      const owner = ownerInput.value.trim();
+      if ( !owner ) return;
+      if ( !returnHtml ) mainContent.innerHTML = '<p>Loading statistics...</p>';
+
+      try {
+        let isRepoLevel = state.repo && navTree.style.display !== 'none' && !state.isGist;
+        let url = isRepoLevel
+          ? `https://api.github.com/repos/${ owner }/${ state.repo }`
+          : `https://api.github.com/users/${ owner }`;
+
+        const response = await fetch( url, { headers } );
+        if ( !response.ok ) throw new Error( `Status: ${ response.status } - ${ response.statusText }` );
+        const data = await response.json();
+
+        let html = `<div style="padding: 1.5rem; background: var(--secondary-bg); border: 1px solid var(--border-color); border-radius: 6px;">`;
+        if ( isRepoLevel ) {
+          html += `
+            <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+              <img src="${ data.owner.avatar_url }" style="width: 48px; height: 48px; border-radius: 50%;">
+              <h2 style="margin: 0;">Repository: <a href="${ data.html_url }" target="_blank" style="color: var(--highlight-color); text-decoration: none;">${ data.full_name }</a></h2>
+            </div>
+            ${ data.description ? `<p style="font-size: 1.1rem; color: #57606a; margin-bottom: 1.5rem;">${ escapeHTML( data.description ) }</p>` : '' }
+            <ul style="list-style: none; padding: 0; line-height: 2; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.5rem;">
+              <li>⭐ <strong>Stars:</strong> ${ data.stargazers_count }</li>
+              <li>👁️ <strong>Watchers:</strong> ${ data.watchers_count }</li>
+              <li>🔀 <strong>Forks:</strong> ${ data.forks_count }</li>
+              <li>🐛 <strong>Open Issues:</strong> ${ data.open_issues_count }</li>
+              <li>💻 <strong>Language:</strong> ${ data.language || 'N/A' }</li>
+              <li>⚖️ <strong>License:</strong> ${ data.license ? data.license.name : 'None' }</li>
+              <li>🕒 <strong>Created:</strong> ${ new Date( data.created_at ).toLocaleDateString() }</li>
+              <li>🔄 <strong>Updated:</strong> ${ new Date( data.updated_at ).toLocaleDateString() }</li>
+              <li>📦 <strong>Size:</strong> ${ ( data.size / 1024 ).toFixed( 2 ) } MB</li>
+            </ul>
+          `;
+        } else {
+          html += `
+            <div style="display: flex; gap: 1.5rem; align-items: center; margin-bottom: 1.5rem;">
+              <img src="${ data.avatar_url }" style="width: 80px; height: 80px; border-radius: 50%; box-shadow: 0 0 0 1px var(--border-color);">
+              <div>
+                <h2 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;"><a href="${ data.html_url }" target="_blank" style="color: var(--highlight-color); text-decoration: none;">${ data.name ? `${ escapeHTML( data.name ) }` : data.login }</a> <small style="color: #57606a; font-weight: normal;">(@${ data.login })</small></h2>
+                ${ data.type === 'Organization' ? '<span style="background: #eef2f5; border: 1px solid #d0d7de; font-size: 0.8rem; padding: 0.1rem 0.4rem; border-radius: 12px; margin-top: 0.25rem; display: inline-block;">Organization</span>' : '' }
+              </div>
+            </div>
+            ${ data.bio ? `<p style="font-size: 1.1rem; color: #57606a; margin-bottom: 1.5rem;">${ escapeHTML( data.bio ) }</p>` : '' }
+            <ul style="list-style: none; padding: 0; line-height: 2; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.5rem;">
+              ${ data.location ? `<li>📍 <strong>Location:</strong> ${ escapeHTML( data.location ) }</li>` : '' }
+              <li>👥 <strong>Followers:</strong> ${ data.followers }</li>
+              <li>👤 <strong>Following:</strong> ${ data.following }</li>
+              <li>📁 <strong>Public Repos:</strong> ${ data.public_repos }</li>
+              <li>📝 <strong>Public Gists:</strong> ${ data.public_gists }</li>
+              <li>🕒 <strong>Joined:</strong> ${ new Date( data.created_at ).toLocaleDateString() }</li>
+            </ul>
+          `;
+        }
+
+        html += `</div>`;
+        if ( returnHtml ) return html;
+        mainContent.innerHTML = html;
+      } catch ( error ) {
+        if ( error.message.includes( '403' ) ) {
+          error.message += ' (Rate limit exceeded. Click "⚙️ Token" to increase limit.)';
+        }
+        if ( returnHtml ) return `<p class="error">Error fetching stats: ${ error.message }</p>`;
+        mainContent.innerHTML = `<p class="error">Error fetching stats: ${ error.message }</p>`;
+      }
+    };
+
+    const handleSelectRepo = async ( repoName, autoOpenReadme = true, branch = null ) => {
+      state.repo = repoName;
+      state.branch = branch || 'main'; // Assume main initially, then fetch default branch
+      state.currentFilePath = '';
+      if ( autoOpenReadme ) updateHash();
+      mainContent.innerHTML = `<p>Loading ${ repoName }...</p>`;
+
+      try {
+        if ( !branch ) {
+          // Get default branch
+          const repoResponse = await fetch( `https://api.github.com/repos/${ state.owner }/${ state.repo }`, { headers } );
+          if ( !repoResponse.ok ) throw new Error( `Status: ${ repoResponse.status } - ${ repoResponse.statusText }` );
+          const repoData = await repoResponse.json();
+          state.branch = repoData.default_branch;
+        }
+
+        // Fetch branches
+        const branchesResponse = await fetch( `https://api.github.com/repos/${ state.owner }/${ state.repo }/branches?per_page=100`, { headers } );
+        let branchesHtml = '';
+        if ( branchesResponse.ok ) {
+          const branches = await branchesResponse.json();
+          branchesHtml = `
+            <select onchange="handleSelectRepo('${ state.repo }', true, this.value)" style="margin-left: 0.5rem; padding: 0.2rem; border-radius: 4px; max-width: 120px;">
+              ${ branches.map( b => `<option value="${ b.name }" ${ b.name === state.branch ? 'selected' : '' }>${ b.name }</option>` ).join( '' ) }
+            </select>
+          `;
+        }
+
+        // Fetch tree details recursively
+        const treeResponse = await fetch( `https://api.github.com/repos/${ state.owner }/${ state.repo }/git/trees/${ state.branch }?recursive=1`, { headers } );
+        if ( !treeResponse.ok ) throw new Error( `Status: ${ treeResponse.status } - ${ treeResponse.statusText }` );
+        const treeData = await treeResponse.json();
+
+        if ( treeData.truncated ) {
+          console.warn( 'Tree response is truncated.' );
+        }
+
+        state.tree = treeData.tree || [];
+
+        repoListContainer.style.display = 'none';
+        navTree.style.display = 'block';
+        const fileHeading = navTree.querySelector( 'h3' );
+        if ( fileHeading ) fileHeading.innerHTML = `Files ${ branchesHtml }`;
+
+        btnMainAction.textContent = '\u2190 Back to Repos';
+        btnMainAction.onclick = handleBackToRepos;
+        document.getElementById( 'btnGetOrgs' ).style.display = 'none';
+        document.getElementById( 'btnGetGists' ).style.display = 'none';
+
+        btnToggleFolders.style.display = 'inline-block';
+        btnToggleFolders.textContent = 'Expand All';
+        btnToggleFolders.dataset.expanded = 'false';
+
+        renderTree( state.tree );
+
+        const readmeFile = state.tree.find( item =>
+          item.type === 'blob' && /^readme(\.md|\.txt)?$/i.test( item.path.split( '/' ).pop() )
+        );
+
+        if ( autoOpenReadme && readmeFile ) {
+          handleSelectFile( readmeFile.path, true );
+        } else if ( autoOpenReadme ) {
+          mainContent.innerHTML = `<p>Viewing repository: <strong>${ repoName }</strong> (Branch: ${ state.branch })</p>`;
+        }
+      } catch ( error ) {
+        if ( error.message.includes( '403' ) ) {
+          error.message += ' (Rate limit exceeded. Click "⚙️ Token" to increase limit.)';
+        }
+        mainContent.innerHTML = `<p class="error">Error loading repo tree: ${ error.message }</p>`;
+      }
+    };
+
+    const handleSelectGist = async ( gistId, autoOpenFile = true ) => {
+      state.repo = gistId;
+      state.branch = '';
+      state.isGist = true;
+      state.currentFilePath = '';
+      if ( autoOpenFile ) updateHash();
+      mainContent.innerHTML = `<p>Loading gist...</p>`;
+
+      try {
+        const response = await fetch( `https://api.github.com/gists/${ gistId }`, { headers } );
+        if ( !response.ok ) throw new Error( `Status: ${ response.status } - ${ response.statusText }` );
+
+        const gist = await response.json();
+
+        state.tree = Object.keys( gist.files ).map( filename => ( {
+          path: filename,
+          type: 'blob',
+          url: gist.files[ filename ].raw_url,
+          fileNode: gist.files[ filename ]
+        } ) );
+
+        repoListContainer.style.display = 'none';
+        navTree.style.display = 'block';
+
+        btnMainAction.textContent = '\u2190 Back to Gists';
+        btnMainAction.onclick = handleBackToRepos;
+        document.getElementById( 'btnGetOrgs' ).style.display = 'none';
+        document.getElementById( 'btnGetGists' ).style.display = 'none';
+
+        treeList.innerHTML = '';
+        renderTree( state.tree );
+
+        const firstFile = state.tree[ 0 ];
+        if ( autoOpenFile && firstFile ) {
+          handleSelectFile( firstFile.path, true );
+        }
+      } catch ( error ) {
+        if ( error.message.includes( '403' ) ) {
+          error.message += ' (Rate limit exceeded. Click "⚙️ Token" to increase limit.)';
+        }
+        mainContent.innerHTML = `<p class="error">Error loading gist: ${ error.message }</p>`;
+      }
+    };
+
+    const toggleFileView = ( view ) => {
+      const viewRendered = document.getElementById( 'viewRendered' );
+      const viewRaw = document.getElementById( 'viewRaw' );
+      const btnRendered = document.getElementById( 'btnRendered' );
+      const btnRaw = document.getElementById( 'btnRaw' );
+
+      if ( view === 'raw' ) {
+        if ( viewRendered ) viewRendered.style.display = 'none';
+        if ( viewRaw ) viewRaw.style.display = 'block';
+        if ( btnRendered ) btnRendered.style.opacity = '0.5';
+        if ( btnRaw ) btnRaw.style.opacity = '1';
+      } else {
+        if ( viewRendered ) viewRendered.style.display = 'block';
+        if ( viewRaw ) viewRaw.style.display = 'none';
+        if ( btnRendered ) btnRendered.style.opacity = '1';
+        if ( btnRaw ) btnRaw.style.opacity = '0.5';
+      }
+    };
+
+    const handleSelectFile = async ( path, doUpdateHash = true ) => {
+      state.currentFilePath = path;
+      if ( doUpdateHash ) updateHash();
+      mainContent.innerHTML = `<p>Loading file: ${ path }...</p>`;
+      try {
+        const fileNode = state.tree.find( item => item.path === path );
+        const url = ( state.isGist && fileNode?.url )
+          ? fileNode.url
+          : `https://raw.githubusercontent.com/${ state.owner }/${ state.repo }/${ state.branch }/${ path }`;
+        const ext = path.split( '.' ).pop().toLowerCase();
+
+        const githubLink = state.isGist
+          ? `https://gist.github.com/${ state.owner }/${ state.repo }#file-${ path.replace( /\./g, '-' ) }`
+          : `https://github.com/${ state.owner }/${ state.repo }/blob/${ state.branch }/${ path }`;
+
+        let headerHtml = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color);">
+              <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <span style="opacity: 0.7; font-weight: normal;">${ state.repo } /</span> ${ path }
+                <a href="${ githubLink }" target="_blank" title="View Source on GitHub" style="color: var(--text-color); text-decoration: none; opacity: 0.7; font-size: 1rem; display: flex; align-items: center;">
+                <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
+                </svg>
+              </a>
+            </h3>
+            <div id="fileViewToggles" style="display: none;">
+              <button id="btnRendered" onclick="toggleFileView('rendered')" style="padding: 0.25rem 0.5rem; font-size: 0.85rem;">Rendered</button>
+              <button id="btnRaw" onclick="toggleFileView('raw')" style="padding: 0.25rem 0.5rem; font-size: 0.85rem; opacity: 0.5;">Raw</button>
+            </div>
+          </div>
+        `;
+        let renderedHtml = '';
+        let rawHtml = '';
+        let showToggles = false;
+
+        // Images
+        if ( [ 'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'ico' ].includes( ext ) ) {
+          renderedHtml = `<img src="${ url }" style="max-width: 100%; border: 1px solid var(--border-color); border-radius: 4px;" alt="${ path }">`;
+          if ( ext === 'svg' ) {
+            const response = await fetch( url );
+            const text = await response.text();
+            rawHtml = `<pre><code>${ escapeHTML( text ) }</code></pre>`;
+            showToggles = true;
+          }
+
+          // Audio
+        } else if ( [ 'mp3', 'wav', 'ogg' ].includes( ext ) ) {
+          renderedHtml = `<audio controls src="${ url }" style="width: 100%; margin-top: 1rem;"></audio>`;
+
+          // Video
+        } else if ( [ 'mp4', 'webm' ].includes( ext ) ) {
+          renderedHtml = `<video controls src="${ url }" style="max-width: 100%; border: 1px solid var(--border-color); border-radius: 4px;"></video>`;
+
+          // PDF
+        } else if ( ext === 'pdf' ) {
+          const docUrl = `https://docs.google.com/viewer?url=${ encodeURIComponent( url ) }&embedded=true`;
+          renderedHtml = `<iframe src="${ docUrl }" style="width: 100%; height: 80vh; border: 1px solid var(--border-color); border-radius: 4px;"></iframe>`;
+
+          // Text-based and code files
+        } else {
+          const response = await fetch( url );
+          if ( !response.ok ) throw new Error( `Failed to load file content.` );
+          const text = await response.text();
+
+          rawHtml = `<pre><code>${ escapeHTML( text ) }</code></pre>`;
+
+          // Render Markdown using GitHub's API
+          if ( ext === 'md' ) {
+            const mdResponse = await fetch( 'https://api.github.com/markdown', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...headers
+              },
+              body: JSON.stringify( { text, mode: 'gfm', context: `${ state.owner }/${ state.repo }` } )
+            } );
+
+            if ( mdResponse.ok ) {
+              const htmlFromMd = await mdResponse.text();
+              renderedHtml = `<div style="padding: 1.5rem; background: var(--secondary-bg); border: 1px solid var(--border-color); border-radius: 4px; line-height: 1.5; overflow-x: auto;">${ htmlFromMd }</div>`;
+              showToggles = true;
+            } else {
+              console.error( 'Markdown render failed:', mdResponse.status );
+              renderedHtml = `<div style="padding: 0.5rem; margin-bottom: 0.5rem; background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; border-radius: 4px;">⚠️ Failed to render Markdown (GitHub API Status: ${ mdResponse.status }). Showing raw text.</div>` + rawHtml;
+            }
+
+            // Render HTML inside a sandboxed blob URL iframe
+          } else if ( [ 'html', 'htm' ].includes( ext ) ) {
+            const blob = new Blob( [ text ], { type: 'text/html' } );
+            const blobUrl = URL.createObjectURL( blob );
+            renderedHtml = `<iframe src="${ blobUrl }" sandbox="allow-scripts" style="width: 100%; height: 80vh; border: 1px solid var(--border-color); border-radius: 4px; background: white;"></iframe>`;
+            showToggles = true;
+
+            // Fallback to raw code formatting only
+          } else {
+            renderedHtml = rawHtml;
+            // No toggles needed for standard text/code
+          }
+        }
+
+        mainContent.innerHTML = `
+          ${ headerHtml }
+          <div id="viewRendered" style="display: block;">${ renderedHtml }</div>
+          ${ rawHtml ? `<div id="viewRaw" style="display: none;">${ rawHtml }</div>` : '' }
+        `;
+
+        if ( showToggles ) {
+          const toggleGroup = document.getElementById( 'fileViewToggles' );
+          toggleGroup.style.display = 'flex';
+          toggleGroup.style.gap = '0.5rem';
+        }
+
+        // Intercept relative markdown links
+        if ( ext === 'md' && !state.isGist ) {
+          const renderedView = document.getElementById( 'viewRendered' );
+          renderedView.querySelectorAll( 'a' ).forEach( a => {
+            const href = a.getAttribute( 'href' );
+            if ( href ) {
+              const prefix = `https://github.com/${ state.owner }/${ state.repo }/blob/`;
+              if ( href.startsWith( prefix ) ) {
+                a.onclick = ( e ) => {
+                  e.preventDefault();
+                  let p = href.substring( prefix.length );
+                  if ( p.startsWith( state.branch + '/' ) ) {
+                    p = p.substring( state.branch.length + 1 );
+                  } else {
+                    const slash = p.indexOf( '/' );
+                    if ( slash !== -1 ) p = p.substring( slash + 1 );
+                  }
+                  handleSelectFile( decodeURIComponent( p ) );
+                };
+              } else if ( !href.startsWith( '#' ) ) {
+                a.target = '_blank';
+              }
+            }
+          } );
+        }
+      } catch ( error ) {
+        mainContent.innerHTML = `<p class="error">Error: ${ error.message }</p>`;
+      }
+    };
+
+    const handleDiscover = () => {
+      // Hide sidebar elements and clear owner input
+      repoListContainer.style.display = 'none';
+      navTree.style.display = 'none';
+      btnToggleFolders.style.display = 'none';
+      document.getElementById( 'btnGetOrgs' ).style.display = 'none';
+      document.getElementById( 'btnGetGists' ).style.display = 'none';
+
+      // Update Back button to return to the normal app flow
+      btnMainAction.textContent = '\u2190 Back to Search';
+      btnMainAction.onclick = () => {
+        resetMainAction();
+        if ( ownerInput.value.trim() ) handleFetchRepos();
+        else { repoListContainer.style.display = 'block'; mainContent.innerHTML = ''; }
+      };
+
+      // Categories to pre-seed the UI
+      const curatedUsers = {
+        "Creative Coding & 3D": [ 'mrdoob', 'pmndrs', 'greggman', 'd3', 'playcanvas' ],
+        "Massive Orgs": [ 'microsoft', 'google', 'nasa', 'vercel', 'freeCodeCamp' ],
+        "Prolific Devs": [ 'sindresorhus', 'tj', 'torvalds', 'ruanyf', 'gaearon' ]
+      };
+
+      let listsHtml = '';
+      for ( const [ category, users ] of Object.entries( curatedUsers ) ) {
+        listsHtml += `
+          <div style="margin-bottom: 1.5rem;">
+            <h4 style="margin: 0 0 0.5rem 0; border-bottom: 1px solid var(--border-color); padding-bottom: 0.25rem;">${ category }</h4>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              ${ users.map( u => `<button onclick="ownerInput.value='${ u }'; handleFetchRepos()" style="background: var(--hover-bg); color: var(--highlight-color); border: 1px solid var(--border-color);">${ u }</button>` ).join( '' ) }
+            </div>
+          </div>
+        `;
+      }
+
+      mainContent.innerHTML = `
+        <div style="padding: 1.5rem; background: var(--secondary-bg); border: 1px solid var(--border-color); border-radius: 6px; max-width: 800px; margin: 0 auto; line-height: 1.6;">
+          <h2 style="margin-top: 0; display: flex; align-items: center; gap: 0.5rem;">🌍 Discover Interesting Accounts</h2>
+          <p style="color: #57606a;">Not sure who to look up? Try one of the methods below to explore GitHub.</p>
+
+          <div style="margin-top: 2rem;">
+            <h3 style="margin-bottom: 1rem;">🎲 Roll the Dice</h3>
+            <button onclick="handleRandomUser()" style="font-size: 1.1rem; padding: 0.75rem 1.5rem; background: var(--text-color);">Surprise Me (Random User)</button>
+            <p style="font-size: 0.9rem; color: #57606a; margin-top: 0.5rem;">Fetches a completely random account ID from GitHub's database of users.</p>
+          </div>
+
+          <div style="margin-top: 2rem;">
+            <h3 style="margin-bottom: 1rem;">⭐ Curated Suggestions</h3>
+            ${ listsHtml }
+          </div>
+
+          <div style="margin-top: 2rem;">
+            <h3 style="margin-bottom: 1rem;">🔥 API Search</h3>
+            <button onclick="handleSearchTopUsers()" style="background: var(--hover-bg); color: var(--text-color); border: 1px solid var(--border-color);">Fetch Top Followed Global Users</button>
+          </div>
+        </div>
+      `;
+    };
+
+    const handleRandomUser = async () => {
+      mainContent.innerHTML = '<p>Loading a random user...</p>';
+      const randomId = Math.floor( Math.random() * 100000000 ) + 1; // GitHub has > 100M users
+      try {
+        const response = await fetch( `https://api.github.com/user/${ randomId }`, { headers } );
+        if ( response.ok ) {
+          const data = await response.json();
+          if ( data.login ) {
+            ownerInput.value = data.login;
+            handleFetchRepos();
+          } else {
+            handleRandomUser(); // Recursive retry if payload lacks a proper login
+          }
+        } else {
+          handleRandomUser(); // Recursive retry for 404s on deleted accounts
+        }
+      } catch ( error ) {
+        mainContent.innerHTML = `<p class="error">Error: ${ error.message }</p>`;
+      }
+    };
+
+    const handleSearchTopUsers = async () => {
+      mainContent.innerHTML = '<p>Searching GitHub for the most followed accounts...</p>';
+      try {
+        const response = await fetch( 'https://api.github.com/search/users?q=followers:>20000&sort=followers&order=desc&per_page=30', { headers } );
+        if ( !response.ok ) throw new Error( `HTTP ${ response.status }` );
+        const data = await response.json();
+
+        let html = '<h3 style="margin-top: 0;">Top Followed Global Users</h3><div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">';
+        data.items.forEach( user => {
+          html += `
+            <div style="background: var(--secondary-bg); border: 1px solid var(--border-color); padding: 1rem; border-radius: 6px; text-align: center; cursor: pointer; transition: background 0.2s;"
+                 onclick="ownerInput.value='${ user.login }'; handleFetchRepos();" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='var(--secondary-bg)'">
+              <img src="${ user.avatar_url }" style="width: 64px; height: 64px; border-radius: 50%; margin-bottom: 0.5rem; border: 1px solid var(--border-color);">
+              <div style="font-weight: bold; color: var(--highlight-color); font-size: 1.1rem;">${ user.login }</div>
+            </div>
+          `;
+        } );
+        html += '</div>';
+
+        mainContent.innerHTML = `<div style="padding: 1rem;">${ html }</div>`;
+      } catch ( error ) {
+        mainContent.innerHTML = `<p class="error">Error searching users: ${ error.message }</p>`;
+      }
+    };
+
+    const handleBackToRepos = () => {
+      state.repo = '';
+      state.currentFilePath = '';
+      updateHash();
+      repoListContainer.style.display = 'block';
+      navTree.style.display = 'none';
+      resetMainAction();
+      btnToggleFolders.style.display = 'none';
+      mainContent.innerHTML = '<p>Select a repository.</p>';
+    };
+
+    // --- Renderers ---
+    const renderRepos = ( repos, append = false ) => {
+      const html = repos.map( repo => `
+        <li>
+          <div class="repo-item" onclick="handleSelectRepo('${ repo.name }')">
+            ${ repo.name }
+          </div>
+        </li>
+      `).join( '' );
+      if ( append ) repoList.insertAdjacentHTML( 'beforeend', html );
+      else repoList.innerHTML = html;
+    };
+
+    const toggleAllFolders = () => {
+      const isExpanded = btnToggleFolders.dataset.expanded === 'true';
+      const expand = !isExpanded;
+
+      btnToggleFolders.dataset.expanded = expand.toString();
+      btnToggleFolders.textContent = expand ? 'Collapse All' : 'Expand All';
+
+      const details = document.querySelectorAll( '#treeList details' );
+      details.forEach( d => {
+        if ( expand ) d.setAttribute( 'open', '' );
+        else d.removeAttribute( 'open' );
+      } );
+    };
+
+    const renderTree = ( tree ) => {
+      // Build hierarchical structure from flat paths
+      const root = {};
+      tree.forEach( item => {
+        const parts = item.path.split( '/' );
+        let current = root;
+        parts.forEach( ( part, index ) => {
+          if ( !current[ part ] ) {
+            // Implicit folder or explicit file/folder
+            current[ part ] = {
+              _item: index === parts.length - 1 ? item : { type: 'tree', path: parts.slice( 0, index + 1 ).join( '/' ) },
+              _children: {}
+            };
+          }
+          current = current[ part ]._children;
+        } );
+      } );
+
+      // Recursively generate HTML using <details> for folders
+      const buildHtml = ( node ) => {
+        return Object.keys( node ).sort().map( key => {
+          const childNode = node[ key ];
+          const item = childNode._item;
+          const isFolder = item.type === 'tree';
+
+          if ( isFolder ) {
+            return `
+              <details>
+                <summary class="tree-folder">📁 ${ key }</summary>
+                <div class="tree-children">
+                  ${ buildHtml( childNode._children ) }
+                </div>
+              </details>
+            `;
+          } else {
+            return `
+              <div class="tree-item" onclick="handleSelectFile('${ item.path }')">
+                📄 ${ key }
+              </div>
+            `;
+          }
+        } ).join( '' );
+      };
+
+      treeList.innerHTML = buildHtml( root );
+    };
+
+    // --- Utilities ---
+    const filterList = () => {
+      const filter = document.getElementById( 'filterInput' ).value.toLowerCase();
+      const items = document.querySelectorAll( '#repoList li' );
+      items.forEach( item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes( filter ) ? '' : 'none';
+      } );
+    };
+
+    const escapeHTML = ( str ) => {
+      return str.replace( /[&<>'"]/g,
+        tag => ( {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[ tag ] )
+      );
+    };
+
+    // --- Routing ---
+    const updateHash = () => {
+      if ( state.isGist ) {
+        history.replaceState( null, '', `#gist/${ state.repo }${ state.currentFilePath ? '/' + state.currentFilePath : '' }` );
+        return;
+      }
+      let hash = `#${ state.owner }`;
+      if ( state.repo ) {
+        hash += `/${ state.repo }`;
+        if ( state.currentFilePath ) {
+          hash += `/${ state.currentFilePath }`;
+        }
+      }
+      if ( location.hash !== hash ) {
+        history.pushState( null, '', hash );
+      }
+    };
+
+    const handleHashChange = async ( event ) => {
+      const hash = location.hash.replace( /^#\/?/, '' );
+      if ( !hash ) {
+        handleFetchRepos();
+        return;
+      }
+      const parts = hash.split( '/' );
+
+      if ( parts[ 0 ] === 'gist' ) {
+        const gistId = parts[ 1 ];
+        const fp = parts.slice( 2 ).join( '/' );
+        if ( gistId && state.repo !== gistId ) {
+          await handleSelectGist( gistId, !fp );
+        }
+        if ( fp && state.currentFilePath !== fp ) {
+          await handleSelectFile( fp, false );
+        }
+        return;
+      }
+
+      const owner = parts[ 0 ];
+      const repo = parts[ 1 ];
+      const fp = parts.slice( 2 ).join( '/' );
+
+      if ( owner && owner !== state.owner ) {
+        ownerInput.value = owner;
+        await handleFetchRepos( false );
+      }
+
+      if ( repo && state.repo !== repo ) {
+        await handleSelectRepo( repo, !fp );
+      }
+
+      if ( fp && state.currentFilePath !== fp ) {
+        await handleSelectFile( fp, false );
+      }
+    };
+
+    window.addEventListener( 'popstate', handleHashChange );
+
+    // Initialize with default load
+    updateRecentUsers();
+    if ( location.hash ) {
+      handleHashChange();
+    } else {
+      handleFetchRepos();
+    }
+  </script>
+
+</body>
+
+</html>

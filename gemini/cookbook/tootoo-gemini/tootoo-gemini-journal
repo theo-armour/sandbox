@@ -1,0 +1,9 @@
+# Gemini Prompt Journal
+
+* Build a plain vanilla JavaScript single file app that runs on GitHub Pages.
+* The user enters a GitHub owner or user name.
+* The app displays a list of repositories for that user.
+* When a repository is selected, the files and folders appear in a tree view.
+* When the user clicks on a folder or file, it is opened and displayed.
+* The app should be responsive and work on both desktop and mobile devices.
+* Use the GitHub API to fetch the repositories and their contents.
