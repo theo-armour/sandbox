@@ -1,6 +1,6 @@
 # TooToo SPA Prompt
 
-Write a single-file Vanilla JavaScript SPA (HTML/CSS/JS in one `index.html` file) that serves as a fast, flexible GitHub Repository, Gist, and Organization browser. 
+Write a single-file Vanilla JavaScript SPA (HTML/CSS/JS in one `index.html` file) that serves as a fast, flexible GitHub Repository, Gist, and Organization browser.
 
 ## Hard Constraints
 - **NO build tools, frameworks, or package managers**. Write strictly in Vanilla JS (ES2020+), HTML5, and CSS3.
