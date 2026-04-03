@@ -1,6 +1,71 @@
 # Tootoo Journal
 
+
+## 2026-04-03
+
+
+***
+
+### User Stats
+
+All the items in the GitHub user profile.
+
+###  Contributions
+* GitHub style Contributions graphic
+* contributions in the last year 6,000
+
+### Achievements
+
+* Total commits 6,452
+* Pull requests 11
+* Issues opened 4
+* Code reviews 0
+* Repositories created 3
+
+### Overview
+* Public repos 31
+* Public gists 23
+* Followers146
+* Following 133
+* Total stars earned ⭐44
+* Total forks 🍴 21
+* Active last 30 days 5 repos
+
+### Organizations
+* freeflightsim
+* fgx
+* jaanga
+* opentecture
+* patterns-dev
+* absence
+
+### Top languages
+Language Repos
+* HTML 19
+* JavaScript 6
+
+### Recently updated
+Repository    Updated
+sandbox ⭐1   today
+pages ⭐3   3 days ago
+2026 ⭐1   6 days ago
+2025 ⭐2   9 days ago
+wikitheo  22 days ago
+
+
 ## 2026-04-02
+
+### Gemini Prompt Journal
+
+* Build a plain vanilla JavaScript single file app that runs on GitHub Pages.
+* The user enters a GitHub owner or user name.
+* The app displays a list of repositories for that user.
+* When a repository is selected, the files and folders appear in a tree view.
+* When the user clicks on a folder or file, it is opened and displayed.
+* The app should be responsive and work on both desktop and mobile devices.
+* Use the GitHub API to fetch the repositories and their contents.
+
+### test
 
 console.log("escapeHtml:", escapeHtml('<b>"hi"</b>') === '&lt;b&gt;&quot;hi&quot;&lt;/b&gt;' ? "PASS" : "FAIL");
 console.log("linkifyAndEscape:", linkifyAndEscape('see https://example.com ok').includes('href="https://example.com"') ? "PASS" : "FAIL");

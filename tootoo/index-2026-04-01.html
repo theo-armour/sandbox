@@ -687,7 +687,7 @@
 </head>
 
 <body>
-  <header>
+  <header title="23:33">
     <h1 id="appTitle" title="Click to reload"></h1>
     <select id="ownerSelect" title="Switch owner or organization" aria-label="Select owner or organization"></select>
     <select id="repoSelect" title="Switch repository" aria-label="Select repository"></select>
@@ -813,7 +813,7 @@
 
       if ( !ghToken ) return;
       try {
-        const response = await fetch( "https://api.github.com/user/orgs?per_page=100", {
+        const response = await fetch( `https://api.github.com/users/${ CONFIG.owner }/orgs?per_page=100`, {
           headers: { Authorization: `token ${ ghToken }` }
         } );
         if ( !response.ok ) return;
@@ -880,6 +880,7 @@
           const opt = document.createElement( "option" );
           opt.value = r.name;
           opt.dataset.branch = r.default_branch;
+          opt.dataset.hasPages = r.has_pages ? "1" : "";
           opt.textContent = r.private ? `🔒 ${ r.name }` : r.name;
           if ( r.name === CONFIG.repo ) opt.selected = true;
           repoSelect.appendChild( opt );
@@ -1558,6 +1559,12 @@
         // Auto-display the folder's README.md if it exists
         if ( folderItem?.children[ "README.md" ] ) {
           const readme = folderItem.children[ "README.md" ];
+          const readmeEl = treeEl.querySelector( `[data-path="${ CSS.escape( readme.path ) }"]` );
+          if ( readmeEl ) {
+            selectedEl?.classList.remove( "selected" );
+            selectedEl = readmeEl;
+            readmeEl.classList.add( "selected" );
+          }
           contentHeader.style.display = "flex";
           contentPath.innerHTML = buildBreadcrumbs( readme.path );
           currentFile = readme;
@@ -1624,12 +1631,15 @@
 
       try {
         const ext = item.name.split( "." ).pop().toLowerCase();
-        // Local repo uses relative paths; remote repos use GitHub URLs
-        const isLocal = CONFIG.repo === CONFIG.localRepo && CONFIG.owner === ownerSelect.options[ 0 ]?.value;
+        // Local repo uses relative paths (only works over HTTP, not file://)
+        const isLocal = location.protocol !== "file:" && CONFIG.repo === CONFIG.localRepo && CONFIG.owner === ownerSelect.options[ 0 ]?.value;
+        const hasPages = repoSelect.selectedOptions[ 0 ]?.dataset.hasPages === "1";
         // Pages URL for embeddable content (HTML, images, media); raw URL for text fetches
         const pagesUrl = isLocal
           ? basePath + item.path
-          : `https://${ CONFIG.owner }.github.io/${ CONFIG.repo }/${ item.path }`;
+          : hasPages
+            ? `https://${ CONFIG.owner }.github.io/${ CONFIG.repo }/${ item.path }`
+            : `https://raw.githubusercontent.com/${ CONFIG.owner }/${ CONFIG.repo }/${ CONFIG.branch }/${ item.path }`;
         const rawUrl = isLocal
           ? basePath + item.path
           : `https://raw.githubusercontent.com/${ CONFIG.owner }/${ CONFIG.repo }/${ CONFIG.branch }/${ item.path }`;
@@ -1686,7 +1696,7 @@
           contentBody.innerHTML = `
             <p>PDF file: <strong>${ safeName }</strong></p>
             <p><a href="${ safeRawUrl }" target="_blank">Open PDF in new tab</a></p>
-            <iframe src="${ safeRawUrl }" style="width:100%;height:600px;border:1px solid #d0d7de;border-radius:6px;"></iframe>
+            <iframe src="${ safeRawUrl }" style="width:100%;height:calc(100vh - 160px);border:1px solid #d0d7de;border-radius:6px;"></iframe>
           `;
         } else if ( [ "xlsx", "xls" ].includes( ext ) ) {
           contentBody.innerHTML = `
@@ -1694,8 +1704,8 @@
             <p><a href="${ safeRawUrl }" target="_blank">Download ${ safeName }</a></p>
           `;
         } else {
-          // Fetch text content via GitHub Pages URL
-          const response = await fetch( pagesUrl );
+          // Fetch text content via raw URL (has CORS headers, unlike github.io)
+          const response = await fetch( rawUrl );
           if ( !response.ok ) throw new Error( `HTTP ${ response.status }` );
           const text = await response.text();
 
@@ -2053,17 +2063,18 @@
       }
 
       if ( !current.isDir ) {
-        // Expand parent folders one at a time (triggers accordion)
+        // Expand parent folders using toggleFolder (enforces accordion)
         const ancestors = path.split( "/" ).slice( 0, -1 );
         let folderPath = "";
+        let folderNode = treeData;
         for ( const seg of ancestors ) {
           folderPath = folderPath ? folderPath + "/" + seg : seg;
+          folderNode = folderNode.children?.[ seg ];
+          if ( !folderNode ) break;
           const folderEl = treeEl.querySelector( `[data-path="${ CSS.escape( folderPath ) }"]` );
           const childrenEl = folderEl?.nextElementSibling;
           if ( folderEl && childrenEl?.classList.contains( "tree-children" ) && !childrenEl.classList.contains( "expanded" ) ) {
-            childrenEl.classList.add( "expanded" );
-            folderEl.querySelector( ".icon" )?.classList.add( "open" );
-            folderEl.setAttribute( "aria-expanded", "true" );
+            toggleFolder( folderEl, childrenEl, folderNode );
           }
         }
 
