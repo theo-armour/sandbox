@@ -16,6 +16,15 @@ It runs on GitHub Pages at `theo-armour.github.io/sandbox/tootoo/tootoo-lt/`.
 **For a targeted fix**: Feed this prompt plus the current `tootoo-lt.html`:
 > "Here is my current app [paste tootoo-lt.html]. Using this spec [paste this file], fix the markdown rendering."
 
+## Relationship to Full TooToo
+
+TooToo LT is a subset of the full TooToo GitHub browser (`tootoo/index.html`). The tree rendering, file viewer, keyboard navigation, CSS theming, and resizable sidebar are the same — LT simply removes the multi-repo browsing layer.
+
+- **Full TooToo source**: `tootoo/index.html` (~1500 lines)
+- **Full TooToo prompts**: `tootoo/prompt/prompt-*.md` (architecture, API, file viewer, navigation, discover)
+
+**Tip**: For best results, attach the full `tootoo/index.html` alongside this prompt so the LLM can extract the tree, file viewer, and CSS code directly rather than reimplementing from spec.
+
 ## What Is Omitted (vs full TooToo)
 
 These features from the full TooToo `index.html` are **not included** in LT:
