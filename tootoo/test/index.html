@@ -816,7 +816,7 @@
             }
           }
 
-            html += languagesHtml;
+          html += languagesHtml;
         } else {
           // Fetch additional data in parallel: orgs + repos + contributions (GraphQL, token-only)
           const contributionsQuery = ghToken ? fetch( 'https://api.github.com/graphql', {
@@ -1645,11 +1645,10 @@
     // ── Init ──────────────────────────────────────────────────────────────────
 
     ownerInput.value = CONFIG.owner;
+    state.owner = CONFIG.owner;
     updateRecentUsers();
     if ( location.hash ) {
       handleHashChange();
-    } else if ( CONFIG.repo ) {
-      handleSelectRepo( CONFIG.repo, true, CONFIG.branch || null );
     } else {
       handleFetchRepos();
     }
