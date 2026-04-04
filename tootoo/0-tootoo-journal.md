@@ -3,7 +3,23 @@
 
 ## 2026-04-03
 
+### Repository Stats
+Files 407
+Folders 104
+Total size 7.5 MB
 
+### Files by type
+Extension Count Size
+.md       170   393.5 KB
+.html     134   1.9 MB
+.js       22    71.8 KB
+.py       15    39.6 KB
+
+### Largest files
+AI_Fluency_vocabulary_cheat_sheet.pdf            1.4 MB
+Untitled       1.2 MB
+Untitled (1)   1.2 MB
+code-clean.jpg 213.8 KB
 ***
 
 ### User Stats

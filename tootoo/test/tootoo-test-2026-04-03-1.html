@@ -743,8 +743,80 @@
               <li>📦 <strong>Size:</strong> ${ ( data.size / 1024 ).toFixed( 2 ) } MB</li>
               ${ data.homepage ? `<li>🌐 <strong>Website:</strong> <a href="${ data.homepage.startsWith( 'http' ) ? escapeAttribute( data.homepage ) : 'http://' + escapeAttribute( data.homepage ) }" target="_blank" style="color: var(--highlight-color); text-decoration: none;">${ escapeHTML( data.homepage ) }</a></li>` : '' }
               <li>📄 <strong>Pages:</strong> ${ data.has_pages ? 'Enabled' : 'Disabled' }</li>
-            </ul>
-            ${ languagesHtml }`;
+            </ul>`;
+
+          // ── Repository Stats from tree data ──
+          if ( state.tree.length ) {
+            const blobs = state.tree.filter( i => i.type === 'blob' );
+            const folders = state.tree.filter( i => i.type === 'tree' );
+            const totalSize = blobs.reduce( ( s, f ) => s + ( f.size || 0 ), 0 );
+
+            html += `
+              <h3 style="margin: 1.5rem 0 0.5rem 0; font-size: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.25rem;">Repository Stats</h3>
+              <ul style="list-style: none; padding: 0; line-height: 2;">
+                <li>📄 <strong>Files:</strong> ${ blobs.length.toLocaleString() }</li>
+                <li>📁 <strong>Folders:</strong> ${ folders.length.toLocaleString() }</li>
+                <li>📦 <strong>Total Size:</strong> ${ formatFileSize( totalSize ) }</li>
+              </ul>`;
+
+            // Files by type
+            const extMap = {};
+            blobs.forEach( f => {
+              const parts = f.path.split( '.' );
+              const ext = parts.length > 1 ? '.' + parts.pop().toLowerCase() : '(no ext)';
+              if ( !extMap[ ext ] ) extMap[ ext ] = { count: 0, size: 0 };
+              extMap[ ext ].count++;
+              extMap[ ext ].size += f.size || 0;
+            } );
+            const extEntries = Object.entries( extMap ).sort( ( a, b ) => b[ 1 ].count - a[ 1 ].count );
+
+            if ( extEntries.length ) {
+              html += `
+                <h3 style="margin: 1.5rem 0 0.5rem 0; font-size: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.25rem;">Files by Type</h3>
+                <table style="border-collapse: collapse; width: 100%; max-width: 500px; font-size: 0.95rem;">
+                  <thead><tr style="border-bottom: 1px solid var(--border-color); text-align: left;">
+                    <th style="padding: 0.3rem 0.5rem;">Extension</th>
+                    <th style="padding: 0.3rem 0.5rem; text-align: right;">Count</th>
+                    <th style="padding: 0.3rem 0.5rem; text-align: right;">Size</th>
+                  </tr></thead>
+                  <tbody>
+                    ${ extEntries.map( ( [ ext, info ] ) =>
+                `<tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 0.3rem 0.5rem; font-family: monospace;">${ escapeHTML( ext ) }</td>
+                        <td style="padding: 0.3rem 0.5rem; text-align: right;">${ info.count }</td>
+                        <td style="padding: 0.3rem 0.5rem; text-align: right;">${ formatFileSize( info.size ) }</td>
+                      </tr>` ).join( '' ) }
+                  </tbody>
+                </table>`;
+            }
+
+            // Largest files (top 10)
+            const largest = [ ...blobs ].filter( f => f.size > 0 ).sort( ( a, b ) => b.size - a.size ).slice( 0, 10 );
+            if ( largest.length ) {
+              html += `
+                <h3 style="margin: 1.5rem 0 0.5rem 0; font-size: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.25rem;">Largest Files</h3>
+                <table style="border-collapse: collapse; width: 100%; max-width: 600px; font-size: 0.95rem;">
+                  <thead><tr style="border-bottom: 1px solid var(--border-color); text-align: left;">
+                    <th style="padding: 0.3rem 0.5rem;">File</th>
+                    <th style="padding: 0.3rem 0.5rem; text-align: right;">Size</th>
+                  </tr></thead>
+                  <tbody>
+                    ${ largest.map( f => {
+                const name = f.path.split( '/' ).pop();
+                return `<tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 0.3rem 0.5rem;">
+                          <span style="color: var(--highlight-color); cursor: pointer;" onclick="handleSelectFile('${ escapeAttribute( f.path ) }')">${ escapeHTML( name ) }</span>
+                          <span style="font-size: 0.8rem; color: #57606a; margin-left: 0.5rem;">${ escapeHTML( f.path.includes( '/' ) ? f.path.substring( 0, f.path.lastIndexOf( '/' ) ) : '' ) }</span>
+                        </td>
+                        <td style="padding: 0.3rem 0.5rem; text-align: right; white-space: nowrap;">${ formatFileSize( f.size ) }</td>
+                      </tr>`;
+              } ).join( '' ) }
+                  </tbody>
+                </table>`;
+            }
+          }
+
+            html += languagesHtml;
         } else {
           // Fetch additional data in parallel: orgs + repos + contributions (GraphQL, token-only)
           const contributionsQuery = ghToken ? fetch( 'https://api.github.com/graphql', {
