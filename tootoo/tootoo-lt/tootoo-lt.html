@@ -93,13 +93,15 @@
     }
 
     .resizer {
-      width: 8px;
+      width: 12px;
       cursor: col-resize;
       background-color: var(--border-color);
       flex-shrink: 0;
       z-index: 10;
       transition: background-color 0.2s;
       touch-action: none;
+      border-left: 1px solid var(--hover-bg);
+      border-right: 1px solid var(--hover-bg);
     }
 
     .resizer:hover,
