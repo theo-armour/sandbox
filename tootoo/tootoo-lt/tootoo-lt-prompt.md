@@ -197,8 +197,10 @@ No branch selector dropdown — LT always uses the default branch (or the branch
 
 ### Fetching File Content
 
-- **With token** (private repos): `https://api.github.com/repos/{owner}/{repo}/contents/{path}?ref={branch}` with `Accept: application/vnd.github.raw+json` header
-- **Without token** (public repos): `https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}`
+- **Local mode** (`file://`, `localhost`, `127.0.0.1`): detected via `isLocal` flag; file content fetched from `./{path}` (relative to `index.html`); auth headers and blob-fetch logic skipped even if a token is saved; tree still loads from GitHub API
+- **With token** (private repos, remote): `https://api.github.com/repos/{owner}/{repo}/contents/{path}?ref={branch}` with `Accept: application/vnd.github.raw+json` header
+- **Without token** (public repos, remote): `https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}`
+- Media files (images, audio, video, PDF) use blob-fetch only when `ghToken && !isLocal`; locally they use direct relative URLs
 - The full fetch options (including `Authorization` header and abort signal) are passed to `loadFileContent()`
 - Large files (>1MB): show a `window.confirm()` dialog before loading
 - Approved large files tracked in an in-memory `Set` (per session)

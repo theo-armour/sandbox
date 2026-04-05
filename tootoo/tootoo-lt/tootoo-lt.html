@@ -369,6 +369,7 @@
 
     const ghToken = localStorage.getItem( 'githubToken' ) || '';
     const headers = ghToken ? { Authorization: `token ${ ghToken }` } : {};
+    const isLocal = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
     const LARGE_FILE_WARNING_BYTES = 1024 * 1024;
     const approvedLargeFiles = new Set();
 
@@ -588,7 +589,7 @@
       let showToggles = false;
 
       if ( [ 'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'ico' ].includes( ext ) ) {
-        if ( ghToken ) {
+        if ( ghToken && !isLocal ) {
           const mimeMap = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml', ico: 'image/x-icon' };
           const imgOpts = { headers: { ...headers, Accept: 'application/vnd.github.raw+json' } };
           if ( fetchOpts.signal ) imgOpts.signal = fetchOpts.signal;
@@ -606,7 +607,7 @@
           showToggles = true;
         }
       } else if ( [ 'mp3', 'wav', 'ogg' ].includes( ext ) ) {
-        if ( ghToken ) {
+        if ( ghToken && !isLocal ) {
           const mimeMap = { mp3: 'audio/mpeg', wav: 'audio/wav', ogg: 'audio/ogg' };
           const audioOpts = { headers: { ...headers, Accept: 'application/vnd.github.raw+json' } };
           if ( fetchOpts.signal ) audioOpts.signal = fetchOpts.signal;
@@ -619,7 +620,7 @@
           renderedHtml = `<audio controls src="${ escapeAttribute( url ) }" style="width: 100%; margin-top: 1rem;"></audio>`;
         }
       } else if ( [ 'mp4', 'webm' ].includes( ext ) ) {
-        if ( ghToken ) {
+        if ( ghToken && !isLocal ) {
           const mimeMap = { mp4: 'video/mp4', webm: 'video/webm' };
           const videoOpts = { headers: { ...headers, Accept: 'application/vnd.github.raw+json' } };
           if ( fetchOpts.signal ) videoOpts.signal = fetchOpts.signal;
@@ -632,7 +633,7 @@
           renderedHtml = `<video controls src="${ escapeAttribute( url ) }" class="media-content"></video>`;
         }
       } else if ( ext === 'pdf' ) {
-        if ( ghToken ) {
+        if ( ghToken && !isLocal ) {
           const pdfOpts = { headers: { ...headers, Accept: 'application/vnd.github.raw+json' } };
           if ( fetchOpts.signal ) pdfOpts.signal = fetchOpts.signal;
           const resp = await fetch( url, pdfOpts );
@@ -715,10 +716,12 @@
         mainContent.innerHTML = `<p>Loading file: ${ escapeHTML( path ) }...</p>`;
 
         const options = getFetchOptions( true );
-        const url = ghToken
-          ? `https://api.github.com/repos/${ state.owner }/${ state.repo }/contents/${ path }?ref=${ state.branch }`
-          : `https://raw.githubusercontent.com/${ state.owner }/${ state.repo }/${ state.branch }/${ path }`;
-        if ( ghToken ) options.headers = { ...headers, Accept: 'application/vnd.github.raw+json' };
+        const url = isLocal
+          ? `./${ path }`
+          : ghToken
+            ? `https://api.github.com/repos/${ state.owner }/${ state.repo }/contents/${ path }?ref=${ state.branch }`
+            : `https://raw.githubusercontent.com/${ state.owner }/${ state.repo }/${ state.branch }/${ path }`;
+        if ( !isLocal && ghToken ) options.headers = { ...headers, Accept: 'application/vnd.github.raw+json' };
         const ext = path.split( '.' ).pop().toLowerCase();
 
         const githubLink = `https://github.com/${ state.owner }/${ state.repo }/blob/${ state.branch }/${ path }`;
