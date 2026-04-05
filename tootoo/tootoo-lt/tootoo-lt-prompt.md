@@ -4,7 +4,7 @@
 
 TooToo LT is a stripped-down, single-file HTML GitHub browser that displays the file tree and file contents for **one repository on its default branch**. It omits the full TooToo features (repo list, orgs, gists, stats, discover) to stay minimal and fast.
 
-Output: a single `tootoo-lt.html` file (~700–800 lines of HTML/CSS/JS).
+Output: a single `tootoo-lt.html` file (~900–1000 lines of HTML/CSS/JS).
 
 It runs on GitHub Pages at `theo-armour.github.io/sandbox/tootoo/tootoo-lt/`.
 
@@ -52,6 +52,7 @@ These features from the full TooToo `index.html` are **not included** in LT:
 - **Static hosting**: Must work on GitHub Pages and by opening the file locally
 - **External deps allowed**: `marked.js` (CDN) for markdown, `highlight.js` (CDN) for syntax highlighting, `DOMPurify` (CDN) for HTML sanitization, `SheetJS/xlsx` (CDN) for spreadsheet rendering
 - **Security**: All user-supplied strings escaped via `escapeHTML()` / `escapeAttribute()` before insertion into DOM
+- **Tooltips**: Every button must have a `title` attribute with a relevant tooltip
 - **Beginner-readable**: If a student can't follow it, simplify
 
 ---
@@ -61,7 +62,7 @@ These features from the full TooToo `index.html` are **not included** in LT:
 ```js
 const CONFIG = {
   owner: 'theo-armour',
-  repo: 'work',
+  repo: 'aa',
   branch: '',       // empty string = auto-detect default branch from API
 };
 ```
@@ -97,9 +98,10 @@ const state = {
 ```
 <body>
   <header>
-    Fixed title ("Theo Armour / Work", clickable to reload page)
+    Fixed title ("Theo Armour / AA", clickable to reload page)
     GitHub logo link (opens repo on GitHub)
-    Token button (right-aligned, "⚙️ Token")
+    Dark mode toggle button (🌙/☀️, right-aligned)
+    Token button ("⚙️ Token")
   </header>
 
   <main>  (flex row, fills viewport below header)
@@ -109,6 +111,7 @@ const state = {
           <h3>Files</h3>
           Expand/Collapse All button (right-aligned, hidden until tree loads)
         </div>
+        <input id="treeFilter">  (filter files by name/path)
         <div id="treeTruncatedWarning">  (hidden by default)
         <div id="treeList">
       </div>
@@ -129,14 +132,17 @@ Key differences from full TooToo:
 - **No input fields or Load button** — owner/repo are fixed in CONFIG
 - **Fixed branded title** in header instead of input fields
 - **Expand All button** is in the sidebar Files header, not the top header
-- **No action buttons** except Expand/Collapse All and Token
+- **Tree filter input** below Files heading for quick filename search
+- **Dark mode toggle** in header
+- **No action buttons** except Expand/Collapse All, Dark Mode, and Token
 
 ### CSS Architecture
 
 - CSS custom properties for theming: `--primary-bg`, `--secondary-bg`, `--text-color`, `--border-color`, `--highlight-color`, `--hover-bg`, `--font-family`
+- **Dark mode**: `body.dark-mode` class overrides all custom properties; toggled via header button; persisted to `localStorage` under `darkMode`; also swaps highlight.js theme between `github.min.css` (light) and `github-dark.min.css` (dark) via `setHljsTheme()`
 - `body` is a flex column filling `100vh`
 - `main` is a flex row filling remaining space
-- Sidebar has a CSS variable `--sidebar-width` (default 200px), updated by the drag resizer
+- Sidebar has a CSS variable `--sidebar-width` (default 300px), updated by the drag resizer
 - Content area has `min-width: 0` to allow flex shrinking
 - Both sidebar and content area scroll independently (`overflow-y: auto`)
 
@@ -147,6 +153,7 @@ Key differences from full TooToo:
 - Uses `setPointerCapture` for reliable cross-element dragging
 - Applies `user-select: none` and `cursor: col-resize` during drag
 - Visual feedback: resizer highlights blue on hover and during resize
+- **Width persisted** to `localStorage` under `sidebarWidth` and restored on load
 
 ### Event Delegation
 
@@ -220,6 +227,7 @@ When a file is selected, the content area shows:
     GitHub icon link (opens source on GitHub)
   </h3>
   <div class="file-actions">
+    "Copy" button (copies raw content to clipboard)
     "New Tab" button (opens GitHub Pages URL)
     Rendered/Raw toggle (for markdown, HTML, SVG)
   </div>
@@ -235,11 +243,11 @@ When a file is selected, the content area shows:
 | `.md` | Rendered via `marked.js` into `.markdown-body` div; raw toggle available; internal links rewritten |
 | `.html`, `.htm` | Fetched, converted to Blob URL, embedded in `<iframe sandbox="allow-scripts">`; raw toggle; "New Tab" opens GitHub Pages URL |
 | Code/text | `<pre><code>` with `highlight.js` syntax highlighting |
-| `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.svg`, `.ico` | Inline `<img>` with `max-width: 100%`; SVG also offers raw toggle |
-| `.mp3`, `.wav`, `.ogg` | HTML5 `<audio>` player |
-| `.mp4`, `.webm` | HTML5 `<video>` player |
+| `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.svg`, `.ico` | With token: fetched as blob via API, displayed via blob URL. Without token: inline `<img>`. SVG also offers raw toggle |
+| `.mp3`, `.wav`, `.ogg` | With token: fetched as blob via API, blob URL in `<audio>`. Without token: direct URL. HTML5 player |
+| `.mp4`, `.webm` | With token: fetched as blob via API, blob URL in `<video>`. Without token: direct URL. HTML5 player |
 | `.pdf` | With token: fetched as blob via API, displayed in iframe with blob URL. Without token: Google Docs Viewer in iframe |
-| `.xlsx`, `.xls`, `.csv`, `.ods` | Parsed with SheetJS (`XLSX.read`), each sheet rendered as an HTML table with sheet name heading |
+| `.xlsx`, `.xls`, `.csv`, `.ods` | Parsed with SheetJS (`XLSX.read`), each sheet rendered as an HTML table with sheet name heading; output sanitized via DOMPurify |
 | Other | `<pre>` block (plain text) |
 
 ### Markdown Link Rewriting
@@ -261,7 +269,13 @@ When a file is selected, the content area shows:
 - Repo name is a clickable link that navigates back to the repo tree root
 - Path segments shown with `/` separators
 - GitHub icon links to the file on GitHub
+- "Copy" button copies raw file content to clipboard (shows "✓ Copied" feedback for 1.5s); hidden for binary file types (images, audio, video, PDF, spreadsheets)
 - "New Tab" button opens GitHub Pages URL: `https://{owner}.github.io/{repo}/{path}`
+
+### Blob URL Management
+
+- `URL.createObjectURL()` is used for private-repo media (images, audio, video, PDF) and HTML iframe previews
+- Before loading new file content, all existing blob URLs in the content area are revoked via `URL.revokeObjectURL()` to prevent memory leaks
 
 ### Rendered ↔ Raw Toggle
 
@@ -297,11 +311,21 @@ Examples:
 ### Tree Rendering
 
 - `renderTree()` builds a nested object from flat tree paths, then generates HTML
+- **Filtered out**: folders starting with `.` (and their contents), `index.html` files
 - Folders rendered as `<details><summary>` elements (native collapsible)
 - Files rendered as `<div class="tree-item">` with `data-action="select-file"` and `data-path`
 - Folders sorted before files, then alphabetically within each group
+- **File type icons**: distinct emoji per extension (📝 md, 🟨 js, 🟦 ts, 🐍 py, 🌐 html, 🎨 css, 🖼️ images, 🎵 audio, 🎬 video, 📕 pdf, 📊 spreadsheets, ⚙️ yaml, 📦 archives, `{ }` json, 📄 default)
+- **README files bolded** in tree for visibility
 - File sizes shown right-aligned in a `.tree-item-size` span
 - Monospace font for tree items
+
+### Tree Filter
+
+- Text input (`#treeFilter`) above the tree list
+- Filters `.tree-item` elements by matching `data-path` against the query (case-insensitive)
+- Hides `<details>` folders that have no visible children
+- Auto-expands folders with matching files when query is active
 
 ### Expand All / Collapse All
 
@@ -334,14 +358,26 @@ Global `keydown` listener on `document`, active only when focus is on a `.tree-f
 
 ---
 
+## localStorage Keys
+
+| Key | Purpose |
+|-----|--------|
+| `githubToken` | GitHub Personal Access Token |
+| `darkMode` | `'true'` or `'false'` — dark mode state |
+| `sidebarWidth` | Pixel width of sidebar (number as string) |
+| `lastFilePath` | Path of last viewed file (reopened on load if no hash) |
+
+---
+
 ## Init Sequence
 
 ```
 1. Read CONFIG → set state (owner, repo, branch)
 2. Read localStorage for token → build headers object
-3. If URL hash present → parse owner/repo/filepath from hash
-4. Call loadRepo() → fetches default branch (if needed), tree, renders sidebar
-5. If filepath from hash → open that file
-6. Else → auto-open README.md
+3. Restore sidebar width from localStorage
+4. Restore dark mode from localStorage
+5. If URL hash present → parse owner/repo/filepath from hash
+6. Else if lastFilePath in localStorage → load repo then open that file
+7. Else → call loadRepo() → fetches default branch (if needed), tree, renders sidebar, auto-opens README.md
 ```
 

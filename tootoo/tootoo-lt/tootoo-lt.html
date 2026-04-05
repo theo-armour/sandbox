@@ -4,9 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Theo Armour/Work</title>
+  <title>Theo Armour/AA</title>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  <link id="hljsTheme" rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
@@ -19,6 +20,23 @@
       --highlight-color: #0969da;
       --hover-bg: #f3f4f6;
       --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    body.dark-mode {
+      --primary-bg: #0d1117;
+      --secondary-bg: #161b22;
+      --text-color: #c9d1d9;
+      --border-color: #30363d;
+      --highlight-color: #58a6ff;
+      --hover-bg: #21262d;
+    }
+
+    body.dark-mode .markdown-body {
+      color: var(--text-color);
+    }
+
+    body.dark-mode pre {
+      background-color: var(--secondary-bg);
     }
 
     body {
@@ -64,7 +82,7 @@
     }
 
     .sidebar {
-      width: var(--sidebar-width, 200px);
+      width: var(--sidebar-width, 300px);
       flex-shrink: 0;
       background-color: var(--secondary-bg);
       padding: 0.5rem 0.5rem 1rem 1rem;
@@ -254,6 +272,22 @@
       background: var(--primary-bg);
       font-weight: 600;
     }
+
+    #treeFilter {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.3rem 0.5rem;
+      font-size: 0.85rem;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background: var(--primary-bg);
+      color: var(--text-color);
+      outline: none;
+    }
+
+    #treeFilter:focus {
+      border-color: var(--highlight-color);
+    }
   </style>
 </head>
 
@@ -262,8 +296,8 @@
   <header>
     <strong style="cursor: pointer; font-size: 1.1rem;"
       onclick="history.replaceState(null, '', location.pathname + location.search); location.reload();"
-      title="Reload">Theo Armour / Work</strong>
-    <a href="https://github.com/theo-armour/work" target="_blank" rel="noopener" title="View source on GitHub"
+      title="Reload">Theo Armour / AA</strong>
+    <a href="https://github.com/theo-armour/aa" target="_blank" rel="noopener" title="View source on GitHub"
       style="display: flex; align-items: center; justify-content: center; color: var(--text-color); opacity: 0.7; padding: 0.2rem;">
       <svg height="18" width="18" viewBox="0 0 16 16" fill="currentColor">
         <path
@@ -271,8 +305,12 @@
         </path>
       </svg>
     </a>
+    <button id="btnDarkMode" onclick="toggleDarkMode()"
+      style="margin-left: auto; background: var(--secondary-bg); color: var(--text-color); border: 1px solid var(--border-color); font-size: 1.1rem; padding: 0.25rem 0.5rem;"
+      title="Toggle dark mode">🌙</button>
     <button onclick="promptForToken()"
-      style="margin-left: auto; background: var(--secondary-bg); color: var(--text-color); border: 1px solid var(--border-color);">⚙️
+      style="background: var(--secondary-bg); color: var(--text-color); border: 1px solid var(--border-color);"
+      title="Set GitHub Personal Access Token">⚙️
       Token</button>
   </header>
 
@@ -282,8 +320,10 @@
         <div style="display: flex; align-items: center; margin: 0 0 0.35rem 0;">
           <h3 style="margin: 0; font-size: 0.95rem;">Files</h3>
           <button id="btnToggleFolders" onclick="toggleAllFolders()"
-            style="display: none; margin-left: auto; font-size: 0.75rem; padding: 0.15rem 0.4rem;">Expand All</button>
+            style="display: none; margin-left: auto; font-size: 0.75rem; padding: 0.15rem 0.4rem;"
+            title="Expand or collapse all folders">Expand All</button>
         </div>
+        <input id="treeFilter" type="text" placeholder="Filter files…" oninput="filterTree()">
         <div id="treeTruncatedWarning"
           style="display:none; padding: 0.5rem; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; font-size: 0.85rem; border-radius: 4px; margin-top: 0.5rem;">
           ⚠️ Repository too large. Tree truncated.</div>
@@ -311,7 +351,7 @@
 
     const CONFIG = {
       owner: 'theo-armour',
-      repo: 'work',
+      repo: 'aa',
       branch: '',  // empty = auto-detect default branch from API
     };
 
@@ -348,6 +388,24 @@
 
     // ── Utilities ───────────────────────────────────────────────────────────
 
+    const fileIcon = name => {
+      const ext = name.split( '.' ).pop().toLowerCase();
+      if ( /^readme/i.test( name ) ) return '📝';
+      const map = {
+        md: '📝', txt: '📝',
+        json: '{ }', yml: '⚙️', yaml: '⚙️', toml: '⚙️',
+        js: '🟨', ts: '🟦', py: '🐍',
+        html: '🌐', htm: '🌐', css: '🎨',
+        png: '🖼️', jpg: '🖼️', jpeg: '🖼️', gif: '🖼️', webp: '🖼️', svg: '🖼️', ico: '🖼️',
+        mp3: '🎵', wav: '🎵', ogg: '🎵',
+        mp4: '🎬', webm: '🎬',
+        pdf: '📕',
+        xlsx: '📊', xls: '📊', csv: '📊', ods: '📊',
+        zip: '📦', gz: '📦', tar: '📦',
+      };
+      return map[ ext ] || '📄';
+    };
+
     const formatFileSize = bytes => {
       if ( bytes == null || Number.isNaN( bytes ) ) return '';
       if ( bytes < 1024 ) return `${ bytes } B`;
@@ -381,6 +439,54 @@
       }
     };
 
+    // ── Dark mode toggle ────────────────────────────────────────────────────
+
+    const setHljsTheme = isDark => {
+      document.getElementById( 'hljsTheme' ).href = isDark
+        ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css'
+        : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
+    };
+
+    const toggleDarkMode = () => {
+      const isDark = document.body.classList.toggle( 'dark-mode' );
+      localStorage.setItem( 'darkMode', isDark );
+      document.getElementById( 'btnDarkMode' ).textContent = isDark ? '☀️' : '🌙';
+      setHljsTheme( isDark );
+    };
+
+    // ── Tree filter ─────────────────────────────────────────────────────────
+
+    const filterTree = () => {
+      const query = document.getElementById( 'treeFilter' ).value.toLowerCase();
+      treeList.querySelectorAll( '.tree-item' ).forEach( item => {
+        const path = ( item.dataset.path || '' ).toLowerCase();
+        const match = !query || path.includes( query );
+        item.style.display = match ? '' : 'none';
+      } );
+      // Show folders that have visible children, hide empty ones
+      treeList.querySelectorAll( 'details' ).forEach( d => {
+        const hasVisible = d.querySelector( '.tree-item:not([style*="display: none"])' );
+        d.style.display = hasVisible ? '' : 'none';
+        if ( query && hasVisible ) d.open = true;
+      } );
+    };
+
+    // ── Copy to clipboard ───────────────────────────────────────────────────
+
+    const copyFileContent = async () => {
+      const raw = document.getElementById( 'viewRaw' );
+      const rendered = document.getElementById( 'viewRendered' );
+      const el = raw || rendered;
+      if ( !el ) return;
+      const code = el.querySelector( 'code' );
+      const text = code ? code.textContent : el.textContent;
+      try {
+        await navigator.clipboard.writeText( text );
+        const btn = document.getElementById( 'btnCopy' );
+        if ( btn ) { btn.textContent = '✓ Copied'; setTimeout( () => btn.textContent = 'Copy', 1500 ); }
+      } catch ( e ) { /* clipboard may be blocked */ }
+    };
+
     // ── Hash routing ────────────────────────────────────────────────────────
 
     const updateHash = () => {
@@ -399,7 +505,10 @@
 
       if ( !owner || !repo ) return;
 
-      if ( owner !== state.owner || repo !== state.repo ) {
+      // Always load tree if it hasn't been loaded yet
+      if ( !state.tree.length || owner !== state.owner || repo !== state.repo ) {
+        state.owner = owner;
+        state.repo = repo;
         await loadRepo( false );
       }
       if ( fp && state.currentFilePath !== fp ) {
@@ -477,16 +586,49 @@
       let showToggles = false;
 
       if ( [ 'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'ico' ].includes( ext ) ) {
-        renderedHtml = `<img src="${ escapeAttribute( url ) }" class="media-content" alt="${ escapeAttribute( path ) }">`;
+        if ( ghToken ) {
+          const mimeMap = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml', ico: 'image/x-icon' };
+          const imgOpts = { headers: { ...headers, Accept: 'application/vnd.github.raw+json' } };
+          if ( fetchOpts.signal ) imgOpts.signal = fetchOpts.signal;
+          const resp = await fetch( url, imgOpts );
+          if ( !resp.ok ) throw new Error( 'Failed to load image.' );
+          const blob = await resp.blob();
+          const blobUrl = URL.createObjectURL( new Blob( [ blob ], { type: mimeMap[ ext ] || 'application/octet-stream' } ) );
+          renderedHtml = `<img src="${ escapeAttribute( blobUrl ) }" class="media-content" alt="${ escapeAttribute( path ) }">`;
+        } else {
+          renderedHtml = `<img src="${ escapeAttribute( url ) }" class="media-content" alt="${ escapeAttribute( path ) }">`;
+        }
         if ( ext === 'svg' ) {
           const resp = await fetch( url, fetchOpts );
           rawHtml = `<pre><code>${ escapeHTML( await resp.text() ) }</code></pre>`;
           showToggles = true;
         }
       } else if ( [ 'mp3', 'wav', 'ogg' ].includes( ext ) ) {
-        renderedHtml = `<audio controls src="${ escapeAttribute( url ) }" style="width: 100%; margin-top: 1rem;"></audio>`;
+        if ( ghToken ) {
+          const mimeMap = { mp3: 'audio/mpeg', wav: 'audio/wav', ogg: 'audio/ogg' };
+          const audioOpts = { headers: { ...headers, Accept: 'application/vnd.github.raw+json' } };
+          if ( fetchOpts.signal ) audioOpts.signal = fetchOpts.signal;
+          const resp = await fetch( url, audioOpts );
+          if ( !resp.ok ) throw new Error( 'Failed to load audio.' );
+          const blob = await resp.blob();
+          const blobUrl = URL.createObjectURL( new Blob( [ blob ], { type: mimeMap[ ext ] || 'audio/mpeg' } ) );
+          renderedHtml = `<audio controls src="${ escapeAttribute( blobUrl ) }" style="width: 100%; margin-top: 1rem;"></audio>`;
+        } else {
+          renderedHtml = `<audio controls src="${ escapeAttribute( url ) }" style="width: 100%; margin-top: 1rem;"></audio>`;
+        }
       } else if ( [ 'mp4', 'webm' ].includes( ext ) ) {
-        renderedHtml = `<video controls src="${ escapeAttribute( url ) }" class="media-content"></video>`;
+        if ( ghToken ) {
+          const mimeMap = { mp4: 'video/mp4', webm: 'video/webm' };
+          const videoOpts = { headers: { ...headers, Accept: 'application/vnd.github.raw+json' } };
+          if ( fetchOpts.signal ) videoOpts.signal = fetchOpts.signal;
+          const resp = await fetch( url, videoOpts );
+          if ( !resp.ok ) throw new Error( 'Failed to load video.' );
+          const blob = await resp.blob();
+          const blobUrl = URL.createObjectURL( new Blob( [ blob ], { type: mimeMap[ ext ] || 'video/mp4' } ) );
+          renderedHtml = `<video controls src="${ escapeAttribute( blobUrl ) }" class="media-content"></video>`;
+        } else {
+          renderedHtml = `<video controls src="${ escapeAttribute( url ) }" class="media-content"></video>`;
+        }
       } else if ( ext === 'pdf' ) {
         if ( ghToken ) {
           const pdfOpts = { headers: { ...headers, Accept: 'application/vnd.github.raw+json' } };
@@ -506,7 +648,7 @@
         const buf = await resp.arrayBuffer();
         const wb = XLSX.read( buf, { type: 'array' } );
         const sheets = wb.SheetNames.map( name => {
-          const html = XLSX.utils.sheet_to_html( wb.Sheets[ name ] );
+          const html = DOMPurify.sanitize( XLSX.utils.sheet_to_html( wb.Sheets[ name ] ) );
           return `<h4 style="margin: 1rem 0 0.5rem;">${ escapeHTML( name ) }</h4>
             <div class="xlsx-sheet" style="overflow-x: auto;">${ html }</div>`;
         } );
@@ -567,6 +709,7 @@
 
         state.currentFilePath = path;
         if ( doUpdateHash ) updateHash();
+        localStorage.setItem( 'lastFilePath', path );
         mainContent.innerHTML = `<p>Loading file: ${ escapeHTML( path ) }...</p>`;
 
         const options = getFetchOptions( true );
@@ -597,13 +740,20 @@
               </a>
             </h3>
             <div class="file-actions">
+              <button onclick="copyFileContent()" id="btnCopy" class="file-btn" title="Copy to clipboard"
+                style="${ [ 'png', 'jpg', 'jpeg', 'gif', 'webp', 'ico', 'mp3', 'wav', 'ogg', 'mp4', 'webm', 'pdf', 'xlsx', 'xls', 'csv', 'ods' ].includes( ext ) ? 'display:none' : '' }">Copy</button>
               <button onclick="window.open('${ escapeAttribute( newTabUrl ) }', '_blank', 'noopener')" class="file-btn" title="Open in new tab">New Tab</button>
               <div id="fileViewToggles" class="file-actions" style="display: none;">
-                <button id="btnRendered" onclick="toggleFileView('rendered')" class="file-btn">Rendered</button>
-                <button id="btnRaw" onclick="toggleFileView('raw')" class="file-btn" style="opacity: 0.5;">Raw</button>
+                <button id="btnRendered" onclick="toggleFileView('rendered')" class="file-btn" title="Show rendered view">Rendered</button>
+                <button id="btnRaw" onclick="toggleFileView('raw')" class="file-btn" style="opacity: 0.5;" title="Show raw source">Raw</button>
               </div>
             </div>
           </div>`;
+
+        // Revoke any previous blob URLs to free memory
+        mainContent.querySelectorAll( 'iframe[src^="blob:"], img[src^="blob:"], audio[src^="blob:"], video[src^="blob:"]' ).forEach( el => {
+          URL.revokeObjectURL( el.src );
+        } );
 
         const { renderedHtml, rawHtml, showToggles } = await loadFileContent( ext, url, path, options );
 
@@ -665,6 +815,12 @@
       const root = {};
       tree.forEach( item => {
         const parts = item.path.split( '/' );
+        // Skip items inside dot-folders
+        if ( parts.some( ( p, i ) => i < parts.length - 1 && p.startsWith( '.' ) ) ) return;
+        // Skip dot-folders themselves
+        if ( item.type === 'tree' && parts[ parts.length - 1 ].startsWith( '.' ) ) return;
+        // Skip index.html files
+        if ( item.type === 'blob' && parts[ parts.length - 1 ] === 'index.html' ) return;
         let node = root;
         parts.forEach( ( part, i ) => {
           if ( !node[ part ] ) {
@@ -697,11 +853,16 @@
             </details>`;
           }
 
+          const isReadme = /^readme(\.md|\.txt)?$/i.test( key );
+          const icon = fileIcon( key );
+          const label = isReadme
+            ? `<span class="tree-item-label" style="font-weight: 600;">${ icon } ${ escapeHTML( key ) }</span>`
+            : `<span class="tree-item-label">${ icon } ${ escapeHTML( key ) }</span>`;
           const sizeLabel = item.size != null
             ? `<span class="tree-item-size">${ formatFileSize( item.size ) }</span>`
             : '';
           return `<div class="tree-item" tabindex="0" data-action="select-file" data-path="${ escapeAttribute( item.path ) }">
-            <span class="tree-item-label">📄 ${ escapeHTML( key ) }</span>
+            ${ label }
             ${ sizeLabel }
           </div>`;
         } ).join( '' );
@@ -801,7 +962,10 @@
     document.addEventListener( 'pointermove', e => {
       if ( !isResizing ) return;
       const newWidth = e.clientX - sidebar.getBoundingClientRect().left;
-      if ( newWidth > 40 ) sidebar.style.setProperty( '--sidebar-width', newWidth + 'px' );
+      if ( newWidth > 40 ) {
+        sidebar.style.setProperty( '--sidebar-width', newWidth + 'px' );
+        localStorage.setItem( 'sidebarWidth', newWidth );
+      }
     } );
 
     document.addEventListener( 'pointerup', e => {
@@ -819,7 +983,7 @@
       <div style="padding: 1.5rem; background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; border-radius: 6px; margin: 1rem;">
         <h3 style="margin-top: 0;">⚠️ ${ title }</h3>
         <p>${ escapeHTML( msg ) }</p>
-        <button onclick="location.reload()" style="margin-top: 1rem; background: #c62828; color: white;">Reload Page</button>
+        <button onclick="location.reload()" style="margin-top: 1rem; background: #c62828; color: white;" title="Reload the page">Reload Page</button>
       </div>`;
 
     window.addEventListener( 'error', event => {
@@ -839,6 +1003,17 @@
 
     // ── Init ────────────────────────────────────────────────────────────────
 
+    // Restore persisted sidebar width
+    const savedWidth = localStorage.getItem( 'sidebarWidth' );
+    if ( savedWidth ) sidebar.style.setProperty( '--sidebar-width', savedWidth + 'px' );
+
+    // Restore dark mode
+    if ( localStorage.getItem( 'darkMode' ) === 'true' ) {
+      document.body.classList.add( 'dark-mode' );
+      document.getElementById( 'btnDarkMode' ).textContent = '☀️';
+      setHljsTheme( true );
+    }
+
     state.owner = CONFIG.owner;
     state.repo = CONFIG.repo;
     state.branch = CONFIG.branch;
@@ -846,7 +1021,14 @@
     if ( location.hash ) {
       handleHashChange();
     } else {
-      loadRepo();
+      const lastFile = localStorage.getItem( 'lastFilePath' );
+      if ( lastFile ) {
+        loadRepo( false ).then( () => {
+          if ( state.tree.find( i => i.path === lastFile ) ) handleSelectFile( lastFile );
+        } );
+      } else {
+        loadRepo();
+      }
     }
   </script>
 
