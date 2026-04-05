@@ -20,9 +20,6 @@ Hosted on GitHub Pages at theo-armour.github.io/sandbox/
 ## Multi-Repo Context
 
 TooToo is a single-file `index.html` with an inline `CONFIG` object (owner, repo, branch, localRepo).
-Three copies must be kept in sync when making changes:
-- `theo-armour/sandbox` — `index.html` + `tootoo/index.html` (this repo)
-- `theo-armour/work` — `index.html` (private repo instance)
 
 Each copy differs only in its CONFIG values. Apply fixes to all three files.
 
