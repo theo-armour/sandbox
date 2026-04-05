@@ -4,7 +4,7 @@
 
 TooToo LT is a stripped-down, single-file HTML GitHub browser that displays the file tree and file contents for **one repository on its default branch**. It omits the full TooToo features (repo list, orgs, gists, stats, discover) to stay minimal and fast.
 
-Output: a single `tootoo-lt.html` file (~500–700 lines of HTML/CSS/JS).
+Output: a single `tootoo-lt.html` file (~700–800 lines of HTML/CSS/JS).
 
 It runs on GitHub Pages at `theo-armour.github.io/sandbox/tootoo/tootoo-lt/`.
 
@@ -50,7 +50,7 @@ These features from the full TooToo `index.html` are **not included** in LT:
 - **ES2020+ features**: `const`/`let` (no `var`), arrow functions, template literals, async/await, optional chaining
 - **Functional style**: No classes, no `this` keyword
 - **Static hosting**: Must work on GitHub Pages and by opening the file locally
-- **External deps allowed**: `marked.js` (CDN) for markdown, `highlight.js` (CDN) for syntax highlighting, `DOMPurify` (CDN) for HTML sanitization
+- **External deps allowed**: `marked.js` (CDN) for markdown, `highlight.js` (CDN) for syntax highlighting, `DOMPurify` (CDN) for HTML sanitization, `SheetJS/xlsx` (CDN) for spreadsheet rendering
 - **Security**: All user-supplied strings escaped via `escapeHTML()` / `escapeAttribute()` before insertion into DOM
 - **Beginner-readable**: If a student can't follow it, simplify
 
@@ -61,14 +61,15 @@ These features from the full TooToo `index.html` are **not included** in LT:
 ```js
 const CONFIG = {
   owner: 'theo-armour',
-  repo: 'sandbox',
+  repo: 'work',
   branch: '',       // empty string = auto-detect default branch from API
 };
 ```
 
-- CONFIG seeds the initial values for the owner and repo input fields
+- CONFIG values are used directly by `loadRepo()` — there are no input fields
 - If `CONFIG.branch` is empty, the app fetches the repo metadata to discover the default branch
 - If `CONFIG.branch` is set, it is used directly (skips the repo metadata fetch)
+- The repo may be private — a GitHub token (stored in `localStorage`) is required for private repo access
 
 ---
 
@@ -96,19 +97,18 @@ const state = {
 ```
 <body>
   <header>
-    Title ("TooToo LT", clickable to reload page)
-    Owner input (text field, seeded from CONFIG.owner)
-    "/" separator label
-    Repo input (text field, seeded from CONFIG.repo)
-    "Load" button (fetches tree for the entered owner/repo)
-    Expand/Collapse All toggle button
+    Fixed title ("Theo Armour / Work", clickable to reload page)
+    GitHub logo link (opens repo on GitHub)
     Token button (right-aligned, "⚙️ Token")
   </header>
 
   <main>  (flex row, fills viewport below header)
     <div class="sidebar">
       <div id="navTree">
-        <h3>Files</h3>
+        <div>  (flex row)
+          <h3>Files</h3>
+          Expand/Collapse All button (right-aligned, hidden until tree loads)
+        </div>
         <div id="treeTruncatedWarning">  (hidden by default)
         <div id="treeList">
       </div>
@@ -126,8 +126,10 @@ const state = {
 
 Key differences from full TooToo:
 - **No `repoListContainer`** — the sidebar only contains `navTree`
-- **Two input fields** (owner + repo) instead of one owner input + action buttons
-- **No action buttons** except "Load", Expand/Collapse All, and Token
+- **No input fields or Load button** — owner/repo are fixed in CONFIG
+- **Fixed branded title** in header instead of input fields
+- **Expand All button** is in the sidebar Files header, not the top header
+- **No action buttons** except Expand/Collapse All and Token
 
 ### CSS Architecture
 
@@ -172,9 +174,9 @@ Key differences from full TooToo:
 
 ### Loading the Repository Tree
 
-Triggered by the "Load" button, by pressing Enter in either input field, or automatically on page load:
+Triggered automatically on page load (or by hash change):
 
-1. Read `owner` and `repo` from input fields
+1. Read `owner` and `repo` from CONFIG
 2. If `state.branch` is empty (no CONFIG override):
    - Fetch `GET /repos/{owner}/{repo}` to get `default_branch`
    - Set `state.branch` to the response's `default_branch`
@@ -188,10 +190,13 @@ No branch selector dropdown — LT always uses the default branch (or the branch
 
 ### Fetching File Content
 
-- URL: `https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}`
+- **With token** (private repos): `https://api.github.com/repos/{owner}/{repo}/contents/{path}?ref={branch}` with `Accept: application/vnd.github.raw+json` header
+- **Without token** (public repos): `https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}`
+- The full fetch options (including `Authorization` header and abort signal) are passed to `loadFileContent()`
 - Large files (>1MB): show a `window.confirm()` dialog before loading
 - Approved large files tracked in an in-memory `Set` (per session)
 - File size read from tree API response (`item.size`)
+- Files over 500KB skip syntax highlighting to avoid freezing the browser
 
 ### Rate Limiting
 
@@ -233,7 +238,8 @@ When a file is selected, the content area shows:
 | `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.svg`, `.ico` | Inline `<img>` with `max-width: 100%`; SVG also offers raw toggle |
 | `.mp3`, `.wav`, `.ogg` | HTML5 `<audio>` player |
 | `.mp4`, `.webm` | HTML5 `<video>` player |
-| `.pdf` | Google Docs Viewer in iframe |
+| `.pdf` | With token: fetched as blob via API, displayed in iframe with blob URL. Without token: Google Docs Viewer in iframe |
+| `.xlsx`, `.xls`, `.csv`, `.ods` | Parsed with SheetJS (`XLSX.read`), each sheet rendered as an HTML table with sheet name heading |
 | Other | `<pre>` block (plain text) |
 
 ### Markdown Link Rewriting
@@ -299,7 +305,7 @@ Examples:
 
 ### Expand All / Collapse All
 
-- Toggle button in header
+- Toggle button next to "Files" heading in sidebar (right-aligned)
 - Sets/removes `open` attribute on all `<details>` elements
 - Button text switches between "Expand All" and "Collapse All"
 
@@ -331,10 +337,9 @@ Global `keydown` listener on `document`, active only when focus is on a `.tree-f
 ## Init Sequence
 
 ```
-1. Read CONFIG → set input field values and state
-2. Read localStorage for token
+1. Read CONFIG → set state (owner, repo, branch)
+2. Read localStorage for token → build headers object
 3. If URL hash present → parse owner/repo/filepath from hash
-   - Override input values with hash values
 4. Call loadRepo() → fetches default branch (if needed), tree, renders sidebar
 5. If filepath from hash → open that file
 6. Else → auto-open README.md
