@@ -1,5 +1,15 @@
 # TooToo LT — Development Journal
 
+
+## 2026-04-06
+
+
+tootoo-lt.html?owner=theo-armour&repo=sandbox — uses default branch
+tootoo-lt.html?owner=theo-armour&repo=sandbox&branch=main — specific branch
+tootoo-lt.html?owner=theo-armour&repo=sandbox#README.md — opens a specific file
+
+https://theo-armour.github.io/sandbox/tootoo/tootoo-lt/tootoo-lt.html?owner=obadawy&repo=lmsgsrv
+
 ## 2026-04-05
 
 So what's next? Go from Tutu LT back to the big Tootoo.

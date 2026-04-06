@@ -557,6 +557,12 @@
     };
 
     const detectRepo = () => new Promise( resolve => {
+      // Check URL query parameters first: ?owner=X&repo=Y&branch=Z
+      const params = new URLSearchParams( location.search );
+      if ( params.get( 'owner' ) ) CONFIG.owner = params.get( 'owner' );
+      if ( params.get( 'repo' ) ) CONFIG.repo = params.get( 'repo' );
+      if ( params.get( 'branch' ) ) CONFIG.branch = params.get( 'branch' );
+
       // If CONFIG is already filled in, use it directly
       if ( CONFIG.owner && CONFIG.repo ) {
         updateHeaderFromConfig();
