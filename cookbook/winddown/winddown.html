@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wind Down</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Nunito:wght@300;400;600&display=swap');
+
+  :root {
+    --bg-deep: #0a0e1a;
+    --bg-panel: #111827;
+    --bg-card: #1a2235;
+    --bg-input: #0f172a;
+    --accent-warm: #f0a050;
+    --accent-soft: #7c9ac0;
+    --accent-glow: #f0a05033;
+    --text-primary: #e2e8f0;
+    --text-secondary: #8899b0;
+    --text-muted: #4a5a70;
+    --border: #1e2d44;
+    --success: #4ade80;
+    --warning: #fbbf24;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse at 20% 20%, #1a1040 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, #0f1a2e 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, #0a0e1a 0%, #050810 100%);
+    z-index: -1;
+  }
+
+  .stars {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: -1;
+    overflow: hidden;
+  }
+
+  .star {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: #fff;
+    border-radius: 50%;
+    animation: twinkle var(--dur) ease-in-out infinite;
+    opacity: 0;
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.1; }
+    50% { opacity: var(--max-opacity); }
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px 20px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 3em;
+    letter-spacing: 0.05em;
+    color: var(--accent-warm);
+    text-shadow: 0 0 40px var(--accent-glow);
+    margin-bottom: 6px;
+  }
+
+  header .subtitle {
+    font-weight: 300;
+    color: var(--text-secondary);
+    font-size: 0.95em;
+  }
+
+  .computer-label {
+    display: inline-block;
+    background: var(--bg-card);
+    border: 1px solid var(--accent-warm);
+    border-radius: 20px;
+    padding: 4px 16px;
+    font-size: 0.85em;
+    color: var(--accent-warm);
+    margin-top: 12px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    background: var(--bg-panel);
+    border-radius: 12px;
+    padding: 4px;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 9px;
+    transition: all 0.3s;
+  }
+
+  .tab.active {
+    background: var(--bg-card);
+    color: var(--accent-warm);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  }
+
+  .tab:hover:not(.active) {
+    color: var(--text-primary);
+  }
+
+  .panel {
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .panel.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .settings-section {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .settings-section h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 1.3em;
+    color: var(--accent-soft);
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .form-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+
+  .form-row label {
+    min-width: 140px;
+    font-size: 0.9em;
+    color: var(--text-secondary);
+  }
+
+  select, input[type="time"], input[type="number"], input[type="text"] {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    padding: 8px 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.9em;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+
+  select:focus, input:focus {
+    border-color: var(--accent-warm);
+  }
+
+  select { min-width: 200px; }
+  input[type="time"] { min-width: 140px; }
+  input[type="number"] { width: 80px; }
+
+  .checkbox-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--bg-input);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .checkbox-item:hover { background: var(--bg-card); }
+
+  .checkbox-item input[type="checkbox"] {
+    appearance: none;
+    width: 18px; height: 18px;
+    border: 2px solid var(--text-muted);
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .checkbox-item input[type="checkbox"]:checked {
+    background: var(--accent-warm);
+    border-color: var(--accent-warm);
+  }
+
+  .checkbox-item input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: -1px; left: 2px;
+    font-size: 13px;
+    color: var(--bg-deep);
+    font-weight: 700;
+  }
+
+  .checkbox-item span {
+    font-size: 0.88em;
+    color: var(--text-secondary);
+  }
+
+  .custom-messages {
+    margin-top: 16px;
+  }
+
+  .custom-msg-input {
+    display: flex;
+    gap: 8px;
+  }
+
+  .custom-msg-input input {
+    flex: 1;
+  }
+
+  .btn {
+    padding: 8px 18px;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 600;
+    font-size: 0.85em;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+
+  .btn-primary {
+    background: var(--accent-warm);
+    color: var(--bg-deep);
+  }
+
+  .btn-primary:hover {
+    background: #f5b060;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px var(--accent-glow);
+  }
+
+  .btn-small {
+    padding: 4px 10px;
+    font-size: 0.78em;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+
+  .btn-small:hover { border-color: #f06050; color: #f06050; }
+
+  .custom-list {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .custom-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 4px 12px;
+    font-size: 0.8em;
+    color: var(--text-secondary);
+  }
+
+  .custom-tag .remove {
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 1.1em;
+    line-height: 1;
+  }
+
+  .custom-tag .remove:hover { color: #f06050; }
+
+  .save-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+  }
+
+  .save-status {
+    font-size: 0.85em;
+    color: var(--success);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .save-status.show { opacity: 1; }
+
+  /* === DISPLAY PANEL === */
+  .display-area {
+    min-height: 400px;
+    position: relative;
+  }
+
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 24px;
+    margin-bottom: 20px;
+  }
+
+  .status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .status-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--text-muted);
+  }
+
+  .status-dot.waiting { background: var(--accent-soft); }
+  .status-dot.active {
+    background: var(--accent-warm);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .status-dot.done { background: var(--success); }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+    50% { box-shadow: 0 0 0 8px transparent; }
+  }
+
+  .status-text {
+    font-size: 0.9em;
+    color: var(--text-secondary);
+  }
+
+  .current-time {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8em;
+    color: var(--accent-warm);
+  }
+
+  .progress-bar-container {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82em;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .progress-track {
+    height: 6px;
+    background: var(--bg-input);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-soft), var(--accent-warm));
+    border-radius: 3px;
+    transition: width 1s ease;
+  }
+
+  .message-display {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 30px;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .message-display::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(ellipse at center, var(--accent-glow) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 1s;
+  }
+
+  .message-display.glowing::before { opacity: 1; }
+
+  .message-type-label {
+    font-size: 0.7em;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .message-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6em;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--text-primary);
+    max-width: 600px;
+    position: relative;
+    animation: messageIn 0.8s ease;
+  }
+
+  @keyframes messageIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .message-log {
+    margin-top: 20px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 24px;
+  }
+
+  .message-log h4 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    color: var(--text-muted);
+    font-size: 1em;
+    margin-bottom: 12px;
+  }
+
+  .log-entry {
+    display: flex;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85em;
+  }
+
+  .log-entry:last-child { border-bottom: none; }
+
+  .log-time {
+    color: var(--accent-soft);
+    min-width: 60px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .log-msg { color: var(--text-secondary); }
+
+  .not-configured {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+
+  .not-configured p { margin-bottom: 16px; }
+
+  .scheduled-prompts-list {
+    margin-top: 12px;
+  }
+
+  .prompt-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+
+  .prompt-item input[type="time"] { min-width: 120px; }
+  .prompt-item input[type="text"] { flex: 1; }
+
+  .add-prompt-btn {
+    margin-top: 4px;
+    font-size: 0.85em;
+    color: var(--accent-soft);
+    background: none;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+  }
+
+  .add-prompt-btn:hover {
+    border-color: var(--accent-soft);
+    color: var(--accent-warm);
+  }
+
+  /* === SHUTDOWN OVERLAY === */
+  .shutdown-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(5, 8, 16, 0.97);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    animation: overlayIn 1.5s ease;
+    backdrop-filter: blur(20px);
+  }
+
+  @keyframes overlayIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .shutdown-overlay .moon {
+    font-size: 4em;
+    margin-bottom: 20px;
+    animation: moonFloat 4s ease-in-out infinite;
+  }
+
+  @keyframes moonFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .shutdown-overlay h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 2.5em;
+    color: var(--accent-warm);
+    margin-bottom: 10px;
+    text-shadow: 0 0 40px var(--accent-glow);
+  }
+
+  .shutdown-overlay .overlay-sub {
+    color: var(--text-secondary);
+    font-size: 1.1em;
+    margin-bottom: 40px;
+    max-width: 400px;
+    line-height: 1.6;
+  }
+
+  .shutdown-cmd-box {
+    background: var(--bg-panel);
+    border: 1px solid var(--accent-warm);
+    border-radius: 12px;
+    padding: 20px 28px;
+    margin-bottom: 16px;
+    max-width: 500px;
+    width: 90%;
+  }
+
+  .shutdown-cmd-box .cmd-label {
+    font-size: 0.75em;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .shutdown-cmd-box .cmd-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .shutdown-cmd-box code {
+    flex: 1;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 1.15em;
+    color: var(--accent-warm);
+    background: var(--bg-input);
+    padding: 10px 14px;
+    border-radius: 8px;
+    letter-spacing: 0.03em;
+    user-select: all;
+  }
+
+  .btn-copy {
+    padding: 10px 18px;
+    border: 1px solid var(--accent-warm);
+    background: transparent;
+    color: var(--accent-warm);
+    border-radius: 8px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.85em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s;
+    white-space: nowrap;
+  }
+
+  .btn-copy:hover {
+    background: var(--accent-warm);
+    color: var(--bg-deep);
+  }
+
+  .btn-copy.copied {
+    border-color: var(--success);
+    color: var(--success);
+  }
+
+  .shutdown-cmd-box .cmd-hint {
+    font-size: 0.78em;
+    color: var(--text-muted);
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+
+  .overlay-dismiss {
+    margin-top: 30px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.78em;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .overlay-dismiss:hover {
+    border-color: var(--text-secondary);
+    color: var(--text-secondary);
+  }
+
+  .shutdown-countdown {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4em;
+    color: var(--accent-soft);
+    margin-bottom: 20px;
+  }
+
+  /* === SHUTDOWN WARNING BANNER === */
+  .shutdown-warning {
+    background: linear-gradient(135deg, #2a1a0a, #1a1005);
+    border: 1px solid #f0a05055;
+    border-radius: 14px;
+    padding: 16px 24px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    animation: warningPulse 3s ease-in-out infinite;
+  }
+
+  @keyframes warningPulse {
+    0%, 100% { border-color: #f0a05033; }
+    50% { border-color: #f0a050aa; }
+  }
+
+  .shutdown-warning .warn-icon {
+    font-size: 1.5em;
+    flex-shrink: 0;
+  }
+
+  .shutdown-warning .warn-text {
+    font-size: 0.9em;
+    color: var(--accent-warm);
+  }
+
+  .shutdown-warning .warn-text strong {
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  @media (max-width: 600px) {
+    .checkbox-grid { grid-template-columns: 1fr; }
+    .form-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .form-row label { min-width: auto; }
+    header h1 { font-size: 2.2em; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="container">
+  <header>
+    <h1>Wind Down</h1>
+    <p class="subtitle">A gentle guide to ending your evening</p>
+    <div class="computer-label" id="computerLabel">Not configured</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('display')">Tonight</button>
+    <button class="tab" onclick="switchTab('settings')">Settings</button>
+  </div>
+
+  <!-- DISPLAY PANEL -->
+  <div class="panel active" id="panel-display">
+    <div id="displayContent"></div>
+  </div>
+
+  <!-- SETTINGS PANEL -->
+  <div class="panel" id="panel-settings">
+
+    <div class="settings-section">
+      <h3>This Computer</h3>
+      <div class="form-row">
+        <label>Computer role</label>
+        <select id="computerRole">
+          <option value="">— Select —</option>
+          <option value="left-reminders">Left — Reminders</option>
+          <option value="middle-work">Middle — Work & Browsing</option>
+          <option value="right-diary">Right — Diary & Email</option>
+          <option value="behind-hall">Behind — Hall Monitors</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Wind-Down Schedule</h3>
+      <div class="form-row">
+        <label>Start time</label>
+        <input type="time" id="startTime" value="23:00">
+      </div>
+      <div class="form-row">
+        <label>End time</label>
+        <input type="time" id="endTime" value="00:30">
+      </div>
+      <div class="form-row">
+        <label>Random thought every</label>
+        <input type="number" id="randomInterval" min="1" max="30" value="5">
+        <span style="color:var(--text-secondary);font-size:0.9em;">minutes (approx)</span>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Shutdown</h3>
+      <p style="font-size:0.85em;color:var(--text-muted);margin-bottom:14px;">When the wind-down ends, show a fullscreen lockout with the shutdown command for this computer.</p>
+      <div class="form-row">
+        <label>Enable shutdown lockout</label>
+        <label class="checkbox-item" style="width:auto;padding:6px 12px;">
+          <input type="checkbox" id="shutdownEnabled" checked>
+          <span>Yes, lock the screen at end time</span>
+        </label>
+      </div>
+      <div class="form-row">
+        <label>Warn me before end</label>
+        <input type="number" id="shutdownWarnMinutes" min="1" max="30" value="10">
+        <span style="color:var(--text-secondary);font-size:0.9em;">minutes before</span>
+      </div>
+      <div class="form-row">
+        <label>Shutdown delay</label>
+        <input type="number" id="shutdownDelay" min="0" max="300" value="60">
+        <span style="color:var(--text-secondary);font-size:0.9em;">seconds (in the shutdown command)</span>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Scheduled Prompts</h3>
+      <p style="font-size:0.85em;color:var(--text-muted);margin-bottom:14px;">Set specific messages at specific times during your wind-down.</p>
+      <div class="scheduled-prompts-list" id="scheduledPrompts"></div>
+      <button class="add-prompt-btn" onclick="addScheduledPrompt()">+ Add a prompt</button>
+    </div>
+
+    <div class="settings-section">
+      <h3>Random Thoughts — Categories</h3>
+      <p style="font-size:0.85em;color:var(--text-muted);margin-bottom:14px;">Choose what kind of little thoughts you'd like to see.</p>
+      <div class="checkbox-grid">
+        <label class="checkbox-item">
+          <input type="checkbox" id="cat-quotes" checked>
+          <span>Calming quotes</span>
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" id="cat-facts" checked>
+          <span>Fun facts & trivia</span>
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" id="cat-humor">
+          <span>Gentle humor</span>
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" id="cat-sleep">
+          <span>Why sleep matters</span>
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" id="cat-nature">
+          <span>Nature & wonder</span>
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" id="cat-gratitude">
+          <span>Gratitude prompts</span>
+        </label>
+      </div>
+
+      <div class="custom-messages">
+        <p style="font-size:0.85em;color:var(--text-muted);margin-bottom:8px;">Add your own custom messages:</p>
+        <div class="custom-msg-input">
+          <input type="text" id="customMsgInput" placeholder="Type a personal reminder or thought...">
+          <button class="btn btn-primary" onclick="addCustomMessage()">Add</button>
+        </div>
+        <div class="custom-list" id="customList"></div>
+      </div>
+    </div>
+
+    <div class="save-bar">
+      <button class="btn btn-primary" onclick="saveSettings()" style="padding:10px 30px;font-size:0.95em;">Save Settings</button>
+      <span class="save-status" id="saveStatus">✓ Settings saved</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== CONTENT LIBRARY =====
+const CONTENT = {
+  quotes: [
+    "The night is simply a quiet page waiting to be closed gently.",
+    "Rest is not idleness — it is the soil where tomorrow's energy grows.",
+    "Let the day's words settle like leaves on still water.",
+    "There is a kind of courage in allowing yourself to stop.",
+    "The moon doesn't rush across the sky. Neither should you.",
+    "Silence is not empty. It is full of answers.",
+    "The best bridge between despair and hope is a good night's sleep.",
+    "Stars cannot shine without darkness.",
+    "Surrender to the night — it asks nothing of you.",
+    "A quiet mind is more valuable than a busy one.",
+    "Let go of today. It's already done its work.",
+    "Breathe in calm, breathe out the day."
+  ],
+  facts: [
+    "Octopuses have three hearts — and two of them stop beating when they swim.",
+    "Honey never spoils. Archaeologists have eaten 3,000-year-old honey from Egyptian tombs.",
+    "A group of flamingos is called a 'flamboyance.'",
+    "The Eiffel Tower grows about 6 inches taller in summer due to thermal expansion.",
+    "Bananas are berries, but strawberries are not.",
+    "Sea otters hold hands while sleeping so they don't drift apart.",
+    "There are more trees on Earth than stars in the Milky Way.",
+    "A day on Venus is longer than its year.",
+    "Wombat droppings are cube-shaped.",
+    "The shortest war in history lasted 38 minutes."
+  ],
+  humor: [
+    "Why do programmers prefer dark mode? Because light attracts bugs.",
+    "I told my computer I needed a break, and it went to sleep before I did.",
+    "My bed is a magical place where I suddenly remember everything I forgot to do.",
+    "Sleep: because that's where the brain takes out the recycling.",
+    "The early bird gets the worm, but the night owl gets the pizza.",
+    "I'm not a night owl or an early bird. I'm some sort of permanently exhausted pigeon.",
+    "My pillows are calling a staff meeting and I've been summoned.",
+    "Tonight's forecast: 99% chance of Netflix. Tomorrow's forecast: 100% chance of regret."
+  ],
+  sleep: [
+    "During sleep, your brain clears out toxic waste products that accumulate during the day.",
+    "Just one extra hour of sleep can improve your reaction time by 30%.",
+    "Your body temperature drops by about 1-2°F when you sleep — it's part of the signal to rest.",
+    "REM sleep helps consolidate emotional memories and creative problem-solving.",
+    "People who sleep 7-8 hours have stronger immune systems than those who sleep less.",
+    "Your brain is actually more active during REM sleep than when you're awake.",
+    "Sleep deprivation affects judgment as much as being legally drunk.",
+    "Growth hormone is primarily released during deep sleep — rest literally heals you."
+  ],
+  nature: [
+    "Right now, somewhere on Earth, a whale is singing a song that can travel 10,000 miles.",
+    "The Amazon rainforest produces 20% of the world's oxygen.",
+    "Each snowflake contains roughly 200 ice crystals.",
+    "There's a jellyfish species that is biologically immortal.",
+    "Trees in a forest share nutrients through underground fungal networks.",
+    "The Great Barrier Reef is visible from space.",
+    "A single bolt of lightning contains enough energy to toast 100,000 slices of bread.",
+    "Some bamboo species grow up to 35 inches in a single day."
+  ],
+  gratitude: [
+    "What's one small thing that made you smile today?",
+    "Think of someone who helped you recently — even in a tiny way.",
+    "What's one thing about your home that you appreciate right now?",
+    "Name one skill you used today that you're glad you have.",
+    "What's the best thing you ate or drank today?",
+    "Think of a sound you heard today that you enjoyed.",
+    "What's one thing about today that you'd want to remember?",
+    "Who in your life are you grateful for right now?"
+  ]
+};
+
+const CATEGORY_MAP = {
+  'cat-quotes': 'quotes',
+  'cat-facts': 'facts',
+  'cat-humor': 'humor',
+  'cat-sleep': 'sleep',
+  'cat-nature': 'nature',
+  'cat-gratitude': 'gratitude'
+};
+
+const ROLE_LABELS = {
+  'left-reminders': 'Left — Reminders',
+  'middle-work': 'Middle — Work & Browsing',
+  'right-diary': 'Right — Diary & Email',
+  'behind-hall': 'Behind — Hall Monitors'
+};
+
+// ===== STATE =====
+let settings = null;
+let messageLog = [];
+let currentMessage = null;
+let randomTimer = null;
+let scheduledTimers = [];
+let clockTimer = null;
+let usedMessages = new Set();
+
+// ===== STORAGE =====
+async function loadSettings() {
+  try {
+    const result = await window.storage.get('winddown-settings');
+    if (result && result.value) {
+      settings = JSON.parse(result.value);
+      applySettingsToUI();
+    }
+  } catch(e) {
+    console.log('No saved settings found');
+  }
+}
+
+async function saveSettings() {
+  settings = gatherSettingsFromUI();
+  try {
+    await window.storage.set('winddown-settings', JSON.stringify(settings));
+    const status = document.getElementById('saveStatus');
+    status.classList.add('show');
+    setTimeout(() => status.classList.remove('show'), 2500);
+    updateComputerLabel();
+    renderDisplay();
+    startEngine();
+  } catch(e) {
+    console.error('Failed to save:', e);
+  }
+}
+
+function gatherSettingsFromUI() {
+  const cats = {};
+  for (const id in CATEGORY_MAP) {
+    cats[CATEGORY_MAP[id]] = document.getElementById(id).checked;
+  }
+
+  const promptEls = document.querySelectorAll('.prompt-item');
+  const prompts = [];
+  promptEls.forEach(el => {
+    const time = el.querySelector('input[type="time"]').value;
+    const msg = el.querySelector('input[type="text"]').value;
+    if (time && msg) prompts.push({ time, message: msg });
+  });
+
+  const customTags = document.querySelectorAll('.custom-tag');
+  const custom = [];
+  customTags.forEach(t => {
+    const text = t.getAttribute('data-msg');
+    if (text) custom.push(text);
+  });
+
+  return {
+    role: document.getElementById('computerRole').value,
+    startTime: document.getElementById('startTime').value,
+    endTime: document.getElementById('endTime').value,
+    randomInterval: parseInt(document.getElementById('randomInterval').value) || 5,
+    shutdownEnabled: document.getElementById('shutdownEnabled').checked,
+    shutdownWarnMinutes: parseInt(document.getElementById('shutdownWarnMinutes').value) || 10,
+    shutdownDelay: parseInt(document.getElementById('shutdownDelay').value) || 60,
+    categories: cats,
+    scheduledPrompts: prompts,
+    customMessages: custom
+  };
+}
+
+function applySettingsToUI() {
+  if (!settings) return;
+  document.getElementById('computerRole').value = settings.role || '';
+  document.getElementById('startTime').value = settings.startTime || '23:00';
+  document.getElementById('endTime').value = settings.endTime || '00:30';
+  document.getElementById('randomInterval').value = settings.randomInterval || 5;
+  document.getElementById('shutdownEnabled').checked = settings.shutdownEnabled !== false;
+  document.getElementById('shutdownWarnMinutes').value = settings.shutdownWarnMinutes || 10;
+  document.getElementById('shutdownDelay').value = settings.shutdownDelay != null ? settings.shutdownDelay : 60;
+
+  if (settings.categories) {
+    for (const id in CATEGORY_MAP) {
+      const key = CATEGORY_MAP[id];
+      document.getElementById(id).checked = settings.categories[key] !== false;
+    }
+  }
+
+  // Scheduled prompts
+  const container = document.getElementById('scheduledPrompts');
+  container.innerHTML = '';
+  if (settings.scheduledPrompts && settings.scheduledPrompts.length) {
+    settings.scheduledPrompts.forEach(p => addScheduledPromptRow(p.time, p.message));
+  }
+
+  // Custom messages
+  const list = document.getElementById('customList');
+  list.innerHTML = '';
+  if (settings.customMessages) {
+    settings.customMessages.forEach(m => addCustomTag(m));
+  }
+
+  updateComputerLabel();
+}
+
+function updateComputerLabel() {
+  const label = document.getElementById('computerLabel');
+  if (settings && settings.role && ROLE_LABELS[settings.role]) {
+    label.textContent = ROLE_LABELS[settings.role];
+  } else {
+    label.textContent = 'Not configured';
+  }
+}
+
+// ===== SCHEDULED PROMPTS UI =====
+function addScheduledPrompt() {
+  addScheduledPromptRow('', '');
+}
+
+function addScheduledPromptRow(time, msg) {
+  const container = document.getElementById('scheduledPrompts');
+  const div = document.createElement('div');
+  div.className = 'prompt-item';
+  div.innerHTML = `
+    <input type="time" value="${time}">
+    <input type="text" value="${msg}" placeholder="e.g. Start wrapping up your current task">
+    <button class="btn btn-small" onclick="this.parentElement.remove()">✕</button>
+  `;
+  container.appendChild(div);
+}
+
+// ===== CUSTOM MESSAGES UI =====
+function addCustomMessage() {
+  const input = document.getElementById('customMsgInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  addCustomTag(msg);
+  input.value = '';
+}
+
+function addCustomTag(msg) {
+  const list = document.getElementById('customList');
+  const tag = document.createElement('span');
+  tag.className = 'custom-tag';
+  tag.setAttribute('data-msg', msg);
+  tag.innerHTML = `${msg} <span class="remove" onclick="this.parentElement.remove()">×</span>`;
+  list.appendChild(tag);
+}
+
+// ===== TABS =====
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+  if (name === 'display') renderDisplay();
+}
+
+// ===== HELPERS =====
+function getShutdownCommand() {
+  const delay = settings ? settings.shutdownDelay || 60 : 60;
+  return `shutdown /s /t ${delay}`;
+}
+
+// ===== DISPLAY ENGINE =====
+function renderDisplay() {
+  const container = document.getElementById('displayContent');
+
+  if (!settings || !settings.role) {
+    container.innerHTML = `
+      <div class="not-configured">
+        <p style="font-size:1.3em;margin-bottom:8px;">☽</p>
+        <p>This computer hasn't been configured yet.</p>
+        <p>Switch to <strong>Settings</strong> to set it up.</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="status-bar">
+      <div class="status-indicator">
+        <div class="status-dot" id="statusDot"></div>
+        <span class="status-text" id="statusText">Checking...</span>
+      </div>
+      <div class="current-time" id="clockDisplay">--:--</div>
+    </div>
+    <div class="progress-bar-container">
+      <div class="progress-label">
+        <span>Start: ${formatTime12(settings.startTime)}</span>
+        <span>End: ${formatTime12(settings.endTime)}</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="message-display" id="messageDisplay">
+      <div class="message-type-label" id="msgTypeLabel">waiting</div>
+      <div class="message-text" id="msgText">Your wind-down session hasn't started yet. Enjoy your evening.</div>
+    </div>
+    <div class="message-log" id="messageLog">
+      <h4>Tonight's messages</h4>
+      <div id="logEntries"><p style="font-size:0.85em;color:var(--text-muted);">No messages yet.</p></div>
+    </div>
+    ${settings.shutdownEnabled ? `
+    <div class="message-log" style="margin-top:16px;">
+      <h4>Shutdown command for this computer</h4>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
+        <code style="flex:1;font-family:Consolas,monospace;font-size:0.95em;color:var(--accent-warm);background:var(--bg-input);padding:8px 12px;border-radius:6px;user-select:all;">${getShutdownCommand()}</code>
+        <button class="btn btn-primary" style="padding:8px 14px;font-size:0.8em;" onclick="navigator.clipboard.writeText('${getShutdownCommand()}').then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)})">Copy</button>
+      </div>
+      <p style="font-size:0.78em;color:var(--text-muted);margin-top:8px;">Paste into a terminal (Win+R → cmd) to shut down. Cancel with: shutdown /a</p>
+    </div>` : ''}`;
+
+  updateClock();
+}
+
+function getPhase() {
+  if (!settings) return 'none';
+  const now = new Date();
+  const start = timeToMinutes(settings.startTime);
+  const end = timeToMinutes(settings.endTime);
+  const current = now.getHours() * 60 + now.getMinutes();
+
+  // Handle overnight (e.g., 23:00 to 00:30)
+  if (end < start) {
+    if (current >= start || current <= end) return 'active';
+    if (current < start) return 'waiting';
+    return 'done';
+  } else {
+    if (current < start) return 'waiting';
+    if (current <= end) return 'active';
+    return 'done';
+  }
+}
+
+function getProgress() {
+  if (!settings) return 0;
+  const now = new Date();
+  const start = timeToMinutes(settings.startTime);
+  let end = timeToMinutes(settings.endTime);
+  let current = now.getHours() * 60 + now.getMinutes();
+
+  if (end < start) end += 1440;
+  if (current < start && end > 1440) current += 1440;
+
+  if (current <= start) return 0;
+  if (current >= end) return 100;
+  return Math.round(((current - start) / (end - start)) * 100);
+}
+
+function updateClock() {
+  const clockEl = document.getElementById('clockDisplay');
+  const dotEl = document.getElementById('statusDot');
+  const textEl = document.getElementById('statusText');
+  const fillEl = document.getElementById('progressFill');
+
+  if (!clockEl) return;
+
+  const now = new Date();
+  const h = now.getHours();
+  const m = now.getMinutes().toString().padStart(2, '0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  clockEl.textContent = `${h12}:${m} ${ampm}`;
+
+  const phase = getPhase();
+  dotEl.className = 'status-dot ' + (phase === 'active' ? 'active' : phase === 'done' ? 'done' : 'waiting');
+
+  if (phase === 'waiting') textEl.textContent = `Wind-down starts at ${formatTime12(settings.startTime)}`;
+  else if (phase === 'active') textEl.textContent = 'Wind-down in progress';
+  else textEl.textContent = 'Wind-down complete — time for sleep';
+
+  fillEl.style.width = getProgress() + '%';
+
+  // Check shutdown warning and lockout
+  checkShutdownWarning();
+}
+
+function timeToMinutes(timeStr) {
+  const [h, m] = timeStr.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function formatTime12(timeStr) {
+  const [h, m] = timeStr.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
+}
+
+// ===== MESSAGE ENGINE =====
+function getRandomThought() {
+  if (!settings || !settings.categories) return null;
+
+  let pool = [];
+  for (const cat in settings.categories) {
+    if (settings.categories[cat] && CONTENT[cat]) {
+      CONTENT[cat].forEach(msg => {
+        if (!usedMessages.has(msg)) pool.push({ category: cat, message: msg });
+      });
+    }
+  }
+
+  // Add custom messages
+  if (settings.customMessages) {
+    settings.customMessages.forEach(msg => {
+      if (!usedMessages.has(msg)) pool.push({ category: 'custom', message: msg });
+    });
+  }
+
+  // Reset if all used
+  if (pool.length === 0) {
+    usedMessages.clear();
+    return getRandomThought();
+  }
+
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  usedMessages.add(pick.message);
+  return pick;
+}
+
+function showMessage(type, text) {
+  const display = document.getElementById('messageDisplay');
+  const label = document.getElementById('msgTypeLabel');
+  const msgEl = document.getElementById('msgText');
+
+  if (!display) return;
+
+  display.classList.add('glowing');
+  setTimeout(() => display.classList.remove('glowing'), 3000);
+
+  const catLabels = {
+    quotes: '✦ calming thought',
+    facts: '◈ fun fact',
+    humor: '☺ gentle humor',
+    sleep: '☽ sleep wisdom',
+    nature: '❋ nature & wonder',
+    gratitude: '♡ gratitude prompt',
+    custom: '★ personal reminder',
+    scheduled: '⏱ scheduled prompt'
+  };
+
+  label.textContent = catLabels[type] || type;
+
+  // Force re-animation
+  msgEl.style.animation = 'none';
+  msgEl.offsetHeight;
+  msgEl.style.animation = 'messageIn 0.8s ease';
+  msgEl.textContent = text;
+
+  addLogEntry(text);
+}
+
+function addLogEntry(text) {
+  const container = document.getElementById('logEntries');
+  if (!container) return;
+
+  if (messageLog.length === 0) container.innerHTML = '';
+
+  const now = new Date();
+  const h = now.getHours() % 12 || 12;
+  const m = now.getMinutes().toString().padStart(2, '0');
+  const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+  const timeStr = `${h}:${m} ${ampm}`;
+
+  messageLog.push({ time: timeStr, text });
+
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span class="log-time">${timeStr}</span><span class="log-msg">${text}</span>`;
+  container.prepend(entry);
+}
+
+// ===== TIMERS =====
+function startEngine() {
+  // Clear existing
+  if (randomTimer) clearInterval(randomTimer);
+  scheduledTimers.forEach(t => clearTimeout(t));
+  scheduledTimers = [];
+  if (clockTimer) clearInterval(clockTimer);
+
+  if (!settings || !settings.role) return;
+
+  // Reset shutdown state
+  shutdownOverlayShown = false;
+  shutdownWarningShown = false;
+  const existingOverlay = document.getElementById('shutdownOverlay');
+  if (existingOverlay) existingOverlay.remove();
+
+  // Clock updates
+  clockTimer = setInterval(updateClock, 10000);
+  updateClock();
+
+  // Random thoughts
+  const intervalMs = (settings.randomInterval || 5) * 60 * 1000;
+  const jitter = intervalMs * 0.4;
+
+  function scheduleNext() {
+    const delay = intervalMs + (Math.random() * jitter * 2 - jitter);
+    randomTimer = setTimeout(() => {
+      if (getPhase() === 'active') {
+        const thought = getRandomThought();
+        if (thought) showMessage(thought.category, thought.message);
+      }
+      scheduleNext();
+    }, delay);
+  }
+
+  if (getPhase() === 'active') {
+    // Show one soon after starting
+    setTimeout(() => {
+      if (getPhase() === 'active') {
+        const thought = getRandomThought();
+        if (thought) showMessage(thought.category, thought.message);
+      }
+    }, 3000);
+  }
+  scheduleNext();
+
+  // Scheduled prompts
+  if (settings.scheduledPrompts) {
+    settings.scheduledPrompts.forEach(prompt => {
+      checkScheduledPrompt(prompt);
+    });
+  }
+
+  // Check scheduled prompts every 30 seconds
+  setInterval(() => {
+    if (settings && settings.scheduledPrompts) {
+      settings.scheduledPrompts.forEach(prompt => {
+        checkScheduledPromptExact(prompt);
+      });
+    }
+  }, 30000);
+}
+
+const firedPrompts = new Set();
+
+function checkScheduledPrompt(prompt) {
+  const now = new Date();
+  const [h, m] = prompt.time.split(':').map(Number);
+  const target = new Date();
+  target.setHours(h, m, 0, 0);
+
+  // If target already passed today and it's a late-night time, try tomorrow
+  if (target < now && h < 12) {
+    target.setDate(target.getDate() + 1);
+  }
+
+  if (target > now) {
+    const delay = target - now;
+    if (delay < 24 * 60 * 60 * 1000) {
+      const timer = setTimeout(() => {
+        showMessage('scheduled', prompt.message);
+        firedPrompts.add(prompt.time + prompt.message);
+      }, delay);
+      scheduledTimers.push(timer);
+    }
+  }
+}
+
+function checkScheduledPromptExact(prompt) {
+  const key = prompt.time + prompt.message;
+  if (firedPrompts.has(key)) return;
+  const now = new Date();
+  const [h, m] = prompt.time.split(':').map(Number);
+  if (now.getHours() === h && now.getMinutes() === m) {
+    showMessage('scheduled', prompt.message);
+    firedPrompts.add(key);
+  }
+}
+
+// ===== SHUTDOWN SYSTEM =====
+let shutdownOverlayShown = false;
+let shutdownWarningShown = false;
+
+function getMinutesUntilEnd() {
+  if (!settings) return Infinity;
+  const now = new Date();
+  const current = now.getHours() * 60 + now.getMinutes();
+  let end = timeToMinutes(settings.endTime);
+
+  // Handle overnight
+  const start = timeToMinutes(settings.startTime);
+  if (end < start) end += 1440;
+  let curr = current;
+  if (curr < start && end > 1440) curr += 1440;
+
+  return end - curr;
+}
+
+function checkShutdownWarning() {
+  if (!settings || !settings.shutdownEnabled) return;
+  const minsLeft = getMinutesUntilEnd();
+  const warnMins = settings.shutdownWarnMinutes || 10;
+
+  // Show warning banner
+  if (minsLeft <= warnMins && minsLeft > 0 && !shutdownWarningShown) {
+    shutdownWarningShown = true;
+    showShutdownWarning(minsLeft);
+  }
+
+  // Update warning text if already showing
+  if (shutdownWarningShown && minsLeft > 0) {
+    const warnText = document.querySelector('.shutdown-warning .warn-text');
+    if (warnText) {
+      warnText.innerHTML = `<strong>Shutdown approaching</strong>This computer will lock in about ${Math.ceil(minsLeft)} minute${Math.ceil(minsLeft) !== 1 ? 's' : ''}. Save your work and prepare to shut down.`;
+    }
+  }
+
+  // Show lockout overlay
+  if (minsLeft <= 0 && !shutdownOverlayShown) {
+    shutdownOverlayShown = true;
+    showShutdownOverlay();
+  }
+}
+
+function showShutdownWarning(minsLeft) {
+  const existing = document.querySelector('.shutdown-warning');
+  if (existing) return;
+
+  const container = document.getElementById('displayContent');
+  if (!container) return;
+
+  const banner = document.createElement('div');
+  banner.className = 'shutdown-warning';
+  banner.innerHTML = `
+    <span class="warn-icon">⏳</span>
+    <div class="warn-text">
+      <strong>Shutdown approaching</strong>
+      This computer will lock in about ${Math.ceil(minsLeft)} minute${Math.ceil(minsLeft) !== 1 ? 's' : ''}. Save your work and prepare to shut down.
+    </div>`;
+  container.insertBefore(banner, container.firstChild);
+}
+
+function showShutdownOverlay() {
+  // Remove any existing overlay
+  const existing = document.getElementById('shutdownOverlay');
+  if (existing) existing.remove();
+
+  const cmd = getShutdownCommand();
+  const roleName = ROLE_LABELS[settings.role] || 'this computer';
+
+  const overlay = document.createElement('div');
+  overlay.className = 'shutdown-overlay';
+  overlay.id = 'shutdownOverlay';
+  overlay.innerHTML = `
+    <div class="moon">🌙</div>
+    <h2>Time to shut down</h2>
+    <p class="overlay-sub">${roleName} has finished its wind-down. Save anything you need and shut down.</p>
+    <div class="shutdown-cmd-box">
+      <div class="cmd-label">Open a terminal (Win+R → cmd) and run:</div>
+      <div class="cmd-row">
+        <code id="shutdownCmd">${cmd}</code>
+        <button class="btn-copy" onclick="copyShutdownCmd()">Copy</button>
+      </div>
+      <div class="cmd-hint">This will shut down Windows in ${settings.shutdownDelay || 60} seconds.<br>To cancel: <code style="font-size:0.85em;padding:2px 6px;">shutdown /a</code></div>
+    </div>
+    <div class="shutdown-cmd-box" style="border-color: var(--accent-soft);">
+      <div class="cmd-label">Or schedule it for every night (Task Scheduler one-liner):</div>
+      <div class="cmd-row">
+        <code id="schedulerCmd" style="font-size:0.9em;">schtasks /create /tn "WindDownShutdown" /tr "shutdown /s /t ${settings.shutdownDelay || 60}" /sc daily /st ${settings.endTime} /f</code>
+        <button class="btn-copy" onclick="copySchedulerCmd()">Copy</button>
+      </div>
+      <div class="cmd-hint">Run this once in an admin terminal to auto-shutdown every night at ${formatTime12(settings.endTime)}.</div>
+    </div>
+    <button class="overlay-dismiss" onclick="dismissOverlay()">I need a few more minutes...</button>`;
+
+  document.body.appendChild(overlay);
+}
+
+function copyShutdownCmd() {
+  const cmd = document.getElementById('shutdownCmd').textContent;
+  navigator.clipboard.writeText(cmd).then(() => {
+    const btn = document.querySelector('#shutdownOverlay .shutdown-cmd-box:first-of-type .btn-copy');
+    if (btn) { btn.textContent = 'Copied!'; btn.classList.add('copied'); }
+  });
+}
+
+function copySchedulerCmd() {
+  const cmd = document.getElementById('schedulerCmd').textContent;
+  navigator.clipboard.writeText(cmd).then(() => {
+    const btns = document.querySelectorAll('#shutdownOverlay .btn-copy');
+    if (btns[1]) { btns[1].textContent = 'Copied!'; btns[1].classList.add('copied'); }
+  });
+}
+
+function dismissOverlay() {
+  const overlay = document.getElementById('shutdownOverlay');
+  if (overlay) {
+    overlay.style.animation = 'none';
+    overlay.style.transition = 'opacity 0.5s';
+    overlay.style.opacity = '0';
+    setTimeout(() => overlay.remove(), 500);
+    // Re-show after 5 minutes
+    shutdownOverlayShown = false;
+    setTimeout(() => { shutdownOverlayShown = false; }, 5 * 60 * 1000);
+  }
+}
+
+// ===== STARS =====
+function createStars() {
+  const container = document.getElementById('stars');
+  for (let i = 0; i < 80; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 100 + '%';
+    star.style.setProperty('--dur', (3 + Math.random() * 5) + 's');
+    star.style.setProperty('--max-opacity', (0.3 + Math.random() * 0.5).toFixed(2));
+    star.style.animationDelay = (Math.random() * 5) + 's';
+    if (Math.random() > 0.7) {
+      star.style.width = '3px';
+      star.style.height = '3px';
+    }
+    container.appendChild(star);
+  }
+}
+
+// ===== INIT =====
+createStars();
+loadSettings().then(() => {
+  renderDisplay();
+  startEngine();
+});
+
+document.getElementById('customMsgInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addCustomMessage();
+});
+</script>
+</body>
+</html>
