@@ -92,7 +92,6 @@
         },
         {
           "title": "orgs",
-          "collapsed": true,
           "links": [
             {
               "title": "evrlnd",
@@ -129,7 +128,7 @@
               "url": "https://vscode.dev/github/theo-armour/2024"
             },
             {
-              "title": ">ta 23agnd",
+              "title": ">ta agenda",
               "url": "https://vscode.dev/github/theo-armour/agenda"
             },
             {
@@ -137,7 +136,7 @@
               "url": "https://vscode.dev/github/theo-armour/pages"
             },
             {
-              "title": ">ta 23qDat",
+              "title": ">ta qData",
               "url": "https://vscode.dev/github/theo-armour/qdata"
             },
             {
