@@ -54,12 +54,10 @@
       padding: 0.75rem 1rem;
       background-color: var(--secondary-bg);
       border-bottom: 1px solid var(--border-color);
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem;
       align-items: center;
-      z-index: 10;
     }
 
     button {
@@ -67,20 +65,14 @@
       background-color: var(--highlight-color);
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 4px;
       cursor: pointer;
       font-size: 0.95rem;
       white-space: nowrap;
-      transition: opacity 0.15s, transform 0.15s, border-color 0.15s;
     }
 
     button:hover {
-      opacity: 0.88;
-      transform: translateY(-0.5px);
-    }
-
-    button:active {
-      transform: translateY(0);
+      opacity: 0.9;
     }
 
     main {
@@ -101,20 +93,20 @@
     }
 
     .resizer {
-      width: 5px;
+      width: 12px;
       cursor: col-resize;
-      background: linear-gradient(to right, transparent 1px, var(--border-color) 1px, var(--border-color) 2px, transparent 2px, transparent 3px, var(--border-color) 3px, var(--border-color) 4px, transparent 4px);
+      background-color: var(--border-color);
       flex-shrink: 0;
       z-index: 10;
-      transition: background 0.2s;
+      transition: background-color 0.2s;
       touch-action: none;
-      opacity: 0.5;
+      border-left: 1px solid var(--hover-bg);
+      border-right: 1px solid var(--hover-bg);
     }
 
     .resizer:hover,
     .resizer.resizing {
-      background: var(--highlight-color);
-      opacity: 1;
+      background-color: var(--highlight-color);
     }
 
     .content-area {
@@ -124,7 +116,6 @@
       overflow-y: auto;
       overflow-x: auto;
       background-color: var(--primary-bg);
-      transition: opacity 0.15s ease;
     }
 
     .content-area img {
@@ -142,7 +133,6 @@
       align-items: center;
       justify-content: space-between;
       gap: 0.25rem;
-      transition: background-color 0.15s, color 0.15s;
     }
 
     .tree-item-label {
@@ -163,16 +153,6 @@
       background-color: var(--hover-bg);
     }
 
-    .tree-item.active {
-      background-color: color-mix(in srgb, var(--highlight-color) 15%, transparent);
-      color: var(--highlight-color);
-      font-weight: 600;
-    }
-
-    .tree-item.active .tree-item-size {
-      opacity: 0.75;
-    }
-
     .tree-folder {
       cursor: pointer;
       padding: 0.2rem;
@@ -180,10 +160,6 @@
       font-weight: bold;
       font-family: monospace;
       user-select: none;
-    }
-
-    .tree-folder {
-      transition: background-color 0.15s;
     }
 
     .tree-folder:hover {
@@ -198,8 +174,7 @@
       background-color: var(--secondary-bg);
       padding: 1rem;
       border: 1px solid var(--border-color);
-      border-radius: 6px;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      border-radius: 4px;
       overflow-x: auto;
       font-family: monospace;
       white-space: pre-wrap;
@@ -257,25 +232,12 @@
       font-size: 0.85rem;
     }
 
-    .rate-limit-status {
-      font-size: 0.8rem;
-      padding: 0.2rem 0.45rem;
-      border: 1px solid var(--border-color);
-      border-radius: 999px;
-      background: var(--primary-bg);
-      color: var(--text-color);
-      opacity: 0.85;
-      display: none;
-      white-space: nowrap;
-    }
-
     .markdown-body {
       padding: 1.5rem;
       background: var(--secondary-bg);
       border: 1px solid var(--border-color);
-      border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-      line-height: 1.6;
+      border-radius: 4px;
+      line-height: 1.5;
       overflow-x: auto;
     }
 
@@ -357,49 +319,6 @@
     #treeFilter:focus {
       border-color: var(--highlight-color);
     }
-
-    .tree-render-status {
-      font-size: 0.75rem;
-      opacity: 0.75;
-      margin-left: 0.5rem;
-      display: none;
-      white-space: nowrap;
-    }
-
-    .breadcrumb-link {
-      color: var(--highlight-color);
-      text-decoration: none;
-      font-weight: normal;
-      cursor: pointer;
-    }
-
-    .breadcrumb-link:hover {
-      text-decoration: underline;
-    }
-
-    .back-to-top {
-      position: fixed;
-      bottom: 1.5rem;
-      right: 1.5rem;
-      z-index: 20;
-      background: var(--highlight-color);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 2.5rem;
-      height: 2.5rem;
-      font-size: 1.2rem;
-      cursor: pointer;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-      transition: opacity 0.2s;
-    }
-
-    .back-to-top:hover {
-      opacity: 0.85;
-    }
   </style>
 </head>
 
@@ -423,7 +342,6 @@
       style="background: var(--secondary-bg); color: var(--text-color); border: 1px solid var(--border-color);"
       title="Set GitHub Personal Access Token">⚙️
       Token</button>
-    <span id="rateLimitStatus" class="rate-limit-status" aria-live="polite"></span>
   </header>
 
   <main>
@@ -431,7 +349,6 @@
       <div id="navTree">
         <div style="display: flex; align-items: center; margin: 0 0 0.35rem 0;">
           <h3 style="margin: 0; font-size: 0.95rem;">Files</h3>
-          <span id="treeRenderStatus" class="tree-render-status" aria-live="polite"></span>
           <button id="btnToggleFolders" onclick="toggleAllFolders()"
             style="display: none; margin-left: auto; font-size: 0.75rem; padding: 0.15rem 0.4rem;"
             title="Expand or collapse all folders">Expand All</button>
@@ -448,9 +365,6 @@
     <div class="content-area" id="mainContent">
       <p>Loading...</p>
     </div>
-    <button class="back-to-top" id="btnBackToTop"
-      onclick="document.getElementById('mainContent').scrollTo({top:0,behavior:'smooth'})" title="Back to top"
-      aria-label="Back to top">↑</button>
   </main>
 
   <script>
@@ -483,70 +397,7 @@
     const ghToken = localStorage.getItem( 'githubToken' ) || '';
     const headers = ghToken ? { Authorization: `token ${ ghToken }` } : {};
     const LARGE_FILE_WARNING_BYTES = 1024 * 1024;
-    const FILE_TEXT_CACHE_LIMIT = 25;
-    const FILE_TEXT_CACHE_MAX_CHARS = 300_000;
-    const TREE_RENDER_BATCH_SIZE = 120;
     const storageKey = suffix => `tootoo-lt:${ location.pathname }:${ suffix }`;
-
-    const fileTextCache = new Map();
-    try {
-      const cached = JSON.parse( localStorage.getItem( storageKey( 'fileTextCache' ) ) || '[]' );
-      if ( Array.isArray( cached ) ) {
-        cached.forEach( entry => {
-          if ( Array.isArray( entry ) && typeof entry[ 0 ] === 'string' && typeof entry[ 1 ] === 'string' ) {
-            fileTextCache.set( entry[ 0 ], entry[ 1 ] );
-          }
-        } );
-      }
-    } catch ( e ) { /* ignore bad cache */ }
-
-    const persistFileTextCache = () => {
-      try {
-        localStorage.setItem( storageKey( 'fileTextCache' ), JSON.stringify( Array.from( fileTextCache.entries() ) ) );
-      } catch ( e ) { /* storage quota may be full */ }
-    };
-
-    const getFileCacheKey = path => `${ state.owner }/${ state.repo }/${ state.branch }/${ path }`;
-
-    const getCachedFileText = path => {
-      const key = getFileCacheKey( path );
-      if ( !fileTextCache.has( key ) ) return null;
-      const value = fileTextCache.get( key );
-      fileTextCache.delete( key );
-      fileTextCache.set( key, value );
-      return value;
-    };
-
-    const setCachedFileText = ( path, text ) => {
-      if ( typeof text !== 'string' || text.length > FILE_TEXT_CACHE_MAX_CHARS ) return;
-      const key = getFileCacheKey( path );
-      if ( fileTextCache.has( key ) ) fileTextCache.delete( key );
-      fileTextCache.set( key, text );
-      while ( fileTextCache.size > FILE_TEXT_CACHE_LIMIT ) {
-        const firstKey = fileTextCache.keys().next().value;
-        fileTextCache.delete( firstKey );
-      }
-      persistFileTextCache();
-    };
-
-    const updateRateLimitStatus = resp => {
-      const el = document.getElementById( 'rateLimitStatus' );
-      if ( !el || !resp?.headers ) return;
-      const remaining = resp.headers.get( 'x-ratelimit-remaining' );
-      const limit = resp.headers.get( 'x-ratelimit-limit' );
-      const reset = resp.headers.get( 'x-ratelimit-reset' );
-      if ( !remaining || !limit ) return;
-      let resetTxt = '';
-      if ( reset ) {
-        const ms = Number( reset ) * 1000;
-        if ( Number.isFinite( ms ) ) {
-          const d = new Date( ms );
-          resetTxt = `, resets ${ d.toLocaleTimeString( [], { hour: '2-digit', minute: '2-digit' } ) }`;
-        }
-      }
-      el.textContent = `API ${ remaining }/${ limit }${ resetTxt }`;
-      el.style.display = 'inline-flex';
-    };
 
     // ── Auto-detect repo ────────────────────────────────────────────────────
 
@@ -641,7 +492,6 @@
     const treeList = document.getElementById( 'treeList' );
     const mainContent = document.getElementById( 'mainContent' );
     const btnToggleFolders = document.getElementById( 'btnToggleFolders' );
-    const treeRenderStatus = document.getElementById( 'treeRenderStatus' );
 
     // ── Utilities ───────────────────────────────────────────────────────────
 
@@ -811,7 +661,6 @@
           // Resolve default branch if not set
           if ( !state.branch ) {
             const repoResp = await fetch( `https://api.github.com/repos/${ owner }/${ repo }`, options );
-            updateRateLimitStatus( repoResp );
             if ( !repoResp.ok ) {
               if ( repoResp.status === 404 && !ghToken ) {
                 mainContent.innerHTML = `<p class="error">Repository <strong>${ escapeHTML( owner ) }/${ escapeHTML( repo ) }</strong> is private or does not exist.<br><br>If this is a private repository, click <strong>⚙️ Token</strong> to enter a GitHub Personal Access Token with <code>repo</code> scope.</p>`;
@@ -829,7 +678,6 @@
 
           // Fetch recursive tree
           const treeResp = await fetch( `https://api.github.com/repos/${ owner }/${ repo }/git/trees/${ state.branch }?recursive=1`, options );
-          updateRateLimitStatus( treeResp );
           if ( !treeResp.ok ) throw new Error( `Status: ${ treeResp.status } - ${ treeResp.statusText }` );
           const treeData = await treeResp.json();
 
@@ -888,7 +736,6 @@
       const opts = { headers: { ...headers, Accept: 'application/vnd.github.raw+json' } };
       if ( fetchOpts.signal ) opts.signal = fetchOpts.signal;
       const resp = await fetch( url, opts );
-      updateRateLimitStatus( resp );
       if ( !resp.ok ) throw new Error( `Failed to load ${ ext } file.` );
       const blob = await resp.blob();
       return URL.createObjectURL( new Blob( [ blob ], { type: MIME_TYPES[ ext ] || 'application/octet-stream' } ) );
@@ -904,7 +751,6 @@
       if ( IMAGE_EXTS.includes( ext ) ) {
         if ( ext === 'svg' ) {
           const resp = await fetch( url, fetchOpts );
-          updateRateLimitStatus( resp );
           if ( !resp.ok ) throw new Error( 'Failed to load svg file.' );
           const text = await resp.text();
           const src = URL.createObjectURL( new Blob( [ text ], { type: 'image/svg+xml' } ) );
@@ -931,7 +777,6 @@
         }
       } else if ( SHEET_EXTS.includes( ext ) ) {
         const resp = await fetch( url, fetchOpts );
-        updateRateLimitStatus( resp );
         if ( !resp.ok ) throw new Error( 'Failed to load spreadsheet.' );
         const buf = await resp.arrayBuffer();
         const wb = XLSX.read( buf, { type: 'array' } );
@@ -942,14 +787,9 @@
         } );
         renderedHtml = `<div class="xlsx-content">${ sheets.join( '' ) }</div>`;
       } else {
-        let text = getCachedFileText( path );
-        if ( text == null ) {
-          const resp = await fetch( url, fetchOpts );
-          updateRateLimitStatus( resp );
-          if ( !resp.ok ) throw new Error( 'Failed to load file content.' );
-          text = await resp.text();
-          setCachedFileText( path, text );
-        }
+        const resp = await fetch( url, fetchOpts );
+        if ( !resp.ok ) throw new Error( 'Failed to load file content.' );
+        const text = await resp.text();
         const tooLargeForHighlight = text.length > 500_000;
         const langClass = tooLargeForHighlight ? 'nohighlight' : `language-${ escapeAttribute( ext ) }`;
         rawHtml = `<pre><code class="${ langClass }">${ escapeHTML( text ) }</code></pre>`;
@@ -973,15 +813,9 @@
       return { renderedHtml, rawHtml, showToggles };
     };
 
-    // ── Rendered/Raw toggle (with per-type memory) ──────────────────────────
+    // ── Rendered/Raw toggle ─────────────────────────────────────────────────
 
-    const getViewPrefKey = ext => storageKey( `viewPref:${ ext }` );
-
-    const getPreferredView = ext => {
-      try { return localStorage.getItem( getViewPrefKey( ext ) ) || 'rendered'; } catch { return 'rendered'; }
-    };
-
-    const toggleFileView = ( view, ext ) => {
+    const toggleFileView = view => {
       const viewRendered = document.getElementById( 'viewRendered' );
       const viewRaw = document.getElementById( 'viewRaw' );
       const btnRendered = document.getElementById( 'btnRendered' );
@@ -992,9 +826,6 @@
       if ( viewRaw ) viewRaw.style.display = isRaw ? 'block' : 'none';
       if ( btnRendered ) btnRendered.style.opacity = isRaw ? '0.5' : '1';
       if ( btnRaw ) btnRaw.style.opacity = isRaw ? '1' : '0.5';
-      if ( ext ) {
-        try { localStorage.setItem( getViewPrefKey( ext ), view ); } catch { /* quota full */ }
-      }
     };
 
     // ── Select file ─────────────────────────────────────────────────────────
@@ -1012,7 +843,6 @@
         state.currentFilePath = path;
         if ( doUpdateHash ) updateHash();
         localStorage.setItem( storageKey( 'lastFilePath' ), path );
-        highlightActiveTreeItem( path );
         mainContent.innerHTML = `<p>Loading file: ${ escapeHTML( path ) }...</p>`;
 
         const options = getFetchOptions( true );
@@ -1034,12 +864,7 @@
         const repoLink = `<a href="#"
                style="color: var(--highlight-color); text-decoration: none; font-weight: normal; cursor: pointer;"
                onclick="event.preventDefault(); resetToHome()">${ escapeHTML( state.repo ) }</a>`;
-        const pathPrefix = pathParts.length
-          ? pathParts.map( ( seg, i ) => {
-            const folderPath = pathParts.slice( 0, i + 1 ).join( '/' );
-            return `<a class="breadcrumb-link" onclick="event.preventDefault(); scrollToTreeFolder('${ escapeAttribute( folderPath ) }')" href="#">${ escapeHTML( seg ) }</a>`;
-          } ).join( ' / ' ) + ' / '
-          : '';
+        const pathPrefix = pathParts.length ? pathParts.map( escapeHTML ).join( ' / ' ) + ' / ' : '';
 
         const headerHtml = `
           <div class="file-header">
@@ -1056,8 +881,8 @@
                 style="${ NO_COPY_EXTS.includes( ext ) ? 'display:none' : '' }">Copy</button>
               <button onclick="window.open('${ escapeAttribute( newTabUrl ) }', '_blank', 'noopener')" class="file-btn" title="Open in new tab">New Tab</button>
               <div id="fileViewToggles" class="file-actions" style="display: none;">
-                <button id="btnRendered" onclick="toggleFileView('rendered', '${ escapeAttribute( ext ) }')" class="file-btn" title="Show rendered view">Rendered</button>
-                <button id="btnRaw" onclick="toggleFileView('raw', '${ escapeAttribute( ext ) }')" class="file-btn" style="opacity: 0.5;" title="Show raw source">Raw</button>
+                <button id="btnRendered" onclick="toggleFileView('rendered')" class="file-btn" title="Show rendered view">Rendered</button>
+                <button id="btnRaw" onclick="toggleFileView('raw')" class="file-btn" style="opacity: 0.5;" title="Show raw source">Raw</button>
               </div>
             </div>
           </div>`;
@@ -1074,11 +899,7 @@
           <div id="viewRendered" style="display: block;">${ renderedHtml }</div>
           ${ rawHtml ? `<div id="viewRaw" style="display: none;">${ rawHtml }</div>` : '' }`;
 
-        if ( showToggles ) {
-          document.getElementById( 'fileViewToggles' ).style.display = 'flex';
-          const pref = getPreferredView( ext );
-          if ( pref === 'raw' ) toggleFileView( 'raw', ext );
-        }
+        if ( showToggles ) document.getElementById( 'fileViewToggles' ).style.display = 'flex';
 
         try {
           if ( window.hljs ) hljs.highlightAll();
@@ -1135,11 +956,6 @@
     // ── Tree rendering ──────────────────────────────────────────────────────
 
     const renderTree = tree => {
-      if ( treeRenderStatus ) {
-        treeRenderStatus.style.display = 'inline';
-        treeRenderStatus.textContent = 'Rendering tree...';
-      }
-
       const root = {};
       tree.forEach( item => {
         const parts = item.path.split( '/' );
@@ -1194,61 +1010,7 @@
         } ).join( '' );
       };
 
-      const rootKeys = Object.keys( root );
-      rootKeys.sort( ( a, b ) => {
-        const aIsFolder = root[ a ]._item.type === 'tree';
-        const bIsFolder = root[ b ]._item.type === 'tree';
-        if ( aIsFolder !== bIsFolder ) return aIsFolder ? -1 : 1;
-        return a.localeCompare( b );
-      } );
-
-      treeList.innerHTML = '';
-      let idx = 0;
-      const renderNextBatch = () => {
-        const end = Math.min( idx + TREE_RENDER_BATCH_SIZE, rootKeys.length );
-        const chunk = rootKeys.slice( idx, end ).map( key => {
-          const child = root[ key ];
-          const item = child._item;
-          if ( item.type === 'tree' ) {
-            return `<details>
-              <summary class="tree-folder" tabindex="0">📁 ${ escapeHTML( key ) }</summary>
-              <div class="tree-children">${ buildHtml( child._children ) }</div>
-            </details>`;
-          }
-          const isReadme = /^readme(\.md|\.txt)?$/i.test( key );
-          const icon = fileIcon( key );
-          const label = isReadme
-            ? `<span class="tree-item-label" style="font-weight: 600;">${ icon } ${ escapeHTML( key ) }</span>`
-            : `<span class="tree-item-label">${ icon } ${ escapeHTML( key ) }</span>`;
-          const sizeLabel = item.size != null
-            ? `<span class="tree-item-size">${ formatFileSize( item.size ) }</span>`
-            : '';
-          return `<div class="tree-item" tabindex="0" data-action="select-file" data-path="${ escapeAttribute( item.path ) }">
-            ${ label }
-            ${ sizeLabel }
-          </div>`;
-        } ).join( '' );
-
-        treeList.insertAdjacentHTML( 'beforeend', chunk );
-        idx = end;
-        if ( treeRenderStatus ) {
-          const pct = rootKeys.length ? Math.round( ( idx / rootKeys.length ) * 100 ) : 100;
-          treeRenderStatus.textContent = `Rendering tree... ${ pct }%`;
-        }
-        if ( idx < rootKeys.length ) {
-          setTimeout( renderNextBatch, 0 );
-        } else if ( treeRenderStatus ) {
-          treeRenderStatus.textContent = `Rendered ${ rootKeys.length } items`;
-          setTimeout( () => {
-            if ( treeRenderStatus ) {
-              treeRenderStatus.style.display = 'none';
-              treeRenderStatus.textContent = '';
-            }
-          }, 1200 );
-        }
-      };
-
-      renderNextBatch();
+      treeList.innerHTML = buildHtml( root );
     };
 
     // ── Expand/Collapse all ─────────────────────────────────────────────────
@@ -1268,74 +1030,6 @@
     treeList.addEventListener( 'click', e => {
       const el = e.target.closest( '[data-action="select-file"]' );
       if ( el ) handleSelectFile( el.dataset.path );
-    } );
-
-    // ── Highlight active file + auto-expand ─────────────────────────────────
-
-    const highlightActiveTreeItem = path => {
-      treeList.querySelectorAll( '.tree-item.active' ).forEach( el => el.classList.remove( 'active' ) );
-      const item = treeList.querySelector( `.tree-item[data-path="${ CSS.escape( path ) }"]` );
-      if ( !item ) return;
-      item.classList.add( 'active' );
-      // Auto-expand ancestor folders
-      let parent = item.parentElement;
-      while ( parent && parent !== treeList ) {
-        if ( parent.tagName === 'DETAILS' && !parent.open ) parent.open = true;
-        parent = parent.parentElement;
-      }
-      // Scroll tree item into view
-      item.scrollIntoView( { block: 'nearest', behavior: 'smooth' } );
-    };
-
-    // ── Breadcrumb folder navigation ────────────────────────────────────────
-
-    const scrollToTreeFolder = folderPath => {
-      // Find the <summary> for this folder path by checking all tree-folders
-      const allSummaries = treeList.querySelectorAll( 'summary.tree-folder' );
-      for ( const summary of allSummaries ) {
-        const details = summary.parentElement;
-        // Reconstruct folder path from nesting
-        const childContainer = details.querySelector( '.tree-children' );
-        // Check if any child item starts with this folderPath
-        const match = childContainer?.querySelector(
-          `.tree-item[data-path^="${ CSS.escape( folderPath + '/' ) }"], details`
-        );
-        // Verify this is the right folder by checking the text
-        const text = summary.textContent.replace( /^📁\s*/, '' ).trim();
-        const lastSeg = folderPath.split( '/' ).pop();
-        if ( text !== lastSeg ) continue;
-        // Expand all ancestors
-        let p = details.parentElement;
-        while ( p && p !== treeList ) {
-          if ( p.tagName === 'DETAILS' && !p.open ) p.open = true;
-          p = p.parentElement;
-        }
-        details.open = true;
-        summary.scrollIntoView( { block: 'nearest', behavior: 'smooth' } );
-        summary.focus();
-        return;
-      }
-    };
-
-    // ── Back-to-top button visibility ───────────────────────────────────────
-
-    const btnBackToTop = document.getElementById( 'btnBackToTop' );
-    mainContent.addEventListener( 'scroll', () => {
-      if ( mainContent.scrollTop > 400 ) {
-        btnBackToTop.style.display = 'flex';
-      } else {
-        btnBackToTop.style.display = 'none';
-      }
-    } );
-
-    // ── Keyboard shortcut: '/' to focus filter ──────────────────────────────
-
-    document.addEventListener( 'keydown', e => {
-      if ( e.key === '/' && ![ 'INPUT', 'TEXTAREA', 'SELECT' ].includes( document.activeElement.tagName ) ) {
-        e.preventDefault();
-        document.getElementById( 'treeFilter' ).focus();
-        return;
-      }
     } );
 
     // ── Keyboard navigation in tree ─────────────────────────────────────────
