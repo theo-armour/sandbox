@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TooToo LT</title>
+  <title>Theo Armour/AA</title>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link id="hljsTheme" rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
@@ -75,6 +75,8 @@
       opacity: 0.9;
     }
 
+    img { width: 100%;}
+	
     main {
       display: flex;
       flex: 1;
@@ -85,7 +87,7 @@
       width: var(--sidebar-width, 300px);
       flex-shrink: 0;
       background-color: var(--secondary-bg);
-      padding: 0.5rem 0 1rem 1rem;
+      padding: 0.5rem 0.5rem 1rem 1rem;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -127,7 +129,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.25rem;
+      gap: 1rem;
     }
 
     .tree-item-label {
@@ -140,8 +142,6 @@
       opacity: 0.65;
       flex-shrink: 0;
       text-align: right;
-      margin-left: auto;
-      padding-left: 0;
     }
 
     .tree-item:hover {
@@ -245,28 +245,6 @@
       border-radius: 4px;
     }
 
-    body.dark-mode .md-error {
-      background: #3b1a1a;
-      color: #f5a6a6;
-      border-color: #5c2a2a;
-    }
-
-    .tree-warning {
-      padding: 0.5rem;
-      background: #fff3cd;
-      color: #856404;
-      border: 1px solid #ffeeba;
-      font-size: 0.85rem;
-      border-radius: 4px;
-      margin-top: 0.5rem;
-    }
-
-    body.dark-mode .tree-warning {
-      background: #3b3520;
-      color: #f5d98a;
-      border-color: #5c4e2a;
-    }
-
     .media-content {
       max-width: 100%;
       border: 1px solid var(--border-color);
@@ -320,10 +298,10 @@
 <body>
 
   <header>
-    <strong id="headerTitle" style="cursor: pointer; font-size: 1.1rem;"
+    <strong style="cursor: pointer; font-size: 1.1rem;"
       onclick="history.replaceState(null, '', location.pathname + location.search); location.reload();"
-      title="Reload">TooToo LT</strong>
-    <a id="headerGitHub" href="https://github.com/" target="_blank" rel="noopener" title="View source on GitHub"
+      title="Reload">Theo Armour / AA</strong>
+    <a href="https://github.com/theo-armour/aa" target="_blank" rel="noopener" title="View source on GitHub"
       style="display: flex; align-items: center; justify-content: center; color: var(--text-color); opacity: 0.7; padding: 0.2rem;">
       <svg height="18" width="18" viewBox="0 0 16 16" fill="currentColor">
         <path
@@ -350,7 +328,8 @@
             title="Expand or collapse all folders">Expand All</button>
         </div>
         <input id="treeFilter" type="text" placeholder="Filter files…" oninput="filterTree()">
-        <div id="treeTruncatedWarning" class="tree-warning" style="display:none;">
+        <div id="treeTruncatedWarning"
+          style="display:none; padding: 0.5rem; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; font-size: 0.85rem; border-radius: 4px; margin-top: 0.5rem;">
           ⚠️ Repository too large. Tree truncated.</div>
         <div style="margin-top: 0.5rem;" id="treeList"></div>
       </div>
@@ -375,8 +354,8 @@
     // ── CONFIG ──────────────────────────────────────────────────────────────
 
     const CONFIG = {
-      owner: '',   // empty = auto-detect from .git/config or prompt user
-      repo: '',    // empty = auto-detect from .git/config or prompt user
+      owner: 'theo-armour',
+      repo: 'aa',
       branch: '',  // empty = auto-detect default branch from API
     };
 
@@ -392,78 +371,8 @@
 
     const ghToken = localStorage.getItem( 'githubToken' ) || '';
     const headers = ghToken ? { Authorization: `token ${ ghToken }` } : {};
+    const isLocal = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
     const LARGE_FILE_WARNING_BYTES = 1024 * 1024;
-    const storageKey = suffix => `tootoo-lt:${ location.pathname }:${ suffix }`;
-
-    // ── Auto-detect repo ────────────────────────────────────────────────────
-
-    const updateHeaderFromConfig = () => {
-      document.title = `${ CONFIG.owner } / ${ CONFIG.repo }`;
-      document.getElementById( 'headerTitle' ).textContent = `${ CONFIG.owner } / ${ CONFIG.repo }`;
-      document.getElementById( 'headerGitHub' ).href = `https://github.com/${ CONFIG.owner }/${ CONFIG.repo }`;
-    };
-
-    const detectRepo = () => new Promise( resolve => {
-      // If CONFIG is already filled in, use it directly
-      if ( CONFIG.owner && CONFIG.repo ) {
-        updateHeaderFromConfig();
-        return resolve();
-      }
-
-      // Try fetching .git/config (works from local server or file:// with --allow-file-access-from-files)
-      fetch( '.git/config' ).then( resp => {
-        if ( !resp.ok ) throw new Error( 'not found' );
-        return resp.text();
-      } ).then( text => {
-        const match = text.match( /github\.com[:/]([^/]+)\/([^/.\s]+)/ );
-        if ( match ) {
-          CONFIG.owner = match[ 1 ];
-          CONFIG.repo = match[ 2 ].replace( /\.git$/, '' );
-          localStorage.setItem( storageKey( 'repo' ), JSON.stringify( { owner: CONFIG.owner, repo: CONFIG.repo } ) );
-          updateHeaderFromConfig();
-          return resolve();
-        }
-        throw new Error( 'no github remote' );
-      } ).catch( () => {
-        // Fallback: check localStorage cache
-        const cached = localStorage.getItem( storageKey( 'repo' ) );
-        if ( cached ) {
-          try {
-            const { owner, repo } = JSON.parse( cached );
-            if ( owner && repo ) {
-              CONFIG.owner = owner;
-              CONFIG.repo = repo;
-              updateHeaderFromConfig();
-              return resolve();
-            }
-          } catch { /* bad JSON, fall through */ }
-        }
-
-        // Final fallback: show form
-        mainContent.innerHTML = `
-          <div style="max-width: 400px; margin: 2rem auto; padding: 1.5rem; background: var(--secondary-bg); border: 1px solid var(--border-color); border-radius: 8px;">
-            <h2 style="margin: 0 0 0.5rem 0;">Configure Repository</h2>
-            <p style="margin: 0 0 1rem 0; opacity: 0.8;">Could not auto-detect the repository. Enter the GitHub owner and repo name.</p>
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Owner
-              <input id="inputOwner" type="text" placeholder="e.g. theo-armour" style="display: block; width: 100%; box-sizing: border-box; margin-top: 0.25rem; padding: 0.4rem 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.95rem; background: var(--primary-bg); color: var(--text-color);">
-            </label>
-            <label style="display: block; margin-bottom: 1rem; font-weight: 600;">Repository
-              <input id="inputRepo" type="text" placeholder="e.g. sandbox" style="display: block; width: 100%; box-sizing: border-box; margin-top: 0.25rem; padding: 0.4rem 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.95rem; background: var(--primary-bg); color: var(--text-color);">
-            </label>
-            <button id="btnLoadRepo" style="width: 100%;">Load Repository</button>
-          </div>`;
-        document.getElementById( 'btnLoadRepo' ).addEventListener( 'click', () => {
-          const owner = document.getElementById( 'inputOwner' ).value.trim();
-          const repo = document.getElementById( 'inputRepo' ).value.trim();
-          if ( !owner || !repo ) return;
-          CONFIG.owner = owner;
-          CONFIG.repo = repo;
-          localStorage.setItem( storageKey( 'repo' ), JSON.stringify( { owner, repo } ) );
-          updateHeaderFromConfig();
-          resolve();
-        } );
-      } );
-    } );
     const approvedLargeFiles = new Set();
 
     let mainAbortController = null;
@@ -504,13 +413,9 @@
 
     const formatFileSize = bytes => {
       if ( bytes == null || Number.isNaN( bytes ) ) return '';
-      if ( bytes < 1024 ) return `${ bytes }B`;
-      if ( bytes < 1024 * 1024 ) {
-        const kb = bytes / 1024;
-        return kb < 10 ? `${ kb.toFixed( 1 ) }k` : `${ Math.round( kb ) }k`;
-      }
-      const mb = bytes / ( 1024 * 1024 );
-      return mb < 10 ? `${ mb.toFixed( 1 ) }M` : `${ Math.round( mb ) }M`;
+      if ( bytes < 1024 ) return `${ bytes } B`;
+      if ( bytes < 1024 * 1024 ) return `${ ( bytes / 1024 ).toFixed( 1 ) } KB`;
+      return `${ ( bytes / ( 1024 * 1024 ) ).toFixed( 1 ) } MB`;
     };
 
     const getKnownFileSize = fileNode => {
@@ -522,9 +427,6 @@
 
     const confirmLargeFileLoad = ( path, size ) => {
       if ( size == null || size < LARGE_FILE_WARNING_BYTES ) return true;
-      const ext = path.split( '.' ).pop().toLowerCase();
-      const streamable = [ 'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'ico', 'mp3', 'wav', 'ogg', 'mp4', 'webm', 'pdf' ];
-      if ( streamable.includes( ext ) ) return true;
       const key = getLargeFileApprovalKey( path );
       if ( approvedLargeFiles.has( key ) ) return true;
       const ok = window.confirm( `This file is ${ formatFileSize( size ) } and may take a while to load.\n\nLoad ${ path }?` );
@@ -593,7 +495,7 @@
     // ── Hash routing ────────────────────────────────────────────────────────
 
     const updateHash = () => {
-      const hash = state.currentFilePath ? `#${ state.currentFilePath }` : '#';
+      const hash = `#${ state.owner }/${ state.repo }${ state.currentFilePath ? '/' + state.currentFilePath : '' }`;
       if ( location.hash !== hash ) history.pushState( null, '', hash );
     };
 
@@ -601,10 +503,17 @@
       const hash = location.hash.replace( /^#\/?/, '' );
       if ( !hash ) return;
 
-      const fp = decodeURIComponent( hash );
+      const parts = hash.split( '/' );
+      const owner = parts[ 0 ];
+      const repo = parts[ 1 ];
+      const fp = decodeURIComponent( parts.slice( 2 ).join( '/' ) );
 
-      // Load tree if it hasn't been loaded yet
-      if ( !state.tree.length ) {
+      if ( !owner || !repo ) return;
+
+      // Always load tree if it hasn't been loaded yet
+      if ( !state.tree.length || owner !== state.owner || repo !== state.repo ) {
+        state.owner = owner;
+        state.repo = repo;
         await loadRepo( false );
       }
       if ( fp && state.currentFilePath !== fp ) {
@@ -635,17 +544,7 @@
         // Resolve default branch if not set
         if ( !state.branch ) {
           const repoResp = await fetch( `https://api.github.com/repos/${ owner }/${ repo }`, options );
-          if ( !repoResp.ok ) {
-            if ( repoResp.status === 404 && !ghToken ) {
-              mainContent.innerHTML = `<p class="error">Repository <strong>${ escapeHTML( owner ) }/${ escapeHTML( repo ) }</strong> is private or does not exist.<br><br>If this is a private repository, click <strong>⚙️ Token</strong> to enter a GitHub Personal Access Token with <code>repo</code> scope.</p>`;
-              return;
-            }
-            if ( repoResp.status === 404 && ghToken ) {
-              mainContent.innerHTML = `<p class="error">Repository <strong>${ escapeHTML( owner ) }/${ escapeHTML( repo ) }</strong> was not found.<br><br>Your token may not have access to this private repository. Click <strong>⚙️ Token</strong> to update your token (needs <code>repo</code> scope).</p>`;
-              return;
-            }
-            throw new Error( `Status: ${ repoResp.status } - ${ repoResp.statusText }` );
-          }
+          if ( !repoResp.ok ) throw new Error( `Status: ${ repoResp.status } - ${ repoResp.statusText }` );
           const repoData = await repoResp.json();
           state.branch = repoData.default_branch;
         }
@@ -692,7 +591,7 @@
       let showToggles = false;
 
       if ( [ 'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'ico' ].includes( ext ) ) {
-        if ( ghToken ) {
+        if ( ghToken && !isLocal ) {
           const mimeMap = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml', ico: 'image/x-icon' };
           const imgOpts = { headers: { ...headers, Accept: 'application/vnd.github.raw+json' } };
           if ( fetchOpts.signal ) imgOpts.signal = fetchOpts.signal;
@@ -710,7 +609,7 @@
           showToggles = true;
         }
       } else if ( [ 'mp3', 'wav', 'ogg' ].includes( ext ) ) {
-        if ( ghToken ) {
+        if ( ghToken && !isLocal ) {
           const mimeMap = { mp3: 'audio/mpeg', wav: 'audio/wav', ogg: 'audio/ogg' };
           const audioOpts = { headers: { ...headers, Accept: 'application/vnd.github.raw+json' } };
           if ( fetchOpts.signal ) audioOpts.signal = fetchOpts.signal;
@@ -723,7 +622,7 @@
           renderedHtml = `<audio controls src="${ escapeAttribute( url ) }" style="width: 100%; margin-top: 1rem;"></audio>`;
         }
       } else if ( [ 'mp4', 'webm' ].includes( ext ) ) {
-        if ( ghToken ) {
+        if ( ghToken && !isLocal ) {
           const mimeMap = { mp4: 'video/mp4', webm: 'video/webm' };
           const videoOpts = { headers: { ...headers, Accept: 'application/vnd.github.raw+json' } };
           if ( fetchOpts.signal ) videoOpts.signal = fetchOpts.signal;
@@ -736,7 +635,7 @@
           renderedHtml = `<video controls src="${ escapeAttribute( url ) }" class="media-content"></video>`;
         }
       } else if ( ext === 'pdf' ) {
-        if ( ghToken ) {
+        if ( ghToken && !isLocal ) {
           const pdfOpts = { headers: { ...headers, Accept: 'application/vnd.github.raw+json' } };
           if ( fetchOpts.signal ) pdfOpts.signal = fetchOpts.signal;
           const resp = await fetch( url, pdfOpts );
@@ -815,14 +714,16 @@
 
         state.currentFilePath = path;
         if ( doUpdateHash ) updateHash();
-        localStorage.setItem( storageKey( 'lastFilePath' ), path );
+        localStorage.setItem( 'lastFilePath', path );
         mainContent.innerHTML = `<p>Loading file: ${ escapeHTML( path ) }...</p>`;
 
         const options = getFetchOptions( true );
-        const url = ghToken
-          ? `https://api.github.com/repos/${ state.owner }/${ state.repo }/contents/${ path }?ref=${ state.branch }`
-          : `https://raw.githubusercontent.com/${ state.owner }/${ state.repo }/${ state.branch }/${ path }`;
-        if ( ghToken ) options.headers = { ...headers, Accept: 'application/vnd.github.raw+json' };
+        const url = isLocal
+          ? `./${ path }`
+          : ghToken
+            ? `https://api.github.com/repos/${ state.owner }/${ state.repo }/contents/${ path }?ref=${ state.branch }`
+            : `https://raw.githubusercontent.com/${ state.owner }/${ state.repo }/${ state.branch }/${ path }`;
+        if ( !isLocal && ghToken ) options.headers = { ...headers, Accept: 'application/vnd.github.raw+json' };
         const ext = path.split( '.' ).pop().toLowerCase();
 
         const githubLink = `https://github.com/${ state.owner }/${ state.repo }/blob/${ state.branch }/${ path }`;
@@ -830,7 +731,7 @@
 
         const pathParts = path.split( '/' );
         const fileName = pathParts.pop();
-        const repoLink = `<a href="#"
+        const repoLink = `<a href="#${ escapeAttribute( state.owner ) }/${ escapeAttribute( state.repo ) }"
                style="color: var(--highlight-color); text-decoration: none; font-weight: normal; cursor: pointer;"
                onclick="event.preventDefault(); state.currentFilePath = ''; updateHash(); loadRepo(false)">${ escapeHTML( state.repo ) }</a>`;
         const pathPrefix = pathParts.length ? pathParts.join( ' / ' ) + ' / ' : '';
@@ -1085,18 +986,12 @@
 
     // ── Global error handlers ───────────────────────────────────────────────
 
-    const errorPanel = ( title, msg ) => {
-      const isDark = document.body.classList.contains( 'dark-mode' );
-      const bg = isDark ? '#3b1a1a' : '#ffebee';
-      const fg = isDark ? '#f5a6a6' : '#c62828';
-      const border = isDark ? '#5c2a2a' : '#ffcdd2';
-      return `
-      <div style="padding: 1.5rem; background: ${ bg }; color: ${ fg }; border: 1px solid ${ border }; border-radius: 6px; margin: 1rem;">
+    const errorPanel = ( title, msg ) => `
+      <div style="padding: 1.5rem; background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; border-radius: 6px; margin: 1rem;">
         <h3 style="margin-top: 0;">⚠️ ${ title }</h3>
         <p>${ escapeHTML( msg ) }</p>
         <button onclick="location.reload()" style="margin-top: 1rem; background: #c62828; color: white;" title="Reload the page">Reload Page</button>
       </div>`;
-    };
 
     window.addEventListener( 'error', event => {
       mainContent.innerHTML = errorPanel(
@@ -1126,26 +1021,22 @@
       setHljsTheme( true );
     }
 
-    ( async () => {
-      await detectRepo();
+    state.owner = CONFIG.owner;
+    state.repo = CONFIG.repo;
+    state.branch = CONFIG.branch;
 
-      state.owner = CONFIG.owner;
-      state.repo = CONFIG.repo;
-      state.branch = CONFIG.branch;
-
-      if ( location.hash ) {
-        handleHashChange();
+    if ( location.hash ) {
+      handleHashChange();
+    } else {
+      const lastFile = localStorage.getItem( 'lastFilePath' );
+      if ( lastFile ) {
+        loadRepo( false ).then( () => {
+          if ( state.tree.find( i => i.path === lastFile ) ) handleSelectFile( lastFile );
+        } );
       } else {
-        const lastFile = localStorage.getItem( storageKey( 'lastFilePath' ) );
-        if ( lastFile ) {
-          loadRepo( false ).then( () => {
-            if ( state.tree.find( i => i.path === lastFile ) ) handleSelectFile( lastFile );
-          } );
-        } else {
-          loadRepo();
-        }
+        loadRepo();
       }
-    } )();
+    }
   </script>
 
 </body>

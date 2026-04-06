@@ -1,5 +1,21 @@
 # TooToo LT — Development Journal
 
+## 2026-04-05
+
+I would like to be able to drop TooToo-LT.html into any local repository folder and have it configure itself or detect the repository it is in and automatically set `CONFIG.owner` and `CONFIG.repo` accordingly.
+
+Can you think of ways to do this?
+
+--allow-file-access-from-files
+
+### Done
+* Let files that stream of any size run without prompting.
+* OK to load large files that stream
+* Smaller file size margins
+* Shorter location.hash
+* How to get a gat?
+* PDFs load OK locally
+* If a repository is private, inform the user That the repository is private and prompt them to enter a token in order to view files.
 ## 2026-04-04
 
 I want to build, create the prompt for a light version or LT version of `index.html`.
