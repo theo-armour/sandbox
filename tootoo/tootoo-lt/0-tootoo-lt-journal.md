@@ -2,6 +2,15 @@
 
 ## 2026-04-05
 
+So what's next? Go from Tutu LT back to the big Tootoo.
+
+Add repo stats to LT. no. Keep LT very basic.
+
+
+
+
+***
+
 Again, What amazing progress!
 
 I would like to be able to drop TooToo-LT.html into any local repository folder and have it configure itself or detect the repository it is in and automatically set `CONFIG.owner` and `CONFIG.repo` accordingly.
