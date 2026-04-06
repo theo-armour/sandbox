@@ -92,6 +92,7 @@
         },
         {
           "title": "orgs",
+          "collapsed": true,
           "links": [
             {
               "title": "evrlnd",
