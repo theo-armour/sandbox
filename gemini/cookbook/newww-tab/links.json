@@ -69,6 +69,7 @@
         },
         {
           "title": "theo apps",
+          "collapsed": true,
           "links": [
             {
               "title": "newww tab",
@@ -97,11 +98,10 @@
         },
         {
           "title": "orgs",
-          "collapsed": true,
           "links": [
             {
               "title": "evrlnd",
-              "url": "https://everland.io/"
+              "url": "https://evereverland.net/"
             },
             {
               "title": "2019",
