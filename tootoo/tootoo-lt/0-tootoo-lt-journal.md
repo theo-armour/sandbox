@@ -2,6 +2,8 @@
 
 ## 2026-04-05
 
+Again, What amazing progress!
+
 I would like to be able to drop TooToo-LT.html into any local repository folder and have it configure itself or detect the repository it is in and automatically set `CONFIG.owner` and `CONFIG.repo` accordingly.
 
 Can you think of ways to do this?

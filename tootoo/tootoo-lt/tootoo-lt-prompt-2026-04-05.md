@@ -4,9 +4,9 @@
 
 TooToo LT is a stripped-down, single-file HTML GitHub browser that displays the file tree and file contents for **one repository on its default branch**. It omits the full TooToo features (repo list, orgs, gists, stats, discover) to stay minimal and fast.
 
-Output: a single `tootoo-lt.html` file (~1170 lines of HTML/CSS/JS).
+Output: a single `tootoo-lt.html` file (~900–1000 lines of HTML/CSS/JS).
 
-It is designed to be **dropped into any GitHub repo folder** and auto-detect its repository from `.git/config`. It also runs on GitHub Pages.
+It runs on GitHub Pages at `theo-armour.github.io/sandbox/tootoo/tootoo-lt/`.
 
 ## How to Use This Prompt
 
@@ -16,20 +16,14 @@ It is designed to be **dropped into any GitHub repo folder** and auto-detect its
 **For a targeted fix**: Feed this prompt plus the current `tootoo-lt.html`:
 > "Here is my current app [paste tootoo-lt.html]. Using this spec [paste this file], fix the markdown rendering."
 
-## Deployment
-
-TooToo LT is a single `index.html` with an inline `CONFIG` object. Each copy differs only in its CONFIG values (or uses empty CONFIG for auto-detect). Apply fixes to all copies.
-
-- **Drop-in mode**: Place `tootoo-lt.html` in any repo folder. Leave CONFIG empty — it auto-detects the repo from `.git/config`.
-- **Pre-configured mode**: Set `CONFIG.owner` and `CONFIG.repo` for known repos.
-- **GitHub Pages**: Works at `theo-armour.github.io/sandbox/tootoo/tootoo-lt/` (uses auto-detect or localStorage cache).
-
 ## Relationship to Full TooToo
 
 TooToo LT is a subset of the full TooToo GitHub browser (`tootoo/index.html`). The tree rendering, file viewer, keyboard navigation, CSS theming, and resizable sidebar are the same — LT simply removes the multi-repo browsing layer.
 
 - **Full TooToo source**: `tootoo/index.html` (~1500 lines)
 - **Full TooToo prompts**: `tootoo/prompt/prompt-*.md` (architecture, API, file viewer, navigation, discover)
+
+**Tip**: For best results, attach the full `tootoo/index.html` alongside this prompt so the LLM can extract the tree, file viewer, and CSS code directly rather than reimplementing from spec.
 
 ## What Is Omitted (vs full TooToo)
 
@@ -63,39 +57,20 @@ These features from the full TooToo `index.html` are **not included** in LT:
 
 ---
 
-## CONFIG & Auto-Detection
+## CONFIG
 
 ```js
 const CONFIG = {
-  owner: '',   // empty = auto-detect from .git/config or prompt user
-  repo: '',    // empty = auto-detect from .git/config or prompt user
-  branch: '',  // empty = auto-detect default branch from API
+  owner: 'theo-armour',
+  repo: 'aa',
+  branch: '',       // empty string = auto-detect default branch from API
 };
 ```
 
-### `detectRepo()` Cascade
-
-When CONFIG has empty `owner`/`repo`, the app runs a detection cascade (returns a Promise):
-
-1. **CONFIG pre-filled** → use directly, call `updateHeaderFromConfig()`
-2. **Fetch `.git/config`** → parse `github.com[:/]owner/repo` from remote URL → cache to localStorage
-3. **localStorage cache** → read `storageKey('repo')` JSON (`{owner, repo}`)
-4. **Show inline form** → user enters owner + repo manually → saved to localStorage
-
-`updateHeaderFromConfig()` dynamically sets:
-- `document.title` → `"owner / repo"`
-- `#headerTitle` text → `"owner / repo"`
-- `#headerGitHub` href → `https://github.com/owner/repo`
-
-### Per-Instance localStorage
-
-The `storageKey(suffix)` helper namespaces keys by `location.pathname`:
-
-```js
-const storageKey = suffix => `tootoo-lt:${location.pathname}:${suffix}`;
-```
-
-This prevents multiple TooToo LT instances in different folders from overwriting each other's cached repo and last-file state. Global keys (`githubToken`, `darkMode`, `sidebarWidth`) are shared across all instances.
+- CONFIG values are used directly by `loadRepo()` — there are no input fields
+- If `CONFIG.branch` is empty, the app fetches the repo metadata to discover the default branch
+- If `CONFIG.branch` is set, it is used directly (skips the repo metadata fetch)
+- The repo may be private — a GitHub token (stored in `localStorage`) is required for private repo access
 
 ---
 
@@ -123,8 +98,8 @@ const state = {
 ```
 <body>
   <header>
-    Title (#headerTitle, clickable → resetToHome(), dynamically set to "owner / repo")
-    GitHub logo link (#headerGitHub, opens repo on GitHub, dynamically set)
+    Fixed title ("Theo Armour / AA", clickable to reload page)
+    GitHub logo link (opens repo on GitHub)
     Dark mode toggle button (🌙/☀️, right-aligned)
     Token button ("⚙️ Token")
   </header>
@@ -146,7 +121,7 @@ const state = {
     </div>
 
     <div class="content-area" id="mainContent">
-      (dynamic content — file viewer, welcome message, or repo config form)
+      (dynamic content — file viewer or welcome message)
     </div>
   </main>
 </body>
@@ -154,8 +129,8 @@ const state = {
 
 Key differences from full TooToo:
 - **No `repoListContainer`** — the sidebar only contains `navTree`
-- **No input fields in header** — owner/repo auto-detected or shown in a form in `mainContent`
-- **Dynamic title** in header — updated by `updateHeaderFromConfig()` after detection
+- **No input fields or Load button** — owner/repo are fixed in CONFIG
+- **Fixed branded title** in header instead of input fields
 - **Expand All button** is in the sidebar Files header, not the top header
 - **Tree filter input** below Files heading for quick filename search
 - **Dark mode toggle** in header
@@ -208,13 +183,10 @@ Key differences from full TooToo:
 
 Triggered automatically on page load (or by hash change):
 
-1. Read `owner` and `repo` from CONFIG (filled by `detectRepo()`)
-2. If `state.branch` is empty (no CONFIG override and not yet fetched):
+1. Read `owner` and `repo` from CONFIG
+2. If `state.branch` is empty (no CONFIG override):
    - Fetch `GET /repos/{owner}/{repo}` to get `default_branch`
-   - If 404 without token: show private repo message with token prompt
-   - If 404 with token: show "not found / bad token" message
    - Set `state.branch` to the response's `default_branch`
-   - Branch is cached in `state.branch` across subsequent `loadRepo()` calls
 3. Fetch tree: `GET /repos/{owner}/{repo}/git/trees/{branch}?recursive=1`
 4. If `treeData.truncated` is true, show the yellow warning banner
 5. Store `treeData.tree` in `state.tree`
@@ -290,23 +262,12 @@ When a file is selected, the content area shows:
 
 - Threshold: `LARGE_FILE_WARNING_BYTES = 1024 * 1024` (1 MB)
 - Files exceeding threshold trigger a `window.confirm()` dialog
-- **Streamable files skip the prompt**: images (`png`, `jpg`, `jpeg`, `gif`, `webp`, `svg`, `ico`), audio (`mp3`, `wav`, `ogg`), video (`mp4`, `webm`), and `pdf` load without confirmation regardless of size
 - Approved files tracked in `approvedLargeFiles` Set (per session)
 - File size read from tree API response (`item.size`)
-- Files over 500KB skip syntax highlighting to avoid freezing the browser
-
-### File Size Display
-
-File sizes shown in the tree use compact formatting via `formatFileSize()`:
-- `< 1024` → `"43B"`
-- `< 10KB` → `"1.5k"`
-- `≥ 10KB` → `"72k"` (rounded)
-- `< 10MB` → `"1.2M"`
-- `≥ 10MB` → `"12M"` (rounded)
 
 ### File Header Details
 
-- Repo name is a clickable link that calls `resetToHome()` — clears lastFilePath, clears hash, reloads tree
+- Repo name is a clickable link that navigates back to the repo tree root
 - Path segments shown with `/` separators
 - GitHub icon links to the file on GitHub
 - "Copy" button copies raw file content to clipboard (shows "✓ Copied" feedback for 1.5s); hidden for binary file types (images, audio, video, PDF, spreadsheets)
@@ -330,32 +291,22 @@ File sizes shown in the tree use compact formatting via `formatFileSize()`:
 
 ### Hash-Based Routing
 
-Simplified format: `#{filepath}`
-
-Hash contains **only the file path** (no owner/repo prefix). The repo is already known from CONFIG/auto-detect.
+Simplified format: `#{owner}/{repo}/{filepath}`
 
 Examples:
-- `#README.md` → open README.md
-- `#tootoo/index.html` → open the file at that path
-- (no hash) → auto-open README or show welcome
-
-### `resetToHome()`
-
-Called by clicking the header title or the repo breadcrumb link in file headers:
-1. Removes `lastFilePath` from localStorage
-2. Clears `state.currentFilePath`
-3. Strips the hash from the URL via `history.replaceState` (best-effort, fails silently on `file://`)
-4. Calls `loadRepo(false)` to re-render tree and auto-open README
+- `#theo-armour/sandbox` → load sandbox repo, show tree + README
+- `#theo-armour/sandbox/tootoo/index.html` → load repo and open specific file
 
 ### Hash Behavior
-- `updateHash()`: When a file is selected, pushes `#filepath` via `history.pushState`. When no file is selected, strips the hash via `history.replaceState` (never pushes bare `#`)
+- `updateHash()` uses `history.pushState` for forward navigation (creates history entries)
+- `history.replaceState` used only for reload (no history entry)
 - Hash **not** set for auto-displayed READMEs on initial load
 - `popstate` and `hashchange` events trigger `handleHashChange()`
-- Deep linking: on page load, if hash present, parse filepath from it and navigate
+- Deep linking: on page load, if hash present, parse owner/repo/file from it and navigate
 
 ### Simplified Rules
-- Hash contains file path only — no `owner/repo` prefix
-- No `#owner/repo` hashes (repo is known from CONFIG/detection)
+- Hash always has at least `owner/repo` (both are required)
+- No `#owner`-only hashes (no repo list to show)
 - No `#gist/` prefix (gists are omitted)
 
 ### Tree Rendering
@@ -410,27 +361,24 @@ Global `keydown` listener on `document`, active only when focus is on a `.tree-f
 
 ## localStorage Keys
 
-| Key | Scope | Purpose |
-|-----|-------|---------|
-| `githubToken` | Global | GitHub Personal Access Token |
-| `darkMode` | Global | `'true'` or `'false'` — dark mode state |
-| `sidebarWidth` | Global | Pixel width of sidebar (number as string) |
-| `tootoo-lt:{pathname}:repo` | Per-instance | Cached `{owner, repo}` JSON from auto-detect |
-| `tootoo-lt:{pathname}:lastFilePath` | Per-instance | Path of last viewed file (reopened on load if no hash) |
-
-Per-instance keys use `storageKey(suffix)` which namespaces by `location.pathname`, so multiple TooToo LT copies in different folders don't interfere.
+| Key | Purpose |
+|-----|--------|
+| `githubToken` | GitHub Personal Access Token |
+| `darkMode` | `'true'` or `'false'` — dark mode state |
+| `sidebarWidth` | Pixel width of sidebar (number as string) |
+| `lastFilePath` | Path of last viewed file (reopened on load if no hash) |
 
 ---
 
 ## Init Sequence
 
 ```
-1. Restore sidebar width from localStorage
-2. Restore dark mode from localStorage
-3. Run detectRepo() — cascade: CONFIG → .git/config → localStorage → show form
-4. Set state.owner, state.repo, state.branch from CONFIG
-5. If URL hash present and not bare '#' → handleHashChange() → parse filepath, load tree if needed, open file
-6. Else if lastFilePath in per-instance localStorage → loadRepo(false) then open that file
-7. Else → loadRepo() → fetches default branch (if needed), tree, renders sidebar, auto-opens README.md
+1. Read CONFIG → set state (owner, repo, branch)
+2. Read localStorage for token → build headers object
+3. Restore sidebar width from localStorage
+4. Restore dark mode from localStorage
+5. If URL hash present → parse owner/repo/filepath from hash
+6. Else if lastFilePath in localStorage → load repo then open that file
+7. Else → call loadRepo() → fetches default branch (if needed), tree, renders sidebar, auto-opens README.md
 ```
 

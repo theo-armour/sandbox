@@ -118,6 +118,11 @@
       background-color: var(--primary-bg);
     }
 
+    .content-area img {
+      max-width: 100%;
+      height: auto;
+    }
+
     .tree-item {
       cursor: pointer;
       padding: 0.2rem 0.5rem;
@@ -320,9 +325,8 @@
 <body>
 
   <header>
-    <strong id="headerTitle" style="cursor: pointer; font-size: 1.1rem;"
-      onclick="history.replaceState(null, '', location.pathname + location.search); location.reload();"
-      title="Reload">TooToo LT</strong>
+    <strong id="headerTitle" style="cursor: pointer; font-size: 1.1rem;" onclick="resetToHome()" title="Reload">TooToo
+      LT</strong>
     <a id="headerGitHub" href="https://github.com/" target="_blank" rel="noopener" title="View source on GitHub"
       style="display: flex; align-items: center; justify-content: center; color: var(--text-color); opacity: 0.7; padding: 0.2rem;">
       <svg height="18" width="18" viewBox="0 0 16 16" fill="currentColor">
@@ -523,8 +527,7 @@
     const confirmLargeFileLoad = ( path, size ) => {
       if ( size == null || size < LARGE_FILE_WARNING_BYTES ) return true;
       const ext = path.split( '.' ).pop().toLowerCase();
-      const streamable = [ 'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'ico', 'mp3', 'wav', 'ogg', 'mp4', 'webm', 'pdf' ];
-      if ( streamable.includes( ext ) ) return true;
+      if ( STREAMABLE_EXTS.includes( ext ) ) return true;
       const key = getLargeFileApprovalKey( path );
       if ( approvedLargeFiles.has( key ) ) return true;
       const ok = window.confirm( `This file is ${ formatFileSize( size ) } and may take a while to load.\n\nLoad ${ path }?` );
@@ -590,11 +593,24 @@
       } catch ( e ) { /* clipboard may be blocked */ }
     };
 
+    // ── Reset to home ─────────────────────────────────────────────────────
+
+    const resetToHome = () => {
+      localStorage.removeItem( storageKey( 'lastFilePath' ) );
+      state.currentFilePath = '';
+      try { history.replaceState( null, '', location.pathname + location.search ); } catch ( e ) { }
+      loadRepo( false );
+    };
+
     // ── Hash routing ────────────────────────────────────────────────────────
 
     const updateHash = () => {
-      const hash = state.currentFilePath ? `#${ state.currentFilePath }` : '#';
-      if ( location.hash !== hash ) history.pushState( null, '', hash );
+      if ( state.currentFilePath ) {
+        const hash = `#${ state.currentFilePath }`;
+        if ( location.hash !== hash ) history.pushState( null, '', hash );
+      } else {
+        try { history.replaceState( null, '', location.pathname + location.search ); } catch ( e ) { /* file:// */ }
+      }
     };
 
     const handleHashChange = async () => {
@@ -617,57 +633,68 @@
 
     // ── Load repository tree ────────────────────────────────────────────────
 
-    const loadRepo = async ( doUpdateHash = true ) => {
+    const loadRepo = async ( doUpdateHash = true, skipReadme = false ) => {
       const owner = CONFIG.owner;
       const repo = CONFIG.repo;
 
       state.owner = owner;
       state.repo = repo;
-      state.branch = CONFIG.branch || '';
+      if ( CONFIG.branch ) state.branch = CONFIG.branch;
       state.currentFilePath = '';
 
-      mainContent.innerHTML = `<p>Loading ${ escapeHTML( owner ) }/${ escapeHTML( repo ) }...</p>`;
-      treeList.innerHTML = '';
+      // Use cached tree if available (saves 1-2 API calls on resetToHome)
+      if ( !state.tree.length ) {
+        mainContent.innerHTML = `<p>Loading ${ escapeHTML( owner ) }/${ escapeHTML( repo ) }...</p>`;
+        treeList.innerHTML = '';
 
-      try {
-        const options = getFetchOptions( true );
+        try {
+          const options = getFetchOptions( true );
 
-        // Resolve default branch if not set
-        if ( !state.branch ) {
-          const repoResp = await fetch( `https://api.github.com/repos/${ owner }/${ repo }`, options );
-          if ( !repoResp.ok ) {
-            if ( repoResp.status === 404 && !ghToken ) {
-              mainContent.innerHTML = `<p class="error">Repository <strong>${ escapeHTML( owner ) }/${ escapeHTML( repo ) }</strong> is private or does not exist.<br><br>If this is a private repository, click <strong>⚙️ Token</strong> to enter a GitHub Personal Access Token with <code>repo</code> scope.</p>`;
-              return;
+          // Resolve default branch if not set
+          if ( !state.branch ) {
+            const repoResp = await fetch( `https://api.github.com/repos/${ owner }/${ repo }`, options );
+            if ( !repoResp.ok ) {
+              if ( repoResp.status === 404 && !ghToken ) {
+                mainContent.innerHTML = `<p class="error">Repository <strong>${ escapeHTML( owner ) }/${ escapeHTML( repo ) }</strong> is private or does not exist.<br><br>If this is a private repository, click <strong>⚙️ Token</strong> to enter a GitHub Personal Access Token with <code>repo</code> scope.</p>`;
+                return;
+              }
+              if ( repoResp.status === 404 && ghToken ) {
+                mainContent.innerHTML = `<p class="error">Repository <strong>${ escapeHTML( owner ) }/${ escapeHTML( repo ) }</strong> was not found.<br><br>Your token may not have access to this private repository. Click <strong>⚙️ Token</strong> to update your token (needs <code>repo</code> scope).</p>`;
+                return;
+              }
+              throw new Error( `Status: ${ repoResp.status } - ${ repoResp.statusText }` );
             }
-            if ( repoResp.status === 404 && ghToken ) {
-              mainContent.innerHTML = `<p class="error">Repository <strong>${ escapeHTML( owner ) }/${ escapeHTML( repo ) }</strong> was not found.<br><br>Your token may not have access to this private repository. Click <strong>⚙️ Token</strong> to update your token (needs <code>repo</code> scope).</p>`;
-              return;
-            }
-            throw new Error( `Status: ${ repoResp.status } - ${ repoResp.statusText }` );
+            const repoData = await repoResp.json();
+            state.branch = repoData.default_branch;
           }
-          const repoData = await repoResp.json();
-          state.branch = repoData.default_branch;
+
+          // Fetch recursive tree
+          const treeResp = await fetch( `https://api.github.com/repos/${ owner }/${ repo }/git/trees/${ state.branch }?recursive=1`, options );
+          if ( !treeResp.ok ) throw new Error( `Status: ${ treeResp.status } - ${ treeResp.statusText }` );
+          const treeData = await treeResp.json();
+
+          const warningEl = document.getElementById( 'treeTruncatedWarning' );
+          warningEl.style.display = treeData.truncated ? 'block' : 'none';
+
+          state.tree = treeData.tree || [];
+        } catch ( error ) {
+          if ( error.name === 'AbortError' ) return;
+          if ( error.message.includes( '403' ) ) error.message += ' (Rate limit exceeded. Click "⚙️ Token" to increase limit.)';
+          mainContent.innerHTML = `<p class="error">Error loading repo tree: ${ escapeHTML( error.message ) }</p>`;
+          return;
         }
+      }
 
-        // Fetch recursive tree
-        const treeResp = await fetch( `https://api.github.com/repos/${ owner }/${ repo }/git/trees/${ state.branch }?recursive=1`, options );
-        if ( !treeResp.ok ) throw new Error( `Status: ${ treeResp.status } - ${ treeResp.statusText }` );
-        const treeData = await treeResp.json();
+      renderTree( state.tree );
 
-        const warningEl = document.getElementById( 'treeTruncatedWarning' );
-        warningEl.style.display = treeData.truncated ? 'block' : 'none';
+      btnToggleFolders.style.display = 'inline-block';
+      btnToggleFolders.textContent = 'Expand All';
+      btnToggleFolders.dataset.expanded = 'false';
 
-        state.tree = treeData.tree || [];
-        renderTree( state.tree );
+      if ( doUpdateHash ) updateHash();
 
-        btnToggleFolders.style.display = 'inline-block';
-        btnToggleFolders.textContent = 'Expand All';
-        btnToggleFolders.dataset.expanded = 'false';
-
-        if ( doUpdateHash ) updateHash();
-
-        // Auto-open README
+      // Auto-open README (unless caller will load a specific file)
+      if ( !skipReadme ) {
         const readmeFile = state.tree.find( item =>
           item.type === 'blob' && /^readme(\.md|\.txt)?$/i.test( item.path.split( '/' ).pop() )
         );
@@ -677,11 +704,33 @@
         } else {
           mainContent.innerHTML = `<p>Viewing <strong>${ escapeHTML( owner ) }/${ escapeHTML( repo ) }</strong> (branch: ${ escapeHTML( state.branch ) }). Select a file from the tree.</p>`;
         }
-      } catch ( error ) {
-        if ( error.name === 'AbortError' ) return;
-        if ( error.message.includes( '403' ) ) error.message += ' (Rate limit exceeded. Click "⚙️ Token" to increase limit.)';
-        mainContent.innerHTML = `<p class="error">Error loading repo tree: ${ escapeHTML( error.message ) }</p>`;
       }
+    };
+
+    // ── Media helpers ────────────────────────────────────────────────────────
+
+    const MIME_TYPES = {
+      png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif',
+      webp: 'image/webp', svg: 'image/svg+xml', ico: 'image/x-icon',
+      mp3: 'audio/mpeg', wav: 'audio/wav', ogg: 'audio/ogg',
+      mp4: 'video/mp4', webm: 'video/webm', pdf: 'application/pdf',
+    };
+
+    const IMAGE_EXTS = [ 'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'ico' ];
+    const AUDIO_EXTS = [ 'mp3', 'wav', 'ogg' ];
+    const VIDEO_EXTS = [ 'mp4', 'webm' ];
+    const SHEET_EXTS = [ 'xlsx', 'xls', 'csv', 'ods' ];
+    const STREAMABLE_EXTS = [ ...IMAGE_EXTS, ...AUDIO_EXTS, ...VIDEO_EXTS, 'pdf' ];
+    const NO_COPY_EXTS = [ ...STREAMABLE_EXTS, ...SHEET_EXTS ];
+
+    const fetchMediaUrl = async ( url, ext, fetchOpts ) => {
+      if ( !ghToken ) return url;
+      const opts = { headers: { ...headers, Accept: 'application/vnd.github.raw+json' } };
+      if ( fetchOpts.signal ) opts.signal = fetchOpts.signal;
+      const resp = await fetch( url, opts );
+      if ( !resp.ok ) throw new Error( `Failed to load ${ ext } file.` );
+      const blob = await resp.blob();
+      return URL.createObjectURL( new Blob( [ blob ], { type: MIME_TYPES[ ext ] || 'application/octet-stream' } ) );
     };
 
     // ── File content loading ────────────────────────────────────────────────
@@ -691,64 +740,29 @@
       let rawHtml = '';
       let showToggles = false;
 
-      if ( [ 'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'ico' ].includes( ext ) ) {
-        if ( ghToken ) {
-          const mimeMap = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml', ico: 'image/x-icon' };
-          const imgOpts = { headers: { ...headers, Accept: 'application/vnd.github.raw+json' } };
-          if ( fetchOpts.signal ) imgOpts.signal = fetchOpts.signal;
-          const resp = await fetch( url, imgOpts );
-          if ( !resp.ok ) throw new Error( 'Failed to load image.' );
-          const blob = await resp.blob();
-          const blobUrl = URL.createObjectURL( new Blob( [ blob ], { type: mimeMap[ ext ] || 'application/octet-stream' } ) );
-          renderedHtml = `<img src="${ escapeAttribute( blobUrl ) }" class="media-content" alt="${ escapeAttribute( path ) }">`;
-        } else {
-          renderedHtml = `<img src="${ escapeAttribute( url ) }" class="media-content" alt="${ escapeAttribute( path ) }">`;
-        }
+      if ( IMAGE_EXTS.includes( ext ) ) {
+        const src = await fetchMediaUrl( url, ext, fetchOpts );
+        renderedHtml = `<img src="${ escapeAttribute( src ) }" class="media-content" alt="${ escapeAttribute( path ) }">`;
         if ( ext === 'svg' ) {
           const resp = await fetch( url, fetchOpts );
           rawHtml = `<pre><code>${ escapeHTML( await resp.text() ) }</code></pre>`;
           showToggles = true;
         }
-      } else if ( [ 'mp3', 'wav', 'ogg' ].includes( ext ) ) {
-        if ( ghToken ) {
-          const mimeMap = { mp3: 'audio/mpeg', wav: 'audio/wav', ogg: 'audio/ogg' };
-          const audioOpts = { headers: { ...headers, Accept: 'application/vnd.github.raw+json' } };
-          if ( fetchOpts.signal ) audioOpts.signal = fetchOpts.signal;
-          const resp = await fetch( url, audioOpts );
-          if ( !resp.ok ) throw new Error( 'Failed to load audio.' );
-          const blob = await resp.blob();
-          const blobUrl = URL.createObjectURL( new Blob( [ blob ], { type: mimeMap[ ext ] || 'audio/mpeg' } ) );
-          renderedHtml = `<audio controls src="${ escapeAttribute( blobUrl ) }" style="width: 100%; margin-top: 1rem;"></audio>`;
-        } else {
-          renderedHtml = `<audio controls src="${ escapeAttribute( url ) }" style="width: 100%; margin-top: 1rem;"></audio>`;
-        }
-      } else if ( [ 'mp4', 'webm' ].includes( ext ) ) {
-        if ( ghToken ) {
-          const mimeMap = { mp4: 'video/mp4', webm: 'video/webm' };
-          const videoOpts = { headers: { ...headers, Accept: 'application/vnd.github.raw+json' } };
-          if ( fetchOpts.signal ) videoOpts.signal = fetchOpts.signal;
-          const resp = await fetch( url, videoOpts );
-          if ( !resp.ok ) throw new Error( 'Failed to load video.' );
-          const blob = await resp.blob();
-          const blobUrl = URL.createObjectURL( new Blob( [ blob ], { type: mimeMap[ ext ] || 'video/mp4' } ) );
-          renderedHtml = `<video controls src="${ escapeAttribute( blobUrl ) }" class="media-content"></video>`;
-        } else {
-          renderedHtml = `<video controls src="${ escapeAttribute( url ) }" class="media-content"></video>`;
-        }
+      } else if ( AUDIO_EXTS.includes( ext ) ) {
+        const src = await fetchMediaUrl( url, ext, fetchOpts );
+        renderedHtml = `<audio controls src="${ escapeAttribute( src ) }" style="width: 100%; margin-top: 1rem;"></audio>`;
+      } else if ( VIDEO_EXTS.includes( ext ) ) {
+        const src = await fetchMediaUrl( url, ext, fetchOpts );
+        renderedHtml = `<video controls src="${ escapeAttribute( src ) }" class="media-content"></video>`;
       } else if ( ext === 'pdf' ) {
         if ( ghToken ) {
-          const pdfOpts = { headers: { ...headers, Accept: 'application/vnd.github.raw+json' } };
-          if ( fetchOpts.signal ) pdfOpts.signal = fetchOpts.signal;
-          const resp = await fetch( url, pdfOpts );
-          if ( !resp.ok ) throw new Error( 'Failed to load PDF.' );
-          const blob = await resp.blob();
-          const blobUrl = URL.createObjectURL( new Blob( [ blob ], { type: 'application/pdf' } ) );
-          renderedHtml = `<iframe src="${ escapeAttribute( blobUrl ) }" class="iframe-content"></iframe>`;
+          const src = await fetchMediaUrl( url, ext, fetchOpts );
+          renderedHtml = `<iframe src="${ escapeAttribute( src ) }" class="iframe-content"></iframe>`;
         } else {
           const docUrl = `https://docs.google.com/viewer?url=${ encodeURIComponent( url ) }&embedded=true`;
           renderedHtml = `<iframe src="${ escapeAttribute( docUrl ) }" class="iframe-content"></iframe>`;
         }
-      } else if ( [ 'xlsx', 'xls', 'csv', 'ods' ].includes( ext ) ) {
+      } else if ( SHEET_EXTS.includes( ext ) ) {
         const resp = await fetch( url, fetchOpts );
         if ( !resp.ok ) throw new Error( 'Failed to load spreadsheet.' );
         const buf = await resp.arrayBuffer();
@@ -832,7 +846,7 @@
         const fileName = pathParts.pop();
         const repoLink = `<a href="#"
                style="color: var(--highlight-color); text-decoration: none; font-weight: normal; cursor: pointer;"
-               onclick="event.preventDefault(); state.currentFilePath = ''; updateHash(); loadRepo(false)">${ escapeHTML( state.repo ) }</a>`;
+               onclick="event.preventDefault(); resetToHome()">${ escapeHTML( state.repo ) }</a>`;
         const pathPrefix = pathParts.length ? pathParts.join( ' / ' ) + ' / ' : '';
 
         const headerHtml = `
@@ -847,7 +861,7 @@
             </h3>
             <div class="file-actions">
               <button onclick="copyFileContent()" id="btnCopy" class="file-btn" title="Copy to clipboard"
-                style="${ [ 'png', 'jpg', 'jpeg', 'gif', 'webp', 'ico', 'mp3', 'wav', 'ogg', 'mp4', 'webm', 'pdf', 'xlsx', 'xls', 'csv', 'ods' ].includes( ext ) ? 'display:none' : '' }">Copy</button>
+                style="${ NO_COPY_EXTS.includes( ext ) ? 'display:none' : '' }">Copy</button>
               <button onclick="window.open('${ escapeAttribute( newTabUrl ) }', '_blank', 'noopener')" class="file-btn" title="Open in new tab">New Tab</button>
               <div id="fileViewToggles" class="file-actions" style="display: none;">
                 <button id="btnRendered" onclick="toggleFileView('rendered')" class="file-btn" title="Show rendered view">Rendered</button>
@@ -925,8 +939,6 @@
         if ( parts.some( ( p, i ) => i < parts.length - 1 && p.startsWith( '.' ) ) ) return;
         // Skip dot-folders themselves
         if ( item.type === 'tree' && parts[ parts.length - 1 ].startsWith( '.' ) ) return;
-        // Skip index.html files
-        if ( item.type === 'blob' && parts[ parts.length - 1 ] === 'index.html' ) return;
         let node = root;
         parts.forEach( ( part, i ) => {
           if ( !node[ part ] ) {
@@ -1133,14 +1145,17 @@
       state.repo = CONFIG.repo;
       state.branch = CONFIG.branch;
 
-      if ( location.hash ) {
-        handleHashChange();
+      if ( location.hash && location.hash !== '#' ) {
+        await handleHashChange();
       } else {
         const lastFile = localStorage.getItem( storageKey( 'lastFilePath' ) );
         if ( lastFile ) {
-          loadRepo( false ).then( () => {
-            if ( state.tree.find( i => i.path === lastFile ) ) handleSelectFile( lastFile );
-          } );
+          await loadRepo( false, true );
+          if ( state.tree.find( i => i.path === lastFile ) ) {
+            handleSelectFile( lastFile );
+          } else {
+            loadRepo( false );
+          }
         } else {
           loadRepo();
         }
