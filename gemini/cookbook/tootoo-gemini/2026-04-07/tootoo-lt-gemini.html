@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="revised" content="2026-04-07 00:00">
+  <title>TooToo LT</title>
+  <style>
+    :root {
+      --primary-bg: #ffffff;
+      --secondary-bg: #f6f8fa;
+      --text-color: #24292f;
+      --border-color: #d0d7de;
+      --highlight-color: #0969da;
+      --hover-bg: #eaeef2;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --sidebar-width: 300px;
+    }
+
+    body.dark-mode {
+      --primary-bg: #0d1117;
+      --secondary-bg: #161b22;
+      --text-color: #c9d1d9;
+      --border-color: #30363d;
+      --highlight-color: #58a6ff;
+      --hover-bg: #21262d;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-family);
+      color: var(--text-color);
+      background-color: var(--primary-bg);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    a {
+      color: var(--highlight-color);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      padding: 10px;
+      background-color: var(--secondary-bg);
+      border-bottom: 1px solid var(--border-color);
+      gap: 15px;
+    }
+
+    #headerTitle {
+      font-size: 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .header-right {
+      margin-left: auto;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    button {
+      padding: 5px 10px;
+      cursor: pointer;
+      background: var(--primary-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      color: var(--text-color);
+    }
+
+    button:hover {
+      background: var(--hover-bg);
+    }
+
+    main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: var(--sidebar-width);
+      display: flex;
+      flex-direction: column;
+      background-color: var(--secondary-bg);
+      border-right: 1px solid var(--border-color);
+      overflow-y: auto;
+    }
+
+    #navTree {
+      padding: 10px;
+    }
+
+    .tree-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .tree-header h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    #treeFilter {
+      width: 100%;
+      padding: 5px;
+      margin-bottom: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background: var(--primary-bg);
+      color: var(--text-color);
+    }
+
+    .tree-item {
+      padding: 4px 5px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      font-family: monospace;
+      font-size: 0.9em;
+    }
+
+    .tree-item:hover,
+    .tree-item:focus {
+      background-color: var(--hover-bg);
+      outline: none;
+    }
+
+    .tree-folder {
+      margin-left: 15px;
+    }
+
+    details>summary {
+      cursor: pointer;
+      padding: 4px 5px;
+      font-family: monospace;
+      font-size: 0.9em;
+      user-select: none;
+    }
+
+    details>summary:hover,
+    details>summary:focus {
+      background-color: var(--hover-bg);
+      outline: none;
+    }
+
+    .resizer {
+      width: 8px;
+      background: var(--highlight-color);
+      opacity: 0.7;
+      cursor: col-resize;
+      position: relative;
+      z-index: 10;
+    }
+
+    .resizer:hover,
+    .resizer:active {
+      opacity: 1;
+    }
+
+    .content-area {
+      flex: 1;
+      min-width: 0;
+      overflow-y: auto;
+      padding: 0 1rem 1rem 1rem;
+      position: relative;
+    }
+
+    .file-header {
+      position: sticky;
+      top: 0;
+      background: var(--primary-bg);
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .file-title {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .markdown-body,
+    pre {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    pre code {
+      display: block;
+      overflow-x: auto;
+      padding: 1em;
+      background: var(--secondary-bg);
+      border-radius: 4px;
+    }
+
+    img {
+      max-width: 100%;
+    }
+
+    #rateLimitStatus {
+      font-size: 0.8rem;
+      color: #666;
+      display: none;
+    }
+
+    .error-banner {
+      background: #ffebe9;
+      color: #cf222e;
+      padding: 10px;
+      border: 1px solid #cf222e;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+
+    .back-to-top {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: none;
+      z-index: 50;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 25% !important;
+      }
+
+      .resizer {
+        width: 4px;
+      }
+
+      .file-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .tree-item span:last-child {
+        display: none;
+      }
+
+      /* Hide file sizes */
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
+    id="hljs-theme">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+</head>
+
+<body>
+
+  <header>
+    <h1 id="headerTitle" onclick="resetToHome()">owner / repo</h1>
+    <a id="headerGitHub" href="#" target="_blank" title="View on GitHub">
+      <svg height="24" viewBox="0 0 16 16" version="1.1" width="24" fill="currentColor">
+        <path fill-rule="evenodd"
+          d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
+        </path>
+      </svg>
+    </a>
+    <div class="header-right">
+      <span id="rateLimitStatus"></span>
+      <button id="btnTheme" title="Toggle Dark Mode">🌙</button>
+      <button id="btnToken" title="GitHub Token">⚙️ Token</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="sidebar">
+      <div id="navTree">
+        <div class="tree-header">
+          <h3 id="filesHeading">Files</h3>
+          <button id="btnExpandAll" style="display:none">Expand All</button>
+        </div>
+        <input type="text" id="treeFilter" placeholder="Filter files...">
+        <div id="treeTruncatedWarning" class="error-banner" style="display:none">Warning: Tree truncated</div>
+        <div id="treeList"></div>
+      </div>
+    </div>
+
+    <div class="resizer" id="dragMe"></div>
+
+    <div class="content-area" id="mainContent">
+      <div id="welcomeMessage">Loading repository...</div>
+    </div>
+
+    <button class="back-to-top" id="btnBackToTop" title="Back to top">↑</button>
+  </main>
+
+  <script>
+    // --- Configuration & State ---
+    const CONFIG = { owner: 'theo-armour', repo: 'sandbox', branch: '' };
+
+    const state = {
+      owner: '', repo: '', branch: '', tree: [], currentFilePath: ''
+    };
+
+    const storageKey = suffix => `tootoo-lt:${ location.pathname }:${ suffix }`;
+    let mainAbortController = new AbortController();
+    let githubToken = localStorage.getItem( 'githubToken' ) || '';
+
+    // --- Core Initialization ---
+    async function init () {
+      initTheme();
+      initResizer();
+
+      document.getElementById( 'btnTheme' ).onclick = toggleTheme;
+      document.getElementById( 'btnToken' ).onclick = updateToken;
+      document.getElementById( 'btnBackToTop' ).onclick = () => document.getElementById( 'mainContent' ).scrollTo( { top: 0, behavior: 'smooth' } );
+      document.getElementById( 'mainContent' ).addEventListener( 'scroll', e => {
+        document.getElementById( 'btnBackToTop' ).style.display = e.target.scrollTop > 400 ? 'block' : 'none';
+      } );
+
+      await detectRepo();
+      updateHeaderFromConfig();
+
+      if ( location.hash && location.hash !== '#' ) {
+        handleHashChange();
+      } else {
+        const lastFile = localStorage.getItem( storageKey( 'lastFilePath' ) );
+        loadRepo( false ).then( () => {
+          if ( lastFile ) loadFileContent( lastFile );
+        } );
+      }
+    }
+
+    // --- Detection & API ---
+    async function detectRepo () {
+      const params = new URLSearchParams( location.search );
+      if ( params.get( 'owner' ) ) CONFIG.owner = params.get( 'owner' );
+      if ( params.get( 'repo' ) ) CONFIG.repo = params.get( 'repo' );
+      if ( params.get( 'branch' ) ) CONFIG.branch = params.get( 'branch' );
+
+      if ( CONFIG.owner && CONFIG.repo ) {
+        state.owner = CONFIG.owner; state.repo = CONFIG.repo; state.branch = CONFIG.branch; return;
+      }
+
+      const cached = localStorage.getItem( storageKey( 'repo' ) );
+      if ( cached ) {
+        const p = JSON.parse( cached );
+        if ( !p.repo.includes( '\r' ) && !p.repo.endsWith( '.git' ) ) {
+          state.owner = p.owner; state.repo = p.repo; return;
+        } else {
+          localStorage.removeItem( storageKey( 'repo' ) ); // clear bad cache
+        }
+      }
+
+      try {
+        const res = await fetch( '.git/config' );
+        if ( res.ok ) {
+          const text = await res.text();
+          const match = text.match( /github\.com[:/](.+?)\/(.+?)$/m );
+          if ( match ) {
+            state.owner = match[ 1 ].trim();
+            state.repo = match[ 2 ].replace( /\.git\r?$/, '' ).trim();
+            localStorage.setItem( storageKey( 'repo' ), JSON.stringify( { owner: state.owner, repo: state.repo } ) );
+            return;
+          }
+        }
+      } catch ( e ) { }
+
+      // Fallback to prompt
+      state.owner = prompt( "Owner?", "theo-armour" );
+      state.repo = prompt( "Repo?", "sandbox" );
+    }
+
+    function updateHeaderFromConfig () {
+      const title = `${ state.owner } / ${ state.repo }`;
+      document.title = title;
+      document.getElementById( 'headerTitle' ).innerText = title;
+      document.getElementById( 'headerGitHub' ).href = `https://github.com/${ state.owner }/${ state.repo }`;
+    }
+
+    function getHeaders ( isRaw = false ) {
+      const h = {};
+      if ( githubToken && !isRaw ) h[ 'Authorization' ] = `token ${ githubToken }`;
+      if ( !isRaw ) h[ 'Accept' ] = 'application/vnd.github.v3+json';
+      return h;
+    }
+
+    function updateRateLimitStatus ( res ) {
+      const limit = res.headers.get( 'x-ratelimit-limit' );
+      const remaining = res.headers.get( 'x-ratelimit-remaining' );
+      const reset = res.headers.get( 'x-ratelimit-reset' );
+      if ( limit ) {
+        const el = document.getElementById( 'rateLimitStatus' );
+        el.style.display = 'inline';
+        const d = new Date( reset * 1000 );
+        const time = `${ d.getHours().toString().padStart( 2, '0' ) }:${ d.getMinutes().toString().padStart( 2, '0' ) }`;
+        el.innerText = `${ remaining }/${ limit }, resets ${ time }`;
+      }
+    }
+
+    async function apiFetch ( url, isRaw = false ) {
+      mainAbortController.abort();
+      mainAbortController = new AbortController();
+      const res = await fetch( url, { headers: getHeaders( isRaw ), signal: mainAbortController.signal } );
+      updateRateLimitStatus( res );
+      if ( !res.ok ) throw new Error( `API Error: ${ res.status }` );
+      return isRaw ? res : res.json();
+    }
+
+    // --- App Logic ---
+    async function loadRepo ( autoOpenReadme = true ) {
+      try {
+        if ( !state.branch ) {
+          const data = await apiFetch( `https://api.github.com/repos/${ state.owner }/${ state.repo }` );
+          state.branch = data.default_branch;
+        }
+        const treeData = await apiFetch( `https://api.github.com/repos/${ state.owner }/${ state.repo }/git/trees/${ state.branch }?recursive=1` );
+        state.tree = treeData.tree;
+        if ( treeData.truncated ) document.getElementById( 'treeTruncatedWarning' ).style.display = 'block';
+        renderTree();
+
+        // Auto open README
+        if ( autoOpenReadme && ( !location.hash || location.hash === '#' ) ) {
+          const readme = state.tree.find( f => f.path.toLowerCase() === 'readme.md' || f.path.toLowerCase() === 'readme.txt' );
+          if ( readme ) location.hash = `#${ readme.path }`;
+        }
+      } catch ( e ) {
+        if ( e.name !== 'AbortError' ) document.getElementById( 'mainContent' ).innerHTML = `<div class="error-banner">${ e.message }</div>`;
+      }
+    }
+
+    function renderTree () {
+      const list = document.getElementById( 'treeList' );
+      let html = '<ul>';
+      state.tree.forEach( item => {
+        if ( item.path.startsWith( '.' ) || item.type !== 'blob' ) return;
+        const isMd = item.path.toLowerCase().endsWith( '.md' );
+        html += `<li class="tree-item" tabindex="0" data-action="select-file" data-path="${ item.path }" onclick="location.hash='#${ item.path }'">
+      <span style="${ isMd ? 'font-weight:bold' : '' }">${ item.path }</span>
+      <span class="tree-item-size">${ ( item.size / 1024 ).toFixed( 1 ) }k</span>
+    </li>`;
+      } );
+      html += '</ul>';
+      list.innerHTML = html;
+
+      // Basic filter
+      document.getElementById( 'treeFilter' ).addEventListener( 'input', e => {
+        const val = e.target.value.toLowerCase();
+        document.querySelectorAll( '.tree-item' ).forEach( el => {
+          el.style.display = el.dataset.path.toLowerCase().includes( val ) ? 'flex' : 'none';
+        } );
+      } );
+    }
+
+    async function loadFileContent ( path ) {
+      state.currentFilePath = path;
+      localStorage.setItem( storageKey( 'lastFilePath' ), path );
+      const contentEl = document.getElementById( 'mainContent' );
+      contentEl.innerHTML = `<div class="file-header"><h3 class="file-title">${ path }</h3></div><div>Loading...</div>`;
+
+      try {
+        const url = githubToken
+          ? `https://api.github.com/repos/${ state.owner }/${ state.repo }/contents/${ path }?ref=${ state.branch }`
+          : `https://raw.githubusercontent.com/${ state.owner }/${ state.repo }/${ state.branch }/${ path }`;
+
+        const res = await apiFetch( url, !githubToken );
+        let text = '';
+        if ( githubToken ) {
+          const wrapper = await res.json();
+          text = decodeURIComponent( escape( atob( wrapper.content ) ) );
+        } else {
+          text = await res.text();
+        }
+
+        let html = `<div class="file-header">
+      <h3 class="file-title" onclick="resetToHome()" style="cursor:pointer">${ state.owner }/${ state.repo } / ${ path }</h3>
+      <div class="file-actions">
+        <button onclick="navigator.clipboard.writeText(\`${ text.replace( /`/g, '\\`' ) }\`)">Copy</button>
+        <button onclick="window.open('https://${ state.owner }.github.io/${ state.repo }/${ path }','_blank')">New Tab</button>
+      </div>
+    </div><div class="markdown-body">`;
+
+        const ext = path.split( '.' ).pop().toLowerCase();
+        if ( ext === 'md' ) {
+          html += DOMPurify.sanitize( marked.parse( text ) );
+        } else {
+          html += `<pre><code class="language-${ ext }">${ text.replace( /</g, '&lt;' ) }</code></pre>`;
+        }
+        html += '</div>';
+
+        contentEl.innerHTML = html;
+        if ( ext !== 'md' ) hljs.highlightAll();
+
+        // Internal hash links handling
+        contentEl.querySelectorAll( 'a' ).forEach( a => {
+          const href = a.getAttribute( 'href' );
+          if ( href && !href.startsWith( 'http' ) && !href.startsWith( '#' ) ) {
+            a.href = `#${ href }`;
+          }
+        } );
+
+      } catch ( e ) {
+        if ( e.name !== 'AbortError' ) contentEl.innerHTML = `<div class="error-banner">Load failed: ${ e.message }</div>`;
+      }
+    }
+
+    function resetToHome () {
+      localStorage.removeItem( storageKey( 'lastFilePath' ) );
+      state.currentFilePath = '';
+      history.replaceState( null, '', location.pathname + location.search );
+      loadRepo( false );
+    }
+
+    function handleHashChange () {
+      const path = location.hash.substring( 1 );
+      if ( path ) loadFileContent( path );
+    }
+
+    window.addEventListener( 'hashchange', handleHashChange );
+
+    // --- UI Utilities ---
+    function toggleTheme () {
+      const isDark = document.body.classList.toggle( 'dark-mode' );
+      localStorage.setItem( 'darkMode', isDark );
+      document.getElementById( 'hljs-theme' ).href = isDark
+        ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css'
+        : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
+    }
+
+    function initTheme () {
+      if ( localStorage.getItem( 'darkMode' ) === 'true' ) toggleTheme();
+    }
+
+    function initResizer () {
+      const r = document.getElementById( 'dragMe' );
+      const sb = document.querySelector( '.sidebar' );
+      let w = localStorage.getItem( 'sidebarWidth' ) || 300;
+      sb.style.width = w + 'px';
+      let isResizing = false;
+
+      r.addEventListener( 'pointerdown', e => {
+        isResizing = true; r.setPointerCapture( e.pointerId );
+        document.body.style.userSelect = 'none'; document.body.style.cursor = 'col-resize';
+      } );
+      r.addEventListener( 'pointermove', e => {
+        if ( !isResizing ) return;
+        const curW = Math.max( 10, e.clientX );
+        document.documentElement.style.setProperty( '--sidebar-width', curW + 'px' );
+        sb.style.width = curW + 'px';
+      } );
+      r.addEventListener( 'pointerup', e => {
+        isResizing = false; r.releasePointerCapture( e.pointerId );
+        document.body.style.userSelect = ''; document.body.style.cursor = '';
+        localStorage.setItem( 'sidebarWidth', sb.style.width.replace( 'px', '' ) );
+      } );
+    }
+
+    function updateToken () {
+      const t = prompt( "GitHub Token:", githubToken );
+      if ( t !== null ) { localStorage.setItem( 'githubToken', t ); location.reload(); }
+    }
+
+    init();
+  </script>
+</body>
+
+</html>

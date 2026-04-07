@@ -3,7 +3,6 @@
 
 ## 2026-04-06
 
-
 tootoo-lt.html?owner=theo-armour&repo=sandbox — uses default branch
 tootoo-lt.html?owner=theo-armour&repo=sandbox&branch=main — specific branch
 tootoo-lt.html?owner=theo-armour&repo=sandbox#README.md — opens a specific file
@@ -12,12 +11,16 @@ https://theo-armour.github.io/sandbox/tootoo/tootoo-lt/tootoo-lt.html?owner=obad
 
 https://theo-armour.github.io/sandbox/tootoo/tootoo-lt/tootoo-lt.html?owner=theo-armour&repo=aa
 
+<meta name="revised" content="Sunday, July 18th, 2023, 5:15 pm" />
+
+* 2026-04-06 ~ a tooltip somewhere saying the date and time of the last update.
+* left width a % on mobile
+* 2026-04-06 ~ vertical bar always visible, even when not hovering
 ## 2026-04-05
 
-So what's next? Go from Tutu LT back to the big Tootoo.
+So what's next? Go from TooToo LT back to the big Tootoo.
 
 Add repo stats to LT. no. Keep LT very basic.
-
 
 
 

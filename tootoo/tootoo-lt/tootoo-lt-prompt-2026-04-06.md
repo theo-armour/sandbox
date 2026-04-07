@@ -2,11 +2,19 @@
 
 ## What This Is
 
-TooToo LT is a single-file HTML GitHub browser that displays the file tree and file contents for **one repository on its default branch**.
+TooToo LT is a stripped-down, single-file HTML GitHub browser that displays the file tree and file contents for **one repository on its default branch**. It omits the full TooToo features (repo list, orgs, gists, stats, discover) to stay minimal and fast.
 
-Output: a single `tootoo-lt.html` file (~1500 lines of HTML/CSS/JS).
+Output: a single `tootoo-lt.html` file (~1170 lines of HTML/CSS/JS).
 
 It is designed to be **dropped into any GitHub repo folder** and auto-detect its repository from `.git/config`. It also runs on GitHub Pages.
+
+## How to Use This Prompt
+
+**For a full build**: Feed this entire file to the LLM:
+> "Using the following spec, create a single `tootoo-lt.html` file: [paste this file]"
+
+**For a targeted fix**: Feed this prompt plus the current `tootoo-lt.html`:
+> "Here is my current app [paste tootoo-lt.html]. Using this spec [paste this file], fix the markdown rendering."
 
 ## Deployment
 
@@ -16,6 +24,31 @@ TooToo LT is a single `index.html` with an inline `CONFIG` object. Each copy dif
 - **Pre-configured mode**: Set `CONFIG.owner` and `CONFIG.repo` for known repos.
 - **GitHub Pages**: Works at `theo-armour.github.io/sandbox/tootoo/tootoo-lt/` (uses auto-detect or localStorage cache).
 
+## Relationship to Full TooToo
+
+TooToo LT is a subset of the full TooToo GitHub browser (`tootoo/index.html`). The tree rendering, file viewer, keyboard navigation, CSS theming, and resizable sidebar are the same — LT simply removes the multi-repo browsing layer.
+
+- **Full TooToo source**: `tootoo/index.html` (~1500 lines)
+- **Full TooToo prompts**: `tootoo/prompt/prompt-*.md` (architecture, API, file viewer, navigation, discover)
+
+## What Is Omitted (vs full TooToo)
+
+These features from the full TooToo `index.html` are **not included** in LT:
+
+- Repository list / paginated repo fetching / `fetchList()`
+- Organization fetching
+- Gist fetching and gist file viewing
+- User and repo statistics
+- Discover page (random user, curated lists, top followed)
+- Repo list filtering and sorting (filter input, sort dropdown)
+- Recent users datalist / localStorage history
+- Language color dots
+- "Get Repos", "Get Orgs", "Get Gists", "Stats", "Discover" buttons
+- "← Back to Repos" navigation
+- `repoListContainer` sidebar panel
+- `isGist` state and all gist-related logic
+- Branch selector dropdown (LT always uses the default branch)
+
 ## Hard Constraints
 
 - **Single file**: Everything in one `tootoo-lt.html` — HTML, CSS, JS inline
@@ -23,7 +56,7 @@ TooToo LT is a single `index.html` with an inline `CONFIG` object. Each copy dif
 - **ES2020+ features**: `const`/`let` (no `var`), arrow functions, template literals, async/await, optional chaining
 - **Functional style**: No classes, no `this` keyword
 - **Static hosting**: Must work on GitHub Pages and by opening the file locally
-- **External deps (CDN)**: marked (latest via jsdelivr), highlight.js 11.9.0 (cdnjs), DOMPurify 3.x (jsdelivr), SheetJS xlsx-latest (cdn.sheetjs.com)
+- **External deps allowed**: `marked.js` (CDN) for markdown, `highlight.js` (CDN) for syntax highlighting, `DOMPurify` (CDN) for HTML sanitization, `SheetJS/xlsx` (CDN) for spreadsheet rendering
 - **Security**: All user-supplied strings escaped via `escapeHTML()` / `escapeAttribute()` before insertion into DOM
 - **Tooltips**: Every button must have a `title` attribute with a relevant tooltip
 - **Beginner-readable**: If a student can't follow it, simplify
@@ -44,16 +77,25 @@ const CONFIG = {
 
 When CONFIG has empty `owner`/`repo`, the app runs a detection cascade (returns a Promise):
 
-1. **URL query parameters** → `?owner=X&repo=Y&branch=Z` merged into CONFIG
-2. **CONFIG pre-filled** → use directly, call `updateHeaderFromConfig()`
-3. **localStorage cache** → read `storageKey('repo')` JSON (`{owner, repo}`) — checked before `.git/config` to avoid noisy 404 console errors
-4. **Fetch `.git/config`** → parse `github.com[:/]owner/repo` from remote URL → cache to localStorage
-5. **Show inline form** → user enters owner + repo manually → saved to localStorage
+1. **CONFIG pre-filled** → use directly, call `updateHeaderFromConfig()`
+2. **Fetch `.git/config`** → parse `github.com[:/]owner/repo` from remote URL → cache to localStorage
+3. **localStorage cache** → read `storageKey('repo')` JSON (`{owner, repo}`)
+4. **Show inline form** → user enters owner + repo manually → saved to localStorage
 
 `updateHeaderFromConfig()` dynamically sets:
 - `document.title` → `"owner / repo"`
 - `#headerTitle` text → `"owner / repo"`
 - `#headerGitHub` href → `https://github.com/owner/repo`
+
+### Per-Instance localStorage
+
+The `storageKey(suffix)` helper namespaces keys by `location.pathname`:
+
+```js
+const storageKey = suffix => `tootoo-lt:${location.pathname}:${suffix}`;
+```
+
+This prevents multiple TooToo LT instances in different folders from overwriting each other's cached repo and last-file state. Global keys (`githubToken`, `darkMode`, `sidebarWidth`) are shared across all instances.
 
 ---
 
@@ -85,14 +127,13 @@ const state = {
     GitHub logo link (#headerGitHub, opens repo on GitHub, dynamically set)
     Dark mode toggle button (🌙/☀️, right-aligned)
     Token button ("⚙️ Token")
-    Rate limit status badge (#rateLimitStatus, hidden until first API response)
   </header>
 
   <main>  (flex row, fills viewport below header)
     <div class="sidebar">
       <div id="navTree">
         <div>  (flex row)
-          <h3>Files</h3>  (tooltip shows "Last updated: ..." read from meta[name=revised])
+          <h3>Files</h3>
           Expand/Collapse All button (right-aligned, hidden until tree loads)
         </div>
         <input id="treeFilter">  (filter files by name/path)
@@ -107,10 +148,18 @@ const state = {
     <div class="content-area" id="mainContent">
       (dynamic content — file viewer, welcome message, or repo config form)
     </div>
-    <button class="back-to-top" id="btnBackToTop">  (fixed bottom-right, shown when content scrolls past 400px)
   </main>
 </body>
 ```
+
+Key differences from full TooToo:
+- **No `repoListContainer`** — the sidebar only contains `navTree`
+- **No input fields in header** — owner/repo auto-detected or shown in a form in `mainContent`
+- **Dynamic title** in header — updated by `updateHeaderFromConfig()` after detection
+- **Expand All button** is in the sidebar Files header, not the top header
+- **Tree filter input** below Files heading for quick filename search
+- **Dark mode toggle** in header
+- **No action buttons** except Expand/Collapse All, Dark Mode, and Token
 
 ### CSS Architecture
 
@@ -121,28 +170,15 @@ const state = {
 - Sidebar has a CSS variable `--sidebar-width` (default 300px), updated by the drag resizer
 - Content area has `min-width: 0` to allow flex shrinking
 - Both sidebar and content area scroll independently (`overflow-y: auto`)
-- Content area has no top padding (padding: `0 1rem 1rem 1rem`)
-- **Readability max-width**: `.markdown-body` and `pre` capped at `700px`; images, iframes, tables, and media remain full-width
-
-### Responsive / Mobile
-
-- `@media (max-width: 768px)` breakpoint:
-  - Sidebar shrinks to `25%` width (overrides saved width via `!important`)
-  - Sidebar padding reduced
-  - File sizes hidden in tree (`.tree-item-size { display: none }`)
-  - Resizer narrowed to 4px
-  - File header stacks vertically (`flex-direction: column`)
-  - Header wraps if needed
 
 ### Resizable Sidebar
 
-- A `.resizer` div (8px wide) sits between sidebar and content, using `var(--highlight-color)` at 0.7 opacity (full opacity on hover/drag)
+- A `.resizer` div (8px wide) sits between sidebar and content
 - Pointer events (pointerdown/pointermove/pointerup) handle drag resizing
 - Uses `setPointerCapture` for reliable cross-element dragging
 - Applies `user-select: none` and `cursor: col-resize` during drag
 - Visual feedback: resizer highlights blue on hover and during resize
 - **Width persisted** to `localStorage` under `sidebarWidth` and restored on load
-- On mobile (≤768px), resizer narrows to 4px
 
 ### Event Delegation
 
@@ -185,6 +221,8 @@ Triggered automatically on page load (or by hash change):
 6. Render the tree in the sidebar
 7. Auto-open `README.md` (case-insensitive, also matches `readme.txt`) in the content area
 
+No branch selector dropdown — LT always uses the default branch (or the branch from CONFIG).
+
 ### Fetching File Content
 
 - **With token** (private repos): `https://api.github.com/repos/{owner}/{repo}/contents/{path}?ref={branch}` with `Accept: application/vnd.github.raw+json` header
@@ -193,26 +231,39 @@ Triggered automatically on page load (or by hash change):
 - The full fetch options (including `Authorization` header and abort signal) are passed to `loadFileContent()`
 - Large files (>1MB): show a `window.confirm()` dialog before loading
 - Approved large files tracked in an in-memory `Set` (per session)
+- File size read from tree API response (`item.size`)
 - Files over 500KB skip syntax highlighting to avoid freezing the browser
-
-### File Text Cache
-
-- LRU in-memory cache (`fileTextCache` Map) backed by localStorage
-- Cache key: `owner/repo/branch/path`
-- Limit: 25 entries, max 300K characters per entry
-- On hit, entry is moved to end (LRU refresh); on eviction, oldest entry removed
-- Persisted to per-instance localStorage under `storageKey('fileTextCache')`
-- Prevents redundant API calls when revisiting files or arrow-navigating the tree
 
 ### Rate Limiting
 
+- Unauthenticated: 60 requests/hour
+- Authenticated: 5,000 requests/hour
 - 403 errors include a hint to add a token
 - All fetches share a single `AbortController` — starting a new action cancels any in-flight request
-- **Rate limit status** displayed in header: `API remaining/limit, resets HH:MM` — updated after every API response via `updateRateLimitStatus()`
 
 ---
 
 ## File Content Viewer
+
+### Content Area Structure
+
+When a file is selected, the content area shows:
+
+```
+<div class="file-header">  (sticky, stays at top while scrolling)
+  <h3 class="file-title">
+    repo-name / path / filename
+    GitHub icon link (opens source on GitHub)
+  </h3>
+  <div class="file-actions">
+    "Copy" button (copies raw content to clipboard)
+    "New Tab" button (opens GitHub Pages URL)
+    Rendered/Raw toggle (for markdown, HTML, SVG)
+  </div>
+</div>
+<div id="viewRendered">  (rendered content)
+<div id="viewRaw">  (raw source, hidden by default)
+```
 
 ### File Type Handling
 
@@ -244,14 +295,27 @@ Triggered automatically on page load (or by hash change):
 - File size read from tree API response (`item.size`)
 - Files over 500KB skip syntax highlighting to avoid freezing the browser
 
+### File Size Display
+
+File sizes shown in the tree use compact formatting via `formatFileSize()`:
+- `< 1024` → `"43B"`
+- `< 10KB` → `"1.5k"`
+- `≥ 10KB` → `"72k"` (rounded)
+- `< 10MB` → `"1.2M"`
+- `≥ 10MB` → `"12M"` (rounded)
+
 ### File Header Details
 
 - Repo name is a clickable link that calls `resetToHome()` — clears lastFilePath, clears hash, reloads tree
-- **Breadcrumb folder navigation**: intermediate path segments are clickable links that scroll to and expand the corresponding folder in the tree via `scrollToTreeFolder()`
+- Path segments shown with `/` separators
 - GitHub icon links to the file on GitHub
 - "Copy" button copies raw file content to clipboard (shows "✓ Copied" feedback for 1.5s); hidden for binary file types (images, audio, video, PDF, spreadsheets)
 - "New Tab" button opens GitHub Pages URL: `https://{owner}.github.io/{repo}/{path}`
-- **User page detection**: if repo name matches `{owner}.github.io`, the "New Tab" URL omits the repo segment: `https://{owner}.github.io/{path}`
+
+### Blob URL Management
+
+- `URL.createObjectURL()` is used for private-repo media (images, audio, video, PDF) and HTML iframe previews
+- Before loading new file content, all existing blob URLs in the content area are revoked via `URL.revokeObjectURL()` to prevent memory leaks
 
 ### Rendered ↔ Raw Toggle
 
@@ -259,7 +323,6 @@ Triggered automatically on page load (or by hash change):
 - Active button full opacity, inactive 0.5 opacity
 - Toggles `display` on `#viewRendered` / `#viewRaw`
 - Only shown for file types with both views (markdown, HTML, SVG)
-- **View preference persisted** per file type in localStorage under `storageKey('viewPref:{ext}')` — restored when opening another file of the same type
 
 ---
 
@@ -290,11 +353,15 @@ Called by clicking the header title or the repo breadcrumb link in file headers:
 - `popstate` and `hashchange` events trigger `handleHashChange()`
 - Deep linking: on page load, if hash present, parse filepath from it and navigate
 
+### Simplified Rules
+- Hash contains file path only — no `owner/repo` prefix
+- No `#owner/repo` hashes (repo is known from CONFIG/detection)
+- No `#gist/` prefix (gists are omitted)
+
 ### Tree Rendering
 
 - `renderTree()` builds a nested object from flat tree paths, then generates HTML
-- **Filtered out**: folders starting with `.` (and their contents)
-- **Batched rendering**: root-level items rendered in chunks of `TREE_RENDER_BATCH_SIZE` (120) via `setTimeout(0)` to avoid blocking the UI; a progress indicator (`treeRenderStatus`) shows percentage during render
+- **Filtered out**: folders starting with `.` (and their contents), `index.html` files
 - Folders rendered as `<details><summary>` elements (native collapsible)
 - Files rendered as `<div class="tree-item">` with `data-action="select-file"` and `data-path`
 - Folders sorted before files, then alphabetically within each group
@@ -329,8 +396,8 @@ Global `keydown` listener on `document`, active only when focus is on a `.tree-f
 
 | Key | Action |
 |-----|--------|
-| Arrow Down | Focus next visible tree item; auto-loads file content (cached after first fetch) |
-| Arrow Up | Focus previous visible tree item; auto-loads file content (cached after first fetch) |
+| Arrow Down | Focus next visible tree item |
+| Arrow Up | Focus previous visible tree item |
 | Enter / Space | Activate focused item (click file, toggle folder) |
 | Arrow Right | Expand focused folder (if collapsed); move into first child (if expanded) |
 | Arrow Left | Collapse focused folder (if expanded); move to parent folder (if collapsed or file) |
@@ -338,13 +405,6 @@ Global `keydown` listener on `document`, active only when focus is on a `.tree-f
 - "Visible items" = all `.tree-folder` and `.tree-item` elements that are not inside a closed `<details>`
 - Items have `tabindex="0"` for focusability
 - `e.preventDefault()` applied to prevent page scroll
-- **`/` shortcut**: pressing `/` (when not in an input) focuses `#treeFilter`
-
-### Back-to-Top Button
-
-- Fixed `position: fixed` button at bottom-right of viewport
-- Appears when `#mainContent` scrolls past 400px
-- Smooth-scrolls `#mainContent` to top on click
 
 ---
 
@@ -357,8 +417,6 @@ Global `keydown` listener on `document`, active only when focus is on a `.tree-f
 | `sidebarWidth` | Global | Pixel width of sidebar (number as string) |
 | `tootoo-lt:{pathname}:repo` | Per-instance | Cached `{owner, repo}` JSON from auto-detect |
 | `tootoo-lt:{pathname}:lastFilePath` | Per-instance | Path of last viewed file (reopened on load if no hash) |
-| `tootoo-lt:{pathname}:fileTextCache` | Per-instance | JSON array of `[key, text]` pairs for LRU file text cache |
-| `tootoo-lt:{pathname}:viewPref:{ext}` | Per-instance | `'rendered'` or `'raw'` — last toggle choice per file type |
 
 Per-instance keys use `storageKey(suffix)` which namespaces by `location.pathname`, so multiple TooToo LT copies in different folders don't interfere.
 
@@ -369,7 +427,7 @@ Per-instance keys use `storageKey(suffix)` which namespaces by `location.pathnam
 ```
 1. Restore sidebar width from localStorage
 2. Restore dark mode from localStorage
-3. Run detectRepo() — cascade: URL query params → CONFIG → localStorage → .git/config → show form
+3. Run detectRepo() — cascade: CONFIG → .git/config → localStorage → show form
 4. Set state.owner, state.repo, state.branch from CONFIG
 5. If URL hash present and not bare '#' → handleHashChange() → parse filepath, load tree if needed, open file
 6. Else if lastFilePath in per-instance localStorage → loadRepo(false) then open that file
