@@ -1,5 +1,11 @@
 # TooToo LT Layout — HTML/CSS Shell Prompt
 
+Ignore the copilot-instructions.md rule about reading nearby code.
+
+## Output File
+
+Create `tootoo-lt-layout.html` — a single self-contained HTML file.
+
 ## Hard Constraints
 
 - **Single file**: One `.html` file — HTML, CSS, JS inline
@@ -14,6 +20,7 @@
 ## What to Build
 
 A three-panel layout (header bar + sidebar + content area) that fills the viewport. This is the static shell — no file tree rendering and no file content loading. It includes the CONFIG object, repo auto-detection, and header controls so the layout file is testable on its own.
+
 
 ### HTML Head
 
@@ -35,56 +42,58 @@ The `<title>` is updated dynamically by `updateHeaderFromConfig()` after repo de
 <body>  (flex column, 100vh, no overflow)
 
   <header>  (flex row, wraps, top bar)
-    [GitHub SVG icon]  — leftmost, id="headerGitHub", links to "#" (updated dynamically), 18×18, currentColor, use this path:
+    [GitHub SVG icon]  — <a> tag, id="headerGitHub", href="#" (updated dynamically), 18×18, currentColor,
+                         display flex, align-items center, use this SVG path:
                          <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z">
-    [Title text]       — id="headerTitle", bold, 1.1rem, initial text "TooToo LT" (updated dynamically to "owner / repo"), clickable (reloads page), cursor pointer, title="Reload"
-    [Dark mode button] — right-aligned (margin-left: auto), toggles 🌙/☀️
-    [A− button]        — decreases font size by 2px (min 10px)
-    [A+ button]        — increases font size by 2px (max 28px)
-    [Token button]     — "⚙️ Token", opens prompt() for GitHub PAT
-    [Rate limit badge] — hidden by default, shows "API remaining/limit"
-                         Style: font-size 0.8rem, padding 0.2rem 0.45rem, 1px border,
-                         border-radius 999px (pill shape), --primary-bg background,
-                         opacity 0.85, white-space nowrap, aria-live="polite"
+                         title="View on GitHub"
+    [Title text]       — <a> tag, id="headerTitle", href="#", bold, 1.1rem, initial text "TooToo LT"
+                         (updated dynamically to "owner / repo"), clickable (reloads page via JS click handler
+                         that calls e.preventDefault() then location.reload()), cursor pointer,
+                         text-decoration none, color inherit, title="Reload"
+    [Dark mode button] — id="btnDarkMode", class="header-btn dark-mode-btn", right-aligned (margin-left: auto), toggles 🌙/☀️, title="Toggle Dark Mode"
+    [A− button]        — id="btnFontDec", class="header-btn", title="Decrease Font Size"
+    [A+ button]        — id="btnFontInc", class="header-btn", title="Increase Font Size"
+    [Token button]     — id="btnToken", class="header-btn", text "⚙️ Token", title="Set GitHub Personal Access Token"
+    [Rate limit badge] — <div> id="rateBadge", class="rate-limit-badge", hidden by default (display: none),
+                         shows "API remaining/limit", title="API Rate Limit", aria-live="polite"
   </header>
 
   <main>  (flex row, fills remaining height)
 
     <div class="sidebar">  (flex column, fixed width via --sidebar-width)
-      <div class="panel-header">  (shared header class, same as content header)
-        <h3>Files</h3>  — tooltip shows "Last updated: ..." from meta[name=revised]
-        <button>Expand All</button>  — right-aligned, hidden initially
+      <div class="panel-header" title="Last updated: YYYY-MM-DD HH:MM" (same value as meta[name=revised])>
+        <h3 id="hFiles">Files</h3>
+        <button id="btnExpandAll" class="secondary" style="display: none;" title="Expand All Folders">Expand All</button>
       </div>
-      <input type="text" placeholder="Filter files…">
-        Style: width 100%, box-sizing border-box, padding 0.3rem 0.5rem,
-        font-size 0.85rem, 1px --border-color border, border-radius 4px,
-        white background, --text-color color, outline none;
-        on focus: border-color changes to --highlight-color
+      <input type="text" id="treeFilter" placeholder="Filter files…" title="Filter files by name">
       <div id="treeList">  — scrollable area, flex: 1, overflow-y: auto
         (empty — placeholder for future tree content)
       </div>
     </div>
 
-    <div class="resizer">  (8px wide, draggable column separator)
+    <div class="resizer" id="resizer" title="Drag to Resize Sidebar">  (8px wide, draggable column separator)
     </div>
 
-    <div class="content-area">  (flex: 1, scrollable)
+    <div class="content-area" id="contentArea">  (flex: 1, scrollable, position relative)
       <div class="panel-header file-header">  (shared header class + sticky positioning)
-        <h3>Content</h3>
+        <h3 id="contentTitle">Content</h3>
       </div>
       <div id="contentBody">
-        <p>Select a file from the sidebar.</p>
+        <p>Awaiting repository detection...</p>
       </div>
-    </div>
 
-    <button class="back-to-top">↑</button>  — position fixed, bottom 1.5rem, right 1.5rem,
-      z-index 20, --highlight-color background, white text, border-radius 50% (circular),
-      width 2.5rem, height 2.5rem, font-size 1.2rem, display none initially,
-      box-shadow 0 2px 6px rgba(0,0,0,0.25), aria-label="Back to top"
+      <button id="btnBackToTop" class="back-to-top" aria-label="Back to top" title="Back to Top">↑</button>
+        — position fixed, bottom 1.5rem, right 1.5rem, z-index 20, --highlight-color background,
+        white text, border-radius 50% (circular), width 2.5rem, height 2.5rem, font-size 1.2rem,
+        display none initially, box-shadow 0 2px 6px rgba(0,0,0,0.25),
+        also: align-items center, justify-content center
+    </div>
 
   </main>
 </body>
 ```
+
+**Note**: The back-to-top button is *inside* `.content-area`, not a sibling of it.
 
 ---
 
@@ -93,36 +102,52 @@ The `<title>` is updated dynamically by `updateHeaderFromConfig()` after repo de
 ### Theming via Custom Properties
 
 Define on `:root`:
-- `--primary-bg` (light gray background)
-- `--secondary-bg` (white in light mode — the content reading surface)
-- `--text-color` (dark text)
-- `--border-color` (subtle gray borders)
-- `--highlight-color` (blue accent)
-- `--hover-bg` (light hover state)
-- `--font-family` (system font stack)
-- `--sidebar-width` (default 300px)
-- `--font-size` (default 16px)
+- `--primary-bg`: `#f3f4f6`
+- `--secondary-bg`: `#ffffff`
+- `--text-color`: `#1f2937`
+- `--border-color`: `#d1d5db`
+- `--highlight-color`: `#2563eb`
+- `--hover-bg`: `#e5e7eb`
+- `--font-family`: `system-ui, -apple-system, sans-serif`
+- `--sidebar-width`: `300px`
+- `--font-size`: `16px`
 
 ### Dark Mode
 
-- `body.dark-mode` overrides all custom properties with dark values
-- Toggle button switches between 🌙 and ☀️
-- Persist choice to `localStorage` key `darkMode`
+`body.dark-mode` overrides:
+- `--primary-bg`: `#1f2937`
+- `--secondary-bg`: `#111827`
+- `--text-color`: `#f3f4f6`
+- `--border-color`: `#374151`
+- `--highlight-color`: `#3b82f6`
+- `--hover-bg`: `#374151`
+
+Toggle button switches between 🌙 and ☀️. Persist choice to `localStorage`.
+
+### Font Size on `<html>`
+
+```css
+html {
+  font-size: var(--font-size);
+}
+```
+
+The `--font-size` variable is set on `:root` and overridden via `document.documentElement.style.setProperty('--font-size', ...)` in JS. This makes all `rem` units scale proportionally.
 
 ### Layout Rules
 
-- `body`: flex column, 100vh, margin 0, overflow-x hidden, font-size uses `var(--font-size, 16px)`
-- `header`: flex row, wraps, gap 0.5rem, background `--primary-bg`, subtle bottom border and shadow, z-index 10
+- `body`: flex column, 100vh, margin 0, overflow-x hidden, font-family `var(--font-family)`, color `var(--text-color)`, background-color `var(--primary-bg)`
+- `header`: flex row, wraps, align-items center, gap 0.5rem, padding `0.5rem 1rem`, background `--primary-bg`, border-bottom 1px solid `--border-color`, box-shadow `0 1px 2px rgba(0,0,0,0.05)`, z-index 10
 - `main`: flex row, flex: 1, overflow hidden
-- `.sidebar`: width `var(--sidebar-width)`, flex-shrink 0, flex column, background `--primary-bg`, padding `0` (no side padding — headers span full width), overflow hidden
-- `.resizer`: 8px wide, `--highlight-color` background at 0.7 opacity, cursor col-resize, touch-action none; full opacity on hover and while dragging
-- `.content-area`: flex 1, min-width 0, padding `0` (no padding — headers span full width), overflow-y auto, background `--secondary-bg`
-- `#contentBody`: padding `0 1rem 1rem 1rem`, background `var(--secondary-bg)` (white reading surface; automatically dark in dark mode via the CSS variable)
+- `.sidebar`: width `var(--sidebar-width)`, flex-shrink 0, flex column, background `--primary-bg`, padding `0`, overflow hidden
+- `.resizer`: 8px wide, `--highlight-color` background at 0.7 opacity, cursor col-resize, touch-action none, transition opacity 0.2s; full opacity on hover (`.resizer:hover`) and while dragging (`.resizer.dragging`)
+- `.content-area`: flex 1, min-width 0, padding `0`, overflow-y auto, background `--secondary-bg`, position relative
+- `#contentBody`: padding `0 1rem 1rem 1rem`, background `var(--secondary-bg)`
 
 ### Color Scheme Summary
 
 - **`--primary-bg`** (gray): header, sidebar, both panel headers
-- **`--secondary-bg`** (white): content body, header utility buttons
+- **`--secondary-bg`** (white): content body, header utility buttons, filter input background
 - Header utility buttons use `--secondary-bg` background to stand out from the gray header
 
 ### Panel Headers
@@ -135,30 +160,76 @@ Both sidebar and content area use a shared `.panel-header` class:
 - h3 inside: margin 0, font-size 0.95rem
 
 The content area header adds `.file-header` for sticky behavior:
-- position sticky, top 0, z-index 5, padding `0.5rem 1rem`, background `--primary-bg` (same as sidebar header)
+- position sticky, top 0, z-index 5, padding `0.5rem 1rem`, background `--primary-bg`
 
 ### Sidebar Internal Padding
 
-- Filter input: margin `0.4rem 0.5rem 0 0.5rem`, width `calc(100% - 1rem)`
-- `#treeList`: padding `0 0.5rem`
-- These give the sidebar body content side padding while keeping the `.panel-header` full-width
+- Filter input: margin `0.4rem 0.5rem 0 0.5rem`, width `calc(100% - 1rem)`, box-sizing border-box, padding `0.3rem 0.5rem`, font-size 0.85rem, 1px `--border-color` border, border-radius 4px, `--secondary-bg` background, `--text-color` color, outline none; on focus: border-color `--highlight-color`
+- `#treeList`: padding `0 0.5rem`, flex 1, overflow-y auto
 
 ### Buttons
 
-- Default style: padding 0.4rem 0.75rem, `--highlight-color` background, white text, rounded 6px, no border
-- Header utility buttons (dark mode, font size, token): `--secondary-bg` background, `--text-color` color, 1px `--border-color` border
-- Hover: opacity 0.88, slight translateY lift
-- Active: translateY returns to 0
+Two button styles via CSS classes:
+
+1. **`.header-btn`** (header utility buttons — dark mode, font size, token):
+   - `--secondary-bg` background, `--text-color` color, 1px `--border-color` border
+   - padding 0.4rem 0.75rem, border-radius 6px, cursor pointer
+   - transition: opacity 0.2s, transform 0.1s
+   - Hover: opacity 0.88, translateY(-1px)
+   - Active: translateY(0)
+
+2. **`button.primary`, `button.secondary`** (action buttons like Expand All, Set Repository):
+   - `--highlight-color` background, white text, no border
+   - padding 0.4rem 0.75rem, border-radius 6px, cursor pointer
+   - Hover: opacity 0.88, translateY(-1px)
+   - Active: translateY(0)
+
+### Back-to-Top Button
+
+```css
+.back-to-top {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 20;
+  background-color: var(--highlight-color);
+  color: #ffffff;
+  border: none;
+  border-radius: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 1.2rem;
+  display: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+```
+
+When shown, set `display: flex` (not `display: block`) so the arrow centers.
 
 ### Responsive (max-width: 768px)
 
-- Sidebar shrinks to 25% width
+- Sidebar shrinks to 25% width (`!important`)
 - Resizer narrows to 4px
-- File header stacks vertically
+- File header stacks vertically (flex-direction column, align-items flex-start, gap 0.5rem)
 
 ---
 
 ## JavaScript
+
+### Code Organization
+
+The script is organized into these top-level arrow functions:
+1. `escapeHTML` — utility
+2. `CONFIG` and `state` — data
+3. `storageKey` — utility
+4. `updateHeaderFromConfig` — DOM update
+5. `detectRepo` — async cascade
+6. `initAppearance` — restore persisted settings
+7. `setupListeners` — wire up all event handlers
+8. `init` — async entry point
 
 ### Utility
 
@@ -197,57 +268,85 @@ All per-instance localStorage keys use this to namespace by pathname.
 
 ### `updateHeaderFromConfig()`
 
-Called after repo is detected. Dynamically sets:
+Called after repo is detected. Reads from `state` (not CONFIG). Dynamically sets:
 - `document.title` → `"owner / repo"`
-- `#headerTitle` text → `"owner / repo"`
+- `#headerTitle` textContent → `"owner / repo"`
 - `#headerGitHub` href → `https://github.com/owner/repo`
 
 ### `detectRepo()` Cascade
 
-Returns a Promise. Runs this cascade when `CONFIG.owner` or `CONFIG.repo` are empty:
+Returns a Promise (async function). Runs this cascade:
 
 1. **URL query parameters** → `?owner=X&repo=Y&branch=Z` merged into CONFIG
-2. **CONFIG already filled** → use directly, call `updateHeaderFromConfig()`
-3. **localStorage cache** → read `storageKey('repo')` JSON (`{owner, repo}`) — checked before `.git/config` to avoid noisy 404 console errors
-4. **Fetch `.git/config`** → try paths `''`, `'../'`, `'../../'`, `'../../../'`, `'../../../../'`; parse `github.com[:/]owner/repo` from remote URL; cache result to localStorage
-5. **Show inline form** → render a simple owner + repo form in the content area; on submit, save to localStorage and resolve
+2. **CONFIG already filled** → early return
+3. **localStorage cache** → read `storageKey('repo')` JSON (`{owner, repo}`) — checked before `.git/config` to avoid noisy 404 console errors; early return if found
+4. **Fetch `.git/config`** → try paths `''`, `'../'`, `'../../'`, `'../../../'`, `'../../../../'`; parse `github.com[:/]owner/repo` from remote URL; cache result to localStorage; early return if found
+5. **Show inline form** → render owner + repo input form in `#contentBody`; return a new Promise that resolves when the user clicks "Set Repository"; form includes `id="inpOwner"`, `id="inpRepo"`, `id="btnSetRepo"` (class `primary`); inline styles for the form layout (flex column, gap, max-width 300px, padding on inputs)
 
-After detection, copy `CONFIG.owner` / `CONFIG.repo` / `CONFIG.branch` into `state`.
+**Note**: `updateHeaderFromConfig()` is NOT called inside `detectRepo()` — it is called from `init()` after state is populated.
 
-### Dark Mode Toggle
-- `body.dark-mode` class toggle
-- Persist to `localStorage`
-- Update button emoji
+### `initAppearance()`
 
-### Font Size Adjustment
-- Read current size from `document.documentElement` computed style
-- Clamp between 10px and 28px, step 2px
-- Set `fontSize` directly on `document.documentElement.style` (the `<html>` element) so all `rem` units scale proportionally
-- Persist to `localStorage` key `fontSize`
+Called at the start of `init()`, before event listeners. Restores persisted settings:
+- Dark mode: reads `storageKey('darkMode')`, if `'true'` adds `dark-mode` class to body and sets button text to ☀️
+- Font size: reads `storageKey('fontSize')`, sets `--font-size` via `document.documentElement.style.setProperty`
+- Sidebar width: reads `storageKey('sidebarWidth')`, sets `--sidebar-width` via `document.documentElement.style.setProperty`
 
-### Resizable Sidebar
-- Pointer events (pointerdown/pointermove/pointerup) on `.resizer`
-- Use `setPointerCapture` for reliable dragging
-- Update `--sidebar-width` on sidebar element
-- Set `user-select: none` and `cursor: col-resize` on body during drag
-- Persist width to `localStorage` key `sidebarWidth`
+### `setupListeners()`
 
-### Token Prompt
-- `prompt()` dialog for GitHub PAT
-- Store in `localStorage` key `githubToken`
-- Reload page after change
+Called after `initAppearance()`. Wires up all event handlers:
 
-### Back-to-Top Button
-- Show when `.content-area` scrolls past 400px
-- Smooth-scroll content area to top on click
+#### Dark Mode Toggle
+- Click handler on `#btnDarkMode`
+- Toggles `body.dark-mode` class
+- Updates button text (☀️ when dark, 🌙 when light)
+- Persists to `localStorage` via `storageKey('darkMode')`
 
-### Init (on page load)
-1. Restore sidebar width from localStorage
-2. Restore dark mode from localStorage
-3. Restore font size from localStorage
-4. Run `detectRepo()` → cascade resolves CONFIG
-5. Copy CONFIG into `state`
-6. Show "Ready — repo detected" or similar confirmation in the content area (placeholder for future tree loading)
+#### Font Size Adjustment
+- Helper: `getFontSize()` reads `--font-size` from computed style of `document.documentElement`, parses as int (default 16)
+- `#btnFontInc`: clamp to max 28, step +2, set via `document.documentElement.style.setProperty('--font-size', sz + 'px')`
+- `#btnFontDec`: clamp to min 10, step −2, same approach
+- Persist to `localStorage` via `storageKey('fontSize')`
+
+#### Token Prompt
+- Click handler on `#btnToken`
+- Reads current token from `localStorage.getItem('githubToken')` to pre-fill prompt
+- `prompt()` dialog; if result is not null, save to `localStorage.setItem('githubToken', ...)` and `location.reload()`
+
+#### Resizable Sidebar
+- Pointer events on `#resizer` (pointerdown / pointermove / pointerup)
+- `pointerdown`: `setPointerCapture`, add `.dragging` class, set `user-select: none` and `cursor: col-resize` on body
+- `pointermove`: only if pointer is captured (`hasPointerCapture` check); calculate new width as `e.clientX` clamped between 100 and `window.innerWidth - 100`; set `--sidebar-width` on `document.documentElement`
+- `pointerup`: `releasePointerCapture`, remove `.dragging` class, clear body styles, persist width to `localStorage`
+
+#### Back-to-Top Button
+- Scroll handler on `#contentArea` (not window)
+- Show `#btnBackToTop` (display flex) when scrollTop > 400, hide otherwise
+- Click handler: `contentArea.scrollTo({ top: 0, behavior: 'smooth' })`
+
+#### Header Title Reload
+- Click handler on `#headerTitle`
+- Calls `e.preventDefault()` then `location.reload()`
+
+### `init()` — Async Entry Point
+
+```js
+const init = async () => {
+  initAppearance();
+  setupListeners();
+  await detectRepo();
+  state.owner = CONFIG.owner;
+  state.repo = CONFIG.repo;
+  state.branch = CONFIG.branch;
+  if ( state.owner && state.repo ) {
+    updateHeaderFromConfig();
+    const cb = document.getElementById( 'contentBody' );
+    cb.innerHTML = '<p>Ready — repo detected: <strong>' + escapeHTML( state.owner ) + ' / ' + escapeHTML( state.repo ) + '</strong></p>';
+  }
+};
+
+init();
+```
 
 ---
 

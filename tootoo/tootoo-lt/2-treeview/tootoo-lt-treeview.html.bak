@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -242,13 +242,9 @@
       list-style: none;
     }
 
-    .tree-folder::-webkit-details-marker {
-      display: none;
-    }
+    .tree-folder::-webkit-details-marker { display: none; }
 
-    .tree-folder:hover {
-      background: var(--hover-bg);
-    }
+    .tree-folder:hover { background: var(--hover-bg); }
 
     .tree-item {
       display: flex;
@@ -261,9 +257,7 @@
       font-size: 0.85rem;
     }
 
-    .tree-item:hover {
-      background: var(--hover-bg);
-    }
+    .tree-item:hover { background: var(--hover-bg); }
 
     .tree-item.active {
       background: var(--highlight-color);
@@ -277,13 +271,8 @@
       white-space: nowrap;
     }
 
-    details details {
-      padding-left: 0.8rem;
-    }
-
-    details {
-      padding-left: 0;
-    }
+    details details { padding-left: 0.8rem; }
+    details { padding-left: 0; }
 
     #treeRenderStatus {
       font-size: 0.85rem;
@@ -321,10 +310,10 @@
     </a>
     <a id="headerTitle" href="#" title="Reload">TooToo LT</a>
     <button id="btnDarkMode" class="header-btn dark-mode-btn" style="margin-left: auto;"
-      title="Toggle Dark Mode">&#x1F319;</button>
-    <button id="btnFontDec" class="header-btn" title="Decrease Font Size">A&#x2212;</button>
+      title="Toggle Dark Mode">🌙</button>
+    <button id="btnFontDec" class="header-btn" title="Decrease Font Size">A−</button>
     <button id="btnFontInc" class="header-btn" title="Increase Font Size">A+</button>
-    <button id="btnToken" class="header-btn" title="Set GitHub Personal Access Token">&#x2699;&#xFE0F; Token</button>
+    <button id="btnToken" class="header-btn" title="Set GitHub Personal Access Token">⚙️ Token</button>
     <div id="rateBadge" class="rate-limit-badge" style="display: none;" title="API Rate Limit" aria-live="polite"></div>
   </header>
 
@@ -336,7 +325,7 @@
         <button id="btnExpandAll" class="secondary" style="display: none;" title="Expand All Folders">Expand
           All</button>
       </div>
-      <input type="text" id="treeFilter" placeholder="Filter files&#x2026;" title="Filter files by name">
+      <input type="text" id="treeFilter" placeholder="Filter files…" title="Filter files by name">
       <div id="treeList"></div>
     </div>
 
@@ -349,7 +338,7 @@
       <div id="contentBody">
         <p>Awaiting repository detection...</p>
       </div>
-      <button id="btnBackToTop" class="back-to-top" aria-label="Back to top" title="Back to Top">&#x2191;</button>
+      <button id="btnBackToTop" class="back-to-top" aria-label="Back to top" title="Back to Top">↑</button>
     </div>
 
   </main>
@@ -375,10 +364,10 @@
       currentFilePath: '',
     };
 
-    const storageKey = ( suffix ) => `tootoo-lt:${ location.pathname }:${ suffix }`;
+    const storageKey = ( suffix ) => `tootoo-lt:${ location.pathname }`:${ suffix }`;
 
     const updateHeaderFromConfig = () => {
-      const title = `${ state.owner } / ${ state.repo }`;
+      const title = ` / ${ state.repo }`;
       document.title = title;
       document.getElementById( 'headerTitle' ).textContent = title;
       document.getElementById( 'headerGitHub' ).href = `https://github.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }`;
@@ -407,7 +396,7 @@
       const prefixes = [ '', '../', '../../', '../../../', '../../../../' ];
       for ( const prefix of prefixes ) {
         try {
-          const res = await fetch( `${ prefix }.git/config` );
+          const res = await fetch( `.git/config` );
           if ( !res.ok ) continue;
           const text = await res.text();
           const match = text.match( /github\.com[:/]([^/\s]+)\/([^/\s.]+)/ );
@@ -445,7 +434,7 @@
     const initAppearance = () => {
       if ( localStorage.getItem( storageKey( 'darkMode' ) ) === 'true' ) {
         document.body.classList.add( 'dark-mode' );
-        document.getElementById( 'btnDarkMode' ).textContent = '\u2600\uFE0F';
+        document.getElementById( 'btnDarkMode' ).textContent = '☀️';
       }
       const savedSize = localStorage.getItem( storageKey( 'fontSize' ) );
       if ( savedSize ) {
@@ -462,7 +451,7 @@
       btnDark.addEventListener( 'click', () => {
         document.body.classList.toggle( 'dark-mode' );
         const isDark = document.body.classList.contains( 'dark-mode' );
-        btnDark.textContent = isDark ? '\u2600\uFE0F' : '\uD83C\uDF19';
+        btnDark.textContent = isDark ? '☀️' : '🌙';
         localStorage.setItem( storageKey( 'darkMode' ), isDark );
       } );
 
@@ -544,35 +533,35 @@
       if ( remaining && limit ) {
         const badge = document.getElementById( 'rateBadge' );
         badge.style.display = 'inline';
-        badge.textContent = `${ remaining }/${ limit }`;
+        badge.textContent = `/${ limit }`;
       }
     };
 
     const fileIcon = ( name ) => {
       const ext = name.includes( '.' ) ? '.' + name.split( '.' ).pop().toLowerCase() : '';
       const icons = {
-        '.md': '\uD83D\uDCDD',
-        '.js': '\uD83D\uDFE8', '.mjs': '\uD83D\uDFE8', '.cjs': '\uD83D\uDFE8',
-        '.ts': '\uD83D\uDFE6', '.tsx': '\uD83D\uDFE6',
-        '.py': '\uD83D\uDC0D',
-        '.html': '\uD83C\uDF10', '.htm': '\uD83C\uDF10',
-        '.css': '\uD83C\uDFA8', '.scss': '\uD83C\uDFA8', '.less': '\uD83C\uDFA8',
-        '.png': '\uD83D\uDDBC\uFE0F', '.jpg': '\uD83D\uDDBC\uFE0F', '.jpeg': '\uD83D\uDDBC\uFE0F', '.gif': '\uD83D\uDDBC\uFE0F', '.webp': '\uD83D\uDDBC\uFE0F', '.svg': '\uD83D\uDDBC\uFE0F', '.ico': '\uD83D\uDDBC\uFE0F',
-        '.mp3': '\uD83C\uDFB5', '.wav': '\uD83C\uDFB5', '.ogg': '\uD83C\uDFB5',
-        '.mp4': '\uD83C\uDFAC', '.webm': '\uD83C\uDFAC',
-        '.pdf': '\uD83D\uDCD5',
-        '.xlsx': '\uD83D\uDCCA', '.xls': '\uD83D\uDCCA', '.csv': '\uD83D\uDCCA', '.ods': '\uD83D\uDCCA',
-        '.yaml': '\u2699\uFE0F', '.yml': '\u2699\uFE0F', '.toml': '\u2699\uFE0F',
-        '.zip': '\uD83D\uDCE6', '.tar': '\uD83D\uDCE6', '.gz': '\uD83D\uDCE6', '.7z': '\uD83D\uDCE6',
+        '.md': '📝',
+        '.js': '🟨', '.mjs': '🟨', '.cjs': '🟨',
+        '.ts': '🟦', '.tsx': '🟦',
+        '.py': '🐍',
+        '.html': '🌐', '.htm': '🌐',
+        '.css': '🎨', '.scss': '🎨', '.less': '🎨',
+        '.png': '🖼️', '.jpg': '🖼️', '.jpeg': '🖼️', '.gif': '🖼️', '.webp': '🖼️', '.svg': '🖼️', '.ico': '🖼️',
+        '.mp3': '🎵', '.wav': '🎵', '.ogg': '🎵',
+        '.mp4': '🎬', '.webm': '🎬',
+        '.pdf': '📕',
+        '.xlsx': '📊', '.xls': '📊', '.csv': '📊', '.ods': '📊',
+        '.yaml': '⚙️', '.yml': '⚙️', '.toml': '⚙️',
+        '.zip': '📦', '.tar': '📦', '.gz': '📦', '.7z': '📦',
         '.json': '{ }',
       };
-      return icons[ ext ] ?? '\uD83D\uDCC4';
+      return icons[ ext ] ?? '📄';
     };
 
     const formatSize = ( bytes ) => {
-      if ( bytes < 1024 ) return `${ bytes } B`;
-      if ( bytes < 1024 * 1024 ) return `${ ( bytes / 1024 ).toFixed( 1 ) } KB`;
-      return `${ ( bytes / ( 1024 * 1024 ) ).toFixed( 1 ) } MB`;
+      if ( bytes < 1024 ) return ` B`;
+      if ( bytes < 1024 * 1024 ) return ` KB`;
+      return ` MB`;
     };
 
     const buildNestedTree = ( flatTree ) => {
@@ -612,8 +601,8 @@
       if ( isFolder ) {
         const escapedName = escapeHTML( name );
         const escapedPath = escapeHTML( node.path );
-        let inner = `<details data-folder-path="${ escapedPath }">`;
-        inner += `<summary class="tree-folder" tabindex="0" title="${ escapedPath }">\uD83D\uDCC1 <span class="folder-name">${ escapedName }</span></summary>`;
+        let inner = `<details data-folder-path="${ escapedPath }">`
+        inner += `<summary class="tree-folder" tabindex="0" title="${ escapedPath }">📁 <span class="folder-name">${ escapedName }</span></summary>`;
         for ( const [ childName, childNode ] of sortedEntries( node.children ) ) {
           inner += renderNode( childName, childNode );
         }
@@ -640,7 +629,7 @@
       treeList.innerHTML = '';
       const status = document.createElement( 'div' );
       status.id = 'treeRenderStatus';
-      status.textContent = '0% rendered\u2026';
+      status.textContent = '0% rendered…';
       treeList.appendChild( status );
 
       const renderBatch = () => {
@@ -653,7 +642,7 @@
         status.insertAdjacentHTML( 'beforebegin', html );
         rendered = end;
         const pct = Math.round( ( rendered / total ) * 100 );
-        status.textContent = `${ pct }% rendered\u2026`;
+        status.textContent = `% rendered…`;
 
         if ( rendered < total ) {
           setTimeout( renderBatch, 0 );
@@ -723,7 +712,7 @@
       const btn = document.getElementById( 'btnExpandAll' );
       btn.addEventListener( 'click', () => {
         const allDetails = document.getElementById( 'treeList' ).querySelectorAll( 'details' );
-        const expanding = btn.textContent.replace( /\s+/g, ' ' ).trim() === 'Expand All';
+        const expanding = btn.textContent.trim() === 'Expand All';
         allDetails.forEach( ( d ) => { d.open = expanding; } );
         btn.textContent = expanding ? 'Collapse All' : 'Expand All';
         btn.title = expanding ? 'Collapse All Folders' : 'Expand All Folders';
@@ -885,7 +874,7 @@
           state.branch = repoData.default_branch;
         }
 
-        treeList.innerHTML = '<p>Loading tree\u2026</p>';
+        treeList.innerHTML = '<p>Loading tree…</p>';
 
         const treeRes = await fetch(
           `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/git/trees/${ encodeURIComponent( state.branch ) }?recursive=1`,
@@ -905,7 +894,7 @@
           treeList.innerHTML = '';
           const warning = document.createElement( 'div' );
           warning.style.cssText = 'background: #fff3cd; border: 1px solid #ffc107; padding: 0.5rem; border-radius: 4px; margin-bottom: 0.5rem; font-size: 0.85rem;';
-          warning.textContent = '\u26A0\uFE0F Repository tree is truncated. Some files may not appear.';
+          warning.textContent = '⚠️ Repository tree is truncated. Some files may not appear.';
           treeList.appendChild( warning );
         }
 

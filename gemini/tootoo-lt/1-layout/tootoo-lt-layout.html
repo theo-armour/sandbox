@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-04-08 11:00">
+  <meta name="revised" content="2026-04-08 15:00">
   <title>TooToo LT</title>
   <style>
     :root {
@@ -32,10 +32,6 @@
       --hover-bg: #374151;
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       display: flex;
       flex-direction: column;
@@ -49,7 +45,7 @@
 
     header {
       display: flex;
-      flex-wrap: wrap;
+      flex-flow: row wrap;
       align-items: center;
       gap: 0.5rem;
       padding: 0.5rem 1rem;
@@ -62,7 +58,7 @@
     #headerGitHub {
       display: flex;
       align-items: center;
-      color: currentColor;
+      color: inherit;
     }
 
     #headerTitle {
@@ -71,6 +67,59 @@
       text-decoration: none;
       color: inherit;
       cursor: pointer;
+    }
+
+    .header-btn {
+      background: var(--secondary-bg);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .header-btn:hover {
+      opacity: 0.88;
+      transform: translateY(-1px);
+    }
+
+    .header-btn:active {
+      transform: translateY(0);
+    }
+
+    .dark-mode-btn {
+      margin-left: auto;
+    }
+
+    button.primary,
+    button.secondary {
+      background: var(--highlight-color);
+      color: #ffffff;
+      border: none;
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    button.primary:hover,
+    button.secondary:hover {
+      opacity: 0.88;
+      transform: translateY(-1px);
+    }
+
+    button.primary:active,
+    button.secondary:active {
+      transform: translateY(0);
+    }
+
+    .rate-limit-badge {
+      display: none;
+      font-size: 0.8rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      background: var(--hover-bg);
     }
 
     main {
@@ -163,47 +212,6 @@
       overflow-y: auto;
     }
 
-    .header-btn {
-      background: var(--secondary-bg);
-      color: var(--text-color);
-      border: 1px solid var(--border-color);
-      padding: 0.4rem 0.75rem;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
-    }
-
-    .header-btn:hover {
-      opacity: 0.88;
-      transform: translateY(-1px);
-    }
-
-    .header-btn:active {
-      transform: translateY(0);
-    }
-
-    button.primary,
-    button.secondary {
-      background: var(--highlight-color);
-      color: #ffffff;
-      border: none;
-      padding: 0.4rem 0.75rem;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
-    }
-
-    button.primary:hover,
-    button.secondary:hover {
-      opacity: 0.88;
-      transform: translateY(-1px);
-    }
-
-    button.primary:active,
-    button.secondary:active {
-      transform: translateY(0);
-    }
-
     .back-to-top {
       position: fixed;
       bottom: 1.5rem;
@@ -221,12 +229,6 @@
       cursor: pointer;
       align-items: center;
       justify-content: center;
-    }
-
-    .rate-limit-badge {
-      font-size: 0.8rem;
-      opacity: 0.7;
-      padding: 0.2rem 0.5rem;
     }
 
     @media (max-width: 768px) {
@@ -257,18 +259,17 @@
       </svg>
     </a>
     <a id="headerTitle" href="#" title="Reload">TooToo LT</a>
-    <button id="btnDarkMode" class="header-btn dark-mode-btn" style="margin-left: auto;"
-      title="Toggle Dark Mode">🌙</button>
+    <button id="btnDarkMode" class="header-btn dark-mode-btn" title="Toggle Dark Mode">🌙</button>
     <button id="btnFontDec" class="header-btn" title="Decrease Font Size">A−</button>
     <button id="btnFontInc" class="header-btn" title="Increase Font Size">A+</button>
     <button id="btnToken" class="header-btn" title="Set GitHub Personal Access Token">⚙️ Token</button>
-    <div id="rateBadge" class="rate-limit-badge" style="display: none;" title="API Rate Limit" aria-live="polite"></div>
+    <div id="rateBadge" class="rate-limit-badge" title="API Rate Limit" aria-live="polite"></div>
   </header>
 
   <main>
 
     <div class="sidebar">
-      <div class="panel-header" title="Last updated: 2026-04-08 16:00">
+      <div class="panel-header" title="Last updated: 2026-04-08 15:00">
         <h3 id="hFiles">Files</h3>
         <button id="btnExpandAll" class="secondary" style="display: none;" title="Expand All Folders">Expand
           All</button>
@@ -292,7 +293,6 @@
   </main>
 
   <script>
-
     const escapeHTML = ( str ) => {
       const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
       return String( str ).replace( /[&<>"']/g, ( c ) => map[ c ] );
@@ -335,22 +335,22 @@
       const cached = localStorage.getItem( storageKey( 'repo' ) );
       if ( cached ) {
         try {
-          const parsed = JSON.parse( cached );
-          if ( parsed.owner && parsed.repo ) {
-            CONFIG.owner = parsed.owner;
-            CONFIG.repo = parsed.repo;
+          const obj = JSON.parse( cached );
+          if ( obj.owner && obj.repo ) {
+            CONFIG.owner = obj.owner;
+            CONFIG.repo = obj.repo;
             return;
           }
-        } catch ( e ) { /* ignore */ }
+        } catch { /* ignore */ }
       }
 
       // 4. Fetch .git/config
       const prefixes = [ '', '../', '../../', '../../../', '../../../../' ];
       for ( const prefix of prefixes ) {
         try {
-          const res = await fetch( `${ prefix }.git/config` );
-          if ( !res.ok ) continue;
-          const text = await res.text();
+          const resp = await fetch( `${ prefix }.git/config` );
+          if ( !resp.ok ) continue;
+          const text = await resp.text();
           const match = text.match( /github\.com[:/]([^/\s]+)\/([^/\s.]+)/ );
           if ( match ) {
             CONFIG.owner = match[ 1 ];
@@ -358,19 +358,18 @@
             localStorage.setItem( storageKey( 'repo' ), JSON.stringify( { owner: CONFIG.owner, repo: CONFIG.repo } ) );
             return;
           }
-        } catch ( e ) { /* ignore */ }
+        } catch { /* ignore 404s */ }
       }
 
       // 5. Show inline form
       return new Promise( ( resolve ) => {
         const cb = document.getElementById( 'contentBody' );
         cb.innerHTML = `
-          <div style="display: flex; flex-direction: column; gap: 0.5rem; max-width: 300px; margin-top: 1rem;">
-            <label>Owner: <input id="inpOwner" style="padding: 0.3rem 0.5rem; width: 100%;" placeholder="e.g. theo-armour"></label>
-            <label>Repo: <input id="inpRepo" style="padding: 0.3rem 0.5rem; width: 100%;" placeholder="e.g. sandbox"></label>
-            <button id="btnSetRepo" class="primary" title="Set Repository">Set Repository</button>
-          </div>
-        `;
+          <div style="display:flex;flex-direction:column;gap:0.5rem;max-width:300px;margin-top:1rem;">
+            <label>Owner: <input id="inpOwner" style="padding:0.3rem 0.5rem;width:100%;box-sizing:border-box;" /></label>
+            <label>Repo: <input id="inpRepo" style="padding:0.3rem 0.5rem;width:100%;box-sizing:border-box;" /></label>
+            <button id="btnSetRepo" class="primary" title="Save these repository settings">Set Repository</button>
+          </div>`;
         document.getElementById( 'btnSetRepo' ).addEventListener( 'click', () => {
           const owner = document.getElementById( 'inpOwner' ).value.trim();
           const repo = document.getElementById( 'inpRepo' ).value.trim();
@@ -391,24 +390,19 @@
         document.getElementById( 'btnDarkMode' ).textContent = '☀️';
       }
       // Font size
-      const savedSize = localStorage.getItem( storageKey( 'fontSize' ) );
-      if ( savedSize ) {
-        document.documentElement.style.setProperty( '--font-size', savedSize );
-      }
+      const fs = localStorage.getItem( storageKey( 'fontSize' ) );
+      if ( fs ) document.documentElement.style.setProperty( '--font-size', fs );
       // Sidebar width
-      const savedWidth = localStorage.getItem( storageKey( 'sidebarWidth' ) );
-      if ( savedWidth ) {
-        document.documentElement.style.setProperty( '--sidebar-width', savedWidth );
-      }
+      const sw = localStorage.getItem( storageKey( 'sidebarWidth' ) );
+      if ( sw ) document.documentElement.style.setProperty( '--sidebar-width', sw );
     };
 
     const setupListeners = () => {
       // Dark mode toggle
-      const btnDark = document.getElementById( 'btnDarkMode' );
-      btnDark.addEventListener( 'click', () => {
+      document.getElementById( 'btnDarkMode' ).addEventListener( 'click', () => {
         document.body.classList.toggle( 'dark-mode' );
         const isDark = document.body.classList.contains( 'dark-mode' );
-        btnDark.textContent = isDark ? '☀️' : '🌙';
+        document.getElementById( 'btnDarkMode' ).textContent = isDark ? '☀️' : '🌙';
         localStorage.setItem( storageKey( 'darkMode' ), isDark );
       } );
 
@@ -427,10 +421,10 @@
         localStorage.setItem( storageKey( 'fontSize' ), sz + 'px' );
       } );
 
-      // Token
+      // Token prompt
       document.getElementById( 'btnToken' ).addEventListener( 'click', () => {
         const current = localStorage.getItem( 'githubToken' ) || '';
-        const token = prompt( 'GitHub Personal Access Token:', current );
+        const token = prompt( 'Enter GitHub Personal Access Token:', current );
         if ( token !== null ) {
           localStorage.setItem( 'githubToken', token );
           location.reload();
@@ -445,23 +439,21 @@
         document.body.style.userSelect = 'none';
         document.body.style.cursor = 'col-resize';
       } );
-
       resizer.addEventListener( 'pointermove', ( e ) => {
         if ( !resizer.hasPointerCapture( e.pointerId ) ) return;
         const w = Math.max( 100, Math.min( e.clientX, window.innerWidth - 100 ) );
         document.documentElement.style.setProperty( '--sidebar-width', w + 'px' );
       } );
-
       resizer.addEventListener( 'pointerup', ( e ) => {
         resizer.releasePointerCapture( e.pointerId );
         resizer.classList.remove( 'dragging' );
         document.body.style.userSelect = '';
         document.body.style.cursor = '';
         const w = getComputedStyle( document.documentElement ).getPropertyValue( '--sidebar-width' );
-        localStorage.setItem( storageKey( 'sidebarWidth' ), w.trim() );
+        localStorage.setItem( storageKey( 'sidebarWidth' ), w );
       } );
 
-      // Back to top
+      // Back-to-top
       const contentArea = document.getElementById( 'contentArea' );
       const btnTop = document.getElementById( 'btnBackToTop' );
       contentArea.addEventListener( 'scroll', () => {
@@ -493,7 +485,6 @@
     };
 
     init();
-
   </script>
 </body>
 

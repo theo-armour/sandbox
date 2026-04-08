@@ -24,7 +24,7 @@ Start from the attached `tootoo-lt-treeview.html`. Add the content viewer extern
 
 This prompt assumes the **treeview module** from `tootoo-lt-treeview.html` (attached) is already built. It provides:
 
-- `state` object with `owner`, `repo`, `branch`, `tree`, `currentFilePath`, `pagesEnabled`
+- `state` object with `owner`, `repo`, `branch`, `tree`, `currentFilePath`
 - `CONFIG` object with `owner`, `repo`, `branch`
 - `escapeHTML()` utility
 - `apiHeaders()` — returns headers object with `Accept` and optional `Authorization`
@@ -216,24 +216,11 @@ Called by clicking the repo breadcrumb:
 4. Strip hash from URL via `history.replaceState` (best-effort, fails silently on `file://`)
 5. Call `fetchTree()` to re-fetch and re-render
 
-### `#headerTitle` click
-
-Clicking the app title reloads the page but first clears state so the reload starts clean:
-1. Remove `lastFilePath` from localStorage
-2. Strip hash from URL via `history.replaceState` (best-effort, fails silently on `file://`)
-3. Call `location.reload()`
-
-This prevents the hash or last-file routing from re-opening the previous file after reload.
-
 ### Action Buttons
 
 - **"Copy" button**: copies raw file text to clipboard; shows "✓ Copied" feedback for 1.5s; hidden for binary types (images, audio, video, PDF, spreadsheets — i.e., `NO_COPY_EXTS`)
-- **"New Tab" button**: opens the file externally.
-  - First, check `GET /repos/{owner}/{repo}/pages` (GitHub API). If `200 OK`, the repo has GitHub Pages enabled — open there.
-    - **User page detection**: if repo name matches `{owner}.github.io`, use `https://{owner}.github.io/{path}`; otherwise `https://{owner}.github.io/{repo}/{path}`
-  - If Pages is not enabled (non-200 or error), fall back to the raw content URL: `https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}`
-  - Cache the Pages-enabled result in `state.pagesEnabled` (`null` = unknown, `true`/`false`) for the session to avoid repeated API calls.
-  - The button stores `data-path` (not a pre-computed URL); `getNewTabUrl(path)` is called async on click.
+- **"New Tab" button**: opens GitHub Pages URL: `https://{owner}.github.io/{repo}/{path}`
+  - **User page detection**: if repo name matches `{owner}.github.io`, omit the repo segment: `https://{owner}.github.io/{path}`
 
 ---
 
@@ -269,19 +256,9 @@ Wrap in `<div class="markdown-body" id="viewRendered">` and raw in `<pre id="vie
 After rendering, rewrite links inside `.markdown-body`:
 
 - **GitHub blob links** (`github.com/{owner}/{repo}/blob/{branch}/{path}`) → call `selectFile(path)` internally via click handler
+- **Relative paths** → resolve against current file's directory, then call `selectFile(resolvedPath)` via click handler
 - **External links** → add `target="_blank" rel="noopener"`
 - **Anchor links** (`#...`) → leave as-is
-- **Relative paths** → resolve against current file's directory, then call `selectFile(resolvedPath)` via click handler. Use this exact logic for reliable path resolution:
-
-
-  ```js
-  const resolved = currentDir ? currentDir + '/' + href : href;
-  const normalized = resolved.split('/').reduce((acc, part) => {
-    if (part === '..') acc.pop();
-    else if (part !== '.' && part !== '') acc.push(part);
-    return acc;
-  }, []).join('/');
-  ```
 
 ### Error Handling
 
@@ -543,9 +520,9 @@ const init = async () => {
 
 ## What NOT to Include
 
-- No backend server; static files only
-- No frameworks, no build tools
-- No classes or `this`
+- No `.git/config` auto-detection cascade (separate concern)
+- No inline form for repo entry (separate concern)
+- No URL query parameter parsing (separate concern)
 
 ---
 

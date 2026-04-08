@@ -1,6 +1,6 @@
 # TooToo LT Treeview — Sidebar Tree Prompt
 
-Ignore the copilot-instructions.md rule about reading nearby code.
+**Ignore the copilot-instructions.md rule about reading nearby code.**
 
 ## Hard Constraints
 
@@ -16,7 +16,7 @@ Ignore the copilot-instructions.md rule about reading nearby code.
 
 ## Output
 
-Start from the attached `tootoo-lt-layout.html`. Add the treeview CSS into its existing `<style>` block and the treeview JS into its existing `<script>` block. Also add `id="treeFilter"` to the filter `<input>` if it is missing. Save the combined result to a **new file** called `tootoo-lt-treeview.html`.
+Start from the attached `tootoo-lt-layout.html`. Add the treeview CSS into its existing `<style>` block and the treeview JS into its existing `<script>` block. Also add `id="treeFilter"` to the filter `<input>` if it is missing. Save the combined result as a **new file** called `tootoo-lt-treeview.html`.
 
 ---
 
@@ -43,12 +43,35 @@ The sidebar file tree: fetch a GitHub repo's file listing via the Trees API, ren
 
 ---
 
-## Application State & CONFIG
+## Application State
 
-The layout HTML already contains the `CONFIG` and `state` objects. Keep them intact.
-If you need a default repository for testing, set `CONFIG.owner = 'theo-armour'` and `CONFIG.repo = 'sandbox'` directly in the existing `CONFIG` definition, but **leave the `detectRepo()` logic alone**.
+Add these properties to the page-level state:
 
-If `state.branch` is empty after repo detection, fetch the default branch:
+```js
+const state = {
+  owner: '',            // GitHub owner — set by CONFIG or auto-detect (not this prompt's concern)
+  repo: '',             // GitHub repo name
+  branch: '',           // Branch name (fetched from API if empty)
+  tree: null,           // Array from GitHub Trees API response
+  currentFilePath: '',  // Path of the currently selected file
+};
+```
+
+---
+
+## CONFIG & Repo Detection (stub)
+
+For this prompt, hardcode a CONFIG so the tree can be tested standalone:
+
+```js
+const CONFIG = {
+  owner: 'theo-armour',
+  repo: 'sandbox',
+  branch: '',  // empty = auto-detect default branch from API
+};
+```
+
+On init, copy CONFIG into `state`. If `state.branch` is empty, fetch the default branch:
 
 ```
 GET https://api.github.com/repos/{owner}/{repo}
@@ -295,19 +318,17 @@ After all render batches complete:
 
 ## Init Sequence
 
-Append the tree-fetching and rendering process to the **end** of the layout's existing `init()` function (specifically inside the `if ( state.owner && state.repo )` block). **Do not remove** `initAppearance()`, `setupListeners()`, or `detectRepo()`.
-
-The logic to append inside `init()`:
-
 ```
-1. Fetch default branch if state.branch is empty
-2. Set `#treeList.innerHTML = '<p>Loading tree…</p>'`
-3. Fetch tree from API
-4. renderTree(state.tree) — batched
-4. After all batches: auto-open README, show Expand All button
-5. Set up filter input listener (debounced)
-6. Set up keyboard navigation listener
-7. Set up `/` shortcut
+1. Copy CONFIG → state
+2. Update header from CONFIG: set `document.title` and `#headerTitle` text to `"{owner} / {repo}"`, set `#headerGitHub` href to `https://github.com/{owner}/{repo}`
+3. Fetch default branch if state.branch is empty
+4. Set `#treeList.innerHTML = '<p>Loading tree…</p>'` immediately to show loading state
+5. Fetch tree from API
+6. renderTree(state.tree) — batched
+7. After all batches: auto-open README, show Expand All button
+8. Set up filter input listener (debounced)
+9. Set up keyboard navigation listener
+10. Set up `/` shortcut
 ```
 
 ---
