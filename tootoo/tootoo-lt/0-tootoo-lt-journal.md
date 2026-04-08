@@ -1,5 +1,9 @@
 # TooToo LT — Development Journal
 
+## 2026-04-07
+
+* 2026-04-07 ~ Text size control
+* 2026-04-07 ~ "Files" is stick to top
 
 ## 2026-04-06
 
@@ -13,6 +17,9 @@ https://theo-armour.github.io/sandbox/tootoo/tootoo-lt/tootoo-lt.html?owner=theo
 
 <meta name="revised" content="Sunday, July 18th, 2023, 5:15 pm" />
 
+### Done
+
+* TooToo LT for single website or even a single user
 * 2026-04-06 ~ a tooltip somewhere saying the date and time of the last update.
 * left width a % on mobile
 * 2026-04-06 ~ vertical bar always visible, even when not hovering

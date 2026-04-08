@@ -81,8 +81,8 @@ const state = {
 ```
 <body>
   <header>
+    GitHub logo link (#headerGitHub, opens repo on GitHub, dynamically set) — leftmost element
     Title (#headerTitle, clickable → resetToHome(), dynamically set to "owner / repo")
-    GitHub logo link (#headerGitHub, opens repo on GitHub, dynamically set)
     Dark mode toggle button (🌙/☀️, right-aligned)
     Token button ("⚙️ Token")
     Rate limit status badge (#rateLimitStatus, hidden until first API response)
@@ -120,8 +120,8 @@ const state = {
 - `main` is a flex row filling remaining space
 - Sidebar has a CSS variable `--sidebar-width` (default 300px), updated by the drag resizer
 - Content area has `min-width: 0` to allow flex shrinking
-- Both sidebar and content area scroll independently (`overflow-y: auto`)
-- Content area has no top padding (padding: `0 1rem 1rem 1rem`)
+- Sidebar uses `overflow: hidden` with an internal flex layout; `#navTree` is a flex column and `#treeList` scrolls independently (`overflow-y: auto`), keeping the "Files" heading and filter input pinned at the top
+- Content area scrolls independently (`overflow-y: auto`) with no top padding (padding: `0 1rem 1rem 1rem`)
 - **Readability max-width**: `.markdown-body` and `pre` capped at `700px`; images, iframes, tables, and media remain full-width
 
 ### Responsive / Mobile
@@ -178,7 +178,7 @@ Triggered automatically on page load (or by hash change):
    - If 404 without token: show private repo message with token prompt
    - If 404 with token: show "not found / bad token" message
    - Set `state.branch` to the response's `default_branch`
-   - Branch is cached in `state.branch` across subsequent `loadRepo()` calls
+   - Branch is cached in `state.branch` across subsequent `loadRepo()` calls (but `state.tree` is intentionally cleared by `resetToHome()` to fetch the latest contents)
 3. Fetch tree: `GET /repos/{owner}/{repo}/git/trees/{branch}?recursive=1`
 4. If `treeData.truncated` is true, show the yellow warning banner
 5. Store `treeData.tree` in `state.tree`
@@ -246,9 +246,9 @@ Triggered automatically on page load (or by hash change):
 
 ### File Header Details
 
+- GitHub icon appears first (leftmost), linking to the file on GitHub
 - Repo name is a clickable link that calls `resetToHome()` — clears lastFilePath, clears hash, reloads tree
 - **Breadcrumb folder navigation**: intermediate path segments are clickable links that scroll to and expand the corresponding folder in the tree via `scrollToTreeFolder()`
-- GitHub icon links to the file on GitHub
 - "Copy" button copies raw file content to clipboard (shows "✓ Copied" feedback for 1.5s); hidden for binary file types (images, audio, video, PDF, spreadsheets)
 - "New Tab" button opens GitHub Pages URL: `https://{owner}.github.io/{repo}/{path}`
 - **User page detection**: if repo name matches `{owner}.github.io`, the "New Tab" URL omits the repo segment: `https://{owner}.github.io/{path}`
@@ -281,8 +281,9 @@ Examples:
 Called by clicking the header title or the repo breadcrumb link in file headers:
 1. Removes `lastFilePath` from localStorage
 2. Clears `state.currentFilePath`
-3. Strips the hash from the URL via `history.replaceState` (best-effort, fails silently on `file://`)
-4. Calls `loadRepo(false)` to re-render tree and auto-open README
+3. Clears `state.tree` to force a fresh API fetch of the latest repository contents
+4. Strips the hash from the URL via `history.replaceState` (best-effort, fails silently on `file://`)
+5. Calls `loadRepo(false)` to re-fetch tree from API, re-render sidebar, and auto-open README
 
 ### Hash Behavior
 - `updateHash()`: When a file is selected, pushes `#filepath` via `history.pushState`. When no file is selected, strips the hash via `history.replaceState` (never pushes bare `#`)
