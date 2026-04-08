@@ -84,6 +84,8 @@ const state = {
     GitHub logo link (#headerGitHub, opens repo on GitHub, dynamically set) — leftmost element
     Title (#headerTitle, clickable → resetToHome(), dynamically set to "owner / repo")
     Dark mode toggle button (🌙/☀️, right-aligned)
+    Font size decrease button ("A−", decreases by 2px, min 10px)
+    Font size increase button ("A+", increases by 2px, max 28px)
     Token button ("⚙️ Token")
     Rate limit status badge (#rateLimitStatus, hidden until first API response)
   </header>
@@ -155,6 +157,7 @@ const state = {
 - AbortError silently ignored (expected when canceling)
 - 403 errors append rate-limit hint
 - Global `window.error` and `unhandledrejection` handlers show a styled error panel with reload button
+- `beforeunload` handler revokes all blob URLs (from iframes, images, audio, video) to free memory
 - HTML escaping via `escapeHTML()` and `escapeAttribute()` prevents XSS
 
 ---
@@ -248,7 +251,7 @@ Triggered automatically on page load (or by hash change):
 
 - GitHub icon appears first (leftmost), linking to the file on GitHub
 - Repo name is a clickable link that calls `resetToHome()` — clears lastFilePath, clears hash, reloads tree
-- **Breadcrumb folder navigation**: intermediate path segments are clickable links that scroll to and expand the corresponding folder in the tree via `scrollToTreeFolder()`
+- **Breadcrumb folder navigation**: intermediate path segments are clickable links that scroll to and expand the corresponding folder in the tree via `scrollToTreeFolder()`, which queries by `data-folder-path` attribute for reliable matching (even with same-named folders at different depths)
 - "Copy" button copies raw file content to clipboard (shows "✓ Copied" feedback for 1.5s); hidden for binary file types (images, audio, video, PDF, spreadsheets)
 - "New Tab" button opens GitHub Pages URL: `https://{owner}.github.io/{repo}/{path}`
 - **User page detection**: if repo name matches `{owner}.github.io`, the "New Tab" URL omits the repo segment: `https://{owner}.github.io/{path}`
@@ -295,8 +298,9 @@ Called by clicking the header title or the repo breadcrumb link in file headers:
 
 - `renderTree()` builds a nested object from flat tree paths, then generates HTML
 - **Filtered out**: folders starting with `.` (and their contents)
+- **Shared item builder**: `buildItemHtml(key, child)` generates HTML for a single folder or file item; used by both `buildHtml` (nested recursive render) and `renderNextBatch` (batched root-level render) to avoid code duplication
 - **Batched rendering**: root-level items rendered in chunks of `TREE_RENDER_BATCH_SIZE` (120) via `setTimeout(0)` to avoid blocking the UI; a progress indicator (`treeRenderStatus`) shows percentage during render
-- Folders rendered as `<details><summary>` elements (native collapsible)
+- Folders rendered as `<details data-folder-path="{path}"><summary>` elements (native collapsible); the `data-folder-path` attribute stores the full folder path for programmatic lookup
 - Files rendered as `<div class="tree-item">` with `data-action="select-file"` and `data-path`
 - Folders sorted before files, then alphabetically within each group
 - **File type icons**: distinct emoji per extension (📝 md, 🟨 js, 🟦 ts, 🐍 py, 🌐 html, 🎨 css, 🖼️ images, 🎵 audio, 🎬 video, 📕 pdf, 📊 spreadsheets, ⚙️ yaml, 📦 archives, `{ }` json, 📄 default)
@@ -356,6 +360,7 @@ Global `keydown` listener on `document`, active only when focus is on a `.tree-f
 | `githubToken` | Global | GitHub Personal Access Token |
 | `darkMode` | Global | `'true'` or `'false'` — dark mode state |
 | `sidebarWidth` | Global | Pixel width of sidebar (number as string) |
+| `fontSize` | Global | Font size in pixels (number as string, default 16) |
 | `tootoo-lt:{pathname}:repo` | Per-instance | Cached `{owner, repo}` JSON from auto-detect |
 | `tootoo-lt:{pathname}:lastFilePath` | Per-instance | Path of last viewed file (reopened on load if no hash) |
 | `tootoo-lt:{pathname}:fileTextCache` | Per-instance | JSON array of `[key, text]` pairs for LRU file text cache |

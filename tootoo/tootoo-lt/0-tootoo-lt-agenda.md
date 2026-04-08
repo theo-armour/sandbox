@@ -1,8 +1,6 @@
 # TooToo LT — Agenda
 
 * 2026-04-07 ~ Style adjustments
-* 2026-04-07 ~ Text size control
-* 2026-04-07 ~ "Files" is stick to top
 * 2026-04-07 ~ "?" about button
 * 2026-04-07 ~ is sheetjs needed?
 * 2026-04-06~ new tab: if not pages, use raw
