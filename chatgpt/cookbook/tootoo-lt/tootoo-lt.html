@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="revised" content="2026-04-07 20:02">
+  <title>TooToo LT</title>
+  <style>
+    :root {
+      --primary-bg: #eceff3;
+      --secondary-bg: #ffffff;
+      --text-color: #1f2933;
+      --border-color: #cfd6df;
+      --highlight-color: #1f6feb;
+      --hover-bg: #dfe7f2;
+      --font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --sidebar-width: 300px;
+      --font-size: 16px;
+    }
+
+    html {
+      height: 100%;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+      overflow-x: hidden;
+      font-family: var(--font-family);
+      font-size: var(--font-size, 16px);
+      color: var(--text-color);
+      background: linear-gradient(180deg, #f7f9fc 0%, #eef2f7 100%);
+    }
+
+    body.dark-mode {
+      --primary-bg: #1d2733;
+      --secondary-bg: #101722;
+      --text-color: #e6edf3;
+      --border-color: #334155;
+      --highlight-color: #58a6ff;
+      --hover-bg: #253244;
+      background: linear-gradient(180deg, #111927 0%, #0b1320 100%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.65rem 0.9rem;
+      background: var(--primary-bg);
+      border-bottom: 1px solid var(--border-color);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+      z-index: 10;
+    }
+
+    .github-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.75rem;
+      height: 1.75rem;
+      border-radius: 999px;
+    }
+
+    .github-link:hover {
+      background: var(--hover-bg);
+    }
+
+    .app-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.01em;
+    }
+
+    .push-right {
+      margin-left: auto;
+    }
+
+    .rate-limit-badge {
+      display: none;
+      font-size: 0.8rem;
+      padding: 0.2rem 0.45rem;
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+      background: var(--primary-bg);
+      opacity: 0.85;
+      white-space: nowrap;
+    }
+
+    main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .sidebar {
+      width: var(--sidebar-width);
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 0 0.5rem;
+      background: var(--primary-bg);
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border-color);
+      background: var(--primary-bg);
+    }
+
+    .panel-header h3 {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .filter-input {
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 0.5rem;
+      padding: 0.3rem 0.5rem;
+      font-size: 0.85rem;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      outline: none;
+      background: var(--primary-bg);
+      color: var(--text-color);
+    }
+
+    .filter-input:focus {
+      border-color: var(--highlight-color);
+    }
+
+    #treeList {
+      flex: 1;
+      overflow-y: auto;
+      margin-top: 0.5rem;
+      min-height: 0;
+    }
+
+    .resizer {
+      width: 8px;
+      background: color-mix(in srgb, var(--highlight-color) 70%, transparent);
+      cursor: col-resize;
+      touch-action: none;
+      transition: opacity 0.15s ease;
+      opacity: 0.7;
+    }
+
+    .resizer:hover,
+    .resizer.dragging {
+      opacity: 1;
+    }
+
+    .content-area {
+      flex: 1;
+      min-width: 0;
+      padding: 0 1rem 1rem 1rem;
+      overflow-y: auto;
+      background: var(--secondary-bg);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    }
+
+    .file-header {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      padding-left: 1rem;
+      padding-right: 1rem;
+      margin-left: -1rem;
+      margin-right: -1rem;
+    }
+
+    .content-copy {
+      max-width: 56rem;
+      line-height: 1.6;
+    }
+
+    button {
+      padding: 0.4rem 0.75rem;
+      border: none;
+      border-radius: 6px;
+      background: var(--highlight-color);
+      color: #ffffff;
+      cursor: pointer;
+      transition: opacity 0.15s ease, transform 0.15s ease, background 0.15s ease;
+      font: inherit;
+    }
+
+    button:hover {
+      opacity: 0.88;
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .header-button {
+      background: var(--secondary-bg);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+    }
+
+    .back-to-top {
+      position: fixed;
+      right: 1.5rem;
+      bottom: 1.5rem;
+      z-index: 20;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      padding: 0;
+      border-radius: 50%;
+      background: var(--highlight-color);
+      color: #ffffff;
+      font-size: 1.2rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 25%;
+      }
+
+      .resizer {
+        width: 4px;
+      }
+
+      .file-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <a class="github-link" href="#" title="GitHub" aria-label="GitHub">
+      <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <path
+          d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z">
+        </path>
+      </svg>
+    </a>
+    <a class="app-title" href="" title="Reload">TooToo LT</a>
+    <button id="darkModeButton" class="header-button push-right" type="button" title="Toggle dark mode">🌙</button>
+    <button id="fontDecreaseButton" class="header-button" type="button" title="Decrease font size">A−</button>
+    <button id="fontIncreaseButton" class="header-button" type="button" title="Increase font size">A+</button>
+    <button id="tokenButton" class="header-button" type="button" title="Set GitHub personal access token">⚙️
+      Token</button>
+    <div id="rateLimitBadge" class="rate-limit-badge" aria-live="polite"></div>
+  </header>
+
+  <main>
+    <div id="sidebar" class="sidebar">
+      <div class="panel-header">
+        <h3 id="filesHeading">Files</h3>
+        <button id="expandAllButton" type="button" title="Expand all folders" hidden>Expand All</button>
+      </div>
+      <input id="filterInput" class="filter-input" type="text" placeholder="Filter files…" title="Filter files">
+      <div id="treeList"></div>
+    </div>
+
+    <div id="resizer" class="resizer" title="Resize sidebar"></div>
+
+    <div id="contentArea" class="content-area">
+      <div class="panel-header file-header">
+        <h3>Content</h3>
+      </div>
+      <div class="content-copy">
+        <p>Select a file from the sidebar.</p>
+      </div>
+    </div>
+
+    <button id="backToTopButton" class="back-to-top" type="button" title="Back to top"
+      aria-label="Back to top">↑</button>
+  </main>
+
+  <script>
+    const initializeLayout = () => {
+      const body = document.body;
+      const sidebar = document.getElementById( 'sidebar' );
+      const contentArea = document.getElementById( 'contentArea' );
+      const resizer = document.getElementById( 'resizer' );
+      const darkModeButton = document.getElementById( 'darkModeButton' );
+      const fontDecreaseButton = document.getElementById( 'fontDecreaseButton' );
+      const fontIncreaseButton = document.getElementById( 'fontIncreaseButton' );
+      const tokenButton = document.getElementById( 'tokenButton' );
+      const backToTopButton = document.getElementById( 'backToTopButton' );
+      const filesHeading = document.getElementById( 'filesHeading' );
+      const revisedValue = document.querySelector( 'meta[name="revised"]' )?.content || '';
+
+      if ( revisedValue ) {
+        filesHeading.title = `Last updated: ${ revisedValue }`;
+      }
+
+      const applyDarkMode = ( isDarkMode ) => {
+        body.classList.toggle( 'dark-mode', isDarkMode );
+        darkModeButton.textContent = isDarkMode ? '☀️' : '🌙';
+      };
+
+      const savedDarkMode = localStorage.getItem( 'darkMode' ) === 'true';
+      applyDarkMode( savedDarkMode );
+
+      darkModeButton.addEventListener( 'click', () => {
+        const nextValue = !body.classList.contains( 'dark-mode' );
+        applyDarkMode( nextValue );
+        localStorage.setItem( 'darkMode', String( nextValue ) );
+      } );
+
+      const getCurrentFontSize = () => parseInt( window.getComputedStyle( body ).fontSize, 10 );
+
+      const applyFontSize = ( fontSize ) => {
+        const clampedSize = Math.max( 10, Math.min( 28, fontSize ) );
+        body.style.setProperty( '--font-size', `${ clampedSize }px` );
+        localStorage.setItem( 'fontSize', String( clampedSize ) );
+      };
+
+      const savedFontSize = parseInt( localStorage.getItem( 'fontSize' ) || '', 10 );
+      if ( !Number.isNaN( savedFontSize ) ) {
+        applyFontSize( savedFontSize );
+      }
+
+      fontDecreaseButton.addEventListener( 'click', () => {
+        applyFontSize( getCurrentFontSize() - 2 );
+      } );
+
+      fontIncreaseButton.addEventListener( 'click', () => {
+        applyFontSize( getCurrentFontSize() + 2 );
+      } );
+
+      tokenButton.addEventListener( 'click', () => {
+        const currentToken = localStorage.getItem( 'githubToken' ) || '';
+        const nextToken = window.prompt( 'Enter GitHub Personal Access Token:', currentToken );
+        if ( nextToken !== null ) {
+          localStorage.setItem( 'githubToken', nextToken );
+          window.location.reload();
+        }
+      } );
+
+      const applySidebarWidth = ( width ) => {
+        const minWidth = 160;
+        const maxWidth = Math.max( minWidth, window.innerWidth - 220 );
+        const clampedWidth = Math.max( minWidth, Math.min( maxWidth, width ) );
+        sidebar.style.setProperty( '--sidebar-width', `${ clampedWidth }px` );
+        return clampedWidth;
+      };
+
+      const savedSidebarWidth = parseInt( localStorage.getItem( 'sidebarWidth' ) || '', 10 );
+      if ( !Number.isNaN( savedSidebarWidth ) ) {
+        applySidebarWidth( savedSidebarWidth );
+      }
+
+      let dragState = null;
+
+      resizer.addEventListener( 'pointerdown', ( event ) => {
+        dragState = {
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          startWidth: sidebar.getBoundingClientRect().width
+        };
+        resizer.setPointerCapture( event.pointerId );
+        resizer.classList.add( 'dragging' );
+        body.style.userSelect = 'none';
+        body.style.cursor = 'col-resize';
+      } );
+
+      resizer.addEventListener( 'pointermove', ( event ) => {
+        if ( !dragState || event.pointerId !== dragState.pointerId ) {
+          return;
+        }
+
+        const nextWidth = dragState.startWidth + ( event.clientX - dragState.startX );
+        applySidebarWidth( nextWidth );
+      } );
+
+      const stopDragging = ( event ) => {
+        if ( !dragState || event.pointerId !== dragState.pointerId ) {
+          return;
+        }
+
+        const finalWidth = Math.round( sidebar.getBoundingClientRect().width );
+        localStorage.setItem( 'sidebarWidth', String( finalWidth ) );
+        resizer.releasePointerCapture( event.pointerId );
+        resizer.classList.remove( 'dragging' );
+        body.style.userSelect = '';
+        body.style.cursor = '';
+        dragState = null;
+      };
+
+      resizer.addEventListener( 'pointerup', stopDragging );
+      resizer.addEventListener( 'pointercancel', stopDragging );
+
+      contentArea.addEventListener( 'scroll', () => {
+        backToTopButton.style.display = contentArea.scrollTop > 400 ? 'flex' : 'none';
+      } );
+
+      backToTopButton.addEventListener( 'click', () => {
+        contentArea.scrollTo( { top: 0, behavior: 'smooth' } );
+      } );
+    };
+
+    window.addEventListener( 'DOMContentLoaded', initializeLayout );
+  </script>
+</body>
+
+</html>
