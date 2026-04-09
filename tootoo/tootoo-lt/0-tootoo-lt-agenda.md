@@ -1,5 +1,6 @@
 # TooToo LT — Agenda
 
+* 2026-04-09 ~ auto-configure repo, org, and gists based on URL
 * 2026-04-07 ~ Style adjustments
 * 2026-04-07 ~ "?" about button
 * 2026-04-07 ~ is sheetjs needed?
