@@ -98,6 +98,7 @@
         },
         {
           "title": "orgs",
+          "collapsed": true,
           "links": [
             {
               "title": "evrlnd",
@@ -120,18 +121,18 @@
               "url": "https://github.com"
             },
             {
-              "title": "PshPll",
-              "url": "https://pushpull.com"
+              "title": "PushPull",
+              "url": "https://pushme-pullyou.github.io/",
+              "g": "https://github.com/pushme-pullyou"
             }
           ]
         },
         {
-          "title": "VSCode",
-          "collapsed": true,
+          "title": "vs code",
           "links": [
             {
-              "title": ">ta 2024",
-              "url": "https://vscode.dev/github/theo-armour/2024"
+              "title": ">ta",
+              "url": "https://vscode.dev/github/theo-armour"
             },
             {
               "title": ">ta agenda",
@@ -146,8 +147,14 @@
               "url": "https://vscode.dev/github/theo-armour/qdata"
             },
             {
-              "title": ">TooToo23",
-              "url": "https://vscode.dev/github/theo-armour/tootoo23"
+              "title": ">TooToo",
+              "url": "https://vscode.dev/github/theo-armour/tootoo-2025",
+              "g": "https://github.com/pushme-pullyou/tootoo-2025"
+            },
+            {
+              "title": "push-pull",
+              "url": "https://pushme-pullyou.github.io/",
+              "g": "https://github.com/pushme-pullyou/pushme-pullyou.github.io"
             }
           ]
         }
