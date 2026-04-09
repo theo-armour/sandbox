@@ -6,6 +6,10 @@ Ignore the copilot-instructions.md rule about reading nearby code.
 
 Create `tootoo-lt-layout.html` — a single self-contained HTML file.
 
+## Before Creating the File
+
+If `tootoo-lt-layout.html.bak` already exists in the output directory, delete it. If `tootoo-lt-layout.html` already exists in the output directory, rename it to `tootoo-lt-layout.html.bak` before creating the new file.
+
 ## Hard Constraints
 
 - **Single file**: One `.html` file — HTML, CSS, JS inline
@@ -31,7 +35,10 @@ A three-panel layout (header bar + sidebar + content area) that fills the viewpo
 <title>TooToo LT</title>
 ```
 
-Set the `revised` content to the current date/time when generating the file.
+Set the `revised` content to the current date/time when generating the file. Update this value every time the prompt is executed — it always reflects when the file was built.
+
+The sidebar `.panel-header` title tooltip (`"Last updated: YYYY-MM-DD HH:MM"`) must match this same date/time value.
+
 The `<title>` is updated dynamically by `updateHeaderFromConfig()` after repo detection.
 
 ---
@@ -66,6 +73,7 @@ The `<title>` is updated dynamically by `updateHeaderFromConfig()` after repo de
         <button id="btnExpandAll" class="secondary" style="display: none;" title="Expand All Folders">Expand All</button>
       </div>
       <input type="text" id="treeFilter" placeholder="Filter files…" title="Filter files by name">
+      [Clear filter button] — `<button id="btnFilterClear">` inside a `<div class="filter-wrap">` wrapping the input, absolutely positioned at the right edge of the input, hidden by default (`display: none`), shows ✕, title="Clear filter"
       <div id="treeList">  — scrollable area, flex: 1, overflow-y: auto
         (empty — placeholder for future tree content)
       </div>
@@ -164,7 +172,8 @@ The content area header adds `.file-header` for sticky behavior:
 
 ### Sidebar Internal Padding
 
-- Filter input: margin `0.4rem 0.5rem 0 0.5rem`, width `calc(100% - 1rem)`, box-sizing border-box, padding `0.3rem 0.5rem`, font-size 0.85rem, 1px `--border-color` border, border-radius 4px, `--secondary-bg` background, `--text-color` color, outline none; on focus: border-color `--highlight-color`
+- Filter input: wrapped in `<div class="filter-wrap">` (position relative, margin `0.4rem 0.5rem 0 0.5rem`); input margin 0, width 100%, box-sizing border-box, padding `0.3rem 1.6rem 0.3rem 0.5rem` (right padding leaves room for the ✕ button), font-size 0.85rem, 1px `--border-color` border, border-radius 4px, `--secondary-bg` background, `--text-color` color, outline none; on focus: border-color `--highlight-color`
+- `#btnFilterClear`: position absolute, right `0.3rem`, top 50%, transform `translateY(-50%)`, background none, border none, cursor pointer, `--text-color` color, opacity 0.5 (1 on hover), font-size 0.9rem, display none by default
 - `#treeList`: padding `0 0.5rem`, flex 1, overflow-y auto
 
 ### Buttons
@@ -173,14 +182,14 @@ Two button styles via CSS classes:
 
 1. **`.header-btn`** (header utility buttons — dark mode, font size, token):
    - `--secondary-bg` background, `--text-color` color, 1px `--border-color` border
-   - padding 0.4rem 0.75rem, border-radius 6px, cursor pointer
+   - padding 0.4rem 0.75rem, border-radius 6px, cursor pointer, **`font-size: 1rem`** (scales with `--font-size` on `html`)
    - transition: opacity 0.2s, transform 0.1s
    - Hover: opacity 0.88, translateY(-1px)
    - Active: translateY(0)
 
 2. **`button.primary`, `button.secondary`** (action buttons like Expand All, Set Repository):
    - `--highlight-color` background, white text, no border
-   - padding 0.4rem 0.75rem, border-radius 6px, cursor pointer
+   - padding 0.4rem 0.75rem, border-radius 6px, cursor pointer, **`font-size: 1rem`**
    - Hover: opacity 0.88, translateY(-1px)
    - Active: translateY(0)
 
@@ -280,7 +289,7 @@ Returns a Promise (async function). Runs this cascade:
 1. **URL query parameters** → `?owner=X&repo=Y&branch=Z` merged into CONFIG
 2. **CONFIG already filled** → early return
 3. **localStorage cache** → read `storageKey('repo')` JSON (`{owner, repo}`) — checked before `.git/config` to avoid noisy 404 console errors; early return if found
-4. **Fetch `.git/config`** → try paths `''`, `'../'`, `'../../'`, `'../../../'`, `'../../../../'`; parse `github.com[:/]owner/repo` from remote URL; cache result to localStorage; early return if found
+4. **Fetch `.git/config`** → **only on HTTP/HTTPS** — wrap the entire fetch loop in `if ( location.protocol === 'http:' || location.protocol === 'https:' )` to avoid console 404 errors when opened from `file://`; try paths `''`, `'../'`, `'../../'`, `'../../../'`, `'../../../../'`; parse `github.com[:/]owner/repo` from remote URL; cache result to localStorage; early return if found
 5. **Show inline form** → render owner + repo input form in `#contentBody`; return a new Promise that resolves when the user clicks "Set Repository"; form includes `id="inpOwner"`, `id="inpRepo"`, `id="btnSetRepo"` (class `primary`); inline styles for the form layout (flex column, gap, max-width 300px, padding on inputs)
 
 **Note**: `updateHeaderFromConfig()` is NOT called inside `detectRepo()` — it is called from `init()` after state is populated.
@@ -318,6 +327,10 @@ Called after `initAppearance()`. Wires up all event handlers:
 - `pointerdown`: `setPointerCapture`, add `.dragging` class, set `user-select: none` and `cursor: col-resize` on body
 - `pointermove`: only if pointer is captured (`hasPointerCapture` check); calculate new width as `e.clientX` clamped between 100 and `window.innerWidth - 100`; set `--sidebar-width` on `document.documentElement`
 - `pointerup`: `releasePointerCapture`, remove `.dragging` class, clear body styles, persist width to `localStorage`
+
+#### Filter Input & Clear Button
+- `input` handler on `#treeFilter`: show `#btnFilterClear` (`display: block`) when input has a value, hide otherwise
+- `click` handler on `#btnFilterClear`: clear `#treeFilter` value, hide `#btnFilterClear`, return focus to `#treeFilter`
 
 #### Back-to-Top Button
 - Scroll handler on `#contentArea` (not window)

@@ -18,6 +18,10 @@ Ignore the copilot-instructions.md rule about reading nearby code.
 
 Start from the attached `tootoo-lt-layout.html`. Add the treeview CSS into its existing `<style>` block and the treeview JS into its existing `<script>` block. Also add `id="treeFilter"` to the filter `<input>` if it is missing. Save the combined result to a **new file** called `tootoo-lt-treeview.html`.
 
+## Before Creating the File
+
+If `tootoo-lt-treeview.html.bak` already exists in the output directory, delete it. If `tootoo-lt-treeview.html` already exists in the output directory, rename it to `tootoo-lt-treeview.html.bak` before creating the new file
+
 ---
 
 ## Prerequisites
@@ -40,6 +44,22 @@ The treeview script adds to the existing `<style>` and `<script>` blocks. It doe
 ## What to Build
 
 The sidebar file tree: fetch a GitHub repo's file listing via the Trees API, render it as a nested collapsible tree, with filtering, keyboard navigation, expand/collapse all, and file selection (click event only — actual file content loading is a separate concern).
+
+---
+
+## Public API (used by Content Viewer prompt)
+
+The treeview script must define these as **named top-level arrow functions / variables** so the content viewer prompt can reference them:
+
+| Name | Description |
+|------|-------------|
+| `getToken()` | Returns `localStorage.getItem('githubToken') \|\| ''` |
+| `getAuthHeaders()` | Returns a headers object: `{ Accept: 'application/vnd.github+json' }` plus `Authorization: token {value}` when `getToken()` is non-empty |
+| `updateRateBadge(response)` | Reads `X-RateLimit-Remaining` and `X-RateLimit-Limit` from a fetch `Response`, updates `#rateBadge` |
+| `fetchTree()` | Async — fetches the repo tree from GitHub API, stores in `state.tree`, calls `renderTree()`. Returns a Promise that resolves when all render batches complete |
+| `let currentAbortController` | Mutable `AbortController` variable — create a new one before each fetch sequence; abort the previous one |
+
+These are used internally by the treeview and re-used by the content viewer in the next prompt.
 
 ---
 
@@ -228,6 +248,9 @@ The `#treeFilter` input filters the tree in real-time on `input` event:
    - Match → show; No match → hide
 4. For each `<details>`: if it has visible `.tree-item` descendants, show and open it; otherwise hide
 5. **Debounce**: 150ms on the input handler
+6. **Clear button** (`#btnFilterClear`): show when input has a value, hide when empty; on click — clear input, hide button, re-run filter, return focus to input. Extract the filter logic into a shared `runFilter()` function called by both the debounced `input` handler and the clear button click.
+
+**Note**: Layout's `setupListeners()` includes simple show/hide handlers for the filter input and clear button. **Replace** those with the debounced `runFilter()` versions below — do not keep both, as duplicate listeners cause redundant work.
 
 ---
 
@@ -267,7 +290,10 @@ Global `keydown` on `document`, active when focus is on `.tree-folder` or `.tree
 | **ArrowRight** | Open folder if closed; move to first child if open |
 | **ArrowLeft** | Close folder if open; move to parent if closed or file |
 
-- **`getVisibleTreeItems()`**: returns all `.tree-folder` and `.tree-item` not inside a closed `<details>`
+- **`getVisibleTreeItems()`**: returns all `.tree-folder` and `.tree-item` that are currently visible.
+  - A `.tree-folder` is a `<summary>` — its own parent `<details>` being closed does NOT hide it (the summary stays visible as the toggle). Start the ancestor walk at the **grandparent** of a `.tree-folder` (i.e. skip its own `<details>`), but still treat that `<details>` as hidden if `display:none` was set by the filter.
+  - A `.tree-item` is hidden if any ancestor `<details>` is closed OR has `display:none`.
+  - Any element with `el.style.display === 'none'` is excluded.
 - `e.preventDefault()` on all handled keys
 - **`/` shortcut**: focuses `#treeFilter` when not in an input
 
@@ -304,11 +330,13 @@ The logic to append inside `init()`:
 2. Set `#treeList.innerHTML = '<p>Loading tree…</p>'`
 3. Fetch tree from API
 4. renderTree(state.tree) — batched
-4. After all batches: auto-open README, show Expand All button
-5. Set up filter input listener (debounced)
-6. Set up keyboard navigation listener
-7. Set up `/` shortcut
+5. After all batches: auto-open README, show Expand All button
+6. Set up filter input listener (debounced)
+7. Set up keyboard navigation listener
+8. Set up `/` shortcut
 ```
+
+**Note**: The content viewer prompt (the next prompt in the series) fully replaces `init()` with its own skeleton. Structure the treeview additions inside `init()` so they can be cleanly lifted into that replacement.
 
 ---
 
@@ -317,7 +345,7 @@ The logic to append inside `init()`:
 - No file content loading or rendering (separate prompt)
 - No markdown/code rendering libraries
 - No hash routing or URL manipulation
-- No config auto-detection cascade
+- Do not modify the existing config auto-detection cascade (it is provided by Layout)
 - No file content cache
 - No resizer, dark mode, font size logic (already in layout)
 - No breadcrumb navigation (separate prompt)

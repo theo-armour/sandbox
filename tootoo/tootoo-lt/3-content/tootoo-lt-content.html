@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-04-08 17:30">
+  <meta name="revised" content="2026-04-09 08:30">
   <title>TooToo LT</title>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link id="hljsTheme" rel="stylesheet"
@@ -13,6 +13,7 @@
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
   <style>
+    /* ── Custom Properties ── */
     :root {
       --primary-bg: #f3f4f6;
       --secondary-bg: #ffffff;
@@ -25,10 +26,7 @@
       --font-size: 16px;
     }
 
-    html {
-      font-size: var(--font-size);
-    }
-
+    /* ── Dark Mode Overrides ── */
     body.dark-mode {
       --primary-bg: #1f2937;
       --secondary-bg: #111827;
@@ -38,10 +36,19 @@
       --hover-bg: #374151;
     }
 
-    * {
+    /* ── Font size on html so rem units scale ── */
+    html {
+      font-size: var(--font-size);
+    }
+
+    /* ── Reset ── */
+    *,
+    *::before,
+    *::after {
       box-sizing: border-box;
     }
 
+    /* ── Body ── */
     body {
       display: flex;
       flex-direction: column;
@@ -53,8 +60,10 @@
       background-color: var(--primary-bg);
     }
 
+    /* ── Header ── */
     header {
       display: flex;
+      flex-direction: row;
       flex-wrap: wrap;
       align-items: center;
       gap: 0.5rem;
@@ -68,7 +77,8 @@
     #headerGitHub {
       display: flex;
       align-items: center;
-      color: currentColor;
+      color: var(--text-color);
+      text-decoration: none;
     }
 
     #headerTitle {
@@ -79,6 +89,43 @@
       cursor: pointer;
     }
 
+    /* ── Header Utility Buttons ── */
+    .header-btn {
+      background: var(--secondary-bg);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .header-btn:hover {
+      opacity: 0.88;
+      transform: translateY(-1px);
+    }
+
+    .header-btn:active {
+      transform: translateY(0);
+    }
+
+    .dark-mode-btn {
+      margin-left: auto;
+    }
+
+    /* ── Rate limit badge ── */
+    .rate-limit-badge {
+      display: none;
+      font-size: 0.8rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      background: var(--hover-bg);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+    }
+
+    /* ── Main ── */
     main {
       display: flex;
       flex-direction: row;
@@ -86,6 +133,7 @@
       overflow: hidden;
     }
 
+    /* ── Sidebar ── */
     .sidebar {
       width: var(--sidebar-width);
       flex-shrink: 0;
@@ -96,34 +144,7 @@
       overflow: hidden;
     }
 
-    .resizer {
-      width: 8px;
-      background: var(--highlight-color);
-      opacity: 0.7;
-      cursor: col-resize;
-      touch-action: none;
-      transition: opacity 0.2s;
-    }
-
-    .resizer:hover,
-    .resizer.dragging {
-      opacity: 1;
-    }
-
-    .content-area {
-      flex: 1;
-      min-width: 0;
-      padding: 0;
-      overflow-y: auto;
-      background: var(--secondary-bg);
-      position: relative;
-    }
-
-    #contentBody {
-      padding: 0 1rem 1rem 1rem;
-      background: var(--secondary-bg);
-    }
-
+    /* ── Panel Headers (shared) ── */
     .panel-header {
       display: flex;
       justify-content: space-between;
@@ -138,21 +159,26 @@
       font-size: 0.95rem;
     }
 
+    /* ── Content area sticky header ── */
     .file-header {
       position: sticky;
       top: 0;
       z-index: 5;
       padding: 0.5rem 1rem;
-      background: var(--secondary-bg);
-      flex-wrap: wrap;
-      gap: 0.5rem;
+      background: var(--primary-bg);
+    }
+
+    /* ── Filter wrap ── */
+    .filter-wrap {
+      position: relative;
+      margin: 0.4rem 0.5rem 0 0.5rem;
     }
 
     #treeFilter {
-      margin: 0.4rem 0.5rem 0 0.5rem;
-      width: calc(100% - 1rem);
+      margin: 0;
+      width: 100%;
       box-sizing: border-box;
-      padding: 0.3rem 0.5rem;
+      padding: 0.3rem 1.6rem 0.3rem 0.5rem;
       font-size: 0.85rem;
       border: 1px solid var(--border-color);
       border-radius: 4px;
@@ -165,31 +191,63 @@
       border-color: var(--highlight-color);
     }
 
+    #btnFilterClear {
+      position: absolute;
+      right: 0.3rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-color);
+      opacity: 0.5;
+      font-size: 0.9rem;
+      display: none;
+      padding: 0;
+    }
+
+    #btnFilterClear:hover {
+      opacity: 1;
+    }
+
+    /* ── Tree list ── */
     #treeList {
       padding: 0 0.5rem;
       flex: 1;
       overflow-y: auto;
     }
 
-    .header-btn {
+    /* ── Resizer ── */
+    .resizer {
+      width: 8px;
+      background: rgba(37, 99, 235, 0.7);
+      cursor: col-resize;
+      touch-action: none;
+      transition: opacity 0.2s;
+      flex-shrink: 0;
+    }
+
+    .resizer:hover,
+    .resizer.dragging {
+      background: var(--highlight-color);
+    }
+
+    /* ── Content Area ── */
+    .content-area {
+      flex: 1;
+      min-width: 0;
+      padding: 0;
+      overflow-y: auto;
       background: var(--secondary-bg);
-      color: var(--text-color);
-      border: 1px solid var(--border-color);
-      padding: 0.4rem 0.75rem;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
+      position: relative;
     }
 
-    .header-btn:hover {
-      opacity: 0.88;
-      transform: translateY(-1px);
+    #contentBody {
+      padding: 0 1rem 1rem 1rem;
+      background: var(--secondary-bg);
     }
 
-    .header-btn:active {
-      transform: translateY(0);
-    }
-
+    /* ── Action Buttons (primary / secondary) ── */
     button.primary,
     button.secondary {
       background: var(--highlight-color);
@@ -198,6 +256,7 @@
       padding: 0.4rem 0.75rem;
       border-radius: 6px;
       cursor: pointer;
+      font-size: 1rem;
       transition: opacity 0.2s, transform 0.1s;
     }
 
@@ -212,6 +271,7 @@
       transform: translateY(0);
     }
 
+    /* ── Back to Top ── */
     .back-to-top {
       position: fixed;
       bottom: 1.5rem;
@@ -231,13 +291,52 @@
       justify-content: center;
     }
 
-    .rate-limit-badge {
-      font-size: 0.8rem;
-      opacity: 0.7;
-      padding: 0.2rem 0.5rem;
+    /* ── Inline repo form ── */
+    .repo-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-width: 300px;
+      padding: 1rem;
     }
 
-    /* Treeview */
+    .repo-form label {
+      font-size: 0.9rem;
+      font-weight: bold;
+    }
+
+    .repo-form input {
+      padding: 0.4rem 0.5rem;
+      font-size: 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background: var(--secondary-bg);
+      color: var(--text-color);
+      outline: none;
+    }
+
+    .repo-form input:focus {
+      border-color: var(--highlight-color);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 25% !important;
+      }
+
+      .resizer {
+        width: 4px;
+      }
+
+      .file-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+    }
+
+    /* ── Treeview ── */
     .tree-folder {
       display: flex;
       align-items: center;
@@ -293,14 +392,7 @@
       padding-left: 0;
     }
 
-    #treeRenderStatus {
-      font-size: 0.85rem;
-      color: var(--text-color);
-      opacity: 0.7;
-      padding: 0.3rem 0.5rem;
-    }
-
-    /* Content Viewer */
+    /* ── Content Viewer CSS ── */
     .markdown-body {
       max-width: 700px;
       line-height: 1.6;
@@ -329,6 +421,15 @@
 
     body.dark-mode pre {
       background-color: var(--secondary-bg);
+    }
+
+    .panel-header.file-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      background: var(--secondary-bg);
     }
 
     .file-title {
@@ -415,20 +516,28 @@
       border-color: #665200;
     }
 
-    @media (max-width: 768px) {
-      .sidebar {
-        width: 25% !important;
-      }
+    .error-panel {
+      background: #fff0f0;
+      border: 2px solid #dc3545;
+      padding: 1rem;
+      border-radius: 6px;
+      margin: 1rem;
+      font-size: 0.9rem;
+    }
 
-      .resizer {
-        width: 4px;
-      }
+    .error-panel button {
+      margin-top: 0.5rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background: var(--secondary-bg);
+      cursor: pointer;
+    }
 
-      .file-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-      }
+    body.dark-mode .error-panel {
+      background: #2d0000;
+      border-color: #ff6b6b;
+      color: var(--text-color);
     }
   </style>
 </head>
@@ -437,59 +546,68 @@
 
   <header>
     <a id="headerGitHub" href="#" title="View on GitHub">
-      <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor">
+      <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
         <path
-          d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z" />
+          d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z">
+        </path>
       </svg>
     </a>
+
     <a id="headerTitle" href="#" title="Reload">TooToo LT</a>
-    <button id="btnDarkMode" class="header-btn dark-mode-btn" style="margin-left: auto;"
-      title="Toggle Dark Mode">&#x1F319;</button>
-    <button id="btnFontDec" class="header-btn" title="Decrease Font Size">A&#x2212;</button>
+
+    <button id="btnDarkMode" class="header-btn dark-mode-btn" title="Toggle Dark Mode">🌙</button>
+    <button id="btnFontDec" class="header-btn" title="Decrease Font Size">A−</button>
     <button id="btnFontInc" class="header-btn" title="Increase Font Size">A+</button>
-    <button id="btnToken" class="header-btn" title="Set GitHub Personal Access Token">&#x2699;&#xFE0F; Token</button>
-    <div id="rateBadge" class="rate-limit-badge" style="display: none;" title="API Rate Limit" aria-live="polite"></div>
+    <button id="btnToken" class="header-btn" title="Set GitHub Personal Access Token">⚙️ Token</button>
+    <div id="rateBadge" class="rate-limit-badge" title="API Rate Limit" aria-live="polite"></div>
   </header>
 
   <main>
+
     <div class="sidebar">
-      <div class="panel-header" title="Last updated: 2026-04-08 16:30">
+      <div class="panel-header" title="Last updated: 2026-04-08 17:00">
         <h3 id="hFiles">Files</h3>
         <button id="btnExpandAll" class="secondary" style="display: none;" title="Expand All Folders">Expand
           All</button>
       </div>
-      <input type="text" id="treeFilter" placeholder="Filter files&#x2026;" title="Filter files by name">
-      <div id="treeList"></div>
+      <div class="filter-wrap">
+        <input type="text" id="treeFilter" placeholder="Filter files…" title="Filter files by name">
+        <button id="btnFilterClear" title="Clear filter">✕</button>
+      </div>
+      <div id="treeList">
+        <!-- placeholder for future tree content -->
+      </div>
     </div>
 
     <div class="resizer" id="resizer" title="Drag to Resize Sidebar"></div>
 
     <div class="content-area" id="contentArea">
-      <div class="panel-header file-header" id="fileHeader">
+      <div class="panel-header file-header">
         <h3 id="contentTitle">Content</h3>
       </div>
       <div id="contentBody">
         <p>Awaiting repository detection...</p>
       </div>
-      <button id="btnBackToTop" class="back-to-top" aria-label="Back to top" title="Back to Top">&#x2191;</button>
+
+      <button id="btnBackToTop" class="back-to-top" aria-label="Back to top" title="Back to Top">↑</button>
     </div>
+
   </main>
 
   <script>
+    'use strict';
 
-    /* -- Utility -- */
-
+    /* ── 1. Utility ── */
     const escapeHTML = ( str ) => {
       const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
       return String( str ).replace( /[&<>"']/g, ( c ) => map[ c ] );
     };
 
-    /* -- Config & State -- */
-
+    /* ── 2. CONFIG & state ── */
     const CONFIG = {
-      owner: '',   // empty = auto-detect from .git/config or prompt user
-      repo: '',    // empty = auto-detect from .git/config or prompt user
-      branch: '',  // empty = auto-detect default branch from API
+      owner: 'theo-armour',
+      repo: 'sandbox',
+      branch: '',
     };
 
     const state = {
@@ -498,31 +616,33 @@
       branch: '',
       tree: null,
       currentFilePath: '',
-      pagesEnabled: null,  // null = unknown, true = enabled, false = disabled
+      pagesEnabled: null,
     };
 
+    /* ── 3. Storage key helper ── */
     const storageKey = ( suffix ) => `tootoo-lt:${ location.pathname }:${ suffix }`;
 
-    /* -- File Type Constants -- */
-
+    /* ── 4. Extension constants ── */
     const IMAGE_EXTS = [ 'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'ico' ];
     const AUDIO_EXTS = [ 'mp3', 'wav', 'ogg' ];
     const VIDEO_EXTS = [ 'mp4', 'webm' ];
     const SHEET_EXTS = [ 'xlsx', 'xls', 'csv', 'ods' ];
     const STREAMABLE_EXTS = [ ...IMAGE_EXTS, ...AUDIO_EXTS, ...VIDEO_EXTS, 'pdf' ];
     const NO_COPY_EXTS = [ ...STREAMABLE_EXTS, ...SHEET_EXTS ];
+
+    /* ── 5. Large file protection ── */
     const LARGE_FILE_WARNING_BYTES = 1024 * 1024;
     const approvedLargeFiles = new Set();
 
-    /* -- Blob URL Tracking -- */
-
+    /* ── 6. Blob URL cleanup ── */
     const activeBlobUrls = new Set();
     window.addEventListener( 'beforeunload', () => {
       activeBlobUrls.forEach( ( url ) => URL.revokeObjectURL( url ) );
     } );
 
-    /* -- File Text Cache (LRU, 25 entries, 300KB max) -- */
-
+    /* ── 7. File text cache ── */
+    const FILE_CACHE_MAX_ENTRIES = 25;
+    const FILE_CACHE_MAX_CHARS = 300000;
     const fileTextCache = new Map();
 
     const getFileCacheKey = ( path ) => `${ state.owner }/${ state.repo }/${ state.branch }/${ path }`;
@@ -530,43 +650,54 @@
     const getCachedFileText = ( path ) => {
       const key = getFileCacheKey( path );
       if ( !fileTextCache.has( key ) ) return null;
-      const value = fileTextCache.get( key );
+      const text = fileTextCache.get( key );
+      // LRU refresh: move to end
       fileTextCache.delete( key );
-      fileTextCache.set( key, value ); // LRU: move to end
-      return value;
+      fileTextCache.set( key, text );
+      return text;
     };
 
     const setCachedFileText = ( path, text ) => {
-      if ( text.length > 300 * 1024 ) return;
+      if ( text.length > FILE_CACHE_MAX_CHARS ) return;
       const key = getFileCacheKey( path );
-      if ( fileTextCache.has( key ) ) fileTextCache.delete( key );
+      // Remove if exists (for LRU ordering)
+      fileTextCache.delete( key );
+      // Evict oldest if at limit
+      while ( fileTextCache.size >= FILE_CACHE_MAX_ENTRIES ) {
+        const oldest = fileTextCache.keys().next().value;
+        fileTextCache.delete( oldest );
+      }
       fileTextCache.set( key, text );
-      if ( fileTextCache.size > 25 ) fileTextCache.delete( fileTextCache.keys().next().value );
+      persistFileCache();
+    };
+
+    const persistFileCache = () => {
       try {
-        localStorage.setItem( storageKey( 'fileTextCache' ), JSON.stringify( [ ...fileTextCache.entries() ] ) );
-      } catch ( e ) { /* quota */ }
+        const arr = Array.from( fileTextCache.entries() );
+        localStorage.setItem( storageKey( 'fileTextCache' ), JSON.stringify( arr ) );
+      } catch ( _ ) { /* quota exceeded — ignore */ }
     };
 
     const restoreFileCache = () => {
       try {
-        const saved = localStorage.getItem( storageKey( 'fileTextCache' ) );
-        if ( !saved ) return;
-        for ( const [ key, text ] of JSON.parse( saved ) ) fileTextCache.set( key, text );
-      } catch ( e ) { /* ignore */ }
+        const raw = localStorage.getItem( storageKey( 'fileTextCache' ) );
+        if ( !raw ) return;
+        const arr = JSON.parse( raw );
+        if ( !Array.isArray( arr ) ) return;
+        for ( const [ key, text ] of arr ) {
+          if ( typeof key === 'string' && typeof text === 'string' ) {
+            fileTextCache.set( key, text );
+          }
+        }
+      } catch ( _ ) { /* ignore malformed cache */ }
     };
 
-    /* -- View Preferences -- */
-
+    /* ── 8. View preference helpers ── */
     const getViewPrefKey = ( ext ) => storageKey( `viewPref:${ ext }` );
     const getPreferredView = ( ext ) => localStorage.getItem( getViewPrefKey( ext ) ) || 'rendered';
     const setPreferredView = ( ext, view ) => localStorage.setItem( getViewPrefKey( ext ), view );
 
-    /* -- Auth -- */
-
-    const getToken = () => localStorage.getItem( 'githubToken' ) || '';
-
-    /* -- Dark Mode hljs Theme Swap -- */
-
+    /* ── 9. Dark mode hljs theme ── */
     const setHljsTheme = ( isDark ) => {
       const link = document.getElementById( 'hljsTheme' );
       link.href = isDark
@@ -574,15 +705,15 @@
         : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
     };
 
-    /* -- Header & Repo Detection -- */
-
+    /* ── 10. updateHeaderFromConfig ── */
     const updateHeaderFromConfig = () => {
-      const title = `${ state.owner } / ${ state.repo }`;
-      document.title = title;
-      document.getElementById( 'headerTitle' ).textContent = title;
-      document.getElementById( 'headerGitHub' ).href = `https://github.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }`;
+      const label = `${ state.owner } / ${ state.repo }`;
+      document.title = label;
+      document.getElementById( 'headerTitle' ).textContent = label;
+      document.getElementById( 'headerGitHub' ).href = `https://github.com/${ state.owner }/${ state.repo }`;
     };
 
+    /* ── 11. detectRepo ── */
     const detectRepo = async () => {
       const params = new URLSearchParams( location.search );
       if ( params.get( 'owner' ) ) CONFIG.owner = params.get( 'owner' );
@@ -600,680 +731,658 @@
             CONFIG.repo = parsed.repo;
             return;
           }
-        } catch ( e ) { /* ignore */ }
+        } catch ( _ ) { /* ignore malformed cache */ }
       }
 
-      const prefixes = [ '', '../', '../../', '../../../', '../../../../' ];
-      for ( const prefix of prefixes ) {
-        try {
-          const res = await fetch( `${ prefix }.git/config` );
-          if ( !res.ok ) continue;
-          const text = await res.text();
-          const match = text.match( /github\.com[:/]([^/\s]+)\/([^/\s.]+)/ );
-          if ( match ) {
-            CONFIG.owner = match[ 1 ];
-            CONFIG.repo = match[ 2 ].replace( /\.git$/, '' );
-            localStorage.setItem( storageKey( 'repo' ), JSON.stringify( { owner: CONFIG.owner, repo: CONFIG.repo } ) );
-            return;
-          }
-        } catch ( e ) { /* ignore */ }
+      if ( location.protocol === 'http:' || location.protocol === 'https:' ) {
+        const prefixes = [ '', '../', '../../', '../../../', '../../../../' ];
+        for ( const prefix of prefixes ) {
+          try {
+            const res = await fetch( `${ prefix }.git/config` );
+            if ( !res.ok ) continue;
+            const text = await res.text();
+            const match = text.match( /github\.com[:/]([^/\n]+)\/([^.\n]+)(\.git)?/ );
+            if ( match ) {
+              CONFIG.owner = match[ 1 ];
+              CONFIG.repo = match[ 2 ];
+              localStorage.setItem( storageKey( 'repo' ), JSON.stringify( { owner: CONFIG.owner, repo: CONFIG.repo } ) );
+              return;
+            }
+          } catch ( _ ) { /* network error — try next prefix */ }
+        }
       }
 
       return new Promise( ( resolve ) => {
         const cb = document.getElementById( 'contentBody' );
         cb.innerHTML = `
-          <div style="display:flex;flex-direction:column;gap:0.5rem;max-width:300px;margin-top:1rem;">
-            <label>Owner: <input id="inpOwner" style="padding:0.3rem 0.5rem;width:100%;" placeholder="e.g. theo-armour"></label>
-            <label>Repo: <input id="inpRepo" style="padding:0.3rem 0.5rem;width:100%;" placeholder="e.g. sandbox"></label>
-            <button id="btnSetRepo" class="primary" title="Set Repository">Set Repository</button>
-          </div>`;
+          <div class="repo-form">
+            <p>Could not auto-detect the repository. Please enter the details below.</p>
+            <label for="inpOwner">GitHub Owner</label>
+            <input id="inpOwner" type="text" placeholder="e.g. octocat" autocomplete="off">
+            <label for="inpRepo">Repository</label>
+            <input id="inpRepo" type="text" placeholder="e.g. hello-world" autocomplete="off">
+            <button id="btnSetRepo" class="primary">Set Repository</button>
+          </div>
+        `;
+
         document.getElementById( 'btnSetRepo' ).addEventListener( 'click', () => {
           const owner = document.getElementById( 'inpOwner' ).value.trim();
           const repo = document.getElementById( 'inpRepo' ).value.trim();
-          if ( owner && repo ) {
-            CONFIG.owner = owner;
-            CONFIG.repo = repo;
-            localStorage.setItem( storageKey( 'repo' ), JSON.stringify( { owner, repo } ) );
-            resolve();
-          }
+          if ( !owner || !repo ) return;
+          CONFIG.owner = owner;
+          CONFIG.repo = repo;
+          localStorage.setItem( storageKey( 'repo' ), JSON.stringify( { owner, repo } ) );
+          resolve();
         } );
       } );
     };
 
-    /* -- Appearance -- */
-
+    /* ── 12. initAppearance ── */
     const initAppearance = () => {
       const isDark = localStorage.getItem( storageKey( 'darkMode' ) ) === 'true';
       if ( isDark ) {
         document.body.classList.add( 'dark-mode' );
-        document.getElementById( 'btnDarkMode' ).textContent = '\u2600\uFE0F';
+        document.getElementById( 'btnDarkMode' ).textContent = '☀️';
       }
       setHljsTheme( isDark );
-      const savedSize = localStorage.getItem( storageKey( 'fontSize' ) );
-      if ( savedSize ) document.documentElement.style.setProperty( '--font-size', savedSize );
+
+      const savedFontSize = localStorage.getItem( storageKey( 'fontSize' ) );
+      if ( savedFontSize ) {
+        document.documentElement.style.setProperty( '--font-size', savedFontSize );
+      }
+
       const savedWidth = localStorage.getItem( storageKey( 'sidebarWidth' ) );
-      if ( savedWidth ) document.documentElement.style.setProperty( '--sidebar-width', savedWidth );
+      if ( savedWidth ) {
+        document.documentElement.style.setProperty( '--sidebar-width', savedWidth );
+      }
     };
 
+    /* ── 13. setupListeners ── */
     const setupListeners = () => {
-      const btnDark = document.getElementById( 'btnDarkMode' );
-      btnDark.addEventListener( 'click', () => {
-        document.body.classList.toggle( 'dark-mode' );
-        const isDark = document.body.classList.contains( 'dark-mode' );
-        btnDark.textContent = isDark ? '\u2600\uFE0F' : '\uD83C\uDF19';
+      const contentArea = document.getElementById( 'contentArea' );
+
+      // Dark mode toggle
+      document.getElementById( 'btnDarkMode' ).addEventListener( 'click', () => {
+        const isDark = document.body.classList.toggle( 'dark-mode' );
+        document.getElementById( 'btnDarkMode' ).textContent = isDark ? '☀️' : '🌙';
         localStorage.setItem( storageKey( 'darkMode' ), isDark );
         setHljsTheme( isDark );
       } );
 
-      const getFontSize = () => parseInt( getComputedStyle( document.documentElement ).getPropertyValue( '--font-size' ) ) || 16;
+      // Font size
+      const getFontSize = () => {
+        const val = getComputedStyle( document.documentElement ).getPropertyValue( '--font-size' );
+        return parseInt( val, 10 ) || 16;
+      };
+
       document.getElementById( 'btnFontInc' ).addEventListener( 'click', () => {
         const sz = Math.min( getFontSize() + 2, 28 );
         document.documentElement.style.setProperty( '--font-size', sz + 'px' );
         localStorage.setItem( storageKey( 'fontSize' ), sz + 'px' );
       } );
+
       document.getElementById( 'btnFontDec' ).addEventListener( 'click', () => {
         const sz = Math.max( getFontSize() - 2, 10 );
         document.documentElement.style.setProperty( '--font-size', sz + 'px' );
         localStorage.setItem( storageKey( 'fontSize' ), sz + 'px' );
       } );
 
+      // Token prompt
       document.getElementById( 'btnToken' ).addEventListener( 'click', () => {
         const current = localStorage.getItem( 'githubToken' ) || '';
-        const token = prompt( 'GitHub Personal Access Token:', current );
-        if ( token !== null ) {
-          localStorage.setItem( 'githubToken', token );
+        const result = prompt( 'Enter your GitHub Personal Access Token (leave blank to clear):', current );
+        if ( result !== null ) {
+          localStorage.setItem( 'githubToken', result );
           location.reload();
         }
       } );
 
+      // Resizable sidebar
       const resizer = document.getElementById( 'resizer' );
+      let isResizing = false;
+
       resizer.addEventListener( 'pointerdown', ( e ) => {
+        isResizing = true;
         resizer.setPointerCapture( e.pointerId );
         resizer.classList.add( 'dragging' );
         document.body.style.userSelect = 'none';
         document.body.style.cursor = 'col-resize';
       } );
+
       resizer.addEventListener( 'pointermove', ( e ) => {
         if ( !resizer.hasPointerCapture( e.pointerId ) ) return;
-        const w = Math.max( 100, Math.min( e.clientX, window.innerWidth - 100 ) );
-        document.documentElement.style.setProperty( '--sidebar-width', w + 'px' );
+        const newWidth = Math.min( Math.max( e.clientX, 100 ), window.innerWidth - 100 );
+        document.documentElement.style.setProperty( '--sidebar-width', newWidth + 'px' );
       } );
+
       resizer.addEventListener( 'pointerup', ( e ) => {
+        if ( !isResizing ) return;
+        isResizing = false;
         resizer.releasePointerCapture( e.pointerId );
         resizer.classList.remove( 'dragging' );
         document.body.style.userSelect = '';
         document.body.style.cursor = '';
-        const w = getComputedStyle( document.documentElement ).getPropertyValue( '--sidebar-width' );
-        localStorage.setItem( storageKey( 'sidebarWidth' ), w.trim() );
+        const currentWidth = getComputedStyle( document.documentElement ).getPropertyValue( '--sidebar-width' ).trim();
+        localStorage.setItem( storageKey( 'sidebarWidth' ), currentWidth );
       } );
 
-      const contentArea = document.getElementById( 'contentArea' );
-      const btnTop = document.getElementById( 'btnBackToTop' );
+      // Back to top
+      const btnBackToTop = document.getElementById( 'btnBackToTop' );
+
       contentArea.addEventListener( 'scroll', () => {
-        btnTop.style.display = contentArea.scrollTop > 400 ? 'flex' : 'none';
+        btnBackToTop.style.display = contentArea.scrollTop > 400 ? 'flex' : 'none';
       } );
-      btnTop.addEventListener( 'click', () => { contentArea.scrollTo( { top: 0, behavior: 'smooth' } ); } );
 
+      btnBackToTop.addEventListener( 'click', () => {
+        contentArea.scrollTo( { top: 0, behavior: 'smooth' } );
+      } );
+
+      // Header title reload — clear state first
       document.getElementById( 'headerTitle' ).addEventListener( 'click', ( e ) => {
         e.preventDefault();
         localStorage.removeItem( storageKey( 'lastFilePath' ) );
-        try { history.replaceState( null, '', location.pathname + location.search ); } catch ( _e ) { /* ignore */ }
+        try { history.replaceState( null, '', location.pathname + location.search ); } catch ( _ ) { /* file:// */ }
         location.reload();
       } );
     };
 
-    /* -- Treeview -- */
-
-    let fetchController = null;
+    /* ── 14. Auth helpers (Public API) ── */
+    const getToken = () => localStorage.getItem( 'githubToken' ) || '';
 
     const getAuthHeaders = () => {
-      const token = localStorage.getItem( 'githubToken' );
       const headers = { Accept: 'application/vnd.github+json' };
+      const token = getToken();
       if ( token ) headers.Authorization = `token ${ token }`;
       return headers;
     };
 
+    /* ── 15. Rate limit badge (Public API) ── */
     const updateRateBadge = ( response ) => {
       const remaining = response.headers.get( 'X-RateLimit-Remaining' );
       const limit = response.headers.get( 'X-RateLimit-Limit' );
-      if ( remaining && limit ) {
+      if ( remaining !== null && limit !== null ) {
         const badge = document.getElementById( 'rateBadge' );
         badge.style.display = 'inline';
         badge.textContent = `${ remaining }/${ limit }`;
       }
     };
 
-    const fileIcon = ( name ) => {
-      const ext = name.includes( '.' ) ? '.' + name.split( '.' ).pop().toLowerCase() : '';
-      const icons = {
-        '.md': '\uD83D\uDCDD',
-        '.js': '\uD83D\uDFE8', '.mjs': '\uD83D\uDFE8', '.cjs': '\uD83D\uDFE8',
-        '.ts': '\uD83D\uDFE6', '.tsx': '\uD83D\uDFE6',
-        '.py': '\uD83D\uDC0D',
-        '.html': '\uD83C\uDF10', '.htm': '\uD83C\uDF10',
-        '.css': '\uD83C\uDFA8', '.scss': '\uD83C\uDFA8', '.less': '\uD83C\uDFA8',
-        '.png': '\uD83D\uDDBC\uFE0F', '.jpg': '\uD83D\uDDBC\uFE0F', '.jpeg': '\uD83D\uDDBC\uFE0F',
-        '.gif': '\uD83D\uDDBC\uFE0F', '.webp': '\uD83D\uDDBC\uFE0F', '.svg': '\uD83D\uDDBC\uFE0F', '.ico': '\uD83D\uDDBC\uFE0F',
-        '.mp3': '\uD83C\uDFB5', '.wav': '\uD83C\uDFB5', '.ogg': '\uD83C\uDFB5',
-        '.mp4': '\uD83C\uDFAC', '.webm': '\uD83C\uDFAC',
-        '.pdf': '\uD83D\uDCD5',
-        '.xlsx': '\uD83D\uDCCA', '.xls': '\uD83D\uDCCA', '.csv': '\uD83D\uDCCA', '.ods': '\uD83D\uDCCA',
-        '.yaml': '\u2699\uFE0F', '.yml': '\u2699\uFE0F', '.toml': '\u2699\uFE0F',
-        '.zip': '\uD83D\uDCE6', '.tar': '\uD83D\uDCE6', '.gz': '\uD83D\uDCE6', '.7z': '\uD83D\uDCE6',
+    /* ── 16. AbortController (Public API) ── */
+    let currentAbortController = null;
+
+    /* ── 17. File type icons ── */
+    const getFileIcon = ( fileName ) => {
+      const ext = fileName.includes( '.' ) ? '.' + fileName.split( '.' ).pop().toLowerCase() : '';
+      const iconMap = {
+        '.md': '📝',
+        '.js': '🟨', '.mjs': '🟨', '.cjs': '🟨',
+        '.ts': '🟦', '.tsx': '🟦',
+        '.py': '🐍',
+        '.html': '🌐', '.htm': '🌐',
+        '.css': '🎨', '.scss': '🎨', '.less': '🎨',
+        '.png': '🖼️', '.jpg': '🖼️', '.jpeg': '🖼️', '.gif': '🖼️', '.webp': '🖼️', '.svg': '🖼️', '.ico': '🖼️',
+        '.mp3': '🎵', '.wav': '🎵', '.ogg': '🎵',
+        '.mp4': '🎬', '.webm': '🎬',
+        '.pdf': '📕',
+        '.xlsx': '📊', '.xls': '📊', '.csv': '📊', '.ods': '📊',
+        '.yaml': '⚙️', '.yml': '⚙️', '.toml': '⚙️',
+        '.zip': '📦', '.tar': '📦', '.gz': '📦', '.7z': '📦',
         '.json': '{ }',
       };
-      return icons[ ext ] ?? '\uD83D\uDCC4';
+      return iconMap[ ext ] ?? '📄';
     };
 
+    /* ── 18. File size formatting ── */
     const formatSize = ( bytes ) => {
       if ( bytes < 1024 ) return `${ bytes } B`;
       if ( bytes < 1024 * 1024 ) return `${ ( bytes / 1024 ).toFixed( 1 ) } KB`;
       return `${ ( bytes / ( 1024 * 1024 ) ).toFixed( 1 ) } MB`;
     };
 
+    /* ── 19. Build nested tree structure ── */
     const buildNestedTree = ( flatTree ) => {
       const root = { children: {} };
+
       for ( const item of flatTree ) {
         const parts = item.path.split( '/' );
         if ( parts.some( ( p ) => p.startsWith( '.' ) ) ) continue;
-        let node = root;
+
+        let current = root;
         for ( let i = 0; i < parts.length; i++ ) {
-          const name = parts[ i ];
-          if ( !node.children[ name ] ) {
-            node.children[ name ] = { children: {}, type: 'tree', path: parts.slice( 0, i + 1 ).join( '/' ) };
+          const part = parts[ i ];
+          if ( !current.children[ part ] ) {
+            current.children[ part ] = { children: {}, type: 'tree', path: parts.slice( 0, i + 1 ).join( '/' ) };
           }
           if ( i === parts.length - 1 ) {
-            node.children[ name ].type = item.type;
-            node.children[ name ].size = item.size;
-            node.children[ name ].path = item.path;
+            current.children[ part ].type = item.type;
+            current.children[ part ].size = item.size;
+            current.children[ part ].path = item.path;
           }
-          node = node.children[ name ];
+          current = current.children[ part ];
         }
       }
+
       return root;
     };
 
-    const sortedEntries = ( children ) => {
-      const entries = Object.entries( children );
-      const folders = entries.filter( ( [ , v ] ) => v.type === 'tree' || Object.keys( v.children ).length > 0 );
-      const files = entries.filter( ( [ , v ] ) => v.type === 'blob' && Object.keys( v.children ).length === 0 );
-      const sorter = ( a, b ) => a[ 0 ].localeCompare( b[ 0 ], undefined, { sensitivity: 'base' } );
-      folders.sort( sorter );
-      files.sort( sorter );
-      return [ ...folders, ...files ];
-    };
+    /* ── 20. Sort tree children ── */
+    const sortedEntries = ( children ) =>
+      Object.entries( children ).sort( ( [ aName, aNode ], [ bName, bNode ] ) => {
+        const aIsFolder = Object.keys( aNode.children ).length > 0 || aNode.type === 'tree';
+        const bIsFolder = Object.keys( bNode.children ).length > 0 || bNode.type === 'tree';
+        if ( aIsFolder && !bIsFolder ) return -1;
+        if ( !aIsFolder && bIsFolder ) return 1;
+        return aName.toLowerCase().localeCompare( bName.toLowerCase() );
+      } );
 
+    /* ── 21. Render a single node to HTML ── */
     const renderNode = ( name, node ) => {
-      const isFolder = node.type === 'tree' || Object.keys( node.children ).length > 0;
+      const isFolder = Object.keys( node.children ).length > 0 || ( node.type === 'tree' && Object.keys( node.children ).length === 0 );
+
       if ( isFolder ) {
-        const escapedName = escapeHTML( name );
-        const escapedPath = escapeHTML( node.path );
-        let inner = `<details data-folder-path="${ escapedPath }">`;
-        inner += `<summary class="tree-folder" tabindex="0" title="${ escapedPath }">\uD83D\uDCC1 <span class="folder-name">${ escapedName }</span></summary>`;
-        for ( const [ childName, childNode ] of sortedEntries( node.children ) ) {
-          inner += renderNode( childName, childNode );
-        }
-        inner += '</details>';
-        return inner;
+        const childHTML = sortedEntries( node.children )
+          .map( ( [ childName, childNode ] ) => renderNode( childName, childNode ) )
+          .join( '' );
+        return `<details data-folder-path="${ escapeHTML( node.path ) }">
+  <summary class="tree-folder" tabindex="0" title="${ escapeHTML( node.path ) }">📁 <span class="folder-name">${ escapeHTML( name ) }</span></summary>
+  ${ childHTML }
+</details>`;
       }
-      const escapedName = escapeHTML( name );
-      const escapedPath = escapeHTML( node.path );
-      const icon = fileIcon( name );
-      const size = node.size != null ? formatSize( node.size ) : '';
+
+      const icon = getFileIcon( name );
       const isReadme = /^readme/i.test( name );
-      const nameHtml = isReadme ? `<strong>${ escapedName }</strong>` : escapedName;
-      return `<div class="tree-item" tabindex="0" data-action="select-file" data-path="${ escapedPath }" title="${ escapedPath }"><span class="tree-item-name">${ icon } ${ nameHtml }</span><span class="tree-item-size">${ escapeHTML( size ) }</span></div>`;
+      const nameHTML = isReadme
+        ? `<strong>${ icon } ${ escapeHTML( name ) }</strong>`
+        : `${ icon } ${ escapeHTML( name ) }`;
+      const sizeHTML = node.size != null ? `<span class="tree-item-size">${ formatSize( node.size ) }</span>` : '';
+
+      return `<div class="tree-item" tabindex="0" data-action="select-file" data-path="${ escapeHTML( node.path ) }" title="${ escapeHTML( node.path ) }">
+  <span class="tree-item-name">${ nameHTML }</span>
+  ${ sizeHTML }
+</div>`;
     };
 
+    /* ── 22. renderTree (batched) ── */
     const renderTree = ( treeArray ) => {
       const treeList = document.getElementById( 'treeList' );
+      treeList.innerHTML = '';
+
       const nested = buildNestedTree( treeArray );
       const rootEntries = sortedEntries( nested.children );
-      const batchSize = 120;
-      const total = rootEntries.length;
-      let rendered = 0;
+      const BATCH_SIZE = 120;
+      const totalBatches = Math.ceil( rootEntries.length / BATCH_SIZE );
 
-      treeList.innerHTML = '';
-      const status = document.createElement( 'div' );
-      status.id = 'treeRenderStatus';
-      status.textContent = '0% rendered\u2026';
-      treeList.appendChild( status );
+      const statusEl = document.createElement( 'div' );
+      statusEl.id = 'treeRenderStatus';
+      statusEl.style.cssText = 'font-size:0.85rem;opacity:0.7;padding:0.3rem 0.5rem;';
+      statusEl.textContent = '0% rendered…';
+      treeList.appendChild( statusEl );
 
-      const renderBatch = () => {
-        const end = Math.min( rendered + batchSize, total );
-        let html = '';
-        for ( let i = rendered; i < end; i++ ) {
-          const [ name, node ] = rootEntries[ i ];
-          html += renderNode( name, node );
-        }
-        status.insertAdjacentHTML( 'beforebegin', html );
-        rendered = end;
-        const pct = Math.round( ( rendered / total ) * 100 );
-        status.textContent = `${ pct }% rendered\u2026`;
-        if ( rendered < total ) {
-          setTimeout( renderBatch, 0 );
+      return new Promise( ( resolve ) => {
+        let batchIndex = 0;
+
+        const renderBatch = () => {
+          const start = batchIndex * BATCH_SIZE;
+          const end = Math.min( start + BATCH_SIZE, rootEntries.length );
+          const fragment = document.createDocumentFragment();
+          const temp = document.createElement( 'div' );
+
+          for ( let i = start; i < end; i++ ) {
+            const [ name, node ] = rootEntries[ i ];
+            temp.innerHTML = renderNode( name, node );
+            while ( temp.firstChild ) fragment.appendChild( temp.firstChild );
+          }
+
+          treeList.appendChild( fragment );
+          batchIndex++;
+
+          const pct = Math.round( ( end / rootEntries.length ) * 100 );
+          statusEl.textContent = `${ pct }% rendered…`;
+
+          if ( batchIndex < totalBatches ) {
+            setTimeout( renderBatch, 0 );
+          } else {
+            statusEl.remove();
+            resolve();
+          }
+        };
+
+        if ( rootEntries.length === 0 ) {
+          statusEl.remove();
+          treeList.innerHTML = '<p>No files found.</p>';
+          resolve();
         } else {
-          status.remove();
-          onTreeRenderComplete();
+          setTimeout( renderBatch, 0 );
         }
-      };
-
-      if ( total === 0 ) { status.textContent = 'No files found.'; return; }
-      renderBatch();
-    };
-
-    const onTreeRenderComplete = () => {
-      document.getElementById( 'btnExpandAll' ).style.display = '';
-      setupFilterListener();
-      setupKeyboardNav();
-      setupSlashShortcut();
-
-      // Priority: hash > lastFilePath > README
-      const hash = decodeURIComponent( location.hash.slice( 1 ) );
-      if ( hash ) { selectFile( hash, true ); return; }
-
-      const lastPath = localStorage.getItem( storageKey( 'lastFilePath' ) );
-      if ( lastPath && state.tree?.find( ( i ) => i.path === lastPath ) ) { selectFile( lastPath ); return; }
-
-      if ( state.tree ) {
-        const readme = state.tree.find( ( item ) =>
-          item.type === 'blob' && /^readme\.(md|txt)$/i.test( item.path.split( '/' ).pop() ) && !item.path.includes( '/' )
-        ) ?? state.tree.find( ( item ) =>
-          item.type === 'blob' && /^readme\.(md|txt)$/i.test( item.path.split( '/' ).pop() )
-        );
-        if ( readme ) selectFile( readme.path, true );
-      }
-    };
-
-    /* -- Content Viewer -- */
-
-    let currentAbortController = null;
-    let currentFileText = '';
-
-    const githubIconSvg = `<svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>`;
-
-    const buildFileHeaderInner = ( path, ext ) => {
-      const segments = path.split( '/' );
-      const fileName = segments[ segments.length - 1 ];
-      const githubUrl = `https://github.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/blob/${ encodeURIComponent( state.branch ) }/${ path }`;
-
-      let breadcrumbs = `<a class="breadcrumb-link" data-action="reset-home" title="Go to repo root">${ escapeHTML( state.repo ) }</a>`;
-      for ( let i = 0; i < segments.length - 1; i++ ) {
-        const folderPath = segments.slice( 0, i + 1 ).join( '/' );
-        breadcrumbs += ` / <a class="breadcrumb-link" data-action="scroll-folder" data-path="${ escapeHTML( folderPath ) }" title="${ escapeHTML( folderPath ) }">${ escapeHTML( segments[ i ] ) }</a>`;
-      }
-      breadcrumbs += ` / <strong>${ escapeHTML( fileName ) }</strong>`;
-
-      let actions = '';
-      const hasRenderToggle = [ 'md', 'html', 'htm', 'svg' ].includes( ext );
-      if ( hasRenderToggle ) {
-        const pref = getPreferredView( ext );
-        actions += `<button class="file-btn btn-view-rendered" data-action="set-view" data-view="rendered" data-ext="${ escapeHTML( ext ) }" style="opacity:${ pref === 'rendered' ? 1 : 0.5 };" title="Rendered view">Rendered</button>`;
-        actions += `<button class="file-btn btn-view-raw" data-action="set-view" data-view="raw" data-ext="${ escapeHTML( ext ) }" style="opacity:${ pref === 'raw' ? 1 : 0.5 };" title="Raw view">Raw</button>`;
-      }
-      if ( !NO_COPY_EXTS.includes( ext ) ) {
-        actions += `<button class="file-btn btn-copy" data-action="copy-text" title="Copy file content to clipboard">Copy</button>`;
-      }
-      actions += `<button class="file-btn" data-action="new-tab" data-path="${ escapeHTML( path ) }" title="Open in new tab">New Tab</button>`;
-
-      return `
-        <div class="file-title">
-          <a href="${ escapeHTML( githubUrl ) }" target="_blank" rel="noopener" title="View on GitHub">${ githubIconSvg }</a>
-          <span>${ breadcrumbs }</span>
-        </div>
-        <div class="file-actions">${ actions }</div>`;
-    };
-
-    /* -- Fetch Helpers -- */
-
-    const fetchTextContent = async ( path, token, signal ) => {
-      let url, headers;
-      if ( token ) {
-        url = `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/contents/${ path }?ref=${ encodeURIComponent( state.branch ) }`;
-        headers = { ...getAuthHeaders(), Accept: 'application/vnd.github.raw+json' };
-      } else {
-        url = `https://raw.githubusercontent.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/${ encodeURIComponent( state.branch ) }/${ path }`;
-        headers = {};
-      }
-      const res = await fetch( url, { headers, signal } );
-      if ( res.ok ) updateRateBadge( res );
-      if ( !res.ok ) throw new Error( `Fetch failed: ${ res.status }` );
-      return res.text();
-    };
-
-    const fetchBlobContent = async ( path, token, signal ) => {
-      let url, headers;
-      if ( token ) {
-        url = `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/contents/${ path }?ref=${ encodeURIComponent( state.branch ) }`;
-        headers = { ...getAuthHeaders(), Accept: 'application/vnd.github.raw+json' };
-      } else {
-        url = `https://raw.githubusercontent.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/${ encodeURIComponent( state.branch ) }/${ path }`;
-        headers = {};
-      }
-      const res = await fetch( url, { headers, signal } );
-      if ( res.ok ) updateRateBadge( res );
-      if ( !res.ok ) throw new Error( `Fetch failed: ${ res.status }` );
-      return res.blob();
-    };
-
-    /* -- Link Rewriting -- */
-
-    const rewriteLinks = ( container, filePath ) => {
-      if ( !container ) return;
-      const currentDir = filePath.includes( '/' ) ? filePath.split( '/' ).slice( 0, -1 ).join( '/' ) : '';
-      container.querySelectorAll( 'a[href]' ).forEach( ( a ) => {
-        const href = a.getAttribute( 'href' );
-        if ( !href || href.startsWith( '#' ) ) return;
-        const ghMatch = href.match( /github\.com\/[^/]+\/[^/]+\/blob\/[^/]+\/(.+)/ );
-        if ( ghMatch ) {
-          a.href = '#';
-          a.addEventListener( 'click', ( e ) => { e.preventDefault(); selectFile( ghMatch[ 1 ] ); } );
-          return;
-        }
-        if ( href.startsWith( 'http://' ) || href.startsWith( 'https://' ) || href.startsWith( '//' ) ) {
-          a.target = '_blank';
-          a.rel = 'noopener';
-          return;
-        }
-        const resolved = currentDir ? currentDir + '/' + href : href;
-        const normalized = resolved.split( '/' ).reduce( ( acc, part ) => {
-          if ( part === '..' ) acc.pop();
-          else if ( part !== '.' && part !== '' ) acc.push( part );
-          return acc;
-        }, [] ).join( '/' );
-        a.href = '#';
-        a.addEventListener( 'click', ( e ) => { e.preventDefault(); selectFile( normalized ); } );
       } );
     };
 
-    /* -- Render Functions -- */
-
-    const renderMarkdown = ( text, path, ext, contentBody ) => {
-      const pref = getPreferredView( ext );
-      let renderedHtml = '';
-      let errorHtml = '';
-      try {
-        renderedHtml = DOMPurify.sanitize( marked.parse( text ) );
-      } catch ( err ) {
-        errorHtml = `<div class="md-error">\u26A0\uFE0F Markdown rendering failed: ${ escapeHTML( err.message ) }</div>`;
-        renderedHtml = `<pre>${ escapeHTML( text ) }</pre>`;
-      }
-      contentBody.innerHTML = `
-        <div id="viewRendered" class="markdown-body" style="display:${ pref === 'rendered' ? '' : 'none' }">${ errorHtml }${ renderedHtml }</div>
-        <pre id="viewRaw" style="display:${ pref === 'raw' ? '' : 'none' }"><code>${ escapeHTML( text ) }</code></pre>`;
-      if ( pref === 'rendered' && !errorHtml ) rewriteLinks( contentBody.querySelector( '#viewRendered' ), path );
-    };
-
-    const renderHtml = ( text, path, ext, contentBody ) => {
-      const pref = getPreferredView( ext );
-      const blob = new Blob( [ text ], { type: 'text/html' } );
-      const blobUrl = URL.createObjectURL( blob );
-      activeBlobUrls.add( blobUrl );
-      contentBody.innerHTML = `
-        <div id="viewRendered" style="display:${ pref === 'rendered' ? '' : 'none' }">
-          <iframe class="iframe-content" src="${ escapeHTML( blobUrl ) }" sandbox="allow-scripts" title="${ escapeHTML( path.split( '/' ).pop() ) }"></iframe>
-        </div>
-        <pre id="viewRaw" style="display:${ pref === 'raw' ? '' : 'none' }"><code>${ escapeHTML( text ) }</code></pre>`;
-      if ( pref === 'raw' ) {
-        const code = contentBody.querySelector( '#viewRaw code' );
-        if ( code ) hljs.highlightElement( code );
-      }
-    };
-
-    const renderCode = ( text, contentBody ) => {
-      contentBody.innerHTML = `<pre><code>${ escapeHTML( text ) }</code></pre>`;
-      if ( text.length < 500 * 1024 ) {
-        const code = contentBody.querySelector( 'code' );
-        if ( code ) hljs.highlightElement( code );
-      }
-    };
-
-    const renderImage = async ( path, ext, token, signal, contentBody ) => {
-      if ( ext === 'svg' ) {
-        let text = getCachedFileText( path );
-        if ( !text ) {
-          text = await fetchTextContent( path, token, signal );
-          if ( signal.aborted ) return;
-          setCachedFileText( path, text );
-        }
-        currentFileText = text;
-        const svgBlob = new Blob( [ text ], { type: 'image/svg+xml' } );
-        const src = URL.createObjectURL( svgBlob );
-        activeBlobUrls.add( src );
-        const pref = getPreferredView( 'svg' );
-        contentBody.innerHTML = `
-          <div id="viewRendered" style="display:${ pref === 'rendered' ? '' : 'none' }">
-            <img class="media-content" src="${ escapeHTML( src ) }" alt="${ escapeHTML( path.split( '/' ).pop() ) }">
-          </div>
-          <pre id="viewRaw" style="display:${ pref === 'raw' ? '' : 'none' }"><code>${ escapeHTML( text ) }</code></pre>`;
-        if ( pref === 'raw' ) {
-          const code = contentBody.querySelector( '#viewRaw code' );
-          if ( code ) hljs.highlightElement( code );
-        }
-      } else {
-        let src;
-        if ( token ) {
-          const blob = await fetchBlobContent( path, token, signal );
-          if ( signal.aborted ) return;
-          src = URL.createObjectURL( blob );
-          activeBlobUrls.add( src );
-        } else {
-          src = `https://raw.githubusercontent.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/${ encodeURIComponent( state.branch ) }/${ path }`;
-        }
-        contentBody.innerHTML = `<img class="media-content" src="${ escapeHTML( src ) }" alt="${ escapeHTML( path.split( '/' ).pop() ) }">`;
-      }
-    };
-
-    const renderAudio = async ( path, token, signal, contentBody ) => {
-      let src;
-      if ( token ) {
-        const blob = await fetchBlobContent( path, token, signal );
-        if ( signal.aborted ) return;
-        src = URL.createObjectURL( blob );
-        activeBlobUrls.add( src );
-      } else {
-        src = `https://raw.githubusercontent.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/${ encodeURIComponent( state.branch ) }/${ path }`;
-      }
-      contentBody.innerHTML = `<audio class="media-content" controls src="${ escapeHTML( src ) }" title="${ escapeHTML( path.split( '/' ).pop() ) }"></audio>`;
-    };
-
-    const renderVideo = async ( path, token, signal, contentBody ) => {
-      let src;
-      if ( token ) {
-        const blob = await fetchBlobContent( path, token, signal );
-        if ( signal.aborted ) return;
-        src = URL.createObjectURL( blob );
-        activeBlobUrls.add( src );
-      } else {
-        src = `https://raw.githubusercontent.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/${ encodeURIComponent( state.branch ) }/${ path }`;
-      }
-      contentBody.innerHTML = `<video class="media-content" controls src="${ escapeHTML( src ) }" title="${ escapeHTML( path.split( '/' ).pop() ) }"></video>`;
-    };
-
-    const renderPdf = async ( path, token, signal, contentBody ) => {
-      let src;
-      if ( token ) {
-        const blob = await fetchBlobContent( path, token, signal );
-        if ( signal.aborted ) return;
-        src = URL.createObjectURL( blob );
-        activeBlobUrls.add( src );
-      } else {
-        const rawUrl = `https://raw.githubusercontent.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/${ encodeURIComponent( state.branch ) }/${ path }`;
-        src = `https://docs.google.com/viewer?url=${ encodeURIComponent( rawUrl ) }&embedded=true`;
-      }
-      contentBody.innerHTML = `<iframe class="iframe-content" src="${ escapeHTML( src ) }" title="${ escapeHTML( path.split( '/' ).pop() ) }"></iframe>`;
-    };
-
-    const renderSheet = async ( path, token, signal, contentBody ) => {
-      const blob = await fetchBlobContent( path, token, signal );
-      if ( signal.aborted ) return;
-      const arrayBuffer = await blob.arrayBuffer();
-      const workbook = XLSX.read( new Uint8Array( arrayBuffer ), { type: 'array' } );
-      let html = '';
-      for ( const sheetName of workbook.SheetNames ) {
-        const sheetHtml = XLSX.utils.sheet_to_html( workbook.Sheets[ sheetName ] );
-        html += `<div class="xlsx-sheet"><h3>${ escapeHTML( sheetName ) }</h3>${ sheetHtml }</div>`;
-      }
-      contentBody.innerHTML = DOMPurify.sanitize( html );
-    };
-
-    const renderTextContent = async ( path, ext, token, signal, contentBody ) => {
-      let text = getCachedFileText( path );
-      if ( !text ) {
-        text = await fetchTextContent( path, token, signal );
-        if ( signal.aborted ) return;
-        setCachedFileText( path, text );
-      }
-      currentFileText = text;
-      if ( ext === 'md' ) {
-        renderMarkdown( text, path, ext, contentBody );
-      } else if ( ext === 'html' || ext === 'htm' ) {
-        renderHtml( text, path, ext, contentBody );
-      } else {
-        renderCode( text, contentBody );
-      }
-    };
-
-    /* -- selectFile (full implementation) -- */
-
-    const selectFile = async ( path, skipHash = false ) => {
+    /* ── 23. fetchTree (Public API) ── */
+    const fetchTree = async () => {
       if ( currentAbortController ) currentAbortController.abort();
       currentAbortController = new AbortController();
       const signal = currentAbortController.signal;
 
-      activeBlobUrls.forEach( ( url ) => URL.revokeObjectURL( url ) );
-      activeBlobUrls.clear();
-
       const treeList = document.getElementById( 'treeList' );
-      const prev = treeList.querySelector( '.tree-item.active' );
-      if ( prev ) prev.classList.remove( 'active' );
-      const el = treeList.querySelector( `[data-action="select-file"][data-path="${ CSS.escape( path ) }"]` );
-      if ( el ) el.classList.add( 'active' );
-
-      state.currentFilePath = path;
-
-      const treeItem = state.tree?.find( ( item ) => item.path === path );
-      const fileSize = treeItem?.size ?? 0;
-      const ext = path.split( '.' ).pop().toLowerCase();
-
-      if ( !STREAMABLE_EXTS.includes( ext ) && fileSize > LARGE_FILE_WARNING_BYTES && !approvedLargeFiles.has( path ) ) {
-        const mb = ( fileSize / ( 1024 * 1024 ) ).toFixed( 1 );
-        if ( !window.confirm( `This file is ${ mb } MB. Load anyway?` ) ) return;
-        approvedLargeFiles.add( path );
-      }
-
-      document.getElementById( 'fileHeader' ).innerHTML = buildFileHeaderInner( path, ext );
-
-      const contentBody = document.getElementById( 'contentBody' );
-      contentBody.innerHTML = '<p>Loading\u2026</p>';
-
-      const token = getToken();
 
       try {
-        if ( IMAGE_EXTS.includes( ext ) ) {
-          await renderImage( path, ext, token, signal, contentBody );
-        } else if ( AUDIO_EXTS.includes( ext ) ) {
-          await renderAudio( path, token, signal, contentBody );
-        } else if ( VIDEO_EXTS.includes( ext ) ) {
-          await renderVideo( path, token, signal, contentBody );
-        } else if ( ext === 'pdf' ) {
-          await renderPdf( path, token, signal, contentBody );
-        } else if ( SHEET_EXTS.includes( ext ) ) {
-          await renderSheet( path, token, signal, contentBody );
-        } else {
-          await renderTextContent( path, ext, token, signal, contentBody );
+        if ( !state.branch ) {
+          const repoRes = await fetch(
+            `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }`,
+            { headers: getAuthHeaders(), signal }
+          );
+          updateRateBadge( repoRes );
+          if ( !repoRes.ok ) throw new Error( `Repo fetch failed: ${ repoRes.status }` );
+          const repoData = await repoRes.json();
+          state.branch = repoData.default_branch;
         }
+
+        const treeRes = await fetch(
+          `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/git/trees/${ encodeURIComponent( state.branch ) }?recursive=1`,
+          { headers: getAuthHeaders(), signal }
+        );
+        updateRateBadge( treeRes );
+
+        if ( treeRes.status === 403 ) {
+          treeList.innerHTML = '<p style="color:red;">Rate limited. Add a GitHub token for higher limits.</p>';
+          return;
+        }
+        if ( !treeRes.ok ) throw new Error( `Tree fetch failed: ${ treeRes.status }` );
+
+        const treeData = await treeRes.json();
+
+        if ( treeData.truncated ) {
+          const warning = document.createElement( 'div' );
+          warning.style.cssText = 'background:#fff3cd;border:1px solid #ffc107;padding:0.5rem;border-radius:4px;margin-bottom:0.5rem;font-size:0.85rem;';
+          warning.textContent = '⚠️ Repository tree is truncated. Some files may not appear.';
+          treeList.innerHTML = '';
+          treeList.appendChild( warning );
+        }
+
+        state.tree = treeData.tree;
+        await renderTree( state.tree );
+
       } catch ( err ) {
         if ( err.name === 'AbortError' ) return;
-        contentBody.innerHTML = `<div style="border:1px solid red;border-radius:4px;padding:0.75rem;color:red;margin-top:1rem;"><strong>Error loading file:</strong> ${ escapeHTML( err.message ) }<br><br><button class="header-btn" onclick="location.reload()" title="Reload page">Reload</button></div>`;
+        treeList.innerHTML = `<p style="color:red;">${ escapeHTML( err.message ) }</p>`;
+      }
+    };
+
+    /* ── 24. Filter logic ── */
+    const runFilter = () => {
+      const query = document.getElementById( 'treeFilter' ).value.trim().toLowerCase();
+      const treeList = document.getElementById( 'treeList' );
+      const items = treeList.querySelectorAll( '.tree-item' );
+      const folders = treeList.querySelectorAll( 'details' );
+
+      if ( !query ) {
+        items.forEach( ( el ) => { el.style.display = ''; } );
+        folders.forEach( ( el ) => { el.style.display = ''; } );
         return;
       }
 
-      if ( signal.aborted ) return;
+      items.forEach( ( el ) => {
+        const path = ( el.dataset.path || '' ).toLowerCase();
+        el.style.display = path.includes( query ) ? '' : 'none';
+      } );
 
-      if ( !skipHash ) updateHash( path );
-      localStorage.setItem( storageKey( 'lastFilePath' ), path );
-      document.getElementById( 'contentArea' ).scrollTo( { top: 0, behavior: 'instant' } );
-    };
-
-    /* -- View Toggle -- */
-
-    const setView = ( view, ext ) => {
-      const renderedEl = document.getElementById( 'viewRendered' );
-      const rawEl = document.getElementById( 'viewRaw' );
-      if ( !renderedEl || !rawEl ) return;
-      setPreferredView( ext, view );
-      renderedEl.style.display = view === 'rendered' ? '' : 'none';
-      rawEl.style.display = view === 'raw' ? '' : 'none';
-      const header = document.getElementById( 'fileHeader' );
-      if ( header ) {
-        const btnR = header.querySelector( '.btn-view-rendered' );
-        const btnRaw = header.querySelector( '.btn-view-raw' );
-        if ( btnR ) btnR.style.opacity = view === 'rendered' ? '1' : '0.5';
-        if ( btnRaw ) btnRaw.style.opacity = view === 'raw' ? '1' : '0.5';
-      }
-      if ( view === 'raw' ) {
-        const code = rawEl.querySelector( 'code' );
-        if ( code && !code.classList.contains( 'hljs' ) ) hljs.highlightElement( code );
-      }
-    };
-
-    /* -- Copy -- */
-
-    const copyFileText = async () => {
-      if ( !currentFileText ) return;
-      try {
-        await navigator.clipboard.writeText( currentFileText );
-        const btn = document.querySelector( '.btn-copy' );
-        if ( btn ) {
-          const orig = btn.textContent;
-          btn.textContent = '\u2713 Copied';
-          setTimeout( () => { btn.textContent = orig; }, 1500 );
-        }
-      } catch ( e ) { /* clipboard access denied */ }
-    };
-
-    /* -- Navigation -- */
-
-    const scrollToTreeFolder = ( folderPath ) => {
-      const el = document.querySelector( `details[data-folder-path="${ CSS.escape( folderPath ) }"]` );
-      if ( !el ) return;
-      let parent = el.parentElement?.closest( 'details' );
-      while ( parent ) {
-        parent.open = true;
-        parent = parent.parentElement?.closest( 'details' );
-      }
-      el.open = true;
-      el.scrollIntoView( { block: 'center', behavior: 'smooth' } );
-    };
-
-    const updateHash = ( path ) => {
-      try {
-        if ( path ) {
-          history.pushState( null, '', `#${ path }` );
+      const folderArr = Array.from( folders ).reverse();
+      for ( const detail of folderArr ) {
+        const hasVisible = detail.querySelector( '.tree-item:not([style*="display: none"])' ) ||
+          detail.querySelector( 'details:not([style*="display: none"])' );
+        if ( hasVisible ) {
+          detail.style.display = '';
+          detail.open = true;
         } else {
-          history.replaceState( null, '', location.pathname + location.search );
+          detail.style.display = 'none';
         }
-      } catch ( e ) { /* file:// */ }
+      }
     };
 
-    const handleHashChange = async () => {
-      const hash = decodeURIComponent( location.hash.slice( 1 ) );
-      if ( !hash ) return;
-      if ( !state.tree ) await fetchTree();
-      if ( state.tree ) selectFile( hash, true );
+    let filterTimeout = null;
+    const debouncedFilter = () => {
+      clearTimeout( filterTimeout );
+      filterTimeout = setTimeout( runFilter, 150 );
     };
 
+    /* ── 25. setupTreeFilter ── */
+    const setupTreeFilter = () => {
+      const treeFilter = document.getElementById( 'treeFilter' );
+      const btnFilterClear = document.getElementById( 'btnFilterClear' );
+
+      treeFilter.addEventListener( 'input', () => {
+        btnFilterClear.style.display = treeFilter.value ? 'block' : 'none';
+        debouncedFilter();
+      } );
+
+      btnFilterClear.addEventListener( 'click', () => {
+        treeFilter.value = '';
+        btnFilterClear.style.display = 'none';
+        runFilter();
+        treeFilter.focus();
+      } );
+    };
+
+    /* ── 26. Expand All / Collapse All ── */
+    const setupExpandAll = () => {
+      const btn = document.getElementById( 'btnExpandAll' );
+      btn.style.display = '';
+      let expanded = false;
+
+      btn.addEventListener( 'click', () => {
+        const allDetails = document.getElementById( 'treeList' ).querySelectorAll( 'details' );
+        expanded = !expanded;
+        allDetails.forEach( ( d ) => { d.open = expanded; } );
+        btn.textContent = expanded ? 'Collapse All' : 'Expand All';
+      } );
+    };
+
+    /* ── 27. Keyboard navigation ── */
+    const getVisibleTreeItems = () => {
+      const treeList = document.getElementById( 'treeList' );
+      const all = treeList.querySelectorAll( '.tree-folder, .tree-item' );
+      return Array.from( all ).filter( ( el ) => {
+        if ( el.style.display === 'none' ) return false;
+        const isSummary = el.classList.contains( 'tree-folder' );
+        const ownDetails = isSummary ? el.parentElement : null;
+        if ( isSummary && ownDetails?.style.display === 'none' ) return false;
+
+        let ancestor = isSummary ? ownDetails?.parentElement : el.parentElement;
+        while ( ancestor && ancestor !== treeList ) {
+          if ( ancestor.style.display === 'none' ) return false;
+          if ( ancestor.tagName === 'DETAILS' && !ancestor.open ) return false;
+          ancestor = ancestor.parentElement;
+        }
+        return true;
+      } );
+    };
+
+    const setupKeyboardNav = () => {
+      document.addEventListener( 'keydown', ( e ) => {
+        if ( e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA' ) {
+          e.preventDefault();
+          document.getElementById( 'treeFilter' ).focus();
+          return;
+        }
+
+        const treeList = document.getElementById( 'treeList' );
+        if ( !treeList.contains( document.activeElement ) ) return;
+
+        const el = document.activeElement;
+        const isSummary = el.classList.contains( 'tree-folder' );
+        const isItem = el.classList.contains( 'tree-item' );
+        if ( !isSummary && !isItem ) return;
+
+        const items = getVisibleTreeItems();
+        const idx = items.indexOf( el );
+        if ( idx === -1 ) return;
+
+        switch ( e.key ) {
+          case 'ArrowDown': {
+            e.preventDefault();
+            const next = items[ idx + 1 ];
+            if ( next ) {
+              next.focus();
+              if ( next.classList.contains( 'tree-item' ) ) selectFile( next.dataset.path );
+            }
+            break;
+          }
+          case 'ArrowUp': {
+            e.preventDefault();
+            const prev = items[ idx - 1 ];
+            if ( prev ) {
+              prev.focus();
+              if ( prev.classList.contains( 'tree-item' ) ) selectFile( prev.dataset.path );
+            }
+            break;
+          }
+          case 'Enter':
+          case ' ': {
+            e.preventDefault();
+            if ( isSummary ) {
+              el.parentElement.open = !el.parentElement.open;
+            } else if ( isItem ) {
+              selectFile( el.dataset.path );
+            }
+            break;
+          }
+          case 'ArrowRight': {
+            e.preventDefault();
+            if ( isSummary ) {
+              const details = el.parentElement;
+              if ( !details.open ) {
+                details.open = true;
+              } else {
+                const firstChild = details.querySelector( ':scope > details > .tree-folder, :scope > .tree-item' );
+                if ( firstChild ) {
+                  firstChild.focus();
+                  if ( firstChild.classList.contains( 'tree-item' ) ) selectFile( firstChild.dataset.path );
+                }
+              }
+            }
+            break;
+          }
+          case 'ArrowLeft': {
+            e.preventDefault();
+            if ( isSummary ) {
+              const details = el.parentElement;
+              if ( details.open ) {
+                details.open = false;
+              } else {
+                const parentDetails = details.parentElement?.closest( 'details' );
+                if ( parentDetails ) {
+                  const parentSummary = parentDetails.querySelector( ':scope > .tree-folder' );
+                  if ( parentSummary ) parentSummary.focus();
+                }
+              }
+            } else {
+              const parentDetails = el.closest( 'details' );
+              if ( parentDetails ) {
+                const parentSummary = parentDetails.querySelector( ':scope > .tree-folder' );
+                if ( parentSummary ) parentSummary.focus();
+              }
+            }
+            break;
+          }
+        }
+      } );
+    };
+
+    /* ── 28. scrollToTreeFolder ── */
+    const scrollToTreeFolder = ( folderPath ) => {
+      const details = document.querySelector( `details[data-folder-path="${ CSS.escape( folderPath ) }"]` );
+      if ( !details ) return;
+
+      let ancestor = details.parentElement?.closest( 'details' );
+      while ( ancestor ) {
+        ancestor.open = true;
+        ancestor = ancestor.parentElement?.closest( 'details' );
+      }
+
+      details.open = true;
+      details.scrollIntoView( { block: 'center', behavior: 'smooth' } );
+    };
+
+    /* ── 29. Auto-open README ── */
+    const autoOpenReadme = () => {
+      if ( !state.tree ) return;
+
+      const readme = state.tree.find( ( f ) =>
+        f.type === 'blob' && /^readme\.(md|txt)$/i.test( f.path )
+      ) ?? state.tree.find( ( f ) =>
+        f.type === 'blob' && /readme\.(md|txt)$/i.test( f.path.split( '/' ).pop() )
+      );
+
+      if ( !readme ) return;
+
+      const treeList = document.getElementById( 'treeList' );
+      const item = treeList.querySelector( `[data-action="select-file"][data-path="${ CSS.escape( readme.path ) }"]` );
+      if ( item ) {
+        selectFile( readme.path, { skipHash: true } );
+        item.scrollIntoView( { block: 'center', behavior: 'smooth' } );
+      }
+    };
+
+    /* ── 30. resetToHome ── */
     const resetToHome = () => {
       localStorage.removeItem( storageKey( 'lastFilePath' ) );
       state.currentFilePath = '';
       state.tree = null;
-      try { history.replaceState( null, '', location.pathname + location.search ); } catch ( e ) { /* ignore */ }
+      try { history.replaceState( null, '', location.pathname + location.search ); } catch ( _ ) { /* file:// */ }
       fetchTree();
     };
 
-    /* -- New Tab URL (GitHub Pages with raw fallback) -- */
+    /* ── 31. GitHub SVG icon string ── */
+    const GITHUB_SVG = `<svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path></svg>`;
 
+    /* ── 32. Build breadcrumbs ── */
+    const buildBreadcrumbs = ( path ) => {
+      const segments = path.split( '/' );
+      const fileName = segments.pop();
+      let html = `<a class="breadcrumb-link" data-action="reset-home" title="Go to repo root">${ escapeHTML( state.repo ) }</a>`;
+
+      let folderPath = '';
+      for ( const seg of segments ) {
+        folderPath = folderPath ? folderPath + '/' + seg : seg;
+        html += ` / <a class="breadcrumb-link" data-action="scroll-folder" data-folder="${ escapeHTML( folderPath ) }" title="${ escapeHTML( folderPath ) }">${ escapeHTML( seg ) }</a>`;
+      }
+
+      html += ` / <strong>${ escapeHTML( fileName ) }</strong>`;
+      return html;
+    };
+
+    /* ── 33. Build file header ── */
+    const buildFileHeader = ( path, ext ) => {
+      const ghUrl = `https://github.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/blob/${ encodeURIComponent( state.branch ) }/${ path }`;
+      const hasToggle = [ 'md', 'html', 'htm', 'svg' ].includes( ext );
+      const hasCopy = !NO_COPY_EXTS.includes( ext );
+
+      let actionsHTML = '';
+
+      if ( hasToggle ) {
+        const pref = getPreferredView( ext );
+        const renderedOpacity = pref === 'rendered' ? '1' : '0.5';
+        const rawOpacity = pref === 'raw' ? '1' : '0.5';
+        actionsHTML += `<button class="file-btn" data-action="view-rendered" style="opacity:${ renderedOpacity }" title="Show rendered view">Rendered</button>`;
+        actionsHTML += `<button class="file-btn" data-action="view-raw" style="opacity:${ rawOpacity }" title="Show raw source">Raw</button>`;
+      }
+
+      if ( hasCopy ) {
+        actionsHTML += `<button class="file-btn" data-action="copy-file" title="Copy file content to clipboard">Copy</button>`;
+      }
+
+      actionsHTML += `<button class="file-btn" data-action="new-tab" data-path="${ escapeHTML( path ) }" title="Open in new tab">New Tab</button>`;
+
+      return `<div class="panel-header file-header">
+  <div class="file-title">
+    <a href="${ escapeHTML( ghUrl ) }" target="_blank" title="View on GitHub">${ GITHUB_SVG }</a>
+    <span id="breadcrumbs">${ buildBreadcrumbs( path ) }</span>
+  </div>
+  <div class="file-actions">${ actionsHTML }</div>
+</div>`;
+    };
+
+    /* ── 34. GitHub Pages URL detection ── */
     const getNewTabUrl = async ( path ) => {
       if ( state.pagesEnabled === null ) {
         try {
@@ -1281,52 +1390,373 @@
             `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/pages`,
             { headers: getAuthHeaders() }
           );
+          updateRateBadge( res );
           state.pagesEnabled = res.ok;
-        } catch ( e ) {
+        } catch ( _ ) {
           state.pagesEnabled = false;
         }
       }
+
       if ( state.pagesEnabled ) {
-        const isUserPage = state.repo === `${ state.owner }.github.io`;
+        const isUserPage = state.repo.toLowerCase() === `${ state.owner.toLowerCase() }.github.io`;
         return isUserPage
           ? `https://${ state.owner }.github.io/${ path }`
           : `https://${ state.owner }.github.io/${ state.repo }/${ path }`;
       }
-      return `https://raw.githubusercontent.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/${ encodeURIComponent( state.branch ) }/${ path.split( '/' ).map( encodeURIComponent ).join( '/' ) }`;
+
+      return `https://raw.githubusercontent.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/${ encodeURIComponent( state.branch ) }/${ path }`;
     };
 
-    /* -- Content Area Event Delegation -- */
+    /* ── 35. Fetch file text ── */
+    const fetchFileText = async ( path, signal ) => {
+      const token = getToken();
+      if ( token ) {
+        const headers = { ...getAuthHeaders(), Accept: 'application/vnd.github.raw+json' };
+        const url = `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/contents/${ path }?ref=${ encodeURIComponent( state.branch ) }`;
+        const res = await fetch( url, { headers, signal } );
+        updateRateBadge( res );
+        if ( !res.ok ) throw new Error( `Fetch failed: ${ res.status }` );
+        return await res.text();
+      }
+      const url = `https://raw.githubusercontent.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/${ encodeURIComponent( state.branch ) }/${ path }`;
+      const res = await fetch( url, { signal } );
+      if ( !res.ok ) throw new Error( `Fetch failed: ${ res.status }` );
+      return await res.text();
+    };
 
-    const setupContentActions = () => {
-      document.addEventListener( 'click', ( e ) => {
-        const target = e.target.closest( '[data-action]' );
-        if ( !target ) return;
-        const action = target.dataset.action;
-        if ( action === 'select-file' ) return;
-        if ( action === 'reset-home' ) { e.preventDefault(); resetToHome(); }
-        else if ( action === 'scroll-folder' ) { e.preventDefault(); scrollToTreeFolder( target.dataset.path ); }
-        else if ( action === 'new-tab' ) {
-          e.preventDefault();
-          getNewTabUrl( target.dataset.path ).then( ( url ) => window.open( url, '_blank', 'noopener' ) );
+    /* ── 36. Fetch file as blob ── */
+    const fetchFileBlob = async ( path, signal ) => {
+      const token = getToken();
+      if ( token ) {
+        const headers = { ...getAuthHeaders(), Accept: 'application/vnd.github.raw+json' };
+        const url = `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/contents/${ path }?ref=${ encodeURIComponent( state.branch ) }`;
+        const res = await fetch( url, { headers, signal } );
+        updateRateBadge( res );
+        if ( !res.ok ) throw new Error( `Fetch failed: ${ res.status }` );
+        return await res.blob();
+      }
+      const url = `https://raw.githubusercontent.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/${ encodeURIComponent( state.branch ) }/${ path }`;
+      const res = await fetch( url, { signal } );
+      if ( !res.ok ) throw new Error( `Fetch failed: ${ res.status }` );
+      return await res.blob();
+    };
+
+    /* ── 37. Get raw URL (no token) ── */
+    const getRawUrl = ( path ) =>
+      `https://raw.githubusercontent.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/${ encodeURIComponent( state.branch ) }/${ path }`;
+
+    /* ── 38. Create blob URL helper ── */
+    const createBlobUrl = ( blob ) => {
+      const url = URL.createObjectURL( blob );
+      activeBlobUrls.add( url );
+      return url;
+    };
+
+    /* ── 39. Revoke active blob URLs ── */
+    const revokeActiveBlobUrls = () => {
+      activeBlobUrls.forEach( ( url ) => URL.revokeObjectURL( url ) );
+      activeBlobUrls.clear();
+    };
+
+    /* ── 40. Render markdown ── */
+    const renderMarkdown = ( text, path ) => {
+      const ext = 'md';
+      const pref = getPreferredView( ext );
+      const renderedDisplay = pref === 'rendered' ? '' : 'none';
+      const rawDisplay = pref === 'raw' ? '' : 'none';
+
+      let renderedHTML;
+      try {
+        renderedHTML = marked.parse( text );
+      } catch ( err ) {
+        return `<div class="md-error">⚠️ Markdown rendering failed: ${ escapeHTML( err.message ) }</div><pre>${ escapeHTML( text ) }</pre>`;
+      }
+
+      const html = `<div class="markdown-body" id="viewRendered" style="display:${ renderedDisplay }">${ renderedHTML }</div><pre id="viewRaw" style="display:${ rawDisplay }">${ escapeHTML( text ) }</pre>`;
+      return html;
+    };
+
+    /* ── 41. Rewrite markdown links ── */
+    const rewriteMarkdownLinks = ( path ) => {
+      const container = document.querySelector( '.markdown-body' );
+      if ( !container ) return;
+
+      const currentDir = path.includes( '/' ) ? path.substring( 0, path.lastIndexOf( '/' ) ) : '';
+      const ghBlobPrefix = `github.com/${ state.owner }/${ state.repo }/blob/${ state.branch }/`;
+
+      container.querySelectorAll( 'a' ).forEach( ( a ) => {
+        const href = a.getAttribute( 'href' );
+        if ( !href ) return;
+
+        // Anchor links — leave as-is
+        if ( href.startsWith( '#' ) ) return;
+
+        // GitHub blob links
+        const blobIdx = href.indexOf( ghBlobPrefix );
+        if ( blobIdx !== -1 ) {
+          const filePath = href.substring( blobIdx + ghBlobPrefix.length );
+          a.removeAttribute( 'href' );
+          a.style.cursor = 'pointer';
+          a.style.color = 'var(--highlight-color)';
+          a.addEventListener( 'click', ( e ) => {
+            e.preventDefault();
+            selectFile( decodeURIComponent( filePath ) );
+          } );
+          return;
         }
-        else if ( action === 'set-view' ) { setView( target.dataset.view, target.dataset.ext ); }
-        else if ( action === 'copy-text' ) { copyFileText(); }
+
+        // External links
+        if ( href.startsWith( 'http://' ) || href.startsWith( 'https://' ) || href.startsWith( '//' ) ) {
+          a.setAttribute( 'target', '_blank' );
+          a.setAttribute( 'rel', 'noopener' );
+          return;
+        }
+
+        // Relative paths
+        const resolved = currentDir ? currentDir + '/' + href : href;
+        const normalized = resolved.split( '/' ).reduce( ( acc, part ) => {
+          if ( part === '..' ) acc.pop();
+          else if ( part !== '.' && part !== '' ) acc.push( part );
+          return acc;
+        }, [] ).join( '/' );
+
+        a.removeAttribute( 'href' );
+        a.style.cursor = 'pointer';
+        a.style.color = 'var(--highlight-color)';
+        a.addEventListener( 'click', ( e ) => {
+          e.preventDefault();
+          selectFile( normalized );
+        } );
       } );
     };
 
-    /* -- Treeview Setup -- */
+    /* ── 42. Render code / text ── */
+    const renderCode = ( text, ext, fileSize ) => {
+      const escaped = escapeHTML( text );
+      if ( fileSize > 500000 ) {
+        return `<pre><code>${ escaped }</code></pre>`;
+      }
+      return `<pre><code class="language-${ escapeHTML( ext ) }">${ escaped }</code></pre>`;
+    };
 
-    const setupExpandAll = () => {
-      const btn = document.getElementById( 'btnExpandAll' );
-      btn.addEventListener( 'click', () => {
-        const allDetails = document.getElementById( 'treeList' ).querySelectorAll( 'details' );
-        const expanding = btn.textContent.replace( /\s+/g, ' ' ).trim() === 'Expand All';
-        allDetails.forEach( ( d ) => { d.open = expanding; } );
-        btn.textContent = expanding ? 'Collapse All' : 'Expand All';
-        btn.title = expanding ? 'Collapse All Folders' : 'Expand All Folders';
+    /* ── 43. Highlight code blocks ── */
+    const highlightCode = ( fileSize ) => {
+      if ( fileSize > 500000 ) return;
+      const contentBody = document.getElementById( 'contentBody' );
+      contentBody.querySelectorAll( 'pre code[class]' ).forEach( ( block ) => {
+        hljs.highlightElement( block );
       } );
     };
 
+    /* ── 44. Render HTML preview ── */
+    const renderHTMLPreview = ( text, path ) => {
+      const ext = path.split( '.' ).pop().toLowerCase();
+      const pref = getPreferredView( ext );
+      const renderedDisplay = pref === 'rendered' ? '' : 'none';
+      const rawDisplay = pref === 'raw' ? '' : 'none';
+
+      const blob = new Blob( [ text ], { type: 'text/html' } );
+      const blobUrl = createBlobUrl( blob );
+
+      return `<div id="viewRendered" style="display:${ renderedDisplay }"><iframe class="iframe-content" sandbox="allow-scripts" src="${ escapeHTML( blobUrl ) }"></iframe></div><pre id="viewRaw" style="display:${ rawDisplay }">${ escapeHTML( text ) }</pre>`;
+    };
+
+    /* ── 45. Render image ── */
+    const renderImage = async ( path, ext, signal ) => {
+      // Always blob-fetch: raw.githubusercontent.com serves text/plain, which
+      // breaks <img> for SVGs (browser needs image/svg+xml MIME type).
+      const blob = await fetchFileBlob( path, signal );
+
+      if ( ext === 'svg' ) {
+        // Re-wrap with correct MIME so the browser renders it
+        const svgBlob = new Blob( [ blob ], { type: 'image/svg+xml' } );
+        const url = createBlobUrl( svgBlob );
+        const text = await blob.text();
+        const pref = getPreferredView( 'svg' );
+        const renderedDisplay = pref === 'rendered' ? '' : 'none';
+        const rawDisplay = pref === 'raw' ? '' : 'none';
+        return `<div id="viewRendered" style="display:${ renderedDisplay }"><img class="media-content" src="${ escapeHTML( url ) }" alt="${ escapeHTML( path ) }"></div><pre id="viewRaw" style="display:${ rawDisplay }">${ escapeHTML( text ) }</pre>`;
+      }
+
+      const url = createBlobUrl( blob );
+      return `<img class="media-content" src="${ escapeHTML( url ) }" alt="${ escapeHTML( path ) }">`;
+    };
+
+    /* ── 46. Render audio ── */
+    const renderAudio = async ( path, signal ) => {
+      if ( getToken() ) {
+        const blob = await fetchFileBlob( path, signal );
+        const url = createBlobUrl( blob );
+        return `<audio controls class="media-content" src="${ escapeHTML( url ) }"></audio>`;
+      }
+      const url = getRawUrl( path );
+      return `<audio controls class="media-content" src="${ escapeHTML( url ) }"></audio>`;
+    };
+
+    /* ── 47. Render video ── */
+    const renderVideo = async ( path, signal ) => {
+      if ( getToken() ) {
+        const blob = await fetchFileBlob( path, signal );
+        const url = createBlobUrl( blob );
+        return `<video controls class="media-content" src="${ escapeHTML( url ) }"></video>`;
+      }
+      const url = getRawUrl( path );
+      return `<video controls class="media-content" src="${ escapeHTML( url ) }"></video>`;
+    };
+
+    /* ── 48. Render PDF ── */
+    const renderPDF = async ( path, signal ) => {
+      // Always blob-fetch: raw.githubusercontent.com serves text/plain, and
+      // Google Docs Viewer is unreliable. Blob URL with correct MIME works everywhere.
+      const blob = await fetchFileBlob( path, signal );
+      const pdfBlob = new Blob( [ blob ], { type: 'application/pdf' } );
+      const url = createBlobUrl( pdfBlob );
+      return `<iframe class="iframe-content" src="${ escapeHTML( url ) }"></iframe>`;
+    };
+
+    /* ── 49. Render spreadsheet ── */
+    const renderSpreadsheet = async ( path, signal ) => {
+      const blob = await fetchFileBlob( path, signal );
+      const data = await blob.arrayBuffer();
+      const workbook = XLSX.read( data, { type: 'array' } );
+
+      let html = '';
+      for ( const sheetName of workbook.SheetNames ) {
+        const sheetHTML = XLSX.utils.sheet_to_html( workbook.Sheets[ sheetName ] );
+        html += `<div class="xlsx-sheet"><h3>${ escapeHTML( sheetName ) }</h3>${ sheetHTML }</div>`;
+      }
+
+      return DOMPurify.sanitize( html );
+    };
+
+    /* ── 50. Hash routing ── */
+    const updateHash = ( path ) => {
+      try {
+        history.pushState( null, '', '#' + encodeURIComponent( path ) );
+      } catch ( _ ) { /* file:// */ }
+    };
+
+    const handleHashChange = async () => {
+      const hash = location.hash.slice( 1 );
+      if ( !hash ) return;
+      const path = decodeURIComponent( hash );
+
+      if ( !state.tree ) {
+        document.getElementById( 'contentBody' ).innerHTML = '<p>Loading tree…</p>';
+        await fetchTree();
+      }
+
+      const found = state.tree?.find( ( item ) => item.path === path && item.type === 'blob' );
+      if ( found ) {
+        selectFile( path, { skipHash: true } );
+      } else {
+        document.getElementById( 'contentBody' ).innerHTML =
+          '<p>File not found: <code>' + escapeHTML( path ) + '</code></p>';
+      }
+    };
+
+    /* ── 51. selectFile — main content loader ── */
+    const selectFile = async ( path, { skipHash = false } = {} ) => {
+      // 1. Abort in-flight fetch
+      if ( currentAbortController ) currentAbortController.abort();
+      currentAbortController = new AbortController();
+      const signal = currentAbortController.signal;
+
+      // Revoke previous blob URLs
+      revokeActiveBlobUrls();
+
+      // 2. Look up file in tree
+      const treeItem = state.tree?.find( ( f ) => f.path === path && f.type === 'blob' );
+      const fileSize = treeItem?.size ?? 0;
+
+      // 3. Extension
+      const ext = path.includes( '.' ) ? path.split( '.' ).pop().toLowerCase() : '';
+
+      // 4. Large file protection (skip for streamable)
+      if ( fileSize > LARGE_FILE_WARNING_BYTES && !STREAMABLE_EXTS.includes( ext ) && !approvedLargeFiles.has( path ) ) {
+        const sizeMB = ( fileSize / ( 1024 * 1024 ) ).toFixed( 1 );
+        if ( !window.confirm( `This file is ${ sizeMB } MB. Load anyway?` ) ) return;
+        approvedLargeFiles.add( path );
+      }
+
+      // 5. Update state
+      state.currentFilePath = path;
+
+      // 6. Build file header
+      const contentArea = document.getElementById( 'contentArea' );
+      const existingHeader = contentArea.querySelector( '.panel-header.file-header' );
+      const newHeader = document.createElement( 'div' );
+      newHeader.innerHTML = buildFileHeader( path, ext );
+      const headerEl = newHeader.firstElementChild;
+      if ( existingHeader ) {
+        existingHeader.replaceWith( headerEl );
+      } else {
+        contentArea.insertBefore( headerEl, contentArea.firstChild );
+      }
+
+      // 7. Show loading
+      const contentBody = document.getElementById( 'contentBody' );
+      contentBody.innerHTML = '<p>Loading…</p>';
+
+      try {
+        // 8. Render based on type
+        if ( IMAGE_EXTS.includes( ext ) ) {
+          contentBody.innerHTML = await renderImage( path, ext, signal );
+
+        } else if ( AUDIO_EXTS.includes( ext ) ) {
+          contentBody.innerHTML = await renderAudio( path, signal );
+
+        } else if ( VIDEO_EXTS.includes( ext ) ) {
+          contentBody.innerHTML = await renderVideo( path, signal );
+
+        } else if ( ext === 'pdf' ) {
+          contentBody.innerHTML = await renderPDF( path, signal );
+
+        } else if ( SHEET_EXTS.includes( ext ) ) {
+          contentBody.innerHTML = await renderSpreadsheet( path, signal );
+
+        } else {
+          // Text-based files
+          let text = getCachedFileText( path );
+          if ( text === null ) {
+            text = await fetchFileText( path, signal );
+            setCachedFileText( path, text );
+          }
+
+          if ( ext === 'md' ) {
+            contentBody.innerHTML = renderMarkdown( text, path );
+            rewriteMarkdownLinks( path );
+          } else if ( ext === 'html' || ext === 'htm' ) {
+            contentBody.innerHTML = renderHTMLPreview( text, path );
+          } else {
+            contentBody.innerHTML = renderCode( text, ext, fileSize );
+            highlightCode( fileSize );
+          }
+        }
+      } catch ( err ) {
+        if ( err.name === 'AbortError' ) return;
+        contentBody.innerHTML = `<p style="color:red;">Error loading file: ${ escapeHTML( err.message ) }</p>`;
+      }
+
+      // 9. Update hash
+      if ( !skipHash ) {
+        updateHash( path );
+      }
+
+      // 10. Save last file path
+      localStorage.setItem( storageKey( 'lastFilePath' ), path );
+
+      // 11. Highlight active tree item
+      const prev = document.querySelector( '.tree-item.active' );
+      if ( prev ) prev.classList.remove( 'active' );
+      const treeEl = document.querySelector( `[data-action="select-file"][data-path="${ CSS.escape( path ) }"]` );
+      if ( treeEl ) treeEl.classList.add( 'active' );
+
+      // 12. Scroll content to top
+      contentArea.scrollTo( { top: 0 } );
+    };
+
+    /* ── 52. File selection (event delegation on tree) ── */
     const setupFileSelection = () => {
       document.getElementById( 'treeList' ).addEventListener( 'click', ( e ) => {
         const target = e.target.closest( '[data-action="select-file"]' );
@@ -1335,185 +1765,97 @@
       } );
     };
 
-    const setupFilterListener = () => {
-      const input = document.getElementById( 'treeFilter' );
-      let timer = null;
-      input.addEventListener( 'input', () => {
-        clearTimeout( timer );
-        timer = setTimeout( () => {
-          const query = input.value.trim().toLowerCase();
-          const treeList = document.getElementById( 'treeList' );
-          const items = treeList.querySelectorAll( '.tree-item' );
-          const details = treeList.querySelectorAll( 'details' );
-          if ( !query ) {
-            items.forEach( ( el ) => { el.style.display = ''; } );
-            details.forEach( ( el ) => { el.style.display = ''; el.open = false; } );
-            return;
-          }
-          items.forEach( ( el ) => {
-            const path = ( el.dataset.path || '' ).toLowerCase();
-            el.style.display = path.includes( query ) ? '' : 'none';
-          } );
-          details.forEach( ( el ) => {
-            const hasVisible = el.querySelector( '.tree-item:not([style*="display: none"])' );
-            el.style.display = hasVisible ? '' : 'none';
-            if ( hasVisible ) el.open = true;
-          } );
-        }, 150 );
-      } );
-    };
+    /* ── 53. Content area actions (event delegation) ── */
+    const setupContentActions = () => {
+      const contentArea = document.getElementById( 'contentArea' );
 
-    const getVisibleTreeItems = () => {
-      const treeList = document.getElementById( 'treeList' );
-      const all = [ ...treeList.querySelectorAll( '.tree-folder, .tree-item' ) ];
-      return all.filter( ( el ) => {
-        if ( el.style.display === 'none' ) return false;
-        let parent = el.parentElement;
-        while ( parent && parent.id !== 'treeList' ) {
-          if ( parent.tagName === 'DETAILS' && !parent.open && parent.querySelector( 'summary' ) !== el ) return false;
-          parent = parent.parentElement;
-        }
-        return true;
-      } );
-    };
-
-    const setupKeyboardNav = () => {
-      document.addEventListener( 'keydown', ( e ) => {
-        const active = document.activeElement;
-        if ( !active ) return;
-        const inTree = active.closest( '#treeList' ) && ( active.classList.contains( 'tree-folder' ) || active.classList.contains( 'tree-item' ) );
-        if ( !inTree ) return;
-        const items = getVisibleTreeItems();
-        const idx = items.indexOf( active );
-        if ( idx === -1 ) return;
-        const handle = ( action ) => { e.preventDefault(); action(); };
-        if ( e.key === 'ArrowDown' ) {
-          handle( () => {
-            if ( idx < items.length - 1 ) {
-              const next = items[ idx + 1 ];
-              next.focus();
-              if ( next.classList.contains( 'tree-item' ) ) selectFile( next.dataset.path );
-            }
-          } );
-        } else if ( e.key === 'ArrowUp' ) {
-          handle( () => {
-            if ( idx > 0 ) {
-              const prev = items[ idx - 1 ];
-              prev.focus();
-              if ( prev.classList.contains( 'tree-item' ) ) selectFile( prev.dataset.path );
-            }
-          } );
-        } else if ( e.key === 'Enter' || e.key === ' ' ) {
-          handle( () => {
-            if ( active.classList.contains( 'tree-folder' ) ) {
-              const details = active.closest( 'details' );
-              if ( details ) details.open = !details.open;
-            } else if ( active.classList.contains( 'tree-item' ) ) {
-              selectFile( active.dataset.path );
-            }
-          } );
-        } else if ( e.key === 'ArrowRight' ) {
-          handle( () => {
-            if ( active.classList.contains( 'tree-folder' ) ) {
-              const details = active.closest( 'details' );
-              if ( details && !details.open ) {
-                details.open = true;
-              } else if ( details && details.open ) {
-                const firstChild = details.querySelector( '.tree-folder, .tree-item' );
-                if ( firstChild && firstChild !== active ) firstChild.focus();
-              }
-            }
-          } );
-        } else if ( e.key === 'ArrowLeft' ) {
-          handle( () => {
-            if ( active.classList.contains( 'tree-folder' ) ) {
-              const details = active.closest( 'details' );
-              if ( details?.open ) {
-                details.open = false;
-              } else {
-                const parentDetails = details?.parentElement?.closest( 'details' );
-                if ( parentDetails ) parentDetails.querySelector( 'summary' )?.focus();
-              }
-            } else {
-              const parentDetails = active.closest( 'details' );
-              if ( parentDetails ) parentDetails.querySelector( 'summary' )?.focus();
-            }
-          } );
-        }
-      } );
-    };
-
-    const setupSlashShortcut = () => {
-      document.addEventListener( 'keydown', ( e ) => {
-        if ( e.key === '/' && !( document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA' ) ) {
-          e.preventDefault();
-          document.getElementById( 'treeFilter' ).focus();
-        }
-      } );
-    };
-
-    /* -- Fetch Tree -- */
-
-    const fetchTree = async () => {
-      if ( fetchController ) fetchController.abort();
-      fetchController = new AbortController();
-      const signal = fetchController.signal;
-      const headers = getAuthHeaders();
-      const treeList = document.getElementById( 'treeList' );
-      try {
-        if ( !state.branch ) {
-          const repoRes = await fetch(
-            `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }`,
-            { headers, signal }
-          );
-          updateRateBadge( repoRes );
-          if ( !repoRes.ok ) throw new Error( `Repo fetch failed: ${ repoRes.status }` );
-          const repoData = await repoRes.json();
-          state.branch = repoData.default_branch;
-        }
-        treeList.innerHTML = '<p>Loading tree\u2026</p>';
-        const treeRes = await fetch(
-          `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/git/trees/${ encodeURIComponent( state.branch ) }?recursive=1`,
-          { headers, signal }
-        );
-        updateRateBadge( treeRes );
-        if ( treeRes.status === 403 ) {
-          treeList.innerHTML = '<p style="color: red;">Rate limited. Add a GitHub token for higher limits.</p>';
+      contentArea.addEventListener( 'click', ( e ) => {
+        // Breadcrumb: scroll to folder
+        const scrollLink = e.target.closest( '[data-action="scroll-folder"]' );
+        if ( scrollLink ) {
+          scrollToTreeFolder( scrollLink.dataset.folder );
           return;
         }
-        if ( !treeRes.ok ) throw new Error( `Tree fetch failed: ${ treeRes.status }` );
-        const treeData = await treeRes.json();
-        if ( treeData.truncated ) {
-          treeList.innerHTML = '';
-          const warning = document.createElement( 'div' );
-          warning.style.cssText = 'background:#fff3cd;border:1px solid #ffc107;padding:0.5rem;border-radius:4px;margin-bottom:0.5rem;font-size:0.85rem;';
-          warning.textContent = '\u26A0\uFE0F Repository tree is truncated. Some files may not appear.';
-          treeList.appendChild( warning );
+
+        // Breadcrumb: reset to home
+        const homeLink = e.target.closest( '[data-action="reset-home"]' );
+        if ( homeLink ) {
+          resetToHome();
+          return;
         }
-        state.tree = treeData.tree;
-        renderTree( state.tree );
-      } catch ( err ) {
-        if ( err.name === 'AbortError' ) return;
-        treeList.innerHTML = `<p style="color: red;">${ escapeHTML( err.message ) }</p>`;
-      }
+
+        // View toggle: rendered
+        const renderedBtn = e.target.closest( '[data-action="view-rendered"]' );
+        if ( renderedBtn ) {
+          const viewRendered = document.getElementById( 'viewRendered' );
+          const viewRaw = document.getElementById( 'viewRaw' );
+          if ( viewRendered ) viewRendered.style.display = '';
+          if ( viewRaw ) viewRaw.style.display = 'none';
+          renderedBtn.style.opacity = '1';
+          const rawBtn = contentArea.querySelector( '[data-action="view-raw"]' );
+          if ( rawBtn ) rawBtn.style.opacity = '0.5';
+          const ext = state.currentFilePath.includes( '.' ) ? state.currentFilePath.split( '.' ).pop().toLowerCase() : '';
+          setPreferredView( ext, 'rendered' );
+          return;
+        }
+
+        // View toggle: raw
+        const rawBtn = e.target.closest( '[data-action="view-raw"]' );
+        if ( rawBtn ) {
+          const viewRendered = document.getElementById( 'viewRendered' );
+          const viewRaw = document.getElementById( 'viewRaw' );
+          if ( viewRendered ) viewRendered.style.display = 'none';
+          if ( viewRaw ) viewRaw.style.display = '';
+          rawBtn.style.opacity = '1';
+          const rendBtn = contentArea.querySelector( '[data-action="view-rendered"]' );
+          if ( rendBtn ) rendBtn.style.opacity = '0.5';
+          const ext = state.currentFilePath.includes( '.' ) ? state.currentFilePath.split( '.' ).pop().toLowerCase() : '';
+          setPreferredView( ext, 'raw' );
+          return;
+        }
+
+        // Copy button
+        const copyBtn = e.target.closest( '[data-action="copy-file"]' );
+        if ( copyBtn ) {
+          const cached = getCachedFileText( state.currentFilePath );
+          if ( cached !== null ) {
+            navigator.clipboard.writeText( cached ).then( () => {
+              const original = copyBtn.textContent;
+              copyBtn.textContent = '✓ Copied';
+              setTimeout( () => { copyBtn.textContent = original; }, 1500 );
+            } );
+          }
+          return;
+        }
+
+        // New Tab button
+        const newTabBtn = e.target.closest( '[data-action="new-tab"]' );
+        if ( newTabBtn ) {
+          const filePath = newTabBtn.dataset.path;
+          getNewTabUrl( filePath ).then( ( url ) => {
+            window.open( url, '_blank' );
+          } );
+          return;
+        }
+      } );
     };
 
-    /* -- Global Error Handlers -- */
-
-    const showGlobalError = ( message ) => {
-      const contentBody = document.getElementById( 'contentBody' );
-      if ( contentBody ) {
-        contentBody.innerHTML = `<div style="border:1px solid red;border-radius:4px;padding:0.75rem;color:red;margin-top:1rem;"><strong>Error:</strong> ${ escapeHTML( message ) }<br><br><button class="header-btn" onclick="location.reload()" title="Reload page">Reload</button></div>`;
-      }
-    };
-
-    window.addEventListener( 'error', ( event ) => { showGlobalError( event.message || 'Unknown error' ); } );
-    window.addEventListener( 'unhandledrejection', ( event ) => {
-      showGlobalError( String( event.reason?.message || event.reason || 'Unhandled promise rejection' ) );
+    /* ── 54. Global error handlers ── */
+    window.addEventListener( 'error', ( event ) => {
+      const panel = document.createElement( 'div' );
+      panel.className = 'error-panel';
+      panel.innerHTML = `<strong>Error:</strong> ${ escapeHTML( event.message || 'Unknown error' ) }<br><button onclick="location.reload()" title="Reload page">Reload</button>`;
+      document.body.appendChild( panel );
     } );
 
-    /* -- Init -- */
+    window.addEventListener( 'unhandledrejection', ( event ) => {
+      const panel = document.createElement( 'div' );
+      panel.className = 'error-panel';
+      panel.innerHTML = `<strong>Unhandled error:</strong> ${ escapeHTML( event.reason?.message || String( event.reason ) || 'Unknown error' ) }<br><button onclick="location.reload()" title="Reload page">Reload</button>`;
+      document.body.appendChild( panel );
+    } );
 
+    /* ── 55. init ── */
     const init = async () => {
       initAppearance();
       setupListeners();
@@ -1533,13 +1875,26 @@
 
       if ( state.owner && state.repo ) {
         updateHeaderFromConfig();
-        document.getElementById( 'contentBody' ).innerHTML = '<p>Loading tree\u2026</p>';
+        document.getElementById( 'contentBody' ).innerHTML = '<p>Loading tree…</p>';
         await fetchTree();
+
+        if ( location.hash.length > 1 ) {
+          await handleHashChange();
+        } else {
+          const lastPath = localStorage.getItem( storageKey( 'lastFilePath' ) );
+          if ( lastPath ) {
+            selectFile( lastPath, { skipHash: false } );
+          } else {
+            autoOpenReadme();
+          }
+        }
+
+        setupTreeFilter();
+        setupKeyboardNav();
       }
     };
 
     init();
-
   </script>
 </body>
 
