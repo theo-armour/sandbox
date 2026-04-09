@@ -98,6 +98,7 @@
         },
         {
           "title": "orgs",
+          "collapsed": true,
           "links": [
             {
               "title": "evrlnd",
@@ -120,8 +121,9 @@
               "url": "https://github.com"
             },
             {
-              "title": "PshPll",
-              "url": "https://pushpull.com"
+              "title": "PushPull",
+              "url": "https://pushme-pullyou.github.io/",
+              "g": "https://github.com/pushme-pullyou"
             }
           ]
         },
