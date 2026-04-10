@@ -2,8 +2,9 @@
 
 A lightweight single-file GitHub repository browser. Drop it into any repo folder and it auto-detects the repository — or run it on GitHub Pages.
 
-* Live: <https://theo-armour.github.io/tootoo/tootoo-2026-lt/tootoo-lt.html>
-* Source: <https://github.com/theo-armour/tootoo/tree/main/tootoo-2026-lt>
+* Live: <https://pushme-pullyou.github.io/tootoo/tootoo-2026-lt/>
+* Source: <https://github.com/https://pushme-pullyou/tootoo/tree/main/tootoo-2026-lt>
+* https://pushme-pullyou.github.io/tootoo/tootoo-2026-lt/?owner=obadawy&repo=lmsgsrv
 
 ## Features
 
