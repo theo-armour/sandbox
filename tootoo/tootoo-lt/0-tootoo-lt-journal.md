@@ -1,5 +1,9 @@
 # TooToo LT — Development Journal
 
+## 2026-04-09
+
+* 2026-04-06 ~ Move LT to its own repo
+
 ## 2026-04-07
 
 * 2026-04-07 ~ Text size control
