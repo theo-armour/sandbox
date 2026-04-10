@@ -2,12 +2,15 @@
 
 ## 2026-04-09
 
+* 2026-04-07 ~ "?" about button
+* 2026-04-07 ~ is sheetjs needed? yes
 * 2026-04-06 ~ Move LT to its own repo
+* 2026-04-06 ~ LT: repo stats, but only for the current repo. No orgs, gists, or other repos.
 
 ## 2026-04-07
 
 * 2026-04-07 ~ Text size control
-* 2026-04-07 ~ "Files" is stick to top
+* 2026-04-07 ~ "Files" is sticking to top
 
 https://theo-armour.github.io/sandbox/tootoo/tootoo-lt/1-layout/tootoo-lt-layout.html?owner=obadawy&repo=lmsgsrv
 
@@ -31,6 +34,7 @@ https://theo-armour.github.io/sandbox/tootoo/tootoo-lt/tootoo-lt.html?owner=theo
 * 2026-04-06 ~ a tooltip somewhere saying the date and time of the last update.
 * left width a % on mobile
 * 2026-04-06 ~ vertical bar always visible, even when not hovering
+
 ## 2026-04-05
 
 So what's next? Go from TooToo LT back to the big Tootoo.
