@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-04-09 08:30">
+  <meta name="revised" content="2026-04-10 18:30">
   <title>TooToo LT</title>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link id="hljsTheme" rel="stylesheet"
@@ -319,23 +319,6 @@
       border-color: var(--highlight-color);
     }
 
-    /* ── Responsive ── */
-    @media (max-width: 768px) {
-      .sidebar {
-        width: 25% !important;
-      }
-
-      .resizer {
-        width: 4px;
-      }
-
-      .file-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-      }
-    }
-
     /* ── Treeview ── */
     .tree-folder {
       display: flex;
@@ -392,7 +375,7 @@
       padding-left: 0;
     }
 
-    /* ── Content Viewer CSS ── */
+    /* ── Content Viewer ── */
     .markdown-body {
       max-width: 700px;
       line-height: 1.6;
@@ -424,6 +407,10 @@
     }
 
     .panel-header.file-header {
+      background: var(--secondary-bg);
+    }
+
+    .file-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -539,6 +526,23 @@
       border-color: #ff6b6b;
       color: var(--text-color);
     }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 25% !important;
+      }
+
+      .resizer {
+        width: 4px;
+      }
+
+      .file-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+    }
   </style>
 </head>
 
@@ -558,6 +562,7 @@
     <button id="btnDarkMode" class="header-btn dark-mode-btn" title="Toggle Dark Mode">🌙</button>
     <button id="btnFontDec" class="header-btn" title="Decrease Font Size">A−</button>
     <button id="btnFontInc" class="header-btn" title="Increase Font Size">A+</button>
+    <button id="btnHelp" class="header-btn" title="About this app">?</button>
     <button id="btnToken" class="header-btn" title="Set GitHub Personal Access Token">⚙️ Token</button>
     <div id="rateBadge" class="rate-limit-badge" title="API Rate Limit" aria-live="polite"></div>
   </header>
@@ -565,7 +570,7 @@
   <main>
 
     <div class="sidebar">
-      <div class="panel-header" title="Last updated: 2026-04-08 17:00">
+      <div class="panel-header" title="Last updated: 2026-04-10 10:30">
         <h3 id="hFiles">Files</h3>
         <button id="btnExpandAll" class="secondary" style="display: none;" title="Expand All Folders">Expand
           All</button>
@@ -603,10 +608,12 @@
       return String( str ).replace( /[&<>"']/g, ( c ) => map[ c ] );
     };
 
+    const GITHUB_SVG_ICON = '<svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path></svg>';
+
     /* ── 2. CONFIG & state ── */
     const CONFIG = {
-      owner: 'theo-armour',
-      repo: 'sandbox',
+      owner: '',
+      repo: '',
       branch: '',
     };
 
@@ -619,31 +626,40 @@
       pagesEnabled: null,
     };
 
-    /* ── 3. Storage key helper ── */
-    const storageKey = ( suffix ) => `tootoo-lt:${ location.pathname }:${ suffix }`;
-
-    /* ── 4. Extension constants ── */
+    /* ── 3. Extension constants ── */
     const IMAGE_EXTS = [ 'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'ico' ];
     const AUDIO_EXTS = [ 'mp3', 'wav', 'ogg' ];
     const VIDEO_EXTS = [ 'mp4', 'webm' ];
     const SHEET_EXTS = [ 'xlsx', 'xls', 'csv', 'ods' ];
     const STREAMABLE_EXTS = [ ...IMAGE_EXTS, ...AUDIO_EXTS, ...VIDEO_EXTS, 'pdf' ];
     const NO_COPY_EXTS = [ ...STREAMABLE_EXTS, ...SHEET_EXTS ];
-
-    /* ── 5. Large file protection ── */
     const LARGE_FILE_WARNING_BYTES = 1024 * 1024;
     const approvedLargeFiles = new Set();
 
-    /* ── 6. Blob URL cleanup ── */
+    /* ── 4. Storage key helper ── */
+    const storageKey = ( suffix ) => `tootoo-lt:${ location.pathname }:${ suffix }`;
+
+    /* ── 5. Blob URL tracking ── */
     const activeBlobUrls = new Set();
     window.addEventListener( 'beforeunload', () => {
       activeBlobUrls.forEach( ( url ) => URL.revokeObjectURL( url ) );
     } );
 
-    /* ── 7. File text cache ── */
-    const FILE_CACHE_MAX_ENTRIES = 25;
-    const FILE_CACHE_MAX_CHARS = 300000;
+    const createBlobUrl = ( blob ) => {
+      const url = URL.createObjectURL( blob );
+      activeBlobUrls.add( url );
+      return url;
+    };
+
+    const revokeAllBlobUrls = () => {
+      activeBlobUrls.forEach( ( url ) => URL.revokeObjectURL( url ) );
+      activeBlobUrls.clear();
+    };
+
+    /* ── 6. File text cache ── */
     const fileTextCache = new Map();
+    const FILE_CACHE_LIMIT = 25;
+    const FILE_CACHE_MAX_CHARS = 300000;
 
     const getFileCacheKey = ( path ) => `${ state.owner }/${ state.repo }/${ state.branch }/${ path }`;
 
@@ -660,10 +676,8 @@
     const setCachedFileText = ( path, text ) => {
       if ( text.length > FILE_CACHE_MAX_CHARS ) return;
       const key = getFileCacheKey( path );
-      // Remove if exists (for LRU ordering)
-      fileTextCache.delete( key );
-      // Evict oldest if at limit
-      while ( fileTextCache.size >= FILE_CACHE_MAX_ENTRIES ) {
+      if ( fileTextCache.has( key ) ) fileTextCache.delete( key );
+      while ( fileTextCache.size >= FILE_CACHE_LIMIT ) {
         const oldest = fileTextCache.keys().next().value;
         fileTextCache.delete( oldest );
       }
@@ -683,29 +697,18 @@
         const raw = localStorage.getItem( storageKey( 'fileTextCache' ) );
         if ( !raw ) return;
         const arr = JSON.parse( raw );
-        if ( !Array.isArray( arr ) ) return;
         for ( const [ key, text ] of arr ) {
-          if ( typeof key === 'string' && typeof text === 'string' ) {
-            fileTextCache.set( key, text );
-          }
+          fileTextCache.set( key, text );
         }
-      } catch ( _ ) { /* ignore malformed cache */ }
+      } catch ( _ ) { /* malformed — ignore */ }
     };
 
-    /* ── 8. View preference helpers ── */
+    /* ── 7. View preference helpers ── */
     const getViewPrefKey = ( ext ) => storageKey( `viewPref:${ ext }` );
     const getPreferredView = ( ext ) => localStorage.getItem( getViewPrefKey( ext ) ) || 'rendered';
     const setPreferredView = ( ext, view ) => localStorage.setItem( getViewPrefKey( ext ), view );
 
-    /* ── 9. Dark mode hljs theme ── */
-    const setHljsTheme = ( isDark ) => {
-      const link = document.getElementById( 'hljsTheme' );
-      link.href = isDark
-        ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css'
-        : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
-    };
-
-    /* ── 10. updateHeaderFromConfig ── */
+    /* ── 8. updateHeaderFromConfig ── */
     const updateHeaderFromConfig = () => {
       const label = `${ state.owner } / ${ state.repo }`;
       document.title = label;
@@ -713,7 +716,7 @@
       document.getElementById( 'headerGitHub' ).href = `https://github.com/${ state.owner }/${ state.repo }`;
     };
 
-    /* ── 11. detectRepo ── */
+    /* ── 9. detectRepo ── */
     const detectRepo = async () => {
       const params = new URLSearchParams( location.search );
       if ( params.get( 'owner' ) ) CONFIG.owner = params.get( 'owner' );
@@ -734,21 +737,52 @@
         } catch ( _ ) { /* ignore malformed cache */ }
       }
 
+      if ( location.hostname.endsWith( '.github.io' ) ) {
+        const owner = location.hostname.split( '.' )[ 0 ];
+        const segments = location.pathname.split( '/' ).filter( Boolean );
+        const repo = segments[ 0 ] || `${ owner }.github.io`;
+        CONFIG.owner = owner;
+        CONFIG.repo = repo;
+        localStorage.setItem( storageKey( 'repo' ), JSON.stringify( { owner, repo } ) );
+        return;
+      }
+
+      const gitConfigPrefixes = [ '', '../', '../../', '../../../', '../../../../' ];
+      const gitConfigRegex = /github\.com[:/]([^/\n]+)\/([^.\n]+)(\.git)?/;
+
       if ( location.protocol === 'http:' || location.protocol === 'https:' ) {
-        const prefixes = [ '', '../', '../../', '../../../', '../../../../' ];
-        for ( const prefix of prefixes ) {
+        for ( const prefix of gitConfigPrefixes ) {
           try {
             const res = await fetch( `${ prefix }.git/config` );
             if ( !res.ok ) continue;
             const text = await res.text();
-            const match = text.match( /github\.com[:/]([^/\n]+)\/([^.\n]+)(\.git)?/ );
+            const match = text.match( gitConfigRegex );
             if ( match ) {
               CONFIG.owner = match[ 1 ];
               CONFIG.repo = match[ 2 ];
               localStorage.setItem( storageKey( 'repo' ), JSON.stringify( { owner: CONFIG.owner, repo: CONFIG.repo } ) );
               return;
             }
-          } catch ( _ ) { /* network error — try next prefix */ }
+          } catch ( _ ) { /* network error */ }
+        }
+      }
+
+      if ( location.protocol === 'file:' ) {
+        for ( const prefix of gitConfigPrefixes ) {
+          try {
+            const xhr = new XMLHttpRequest();
+            xhr.open( 'GET', `${ prefix }.git/config`, false );
+            xhr.send( null );
+            if ( ( xhr.status === 200 || xhr.status === 0 ) && xhr.responseText ) {
+              const match = xhr.responseText.match( gitConfigRegex );
+              if ( match ) {
+                CONFIG.owner = match[ 1 ];
+                CONFIG.repo = match[ 2 ];
+                localStorage.setItem( storageKey( 'repo' ), JSON.stringify( { owner: CONFIG.owner, repo: CONFIG.repo } ) );
+                return;
+              }
+            }
+          } catch ( _ ) { /* XHR blocked */ }
         }
       }
 
@@ -761,10 +795,9 @@
             <input id="inpOwner" type="text" placeholder="e.g. octocat" autocomplete="off">
             <label for="inpRepo">Repository</label>
             <input id="inpRepo" type="text" placeholder="e.g. hello-world" autocomplete="off">
-            <button id="btnSetRepo" class="primary">Set Repository</button>
+            <button id="btnSetRepo" class="primary" title="Set repository owner and name">Set Repository</button>
           </div>
         `;
-
         document.getElementById( 'btnSetRepo' ).addEventListener( 'click', () => {
           const owner = document.getElementById( 'inpOwner' ).value.trim();
           const repo = document.getElementById( 'inpRepo' ).value.trim();
@@ -777,7 +810,15 @@
       } );
     };
 
-    /* ── 12. initAppearance ── */
+    /* ── 10. setHljsTheme ── */
+    const setHljsTheme = ( isDark ) => {
+      const link = document.getElementById( 'hljsTheme' );
+      link.href = isDark
+        ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css'
+        : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
+    };
+
+    /* ── 11. initAppearance ── */
     const initAppearance = () => {
       const isDark = localStorage.getItem( storageKey( 'darkMode' ) ) === 'true';
       if ( isDark ) {
@@ -797,7 +838,7 @@
       }
     };
 
-    /* ── 13. setupListeners ── */
+    /* ── 12. setupListeners ── */
     const setupListeners = () => {
       const contentArea = document.getElementById( 'contentArea' );
 
@@ -825,6 +866,87 @@
         const sz = Math.max( getFontSize() - 2, 10 );
         document.documentElement.style.setProperty( '--font-size', sz + 'px' );
         localStorage.setItem( storageKey( 'fontSize' ), sz + 'px' );
+      } );
+
+      // Help / About
+      document.getElementById( 'btnHelp' ).addEventListener( 'click', async () => {
+        const revised = document.querySelector( 'meta[name="revised"]' )?.content || 'unknown';
+        const repoUrl = state.owner && state.repo
+          ? `https://github.com/${ state.owner }/${ state.repo }`
+          : 'https://github.com/pushme-pullyou/tootoo';
+        const sourceUrl = repoUrl + '/tree/main/tootoo-2026-lt';
+        const token = getToken();
+
+        let rateLimitInfo = 'Unable to fetch';
+        try {
+          const res = await fetch( 'https://api.github.com/rate_limit', { headers: getAuthHeaders() } );
+          if ( res.ok ) {
+            const data = await res.json();
+            const core = data.resources.core;
+            const reset = new Date( core.reset * 1000 ).toLocaleTimeString();
+            rateLimitInfo = `${ core.remaining } / ${ core.limit } remaining (resets at ${ reset })`;
+          }
+        } catch ( _ ) { /* offline or blocked */ }
+
+        const tokenStatus = token ? 'Set' : 'Not set (anonymous — 60 requests/hour)';
+        const cb = document.getElementById( 'contentBody' );
+        cb.innerHTML = `
+          <h2>About TooToo LT</h2>
+          <p>A lightweight single-file GitHub repository browser.</p>
+          <ul>
+            <li><strong>Source code:</strong> <a href="${ escapeHTML( sourceUrl ) }" target="_blank" rel="noopener">${ escapeHTML( sourceUrl ) }</a></li>
+            <li><strong>Repository:</strong> <a href="${ escapeHTML( repoUrl ) }" target="_blank" rel="noopener">${ escapeHTML( repoUrl ) }</a></li>
+            <li><strong>Copyright:</strong> pushme-pullyou authors</li>
+            <li><strong>License:</strong> MIT License</li>
+            <li><strong>Built:</strong> ${ escapeHTML( revised ) }</li>
+          </ul>
+          <h3>GitHub API</h3>
+          <ul>
+            <li><strong>Repo visibility:</strong> Public (private repos require a token)</li>
+            <li><strong>Token:</strong> ${ escapeHTML( tokenStatus ) }</li>
+            <li><strong>Rate limit:</strong> ${ escapeHTML( rateLimitInfo ) }</li>
+            <li><strong>GitHub Pages:</strong> Supported — auto-detects repos hosted on GitHub Pages</li>
+          </ul>
+          ${ ( () => {
+            const stats = getRepoStats();
+            if ( !stats ) return '<h3>Repository Statistics</h3><p>No tree data loaded yet.</p>';
+            const typesHtml = stats.topTypes.map( ( [ ext, count ] ) =>
+              `<li>${ escapeHTML( ext ) }: ${ count } file${ count !== 1 ? 's' : '' }</li>`
+            ).join( '' );
+            const largestHtml = stats.largest.map( ( f ) =>
+              `<li>${ escapeHTML( f.path ) } — ${ formatFileSize( f.size ) }</li>`
+            ).join( '' );
+            return `<h3>Repository Statistics</h3>
+              <ul>
+                <li><strong>Files:</strong> ${ stats.fileCount }</li>
+                <li><strong>Folders:</strong> ${ stats.folderCount }</li>
+                <li><strong>Total size:</strong> ${ formatFileSize( stats.totalSize ) }</li>
+              </ul>
+              <h4>Top file types</h4>
+              <ol>${ typesHtml }</ol>
+              <h4>Largest files</h4>
+              <ol>${ largestHtml }</ol>`;
+          } )() }
+          <h3>Tips</h3>
+          <ul>
+            <li>Use the filter input in the sidebar to search file names</li>
+            <li>Click the title in the header to reload</li>
+            <li>Use <strong>A−</strong> / <strong>A+</strong> to adjust font size — helpful on phones and small screens</li>
+            <li>Click <strong>🌙</strong> to toggle dark mode — your choice is saved across visits</li>
+          </ul>
+        `;
+
+        // Restore original panel header (selectFile replaces it with breadcrumbs)
+        const contentArea = document.getElementById( 'contentArea' );
+        const existingHeader = contentArea.querySelector( '.panel-header.file-header' );
+        const simpleHeader = document.createElement( 'div' );
+        simpleHeader.className = 'panel-header file-header';
+        simpleHeader.innerHTML = '<h3 id="contentTitle">About</h3>';
+        if ( existingHeader ) {
+          existingHeader.replaceWith( simpleHeader );
+        } else {
+          contentArea.insertBefore( simpleHeader, document.getElementById( 'contentBody' ) );
+        }
       } );
 
       // Token prompt
@@ -866,6 +988,17 @@
         localStorage.setItem( storageKey( 'sidebarWidth' ), currentWidth );
       } );
 
+      // Filter input (debounced)
+      const debouncedFilter = debounce( runFilter, 150 );
+      document.getElementById( 'treeFilter' ).addEventListener( 'input', debouncedFilter );
+
+      document.getElementById( 'btnFilterClear' ).addEventListener( 'click', () => {
+        document.getElementById( 'treeFilter' ).value = '';
+        document.getElementById( 'btnFilterClear' ).style.display = 'none';
+        runFilter();
+        document.getElementById( 'treeFilter' ).focus();
+      } );
+
       // Back to top
       const btnBackToTop = document.getElementById( 'btnBackToTop' );
 
@@ -877,16 +1010,17 @@
         contentArea.scrollTo( { top: 0, behavior: 'smooth' } );
       } );
 
-      // Header title reload — clear state first
+      // Header title reload — clears state first
       document.getElementById( 'headerTitle' ).addEventListener( 'click', ( e ) => {
         e.preventDefault();
-        localStorage.removeItem( storageKey( 'lastFilePath' ) );
+        localStorage.removeItem( storageKey( 'currentFile' ) );
         try { history.replaceState( null, '', location.pathname + location.search ); } catch ( _ ) { /* file:// */ }
         location.reload();
       } );
     };
 
-    /* ── 14. Auth helpers (Public API) ── */
+    /* ── 13. GitHub API helpers (Public API) ── */
+
     const getToken = () => localStorage.getItem( 'githubToken' ) || '';
 
     const getAuthHeaders = () => {
@@ -896,7 +1030,6 @@
       return headers;
     };
 
-    /* ── 15. Rate limit badge (Public API) ── */
     const updateRateBadge = ( response ) => {
       const remaining = response.headers.get( 'X-RateLimit-Remaining' );
       const limit = response.headers.get( 'X-RateLimit-Limit' );
@@ -907,10 +1040,9 @@
       }
     };
 
-    /* ── 16. AbortController (Public API) ── */
     let currentAbortController = null;
 
-    /* ── 17. File type icons ── */
+    /* ── 14. File type icons ── */
     const getFileIcon = ( fileName ) => {
       const ext = fileName.includes( '.' ) ? '.' + fileName.split( '.' ).pop().toLowerCase() : '';
       const iconMap = {
@@ -929,29 +1061,54 @@
         '.zip': '📦', '.tar': '📦', '.gz': '📦', '.7z': '📦',
         '.json': '{ }',
       };
-      return iconMap[ ext ] ?? '📄';
+      return iconMap[ ext ] || '📄';
     };
 
-    /* ── 18. File size formatting ── */
-    const formatSize = ( bytes ) => {
+    /* ── 15. File size formatting ── */
+    const formatFileSize = ( bytes ) => {
+      if ( bytes == null ) return '';
       if ( bytes < 1024 ) return `${ bytes } B`;
       if ( bytes < 1024 * 1024 ) return `${ ( bytes / 1024 ).toFixed( 1 ) } KB`;
       return `${ ( bytes / ( 1024 * 1024 ) ).toFixed( 1 ) } MB`;
     };
 
-    /* ── 19. Build nested tree structure ── */
+    /* ── 16. Repository statistics ── */
+    const getRepoStats = () => {
+      if ( !state.tree ) return null;
+      const blobs = state.tree.filter( ( i ) => i.type === 'blob' );
+      const trees = state.tree.filter( ( i ) => i.type === 'tree' );
+      const totalSize = blobs.reduce( ( sum, i ) => sum + ( i.size || 0 ), 0 );
+
+      // Count by extension
+      const extCounts = {};
+      for ( const b of blobs ) {
+        const name = b.path.split( '/' ).pop();
+        const ext = name.includes( '.' ) ? '.' + name.split( '.' ).pop().toLowerCase() : '(no ext)';
+        extCounts[ ext ] = ( extCounts[ ext ] || 0 ) + 1;
+      }
+      const topTypes = Object.entries( extCounts )
+        .sort( ( a, b ) => b[ 1 ] - a[ 1 ] )
+        .slice( 0, 10 );
+
+      // Largest files
+      const largest = [ ...blobs ]
+        .sort( ( a, b ) => ( b.size || 0 ) - ( a.size || 0 ) )
+        .slice( 0, 5 );
+
+      return { fileCount: blobs.length, folderCount: trees.length, totalSize, topTypes, largest };
+    };
+
+    /* ── 17. Build nested tree structure ── */
     const buildNestedTree = ( flatTree ) => {
       const root = { children: {} };
-
       for ( const item of flatTree ) {
         const parts = item.path.split( '/' );
         if ( parts.some( ( p ) => p.startsWith( '.' ) ) ) continue;
-
         let current = root;
         for ( let i = 0; i < parts.length; i++ ) {
           const part = parts[ i ];
           if ( !current.children[ part ] ) {
-            current.children[ part ] = { children: {}, type: 'tree', path: parts.slice( 0, i + 1 ).join( '/' ) };
+            current.children[ part ] = { children: {}, type: null, size: null, path: null };
           }
           if ( i === parts.length - 1 ) {
             current.children[ part ].type = item.type;
@@ -961,85 +1118,83 @@
           current = current.children[ part ];
         }
       }
-
       return root;
     };
 
-    /* ── 20. Sort tree children ── */
+    /* ── 18. Sort tree children: folders first, then alphabetical ── */
     const sortedEntries = ( children ) =>
       Object.entries( children ).sort( ( [ aName, aNode ], [ bName, bNode ] ) => {
-        const aIsFolder = Object.keys( aNode.children ).length > 0 || aNode.type === 'tree';
-        const bIsFolder = Object.keys( bNode.children ).length > 0 || bNode.type === 'tree';
+        const aIsFolder = aNode.type === 'tree' || Object.keys( aNode.children ).length > 0;
+        const bIsFolder = bNode.type === 'tree' || Object.keys( bNode.children ).length > 0;
         if ( aIsFolder && !bIsFolder ) return -1;
         if ( !aIsFolder && bIsFolder ) return 1;
         return aName.toLowerCase().localeCompare( bName.toLowerCase() );
       } );
 
-    /* ── 21. Render a single node to HTML ── */
-    const renderNode = ( name, node ) => {
-      const isFolder = Object.keys( node.children ).length > 0 || ( node.type === 'tree' && Object.keys( node.children ).length === 0 );
+    /* ── 19. Generate HTML for a tree node ── */
+    const renderNode = ( name, node, parentPath ) => {
+      const fullPath = parentPath ? `${ parentPath }/${ name }` : name;
+      const isFolder = node.type === 'tree' || Object.keys( node.children ).length > 0;
 
       if ( isFolder ) {
-        const childHTML = sortedEntries( node.children )
-          .map( ( [ childName, childNode ] ) => renderNode( childName, childNode ) )
+        const childrenHtml = sortedEntries( node.children )
+          .map( ( [ childName, childNode ] ) => renderNode( childName, childNode, fullPath ) )
           .join( '' );
-        return `<details data-folder-path="${ escapeHTML( node.path ) }">
-  <summary class="tree-folder" tabindex="0" title="${ escapeHTML( node.path ) }">📁 <span class="folder-name">${ escapeHTML( name ) }</span></summary>
-  ${ childHTML }
-</details>`;
+
+        return `<details data-folder-path="${ escapeHTML( fullPath ) }">` +
+          `<summary class="tree-folder" tabindex="0" title="${ escapeHTML( fullPath ) }">` +
+          `📁 <span class="folder-name">${ escapeHTML( name ) }</span>` +
+          `</summary>` +
+          childrenHtml +
+          `</details>`;
       }
 
       const icon = getFileIcon( name );
+      const sizeStr = formatFileSize( node.size );
       const isReadme = /^readme/i.test( name );
-      const nameHTML = isReadme
-        ? `<strong>${ icon } ${ escapeHTML( name ) }</strong>`
-        : `${ icon } ${ escapeHTML( name ) }`;
-      const sizeHTML = node.size != null ? `<span class="tree-item-size">${ formatSize( node.size ) }</span>` : '';
+      const nameHtml = isReadme
+        ? `<strong>${ escapeHTML( name ) }</strong>`
+        : escapeHTML( name );
 
-      return `<div class="tree-item" tabindex="0" data-action="select-file" data-path="${ escapeHTML( node.path ) }" title="${ escapeHTML( node.path ) }">
-  <span class="tree-item-name">${ nameHTML }</span>
-  ${ sizeHTML }
-</div>`;
+      return `<div class="tree-item" tabindex="0" data-action="select-file" data-path="${ escapeHTML( fullPath ) }" title="${ escapeHTML( fullPath ) }">` +
+        `<span class="tree-item-name">${ icon } ${ nameHtml }</span>` +
+        `<span class="tree-item-size">${ escapeHTML( sizeStr ) }</span>` +
+        `</div>`;
     };
 
-    /* ── 22. renderTree (batched) ── */
+    /* ── 20. renderTree — batched rendering ── */
     const renderTree = ( treeArray ) => {
       const treeList = document.getElementById( 'treeList' );
       treeList.innerHTML = '';
 
       const nested = buildNestedTree( treeArray );
       const rootEntries = sortedEntries( nested.children );
-      const BATCH_SIZE = 120;
-      const totalBatches = Math.ceil( rootEntries.length / BATCH_SIZE );
+      const batchSize = 120;
+      const total = rootEntries.length;
+      let rendered = 0;
 
       const statusEl = document.createElement( 'div' );
       statusEl.id = 'treeRenderStatus';
-      statusEl.style.cssText = 'font-size:0.85rem;opacity:0.7;padding:0.3rem 0.5rem;';
-      statusEl.textContent = '0% rendered…';
+      statusEl.style.cssText = 'font-size: 0.85rem; color: var(--text-color); opacity: 0.7; padding: 0.3rem 0.5rem;';
       treeList.appendChild( statusEl );
 
       return new Promise( ( resolve ) => {
-        let batchIndex = 0;
-
         const renderBatch = () => {
-          const start = batchIndex * BATCH_SIZE;
-          const end = Math.min( start + BATCH_SIZE, rootEntries.length );
-          const fragment = document.createDocumentFragment();
-          const temp = document.createElement( 'div' );
-
-          for ( let i = start; i < end; i++ ) {
+          const end = Math.min( rendered + batchSize, total );
+          let html = '';
+          for ( let i = rendered; i < end; i++ ) {
             const [ name, node ] = rootEntries[ i ];
-            temp.innerHTML = renderNode( name, node );
-            while ( temp.firstChild ) fragment.appendChild( temp.firstChild );
+            html += renderNode( name, node, '' );
           }
-
-          treeList.appendChild( fragment );
-          batchIndex++;
-
-          const pct = Math.round( ( end / rootEntries.length ) * 100 );
+          const fragment = document.createElement( 'div' );
+          fragment.innerHTML = html;
+          while ( fragment.firstChild ) {
+            treeList.insertBefore( fragment.firstChild, statusEl );
+          }
+          rendered = end;
+          const pct = Math.round( ( rendered / total ) * 100 );
           statusEl.textContent = `${ pct }% rendered…`;
-
-          if ( batchIndex < totalBatches ) {
+          if ( rendered < total ) {
             setTimeout( renderBatch, 0 );
           } else {
             statusEl.remove();
@@ -1047,55 +1202,57 @@
           }
         };
 
-        if ( rootEntries.length === 0 ) {
+        if ( total === 0 ) {
           statusEl.remove();
-          treeList.innerHTML = '<p>No files found.</p>';
           resolve();
         } else {
-          setTimeout( renderBatch, 0 );
+          renderBatch();
         }
       } );
     };
 
-    /* ── 23. fetchTree (Public API) ── */
+    /* ── 21. fetchTree ── */
     const fetchTree = async () => {
       if ( currentAbortController ) currentAbortController.abort();
       currentAbortController = new AbortController();
       const signal = currentAbortController.signal;
 
       const treeList = document.getElementById( 'treeList' );
+      const headers = getAuthHeaders();
 
       try {
         if ( !state.branch ) {
           const repoRes = await fetch(
             `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }`,
-            { headers: getAuthHeaders(), signal }
+            { headers, signal }
           );
           updateRateBadge( repoRes );
-          if ( !repoRes.ok ) throw new Error( `Repo fetch failed: ${ repoRes.status }` );
+          if ( !repoRes.ok ) throw new Error( `Failed to fetch repo info: ${ repoRes.status }` );
           const repoData = await repoRes.json();
           state.branch = repoData.default_branch;
         }
 
+        treeList.innerHTML = '<p>Loading tree…</p>';
+
         const treeRes = await fetch(
           `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/git/trees/${ encodeURIComponent( state.branch ) }?recursive=1`,
-          { headers: getAuthHeaders(), signal }
+          { headers, signal }
         );
         updateRateBadge( treeRes );
 
         if ( treeRes.status === 403 ) {
-          treeList.innerHTML = '<p style="color:red;">Rate limited. Add a GitHub token for higher limits.</p>';
+          treeList.innerHTML = '<p style="color: red;">Rate limited. Add a GitHub token for higher limits.</p>';
           return;
         }
-        if ( !treeRes.ok ) throw new Error( `Tree fetch failed: ${ treeRes.status }` );
+        if ( !treeRes.ok ) throw new Error( `Failed to fetch tree: ${ treeRes.status }` );
 
         const treeData = await treeRes.json();
 
         if ( treeData.truncated ) {
-          const warning = document.createElement( 'div' );
-          warning.style.cssText = 'background:#fff3cd;border:1px solid #ffc107;padding:0.5rem;border-radius:4px;margin-bottom:0.5rem;font-size:0.85rem;';
-          warning.textContent = '⚠️ Repository tree is truncated. Some files may not appear.';
           treeList.innerHTML = '';
+          const warning = document.createElement( 'div' );
+          warning.style.cssText = 'background: #fff3cd; border: 1px solid #ffc107; padding: 0.5rem; border-radius: 4px; margin-bottom: 0.5rem; font-size: 0.85rem;';
+          warning.textContent = '⚠️ Repository tree is truncated. Some files may not appear.';
           treeList.appendChild( warning );
         }
 
@@ -1104,14 +1261,18 @@
 
       } catch ( err ) {
         if ( err.name === 'AbortError' ) return;
-        treeList.innerHTML = `<p style="color:red;">${ escapeHTML( err.message ) }</p>`;
+        treeList.innerHTML = `<p style="color: red;">${ escapeHTML( err.message ) }</p>`;
       }
     };
 
-    /* ── 24. Filter logic ── */
+    /* ── 22. Filter logic ── */
     const runFilter = () => {
       const query = document.getElementById( 'treeFilter' ).value.trim().toLowerCase();
       const treeList = document.getElementById( 'treeList' );
+      const btnFilterClear = document.getElementById( 'btnFilterClear' );
+
+      btnFilterClear.style.display = query ? 'block' : 'none';
+
       const items = treeList.querySelectorAll( '.tree-item' );
       const folders = treeList.querySelectorAll( 'details' );
 
@@ -1126,44 +1287,28 @@
         el.style.display = path.includes( query ) ? '' : 'none';
       } );
 
-      const folderArr = Array.from( folders ).reverse();
-      for ( const detail of folderArr ) {
-        const hasVisible = detail.querySelector( '.tree-item:not([style*="display: none"])' ) ||
-          detail.querySelector( 'details:not([style*="display: none"])' );
+      const foldersArr = Array.from( folders ).reverse();
+      foldersArr.forEach( ( details ) => {
+        const hasVisible = details.querySelector( '.tree-item:not([style*="display: none"])' );
         if ( hasVisible ) {
-          detail.style.display = '';
-          detail.open = true;
+          details.style.display = '';
+          details.open = true;
         } else {
-          detail.style.display = 'none';
+          details.style.display = 'none';
         }
-      }
-    };
-
-    let filterTimeout = null;
-    const debouncedFilter = () => {
-      clearTimeout( filterTimeout );
-      filterTimeout = setTimeout( runFilter, 150 );
-    };
-
-    /* ── 25. setupTreeFilter ── */
-    const setupTreeFilter = () => {
-      const treeFilter = document.getElementById( 'treeFilter' );
-      const btnFilterClear = document.getElementById( 'btnFilterClear' );
-
-      treeFilter.addEventListener( 'input', () => {
-        btnFilterClear.style.display = treeFilter.value ? 'block' : 'none';
-        debouncedFilter();
-      } );
-
-      btnFilterClear.addEventListener( 'click', () => {
-        treeFilter.value = '';
-        btnFilterClear.style.display = 'none';
-        runFilter();
-        treeFilter.focus();
       } );
     };
 
-    /* ── 26. Expand All / Collapse All ── */
+    /* ── 23. Debounce helper ── */
+    const debounce = ( fn, ms ) => {
+      let timer;
+      return ( ...args ) => {
+        clearTimeout( timer );
+        timer = setTimeout( () => fn( ...args ), ms );
+      };
+    };
+
+    /* ── 24. Expand All / Collapse All ── */
     const setupExpandAll = () => {
       const btn = document.getElementById( 'btnExpandAll' );
       btn.style.display = '';
@@ -1177,108 +1322,122 @@
       } );
     };
 
-    /* ── 27. Keyboard navigation ── */
+    /* ── 25. File selection (event delegation) — calls selectFile ── */
+    const setupFileSelection = () => {
+      document.getElementById( 'treeList' ).addEventListener( 'click', ( e ) => {
+        const target = e.target.closest( '[data-action="select-file"]' );
+        if ( !target ) return;
+        selectFile( target.dataset.path );
+      } );
+    };
+
+    /* ── 26. Keyboard navigation ── */
     const getVisibleTreeItems = () => {
       const treeList = document.getElementById( 'treeList' );
       const all = treeList.querySelectorAll( '.tree-folder, .tree-item' );
       return Array.from( all ).filter( ( el ) => {
         if ( el.style.display === 'none' ) return false;
-        const isSummary = el.classList.contains( 'tree-folder' );
-        const ownDetails = isSummary ? el.parentElement : null;
-        if ( isSummary && ownDetails?.style.display === 'none' ) return false;
 
-        let ancestor = isSummary ? ownDetails?.parentElement : el.parentElement;
+        if ( el.classList.contains( 'tree-folder' ) ) {
+          const ownDetails = el.parentElement;
+          if ( ownDetails && ownDetails.style.display === 'none' ) return false;
+          let ancestor = ownDetails?.parentElement;
+          while ( ancestor && ancestor !== treeList ) {
+            if ( ancestor.tagName === 'DETAILS' ) {
+              if ( !ancestor.open || ancestor.style.display === 'none' ) return false;
+            }
+            ancestor = ancestor.parentElement;
+          }
+          return true;
+        }
+
+        let ancestor = el.parentElement;
         while ( ancestor && ancestor !== treeList ) {
-          if ( ancestor.style.display === 'none' ) return false;
-          if ( ancestor.tagName === 'DETAILS' && !ancestor.open ) return false;
+          if ( ancestor.tagName === 'DETAILS' ) {
+            if ( !ancestor.open || ancestor.style.display === 'none' ) return false;
+          }
           ancestor = ancestor.parentElement;
         }
         return true;
       } );
     };
 
+    const selectFileItem = ( el ) => {
+      if ( !el.classList.contains( 'tree-item' ) ) return;
+      selectFile( el.dataset.path );
+    };
+
     const setupKeyboardNav = () => {
       document.addEventListener( 'keydown', ( e ) => {
-        if ( e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA' ) {
+        const treeList = document.getElementById( 'treeList' );
+        const active = document.activeElement;
+
+        if ( e.key === '/' && active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA' ) {
           e.preventDefault();
           document.getElementById( 'treeFilter' ).focus();
           return;
         }
 
-        const treeList = document.getElementById( 'treeList' );
-        if ( !treeList.contains( document.activeElement ) ) return;
+        if ( !treeList.contains( active ) ) return;
+        if ( !active.classList.contains( 'tree-folder' ) && !active.classList.contains( 'tree-item' ) ) return;
 
-        const el = document.activeElement;
-        const isSummary = el.classList.contains( 'tree-folder' );
-        const isItem = el.classList.contains( 'tree-item' );
-        if ( !isSummary && !isItem ) return;
-
-        const items = getVisibleTreeItems();
-        const idx = items.indexOf( el );
+        const visible = getVisibleTreeItems();
+        const idx = visible.indexOf( active );
         if ( idx === -1 ) return;
 
         switch ( e.key ) {
           case 'ArrowDown': {
             e.preventDefault();
-            const next = items[ idx + 1 ];
-            if ( next ) {
-              next.focus();
-              if ( next.classList.contains( 'tree-item' ) ) selectFile( next.dataset.path );
-            }
+            const next = visible[ idx + 1 ];
+            if ( next ) { next.focus(); selectFileItem( next ); }
             break;
           }
           case 'ArrowUp': {
             e.preventDefault();
-            const prev = items[ idx - 1 ];
-            if ( prev ) {
-              prev.focus();
-              if ( prev.classList.contains( 'tree-item' ) ) selectFile( prev.dataset.path );
-            }
+            const prev = visible[ idx - 1 ];
+            if ( prev ) { prev.focus(); selectFileItem( prev ); }
             break;
           }
           case 'Enter':
           case ' ': {
             e.preventDefault();
-            if ( isSummary ) {
-              el.parentElement.open = !el.parentElement.open;
-            } else if ( isItem ) {
-              selectFile( el.dataset.path );
+            if ( active.classList.contains( 'tree-folder' ) ) {
+              active.parentElement.open = !active.parentElement.open;
+            } else {
+              selectFileItem( active );
             }
             break;
           }
           case 'ArrowRight': {
             e.preventDefault();
-            if ( isSummary ) {
-              const details = el.parentElement;
+            if ( active.classList.contains( 'tree-folder' ) ) {
+              const details = active.parentElement;
               if ( !details.open ) {
                 details.open = true;
               } else {
-                const firstChild = details.querySelector( ':scope > details > .tree-folder, :scope > .tree-item' );
-                if ( firstChild ) {
-                  firstChild.focus();
-                  if ( firstChild.classList.contains( 'tree-item' ) ) selectFile( firstChild.dataset.path );
-                }
+                const firstChild = details.querySelector( '.tree-folder, .tree-item' );
+                if ( firstChild && firstChild !== active ) { firstChild.focus(); selectFileItem( firstChild ); }
               }
             }
             break;
           }
           case 'ArrowLeft': {
             e.preventDefault();
-            if ( isSummary ) {
-              const details = el.parentElement;
+            if ( active.classList.contains( 'tree-folder' ) ) {
+              const details = active.parentElement;
               if ( details.open ) {
                 details.open = false;
               } else {
                 const parentDetails = details.parentElement?.closest( 'details' );
                 if ( parentDetails ) {
-                  const parentSummary = parentDetails.querySelector( ':scope > .tree-folder' );
+                  const parentSummary = parentDetails.querySelector( ':scope > summary' );
                   if ( parentSummary ) parentSummary.focus();
                 }
               }
             } else {
-              const parentDetails = el.closest( 'details' );
+              const parentDetails = active.closest( 'details' );
               if ( parentDetails ) {
-                const parentSummary = parentDetails.querySelector( ':scope > .tree-folder' );
+                const parentSummary = parentDetails.querySelector( ':scope > summary' );
                 if ( parentSummary ) parentSummary.focus();
               }
             }
@@ -1288,348 +1447,47 @@
       } );
     };
 
-    /* ── 28. scrollToTreeFolder ── */
-    const scrollToTreeFolder = ( folderPath ) => {
-      const details = document.querySelector( `details[data-folder-path="${ CSS.escape( folderPath ) }"]` );
-      if ( !details ) return;
-
-      let ancestor = details.parentElement?.closest( 'details' );
-      while ( ancestor ) {
-        ancestor.open = true;
-        ancestor = ancestor.parentElement?.closest( 'details' );
-      }
-
-      details.open = true;
-      details.scrollIntoView( { block: 'center', behavior: 'smooth' } );
-    };
-
-    /* ── 29. Auto-open README ── */
+    /* ── 27. Auto-open README ── */
     const autoOpenReadme = () => {
       if ( !state.tree ) return;
 
-      const readme = state.tree.find( ( f ) =>
-        f.type === 'blob' && /^readme\.(md|txt)$/i.test( f.path )
-      ) ?? state.tree.find( ( f ) =>
-        f.type === 'blob' && /readme\.(md|txt)$/i.test( f.path.split( '/' ).pop() )
+      const readme = state.tree.find( ( item ) =>
+        item.type === 'blob' && /^readme\.(md|txt)$/i.test( item.path )
+      ) || state.tree.find( ( item ) =>
+        item.type === 'blob' && /^readme\.(md|txt)$/i.test( item.path.split( '/' ).pop() )
       );
 
       if ( !readme ) return;
 
-      const treeList = document.getElementById( 'treeList' );
-      const item = treeList.querySelector( `[data-action="select-file"][data-path="${ CSS.escape( readme.path ) }"]` );
-      if ( item ) {
-        selectFile( readme.path, { skipHash: true } );
-        item.scrollIntoView( { block: 'center', behavior: 'smooth' } );
-      }
+      selectFile( readme.path, { skipHash: true } );
+      const el = document.querySelector( `[data-action="select-file"][data-path="${ CSS.escape( readme.path ) }"]` );
+      if ( el ) el.scrollIntoView( { block: 'center', behavior: 'smooth' } );
     };
 
-    /* ── 30. resetToHome ── */
-    const resetToHome = () => {
-      localStorage.removeItem( storageKey( 'lastFilePath' ) );
+    /* ── 28. scrollToTreeFolder ── */
+    const scrollToTreeFolder = ( folderPath ) => {
+      const target = document.querySelector( `details[data-folder-path="${ CSS.escape( folderPath ) }"]` );
+      if ( !target ) return;
+
+      let ancestor = target.parentElement?.closest( 'details' );
+      while ( ancestor ) {
+        ancestor.open = true;
+        ancestor = ancestor.parentElement?.closest( 'details' );
+      }
+      target.open = true;
+      target.scrollIntoView( { block: 'center', behavior: 'smooth' } );
+    };
+
+    /* ── 29. resetToHome ── */
+    const resetToHome = async () => {
+      localStorage.removeItem( storageKey( 'currentFile' ) );
       state.currentFilePath = '';
       state.tree = null;
       try { history.replaceState( null, '', location.pathname + location.search ); } catch ( _ ) { /* file:// */ }
-      fetchTree();
+      await fetchTree();
     };
 
-    /* ── 31. GitHub SVG icon string ── */
-    const GITHUB_SVG = `<svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path></svg>`;
-
-    /* ── 32. Build breadcrumbs ── */
-    const buildBreadcrumbs = ( path ) => {
-      const segments = path.split( '/' );
-      const fileName = segments.pop();
-      let html = `<a class="breadcrumb-link" data-action="reset-home" title="Go to repo root">${ escapeHTML( state.repo ) }</a>`;
-
-      let folderPath = '';
-      for ( const seg of segments ) {
-        folderPath = folderPath ? folderPath + '/' + seg : seg;
-        html += ` / <a class="breadcrumb-link" data-action="scroll-folder" data-folder="${ escapeHTML( folderPath ) }" title="${ escapeHTML( folderPath ) }">${ escapeHTML( seg ) }</a>`;
-      }
-
-      html += ` / <strong>${ escapeHTML( fileName ) }</strong>`;
-      return html;
-    };
-
-    /* ── 33. Build file header ── */
-    const buildFileHeader = ( path, ext ) => {
-      const ghUrl = `https://github.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/blob/${ encodeURIComponent( state.branch ) }/${ path }`;
-      const hasToggle = [ 'md', 'html', 'htm', 'svg' ].includes( ext );
-      const hasCopy = !NO_COPY_EXTS.includes( ext );
-
-      let actionsHTML = '';
-
-      if ( hasToggle ) {
-        const pref = getPreferredView( ext );
-        const renderedOpacity = pref === 'rendered' ? '1' : '0.5';
-        const rawOpacity = pref === 'raw' ? '1' : '0.5';
-        actionsHTML += `<button class="file-btn" data-action="view-rendered" style="opacity:${ renderedOpacity }" title="Show rendered view">Rendered</button>`;
-        actionsHTML += `<button class="file-btn" data-action="view-raw" style="opacity:${ rawOpacity }" title="Show raw source">Raw</button>`;
-      }
-
-      if ( hasCopy ) {
-        actionsHTML += `<button class="file-btn" data-action="copy-file" title="Copy file content to clipboard">Copy</button>`;
-      }
-
-      actionsHTML += `<button class="file-btn" data-action="new-tab" data-path="${ escapeHTML( path ) }" title="Open in new tab">New Tab</button>`;
-
-      return `<div class="panel-header file-header">
-  <div class="file-title">
-    <a href="${ escapeHTML( ghUrl ) }" target="_blank" title="View on GitHub">${ GITHUB_SVG }</a>
-    <span id="breadcrumbs">${ buildBreadcrumbs( path ) }</span>
-  </div>
-  <div class="file-actions">${ actionsHTML }</div>
-</div>`;
-    };
-
-    /* ── 34. GitHub Pages URL detection ── */
-    const getNewTabUrl = async ( path ) => {
-      if ( state.pagesEnabled === null ) {
-        try {
-          const res = await fetch(
-            `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/pages`,
-            { headers: getAuthHeaders() }
-          );
-          updateRateBadge( res );
-          state.pagesEnabled = res.ok;
-        } catch ( _ ) {
-          state.pagesEnabled = false;
-        }
-      }
-
-      if ( state.pagesEnabled ) {
-        const isUserPage = state.repo.toLowerCase() === `${ state.owner.toLowerCase() }.github.io`;
-        return isUserPage
-          ? `https://${ state.owner }.github.io/${ path }`
-          : `https://${ state.owner }.github.io/${ state.repo }/${ path }`;
-      }
-
-      return `https://raw.githubusercontent.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/${ encodeURIComponent( state.branch ) }/${ path }`;
-    };
-
-    /* ── 35. Fetch file text ── */
-    const fetchFileText = async ( path, signal ) => {
-      const token = getToken();
-      if ( token ) {
-        const headers = { ...getAuthHeaders(), Accept: 'application/vnd.github.raw+json' };
-        const url = `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/contents/${ path }?ref=${ encodeURIComponent( state.branch ) }`;
-        const res = await fetch( url, { headers, signal } );
-        updateRateBadge( res );
-        if ( !res.ok ) throw new Error( `Fetch failed: ${ res.status }` );
-        return await res.text();
-      }
-      const url = `https://raw.githubusercontent.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/${ encodeURIComponent( state.branch ) }/${ path }`;
-      const res = await fetch( url, { signal } );
-      if ( !res.ok ) throw new Error( `Fetch failed: ${ res.status }` );
-      return await res.text();
-    };
-
-    /* ── 36. Fetch file as blob ── */
-    const fetchFileBlob = async ( path, signal ) => {
-      const token = getToken();
-      if ( token ) {
-        const headers = { ...getAuthHeaders(), Accept: 'application/vnd.github.raw+json' };
-        const url = `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/contents/${ path }?ref=${ encodeURIComponent( state.branch ) }`;
-        const res = await fetch( url, { headers, signal } );
-        updateRateBadge( res );
-        if ( !res.ok ) throw new Error( `Fetch failed: ${ res.status }` );
-        return await res.blob();
-      }
-      const url = `https://raw.githubusercontent.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/${ encodeURIComponent( state.branch ) }/${ path }`;
-      const res = await fetch( url, { signal } );
-      if ( !res.ok ) throw new Error( `Fetch failed: ${ res.status }` );
-      return await res.blob();
-    };
-
-    /* ── 37. Get raw URL (no token) ── */
-    const getRawUrl = ( path ) =>
-      `https://raw.githubusercontent.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/${ encodeURIComponent( state.branch ) }/${ path }`;
-
-    /* ── 38. Create blob URL helper ── */
-    const createBlobUrl = ( blob ) => {
-      const url = URL.createObjectURL( blob );
-      activeBlobUrls.add( url );
-      return url;
-    };
-
-    /* ── 39. Revoke active blob URLs ── */
-    const revokeActiveBlobUrls = () => {
-      activeBlobUrls.forEach( ( url ) => URL.revokeObjectURL( url ) );
-      activeBlobUrls.clear();
-    };
-
-    /* ── 40. Render markdown ── */
-    const renderMarkdown = ( text, path ) => {
-      const ext = 'md';
-      const pref = getPreferredView( ext );
-      const renderedDisplay = pref === 'rendered' ? '' : 'none';
-      const rawDisplay = pref === 'raw' ? '' : 'none';
-
-      let renderedHTML;
-      try {
-        renderedHTML = marked.parse( text );
-      } catch ( err ) {
-        return `<div class="md-error">⚠️ Markdown rendering failed: ${ escapeHTML( err.message ) }</div><pre>${ escapeHTML( text ) }</pre>`;
-      }
-
-      const html = `<div class="markdown-body" id="viewRendered" style="display:${ renderedDisplay }">${ renderedHTML }</div><pre id="viewRaw" style="display:${ rawDisplay }">${ escapeHTML( text ) }</pre>`;
-      return html;
-    };
-
-    /* ── 41. Rewrite markdown links ── */
-    const rewriteMarkdownLinks = ( path ) => {
-      const container = document.querySelector( '.markdown-body' );
-      if ( !container ) return;
-
-      const currentDir = path.includes( '/' ) ? path.substring( 0, path.lastIndexOf( '/' ) ) : '';
-      const ghBlobPrefix = `github.com/${ state.owner }/${ state.repo }/blob/${ state.branch }/`;
-
-      container.querySelectorAll( 'a' ).forEach( ( a ) => {
-        const href = a.getAttribute( 'href' );
-        if ( !href ) return;
-
-        // Anchor links — leave as-is
-        if ( href.startsWith( '#' ) ) return;
-
-        // GitHub blob links
-        const blobIdx = href.indexOf( ghBlobPrefix );
-        if ( blobIdx !== -1 ) {
-          const filePath = href.substring( blobIdx + ghBlobPrefix.length );
-          a.removeAttribute( 'href' );
-          a.style.cursor = 'pointer';
-          a.style.color = 'var(--highlight-color)';
-          a.addEventListener( 'click', ( e ) => {
-            e.preventDefault();
-            selectFile( decodeURIComponent( filePath ) );
-          } );
-          return;
-        }
-
-        // External links
-        if ( href.startsWith( 'http://' ) || href.startsWith( 'https://' ) || href.startsWith( '//' ) ) {
-          a.setAttribute( 'target', '_blank' );
-          a.setAttribute( 'rel', 'noopener' );
-          return;
-        }
-
-        // Relative paths
-        const resolved = currentDir ? currentDir + '/' + href : href;
-        const normalized = resolved.split( '/' ).reduce( ( acc, part ) => {
-          if ( part === '..' ) acc.pop();
-          else if ( part !== '.' && part !== '' ) acc.push( part );
-          return acc;
-        }, [] ).join( '/' );
-
-        a.removeAttribute( 'href' );
-        a.style.cursor = 'pointer';
-        a.style.color = 'var(--highlight-color)';
-        a.addEventListener( 'click', ( e ) => {
-          e.preventDefault();
-          selectFile( normalized );
-        } );
-      } );
-    };
-
-    /* ── 42. Render code / text ── */
-    const renderCode = ( text, ext, fileSize ) => {
-      const escaped = escapeHTML( text );
-      if ( fileSize > 500000 ) {
-        return `<pre><code>${ escaped }</code></pre>`;
-      }
-      return `<pre><code class="language-${ escapeHTML( ext ) }">${ escaped }</code></pre>`;
-    };
-
-    /* ── 43. Highlight code blocks ── */
-    const highlightCode = ( fileSize ) => {
-      if ( fileSize > 500000 ) return;
-      const contentBody = document.getElementById( 'contentBody' );
-      contentBody.querySelectorAll( 'pre code[class]' ).forEach( ( block ) => {
-        hljs.highlightElement( block );
-      } );
-    };
-
-    /* ── 44. Render HTML preview ── */
-    const renderHTMLPreview = ( text, path ) => {
-      const ext = path.split( '.' ).pop().toLowerCase();
-      const pref = getPreferredView( ext );
-      const renderedDisplay = pref === 'rendered' ? '' : 'none';
-      const rawDisplay = pref === 'raw' ? '' : 'none';
-
-      const blob = new Blob( [ text ], { type: 'text/html' } );
-      const blobUrl = createBlobUrl( blob );
-
-      return `<div id="viewRendered" style="display:${ renderedDisplay }"><iframe class="iframe-content" sandbox="allow-scripts" src="${ escapeHTML( blobUrl ) }"></iframe></div><pre id="viewRaw" style="display:${ rawDisplay }">${ escapeHTML( text ) }</pre>`;
-    };
-
-    /* ── 45. Render image ── */
-    const renderImage = async ( path, ext, signal ) => {
-      // Always blob-fetch: raw.githubusercontent.com serves text/plain, which
-      // breaks <img> for SVGs (browser needs image/svg+xml MIME type).
-      const blob = await fetchFileBlob( path, signal );
-
-      if ( ext === 'svg' ) {
-        // Re-wrap with correct MIME so the browser renders it
-        const svgBlob = new Blob( [ blob ], { type: 'image/svg+xml' } );
-        const url = createBlobUrl( svgBlob );
-        const text = await blob.text();
-        const pref = getPreferredView( 'svg' );
-        const renderedDisplay = pref === 'rendered' ? '' : 'none';
-        const rawDisplay = pref === 'raw' ? '' : 'none';
-        return `<div id="viewRendered" style="display:${ renderedDisplay }"><img class="media-content" src="${ escapeHTML( url ) }" alt="${ escapeHTML( path ) }"></div><pre id="viewRaw" style="display:${ rawDisplay }">${ escapeHTML( text ) }</pre>`;
-      }
-
-      const url = createBlobUrl( blob );
-      return `<img class="media-content" src="${ escapeHTML( url ) }" alt="${ escapeHTML( path ) }">`;
-    };
-
-    /* ── 46. Render audio ── */
-    const renderAudio = async ( path, signal ) => {
-      if ( getToken() ) {
-        const blob = await fetchFileBlob( path, signal );
-        const url = createBlobUrl( blob );
-        return `<audio controls class="media-content" src="${ escapeHTML( url ) }"></audio>`;
-      }
-      const url = getRawUrl( path );
-      return `<audio controls class="media-content" src="${ escapeHTML( url ) }"></audio>`;
-    };
-
-    /* ── 47. Render video ── */
-    const renderVideo = async ( path, signal ) => {
-      if ( getToken() ) {
-        const blob = await fetchFileBlob( path, signal );
-        const url = createBlobUrl( blob );
-        return `<video controls class="media-content" src="${ escapeHTML( url ) }"></video>`;
-      }
-      const url = getRawUrl( path );
-      return `<video controls class="media-content" src="${ escapeHTML( url ) }"></video>`;
-    };
-
-    /* ── 48. Render PDF ── */
-    const renderPDF = async ( path, signal ) => {
-      // Always blob-fetch: raw.githubusercontent.com serves text/plain, and
-      // Google Docs Viewer is unreliable. Blob URL with correct MIME works everywhere.
-      const blob = await fetchFileBlob( path, signal );
-      const pdfBlob = new Blob( [ blob ], { type: 'application/pdf' } );
-      const url = createBlobUrl( pdfBlob );
-      return `<iframe class="iframe-content" src="${ escapeHTML( url ) }"></iframe>`;
-    };
-
-    /* ── 49. Render spreadsheet ── */
-    const renderSpreadsheet = async ( path, signal ) => {
-      const blob = await fetchFileBlob( path, signal );
-      const data = await blob.arrayBuffer();
-      const workbook = XLSX.read( data, { type: 'array' } );
-
-      let html = '';
-      for ( const sheetName of workbook.SheetNames ) {
-        const sheetHTML = XLSX.utils.sheet_to_html( workbook.Sheets[ sheetName ] );
-        html += `<div class="xlsx-sheet"><h3>${ escapeHTML( sheetName ) }</h3>${ sheetHTML }</div>`;
-      }
-
-      return DOMPurify.sanitize( html );
-    };
-
-    /* ── 50. Hash routing ── */
+    /* ── 30. Hash routing ── */
     const updateHash = ( path ) => {
       try {
         history.pushState( null, '', '#' + encodeURIComponent( path ) );
@@ -1640,12 +1498,10 @@
       const hash = location.hash.slice( 1 );
       if ( !hash ) return;
       const path = decodeURIComponent( hash );
-
       if ( !state.tree ) {
         document.getElementById( 'contentBody' ).innerHTML = '<p>Loading tree…</p>';
         await fetchTree();
       }
-
       const found = state.tree?.find( ( item ) => item.path === path && item.type === 'blob' );
       if ( found ) {
         selectFile( path, { skipHash: true } );
@@ -1655,34 +1511,323 @@
       }
     };
 
-    /* ── 51. selectFile — main content loader ── */
+    /* ── 31. getNewTabUrl — GitHub Pages or raw fallback ── */
+    const getNewTabUrl = async ( path ) => {
+      if ( state.pagesEnabled === null ) {
+        try {
+          const headers = getAuthHeaders();
+          const res = await fetch(
+            `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/pages`,
+            { headers }
+          );
+          updateRateBadge( res );
+          state.pagesEnabled = res.ok;
+        } catch ( _ ) {
+          state.pagesEnabled = false;
+        }
+      }
+
+      if ( state.pagesEnabled ) {
+        // GitHub Pages renders .md files as HTML when the extension is omitted
+        const pagesPath = path.replace( /\.md$/i, '' );
+        const isUserPage = state.repo.toLowerCase() === `${ state.owner.toLowerCase() }.github.io`;
+        return isUserPage
+          ? `https://${ state.owner }.github.io/${ pagesPath }`
+          : `https://${ state.owner }.github.io/${ state.repo }/${ pagesPath }`;
+      }
+
+      return `https://raw.githubusercontent.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/${ encodeURIComponent( state.branch ) }/${ path }`;
+    };
+
+    /* ── 32. buildFileHeader — breadcrumbs + action buttons ── */
+    const buildFileHeader = ( path, ext ) => {
+      const segments = path.split( '/' );
+      const fileName = segments.pop();
+
+      let breadcrumbHtml = `<a class="breadcrumb-link" data-action="reset-home" title="Go to repo root">${ escapeHTML( state.repo ) }</a>`;
+      let folderPath = '';
+      for ( const seg of segments ) {
+        folderPath = folderPath ? `${ folderPath }/${ seg }` : seg;
+        breadcrumbHtml += ` / <a class="breadcrumb-link" data-action="scroll-folder" data-folder="${ escapeHTML( folderPath ) }" title="${ escapeHTML( folderPath ) }">${ escapeHTML( seg ) }</a>`;
+      }
+      breadcrumbHtml += ` / <strong>${ escapeHTML( fileName ) }</strong>`;
+
+      const githubUrl = `https://github.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/blob/${ encodeURIComponent( state.branch ) }/${ path }`;
+
+      const hasToggle = [ 'md', 'html', 'htm', 'svg' ].includes( ext );
+      const hasCopy = !NO_COPY_EXTS.includes( ext );
+      const preferredView = hasToggle ? getPreferredView( ext ) : 'rendered';
+
+      let actionsHtml = '';
+      if ( hasToggle ) {
+        const renderedOpacity = preferredView === 'rendered' ? '1' : '0.5';
+        const rawOpacity = preferredView === 'raw' ? '1' : '0.5';
+        actionsHtml += `<button class="file-btn" data-action="view-rendered" style="opacity:${ renderedOpacity }" title="Show rendered view">Rendered</button>`;
+        actionsHtml += `<button class="file-btn" data-action="view-raw" style="opacity:${ rawOpacity }" title="Show raw source">Raw</button>`;
+      }
+      if ( hasCopy ) {
+        actionsHtml += `<button class="file-btn" data-action="copy-file" title="Copy file contents to clipboard">📋 Copy</button>`;
+      }
+      actionsHtml += `<button class="file-btn" data-action="new-tab" data-path="${ escapeHTML( path ) }" title="Open in new tab">↗ New Tab</button>`;
+
+      return `<div class="panel-header file-header">` +
+        `<div class="file-title">` +
+        `<a href="${ escapeHTML( githubUrl ) }" target="_blank" rel="noopener" title="View on GitHub">${ GITHUB_SVG_ICON }</a>` +
+        `<span id="breadcrumbs">${ breadcrumbHtml }</span>` +
+        `</div>` +
+        `<div class="file-actions">${ actionsHtml }</div>` +
+        `</div>`;
+    };
+
+    /* ── 33. Content rendering helpers ── */
+
+    const renderMarkdown = ( text, filePath ) => {
+      const ext = filePath.split( '.' ).pop().toLowerCase();
+      const preferredView = getPreferredView( ext );
+      let renderedHtml;
+      let errorHtml = '';
+
+      try {
+        renderedHtml = marked.parse( text );
+      } catch ( err ) {
+        errorHtml = `<div class="md-error">⚠️ Markdown rendering failed: ${ escapeHTML( err.message ) }</div>`;
+        renderedHtml = '';
+      }
+
+      const renderedDisplay = preferredView === 'rendered' ? '' : 'display:none';
+      const rawDisplay = preferredView === 'raw' ? '' : 'display:none';
+
+      document.getElementById( 'contentBody' ).innerHTML =
+        errorHtml +
+        `<div class="markdown-body" id="viewRendered" style="${ renderedDisplay }">${ renderedHtml }</div>` +
+        `<pre id="viewRaw" style="${ rawDisplay }">${ escapeHTML( text ) }</pre>`;
+
+      // Rewrite links inside .markdown-body
+      const mdBody = document.getElementById( 'viewRendered' );
+      if ( mdBody ) {
+        const currentDir = filePath.includes( '/' ) ? filePath.substring( 0, filePath.lastIndexOf( '/' ) ) : '';
+        mdBody.querySelectorAll( 'a[href]' ).forEach( ( a ) => {
+          const href = a.getAttribute( 'href' );
+          if ( !href ) return;
+
+          // Anchor links — leave as-is
+          if ( href.startsWith( '#' ) ) return;
+
+          // GitHub blob links
+          const blobMatch = href.match( /github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/(.+)/ );
+          if ( blobMatch && blobMatch[ 1 ] === state.owner && blobMatch[ 2 ] === state.repo ) {
+            a.removeAttribute( 'href' );
+            a.style.cursor = 'pointer';
+            a.style.color = 'var(--highlight-color)';
+            a.addEventListener( 'click', ( e ) => { e.preventDefault(); selectFile( blobMatch[ 4 ] ); } );
+            return;
+          }
+
+          // External links
+          if ( href.startsWith( 'http://' ) || href.startsWith( 'https://' ) || href.startsWith( '//' ) ) {
+            a.setAttribute( 'target', '_blank' );
+            a.setAttribute( 'rel', 'noopener' );
+            return;
+          }
+
+          // Relative paths
+          const resolved = currentDir ? currentDir + '/' + href : href;
+          const normalized = resolved.split( '/' ).reduce( ( acc, part ) => {
+            if ( part === '..' ) acc.pop();
+            else if ( part !== '.' && part !== '' ) acc.push( part );
+            return acc;
+          }, [] ).join( '/' );
+
+          a.removeAttribute( 'href' );
+          a.style.cursor = 'pointer';
+          a.style.color = 'var(--highlight-color)';
+          a.addEventListener( 'click', ( e ) => { e.preventDefault(); selectFile( normalized ); } );
+        } );
+      }
+    };
+
+    const renderCode = ( text, ext ) => {
+      const skipHighlight = text.length > 500 * 1024;
+      if ( skipHighlight ) {
+        document.getElementById( 'contentBody' ).innerHTML =
+          `<pre><code>${ escapeHTML( text ) }</code></pre>`;
+      } else {
+        const code = document.createElement( 'code' );
+        code.textContent = text;
+        try { hljs.highlightElement( code ); } catch ( _ ) { /* fallback plain */ }
+        const pre = document.createElement( 'pre' );
+        pre.appendChild( code );
+        document.getElementById( 'contentBody' ).innerHTML = '';
+        document.getElementById( 'contentBody' ).appendChild( pre );
+      }
+    };
+
+    const renderHtml = ( text, filePath, ext ) => {
+      const preferredView = getPreferredView( ext );
+      const blob = new Blob( [ text ], { type: 'text/html' } );
+      const url = createBlobUrl( blob );
+
+      const renderedDisplay = preferredView === 'rendered' ? '' : 'display:none';
+      const rawDisplay = preferredView === 'raw' ? '' : 'display:none';
+
+      document.getElementById( 'contentBody' ).innerHTML =
+        `<div id="viewRendered" style="${ renderedDisplay }"><iframe class="iframe-content" sandbox="allow-scripts" src="${ escapeHTML( url ) }"></iframe></div>` +
+        `<pre id="viewRaw" style="${ rawDisplay }">${ escapeHTML( text ) }</pre>`;
+    };
+
+    const renderImage = ( url, alt ) => {
+      document.getElementById( 'contentBody' ).innerHTML =
+        `<img class="media-content" src="${ escapeHTML( url ) }" alt="${ escapeHTML( alt ) }">`;
+    };
+
+    const renderSvg = ( text ) => {
+      const preferredView = getPreferredView( 'svg' );
+      const blob = new Blob( [ text ], { type: 'image/svg+xml' } );
+      const url = createBlobUrl( blob );
+
+      const renderedDisplay = preferredView === 'rendered' ? '' : 'display:none';
+      const rawDisplay = preferredView === 'raw' ? '' : 'display:none';
+
+      document.getElementById( 'contentBody' ).innerHTML =
+        `<div id="viewRendered" style="${ renderedDisplay }"><img class="media-content" src="${ escapeHTML( url ) }" alt="SVG"></div>` +
+        `<pre id="viewRaw" style="${ rawDisplay }">${ escapeHTML( text ) }</pre>`;
+    };
+
+    const renderAudio = ( url ) => {
+      document.getElementById( 'contentBody' ).innerHTML =
+        `<audio controls class="media-content" src="${ escapeHTML( url ) }">Your browser does not support audio.</audio>`;
+    };
+
+    const renderVideo = ( url ) => {
+      document.getElementById( 'contentBody' ).innerHTML =
+        `<video controls class="media-content" src="${ escapeHTML( url ) }">Your browser does not support video.</video>`;
+    };
+
+    const renderPdf = ( url ) => {
+      document.getElementById( 'contentBody' ).innerHTML =
+        `<iframe class="iframe-content" src="${ escapeHTML( url ) }"></iframe>`;
+    };
+
+    const renderSpreadsheet = async ( data ) => {
+      try {
+        const workbook = XLSX.read( data, { type: 'array' } );
+        let html = '';
+        for ( const sheetName of workbook.SheetNames ) {
+          const sheetHtml = XLSX.utils.sheet_to_html( workbook.Sheets[ sheetName ] );
+          html += `<div class="xlsx-sheet"><h3>${ escapeHTML( sheetName ) }</h3>${ sheetHtml }</div>`;
+        }
+        document.getElementById( 'contentBody' ).innerHTML = DOMPurify.sanitize( html );
+      } catch ( err ) {
+        document.getElementById( 'contentBody' ).innerHTML =
+          `<p style="color: red;">Failed to parse spreadsheet: ${ escapeHTML( err.message ) }</p>`;
+      }
+    };
+
+    /* ── 34. fetchFileText — text content fetch ── */
+    const fetchFileText = async ( path, signal ) => {
+      const cached = getCachedFileText( path );
+      if ( cached !== null ) return cached;
+
+      let text;
+      const token = getToken();
+
+      if ( token ) {
+        const headers = { ...getAuthHeaders(), Accept: 'application/vnd.github.raw+json' };
+        const res = await fetch(
+          `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/contents/${ path }?ref=${ encodeURIComponent( state.branch ) }`,
+          { headers, signal }
+        );
+        updateRateBadge( res );
+        if ( !res.ok ) throw new Error( `Failed to fetch file: ${ res.status }` );
+        text = await res.text();
+      } else {
+        const res = await fetch(
+          `https://raw.githubusercontent.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/${ encodeURIComponent( state.branch ) }/${ path }`,
+          { signal }
+        );
+        if ( !res.ok ) throw new Error( `Failed to fetch file: ${ res.status }` );
+        text = await res.text();
+      }
+
+      setCachedFileText( path, text );
+      return text;
+    };
+
+    /* ── 35. fetchFileBlob — binary content fetch ── */
+    const fetchFileBlob = async ( path, signal, mimeType ) => {
+      const token = getToken();
+      let blob;
+
+      if ( token ) {
+        const headers = { ...getAuthHeaders(), Accept: 'application/vnd.github.raw+json' };
+        const res = await fetch(
+          `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/contents/${ path }?ref=${ encodeURIComponent( state.branch ) }`,
+          { headers, signal }
+        );
+        updateRateBadge( res );
+        if ( !res.ok ) throw new Error( `Failed to fetch file: ${ res.status }` );
+        blob = await res.blob();
+      } else {
+        const res = await fetch(
+          `https://raw.githubusercontent.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/${ encodeURIComponent( state.branch ) }/${ path }`,
+          { signal }
+        );
+        if ( !res.ok ) throw new Error( `Failed to fetch file: ${ res.status }` );
+        blob = await res.blob();
+      }
+
+      if ( mimeType ) {
+        blob = new Blob( [ blob ], { type: mimeType } );
+      }
+
+      return createBlobUrl( blob );
+    };
+
+    /* ── 36. selectFile — main function ── */
+    let lastRawText = '';
+
     const selectFile = async ( path, { skipHash = false } = {} ) => {
-      // 1. Abort in-flight fetch
+      // Abort in-flight
       if ( currentAbortController ) currentAbortController.abort();
       currentAbortController = new AbortController();
       const signal = currentAbortController.signal;
 
-      // Revoke previous blob URLs
-      revokeActiveBlobUrls();
+      // Revoke old blob URLs
+      revokeAllBlobUrls();
+      lastRawText = '';
 
-      // 2. Look up file in tree
-      const treeItem = state.tree?.find( ( f ) => f.path === path && f.type === 'blob' );
-      const fileSize = treeItem?.size ?? 0;
-
-      // 3. Extension
+      // Look up file in tree
+      const treeItem = state.tree?.find( ( item ) => item.path === path && item.type === 'blob' );
+      const fileSize = treeItem?.size || 0;
       const ext = path.includes( '.' ) ? path.split( '.' ).pop().toLowerCase() : '';
+      const isStreamable = STREAMABLE_EXTS.includes( ext );
 
-      // 4. Large file protection (skip for streamable)
-      if ( fileSize > LARGE_FILE_WARNING_BYTES && !STREAMABLE_EXTS.includes( ext ) && !approvedLargeFiles.has( path ) ) {
+      // Large file protection
+      if ( fileSize > LARGE_FILE_WARNING_BYTES && !isStreamable && !approvedLargeFiles.has( path ) ) {
         const sizeMB = ( fileSize / ( 1024 * 1024 ) ).toFixed( 1 );
         if ( !window.confirm( `This file is ${ sizeMB } MB. Load anyway?` ) ) return;
         approvedLargeFiles.add( path );
       }
 
-      // 5. Update state
+      // Update active tree item — open parent folders, highlight, focus, scroll into view
+      const prevActive = document.querySelector( '.tree-item.active' );
+      if ( prevActive ) prevActive.classList.remove( 'active' );
+      const treeEl = document.querySelector( `[data-action="select-file"][data-path="${ CSS.escape( path ) }"]` );
+      if ( treeEl ) {
+        // Open all ancestor <details> so the item is visible
+        let ancestor = treeEl.closest( 'details' );
+        while ( ancestor ) {
+          ancestor.open = true;
+          ancestor = ancestor.parentElement?.closest( 'details' );
+        }
+        treeEl.classList.add( 'active' );
+        treeEl.scrollIntoView( { block: 'center', behavior: 'smooth' } );
+        treeEl.focus();
+      }
+
       state.currentFilePath = path;
 
-      // 6. Build file header
+      // Build file header
       const contentArea = document.getElementById( 'contentArea' );
       const existingHeader = contentArea.querySelector( '.panel-header.file-header' );
       const newHeader = document.createElement( 'div' );
@@ -1691,98 +1836,106 @@
       if ( existingHeader ) {
         existingHeader.replaceWith( headerEl );
       } else {
-        contentArea.insertBefore( headerEl, contentArea.firstChild );
+        contentArea.insertBefore( headerEl, document.getElementById( 'contentBody' ) );
       }
 
-      // 7. Show loading
-      const contentBody = document.getElementById( 'contentBody' );
-      contentBody.innerHTML = '<p>Loading…</p>';
+      // Show loading
+      document.getElementById( 'contentBody' ).innerHTML = '<p>Loading…</p>';
 
       try {
-        // 8. Render based on type
-        if ( IMAGE_EXTS.includes( ext ) ) {
-          contentBody.innerHTML = await renderImage( path, ext, signal );
+        // Render by type
+        if ( ext === 'md' ) {
+          const text = await fetchFileText( path, signal );
+          lastRawText = text;
+          renderMarkdown( text, path );
+
+        } else if ( ext === 'html' || ext === 'htm' ) {
+          const text = await fetchFileText( path, signal );
+          lastRawText = text;
+          renderHtml( text, path, ext );
+
+        } else if ( ext === 'svg' ) {
+          // Always blob-fetch for rendering, but also get text for raw toggle
+          const text = await fetchFileText( path, signal );
+          lastRawText = text;
+          renderSvg( text );
+
+        } else if ( IMAGE_EXTS.includes( ext ) && ext !== 'svg' ) {
+          const token = getToken();
+          if ( token ) {
+            const url = await fetchFileBlob( path, signal );
+            renderImage( url, path.split( '/' ).pop() );
+          } else {
+            const directUrl = `https://raw.githubusercontent.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/${ encodeURIComponent( state.branch ) }/${ path }`;
+            renderImage( directUrl, path.split( '/' ).pop() );
+          }
 
         } else if ( AUDIO_EXTS.includes( ext ) ) {
-          contentBody.innerHTML = await renderAudio( path, signal );
+          const token = getToken();
+          if ( token ) {
+            const url = await fetchFileBlob( path, signal );
+            renderAudio( url );
+          } else {
+            const directUrl = `https://raw.githubusercontent.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/${ encodeURIComponent( state.branch ) }/${ path }`;
+            renderAudio( directUrl );
+          }
 
         } else if ( VIDEO_EXTS.includes( ext ) ) {
-          contentBody.innerHTML = await renderVideo( path, signal );
+          const token = getToken();
+          if ( token ) {
+            const url = await fetchFileBlob( path, signal );
+            renderVideo( url );
+          } else {
+            const directUrl = `https://raw.githubusercontent.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/${ encodeURIComponent( state.branch ) }/${ path }`;
+            renderVideo( directUrl );
+          }
 
         } else if ( ext === 'pdf' ) {
-          contentBody.innerHTML = await renderPDF( path, signal );
+          const url = await fetchFileBlob( path, signal, 'application/pdf' );
+          renderPdf( url );
 
         } else if ( SHEET_EXTS.includes( ext ) ) {
-          contentBody.innerHTML = await renderSpreadsheet( path, signal );
+          const blobUrl = await fetchFileBlob( path, signal );
+          const res = await fetch( blobUrl );
+          const arrayBuf = await res.arrayBuffer();
+          await renderSpreadsheet( new Uint8Array( arrayBuf ) );
 
         } else {
-          // Text-based files
-          let text = getCachedFileText( path );
-          if ( text === null ) {
-            text = await fetchFileText( path, signal );
-            setCachedFileText( path, text );
-          }
-
-          if ( ext === 'md' ) {
-            contentBody.innerHTML = renderMarkdown( text, path );
-            rewriteMarkdownLinks( path );
-          } else if ( ext === 'html' || ext === 'htm' ) {
-            contentBody.innerHTML = renderHTMLPreview( text, path );
-          } else {
-            contentBody.innerHTML = renderCode( text, ext, fileSize );
-            highlightCode( fileSize );
-          }
+          // Code / text / everything else
+          const text = await fetchFileText( path, signal );
+          lastRawText = text;
+          renderCode( text, ext );
         }
       } catch ( err ) {
         if ( err.name === 'AbortError' ) return;
-        contentBody.innerHTML = `<p style="color:red;">Error loading file: ${ escapeHTML( err.message ) }</p>`;
+        document.getElementById( 'contentBody' ).innerHTML =
+          `<p style="color: red;">${ escapeHTML( err.message ) }</p>`;
       }
 
-      // 9. Update hash
+      // Update hash
       if ( !skipHash ) {
         updateHash( path );
       }
 
-      // 10. Save last file path
-      localStorage.setItem( storageKey( 'lastFilePath' ), path );
+      // Save last file path
+      localStorage.setItem( storageKey( 'currentFile' ), path );
 
-      // 11. Highlight active tree item
-      const prev = document.querySelector( '.tree-item.active' );
-      if ( prev ) prev.classList.remove( 'active' );
-      const treeEl = document.querySelector( `[data-action="select-file"][data-path="${ CSS.escape( path ) }"]` );
-      if ( treeEl ) treeEl.classList.add( 'active' );
-
-      // 12. Scroll content to top
+      // Scroll content area to top
       contentArea.scrollTo( { top: 0 } );
     };
 
-    /* ── 52. File selection (event delegation on tree) ── */
-    const setupFileSelection = () => {
-      document.getElementById( 'treeList' ).addEventListener( 'click', ( e ) => {
-        const target = e.target.closest( '[data-action="select-file"]' );
-        if ( !target ) return;
-        selectFile( target.dataset.path );
-      } );
-    };
-
-    /* ── 53. Content area actions (event delegation) ── */
+    /* ── 37. setupContentActions — breadcrumb delegation, Copy, New Tab, view toggle ── */
     const setupContentActions = () => {
       const contentArea = document.getElementById( 'contentArea' );
 
-      contentArea.addEventListener( 'click', ( e ) => {
+      contentArea.addEventListener( 'click', async ( e ) => {
         // Breadcrumb: scroll to folder
-        const scrollLink = e.target.closest( '[data-action="scroll-folder"]' );
-        if ( scrollLink ) {
-          scrollToTreeFolder( scrollLink.dataset.folder );
-          return;
-        }
+        const folderLink = e.target.closest( '[data-action="scroll-folder"]' );
+        if ( folderLink ) { scrollToTreeFolder( folderLink.dataset.folder ); return; }
 
-        // Breadcrumb: reset to home
+        // Breadcrumb: reset home
         const homeLink = e.target.closest( '[data-action="reset-home"]' );
-        if ( homeLink ) {
-          resetToHome();
-          return;
-        }
+        if ( homeLink ) { resetToHome(); return; }
 
         // View toggle: rendered
         const renderedBtn = e.target.closest( '[data-action="view-rendered"]' );
@@ -1794,7 +1947,7 @@
           renderedBtn.style.opacity = '1';
           const rawBtn = contentArea.querySelector( '[data-action="view-raw"]' );
           if ( rawBtn ) rawBtn.style.opacity = '0.5';
-          const ext = state.currentFilePath.includes( '.' ) ? state.currentFilePath.split( '.' ).pop().toLowerCase() : '';
+          const ext = state.currentFilePath.split( '.' ).pop().toLowerCase();
           setPreferredView( ext, 'rendered' );
           return;
         }
@@ -1809,57 +1962,55 @@
           rawBtn.style.opacity = '1';
           const rendBtn = contentArea.querySelector( '[data-action="view-rendered"]' );
           if ( rendBtn ) rendBtn.style.opacity = '0.5';
-          const ext = state.currentFilePath.includes( '.' ) ? state.currentFilePath.split( '.' ).pop().toLowerCase() : '';
+          const ext = state.currentFilePath.split( '.' ).pop().toLowerCase();
           setPreferredView( ext, 'raw' );
           return;
         }
 
-        // Copy button
+        // Copy
         const copyBtn = e.target.closest( '[data-action="copy-file"]' );
-        if ( copyBtn ) {
-          const cached = getCachedFileText( state.currentFilePath );
-          if ( cached !== null ) {
-            navigator.clipboard.writeText( cached ).then( () => {
-              const original = copyBtn.textContent;
-              copyBtn.textContent = '✓ Copied';
-              setTimeout( () => { copyBtn.textContent = original; }, 1500 );
-            } );
-          }
+        if ( copyBtn && lastRawText ) {
+          try {
+            await navigator.clipboard.writeText( lastRawText );
+            const origText = copyBtn.textContent;
+            copyBtn.textContent = '✓ Copied';
+            setTimeout( () => { copyBtn.textContent = origText; }, 1500 );
+          } catch ( _ ) { /* clipboard blocked */ }
           return;
         }
 
-        // New Tab button
+        // New Tab
         const newTabBtn = e.target.closest( '[data-action="new-tab"]' );
         if ( newTabBtn ) {
           const filePath = newTabBtn.dataset.path;
-          getNewTabUrl( filePath ).then( ( url ) => {
-            window.open( url, '_blank' );
-          } );
+          const url = await getNewTabUrl( filePath );
+          window.open( url, '_blank', 'noopener' );
           return;
         }
       } );
     };
 
-    /* ── 54. Global error handlers ── */
+    /* ── 38. Global error handlers ── */
     window.addEventListener( 'error', ( event ) => {
       const panel = document.createElement( 'div' );
       panel.className = 'error-panel';
-      panel.innerHTML = `<strong>Error:</strong> ${ escapeHTML( event.message || 'Unknown error' ) }<br><button onclick="location.reload()" title="Reload page">Reload</button>`;
+      panel.innerHTML = `<p>⚠️ Error: ${ escapeHTML( event.message || 'Unknown error' ) }</p><button onclick="location.reload()" title="Reload page">Reload</button>`;
       document.body.appendChild( panel );
     } );
 
     window.addEventListener( 'unhandledrejection', ( event ) => {
       const panel = document.createElement( 'div' );
       panel.className = 'error-panel';
-      panel.innerHTML = `<strong>Unhandled error:</strong> ${ escapeHTML( event.reason?.message || String( event.reason ) || 'Unknown error' ) }<br><button onclick="location.reload()" title="Reload page">Reload</button>`;
+      panel.innerHTML = `<p>⚠️ Unhandled error: ${ escapeHTML( event.reason?.message || String( event.reason ) || 'Unknown' ) }</p><button onclick="location.reload()" title="Reload page">Reload</button>`;
       document.body.appendChild( panel );
     } );
 
-    /* ── 55. init ── */
+    /* ── 39. init ── */
     const init = async () => {
       initAppearance();
       setupListeners();
       setupExpandAll();
+      setupKeyboardNav();
       setupFileSelection();
       setupContentActions();
       restoreFileCache();
@@ -1878,10 +2029,11 @@
         document.getElementById( 'contentBody' ).innerHTML = '<p>Loading tree…</p>';
         await fetchTree();
 
+        // File open priority
         if ( location.hash.length > 1 ) {
           await handleHashChange();
         } else {
-          const lastPath = localStorage.getItem( storageKey( 'lastFilePath' ) );
+          const lastPath = localStorage.getItem( storageKey( 'currentFile' ) );
           if ( lastPath ) {
             selectFile( lastPath, { skipHash: false } );
           } else {
@@ -1889,8 +2041,11 @@
           }
         }
 
-        setupTreeFilter();
-        setupKeyboardNav();
+        // Fallback focus: if no file was selected, focus the first visible tree item
+        if ( !document.querySelector( '.tree-item.active' ) ) {
+          const first = document.querySelector( '#treeList .tree-item, #treeList .tree-folder' );
+          if ( first ) first.focus();
+        }
       }
     };
 
