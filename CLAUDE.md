@@ -1,5 +1,7 @@
 # Sandbox Repository Instructions
 
+2026-04-10
+
 Personal sandbox for experiments, prototypes, and AI tool exploration.
 Hosted on GitHub Pages at theo-armour.github.io/sandbox/
 
