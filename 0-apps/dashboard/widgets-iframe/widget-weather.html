@@ -6,18 +6,208 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="widget-base.css">
   <style>
+    #city {
+      color: var(--muted);
+      font-size: clamp(0.75rem, 2.2vw, 0.9rem);
+    }
+
+    #current {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
     .temp {
-      font-size: clamp(1.2rem, 4vw, 1.7rem);
+      font-size: clamp(1.4rem, 5vw, 1.9rem);
       font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .condition {
+      font-size: clamp(0.85rem, 2.5vw, 1rem);
+    }
+
+    #range {
+      font-variant-numeric: tabular-nums;
+    }
+
+    #updated {
+      color: var(--muted);
+      font-size: clamp(0.7rem, 2vw, 0.8rem);
     }
   </style>
 </head>
 
 <body>
   <h2>Weather</h2>
-  <div>San Francisco</div>
-  <div class="temp">58 F</div>
-  <div class="muted">Placeholder until a weather API is connected</div>
+  <div id="city">San Francisco</div>
+  <div id="current"><span class="muted">Loading…</span></div>
+  <div id="range" class="muted"></div>
+  <div id="updated"></div>
+
+  <script>
+    const cityEl = document.getElementById( "city" );
+    const currentEl = document.getElementById( "current" );
+    const rangeEl = document.getElementById( "range" );
+    const updatedEl = document.getElementById( "updated" );
+
+    const LOCATION_KEY = "dashboard-location";
+    const CACHE_KEY = "dashboard-widget-weather-cache";
+    const REFRESH_MS = 15 * 60 * 1000;
+    const DEFAULT_COORDS = { lat: 37.7749, lon: -122.4194 };
+    const DEFAULT_LABEL = "San Francisco";
+
+    // WMO weather interpretation codes
+    // https://open-meteo.com/en/docs#weather_variable_documentation
+    const WEATHER_CODES = {
+      0:  { emoji: "☀️",  label: "Clear" },
+      1:  { emoji: "🌤️", label: "Mainly clear" },
+      2:  { emoji: "⛅",  label: "Partly cloudy" },
+      3:  { emoji: "☁️",  label: "Overcast" },
+      45: { emoji: "🌫️", label: "Fog" },
+      48: { emoji: "🌫️", label: "Rime fog" },
+      51: { emoji: "🌦️", label: "Light drizzle" },
+      53: { emoji: "🌦️", label: "Drizzle" },
+      55: { emoji: "🌦️", label: "Heavy drizzle" },
+      56: { emoji: "🌧️", label: "Freezing drizzle" },
+      57: { emoji: "🌧️", label: "Freezing drizzle" },
+      61: { emoji: "🌦️", label: "Light rain" },
+      63: { emoji: "🌧️", label: "Rain" },
+      65: { emoji: "🌧️", label: "Heavy rain" },
+      66: { emoji: "🌧️", label: "Freezing rain" },
+      67: { emoji: "🌧️", label: "Freezing rain" },
+      71: { emoji: "🌨️", label: "Light snow" },
+      73: { emoji: "🌨️", label: "Snow" },
+      75: { emoji: "❄️",  label: "Heavy snow" },
+      77: { emoji: "🌨️", label: "Snow grains" },
+      80: { emoji: "🌦️", label: "Rain showers" },
+      81: { emoji: "🌧️", label: "Rain showers" },
+      82: { emoji: "⛈️", label: "Violent showers" },
+      85: { emoji: "🌨️", label: "Snow showers" },
+      86: { emoji: "🌨️", label: "Heavy snow showers" },
+      95: { emoji: "⛈️", label: "Thunderstorm" },
+      96: { emoji: "⛈️", label: "Storm with hail" },
+      99: { emoji: "⛈️", label: "Storm with hail" },
+    };
+
+    const readJson = ( key ) => {
+      const raw = localStorage.getItem( key );
+      if ( raw === null ) return null;
+      try {
+        return JSON.parse( raw );
+      } catch ( err ) {
+        return null;
+      }
+    };
+
+    const loadCoords = () => {
+      const saved = readJson( LOCATION_KEY );
+      if ( saved && typeof saved.lat === "number" && typeof saved.lon === "number" ) {
+        return { lat: saved.lat, lon: saved.lon, isDefault: false };
+      }
+      return { ...DEFAULT_COORDS, isDefault: true };
+    };
+
+    let coords = loadCoords();
+
+    const cityLabel = () => coords.isDefault ? DEFAULT_LABEL : "Your location";
+
+    const round = ( n ) => Math.round( n );
+
+    const fetchWeather = async ( c ) => {
+      const url = `https://api.open-meteo.com/v1/forecast`
+        + `?latitude=${ c.lat }&longitude=${ c.lon }`
+        + `&current=temperature_2m,weather_code,apparent_temperature`
+        + `&daily=temperature_2m_max,temperature_2m_min`
+        + `&temperature_unit=fahrenheit&timezone=auto&forecast_days=1`;
+      const res = await fetch( url );
+      if ( !res.ok ) throw new Error( `HTTP ${ res.status }` );
+      return res.json();
+    };
+
+    const formatTime = ( date ) => date.toLocaleTimeString( "en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    } );
+
+    const render = ( data, fetchedAt, stale ) => {
+      cityEl.textContent = cityLabel();
+      const code = data.current.weather_code;
+      const meta = WEATHER_CODES[ code ] || { emoji: "", label: "—" };
+      const t = round( data.current.temperature_2m );
+      const feels = round( data.current.apparent_temperature );
+      const hi = round( data.daily.temperature_2m_max[ 0 ] );
+      const lo = round( data.daily.temperature_2m_min[ 0 ] );
+
+      currentEl.innerHTML = `
+        <span class="temp">${ t }°F</span>
+        <span class="condition">${ meta.emoji } ${ meta.label }</span>
+      `;
+      rangeEl.textContent = `H ${ hi }°  L ${ lo }°  ·  feels ${ feels }°`;
+      const prefix = stale ? "Cached" : "Updated";
+      updatedEl.textContent = `${ prefix } ${ formatTime( new Date( fetchedAt ) ) }`;
+    };
+
+    const renderError = ( msg ) => {
+      currentEl.innerHTML = `<span class="muted">${ msg }</span>`;
+      rangeEl.textContent = "";
+      updatedEl.textContent = "";
+    };
+
+    const cacheMatches = ( cached, c ) => cached
+      && cached.coords
+      && cached.coords.lat === c.lat
+      && cached.coords.lon === c.lon;
+
+    const refresh = async () => {
+      const cached = readJson( CACHE_KEY );
+      const fresh = cacheMatches( cached, coords )
+        && ( Date.now() - cached.ts ) < REFRESH_MS;
+      if ( fresh ) {
+        render( cached.data, cached.ts, false );
+        return;
+      }
+      try {
+        const data = await fetchWeather( coords );
+        const ts = Date.now();
+        localStorage.setItem( CACHE_KEY, JSON.stringify( {
+          ts, data, coords: { lat: coords.lat, lon: coords.lon },
+        } ) );
+        render( data, ts, false );
+      } catch ( err ) {
+        // Offline / blocked / API down — fall back to any cached data we have
+        // for these coords, even if it's older than REFRESH_MS.
+        if ( cacheMatches( cached, coords ) ) {
+          render( cached.data, cached.ts, true );
+        } else {
+          renderError( "Unable to load weather" );
+        }
+      }
+    };
+
+    cityEl.textContent = cityLabel();
+    refresh();
+    setInterval( refresh, REFRESH_MS );
+
+    if ( navigator.geolocation ) {
+      navigator.geolocation.getCurrentPosition(
+        ( pos ) => {
+          const next = {
+            lat: pos.coords.latitude,
+            lon: pos.coords.longitude,
+          };
+          localStorage.setItem( LOCATION_KEY, JSON.stringify( next ) );
+          coords = { ...next, isDefault: false };
+          cityEl.textContent = cityLabel();
+          refresh();
+        },
+        () => { },
+        { timeout: 5000, maximumAge: 86400000 }
+      );
+    }
+  </script>
 </body>
 
 </html>
