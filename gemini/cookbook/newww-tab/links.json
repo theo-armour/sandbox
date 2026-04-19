@@ -69,7 +69,6 @@
         },
         {
           "title": "theo apps",
-          "collapsed": true,
           "links": [
             {
               "title": "newww tab",
@@ -88,7 +87,7 @@
             },
             {
               "title": "ifr-stuff",
-              "url": "file:///G:/My%20Drive/2026-theo-github/theo-armour-sandbox/gemini/cookbook/newww-tab/newww-tab.html"
+              "url": "https://theo-armour.github.io/sandbox/0-apps/iframe-stuff/iframe-stuff.html"
             },
             {
               "title": "file",
