@@ -80,7 +80,7 @@
     // One config entry per widget. Add, remove, reorder here.
     const WIDGETS = [
       { id: "teodoro", src: "teodoro.html", height: 200 },
-      { id: "clock", src: "widget-clock.html", height: 180 },
+      { id: "clock", src: "widget-clock.html", height: 220, allow: "geolocation" },
       { id: "github", src: "widget-github.html", height: 140 },
       { id: "weather", src: "widget-weather.html", height: 160 },
       { id: "focus", src: "widget-focus.html", height: 200 },
@@ -100,6 +100,7 @@
       frame.title = widget.id;
       frame.loading = "lazy";
       frame.style.height = `${ widget.height }px`;
+      if ( widget.allow ) frame.allow = widget.allow;
 
       tile.appendChild( frame );
       return tile;
