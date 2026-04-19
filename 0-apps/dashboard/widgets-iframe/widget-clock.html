@@ -25,6 +25,18 @@
       font-variant-numeric: tabular-nums;
     }
 
+    #worldclocks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.75rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #worldclocks .city {
+      color: var(--muted);
+      margin-right: 0.25rem;
+    }
+
     #sun-times {
       display: inline-flex;
       gap: 0.25rem;
@@ -47,6 +59,7 @@
   <h2>Now</h2>
   <div id="clock">00:00</div>
   <div id="date"></div>
+  <div id="worldclocks"></div>
   <div id="sun"></div>
   <div id="moon"></div>
   <div id="facts"></div>
@@ -57,6 +70,12 @@
     const sunEl = document.getElementById( "sun" );
     const moonEl = document.getElementById( "moon" );
     const factsEl = document.getElementById( "facts" );
+    const worldclocksEl = document.getElementById( "worldclocks" );
+
+    const WORLD_CLOCKS = [
+      { name: "Paris", tz: "Europe/Paris" },
+      { name: "Hong Kong", tz: "Asia/Hong_Kong" },
+    ];
 
     const LOCATION_KEY = "dashboard-widget-clock-location";
     const DEFAULT_COORDS = { lat: 37.7749, lon: -122.4194 };
@@ -75,6 +94,13 @@
       hour: "2-digit",
       minute: "2-digit",
       hour12: false,
+    } );
+
+    const formatTimeInZone = ( date, timeZone ) => date.toLocaleTimeString( "en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone,
     } );
 
     const formatDuration = ( ms ) => {
@@ -217,6 +243,10 @@
         month: "long",
         day: "numeric",
       } );
+
+      worldclocksEl.innerHTML = WORLD_CLOCKS.map( ( c ) =>
+        `<span><span class="city">${ c.name }</span>${ formatTimeInZone( now, c.tz ) }</span>`
+      ).join( "" );
 
       const { sunrise, sunset } = computeSunTimes(
         now, coords.lat, coords.lon
