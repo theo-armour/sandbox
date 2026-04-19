@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="revised" content="2026-04-19 11:00">
+  <title>Dashboard ~ iframe widgets</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #000000;
+      --panel-border: #d2d2d7;
+      --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1c1e;
+        --fg: #ffffff;
+        --panel-border: #3a3a3c;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+      padding: clamp(0.5rem, 3vw, 1.5rem);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      gap: clamp(0.75rem, 3vw, 1rem);
+      grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+      align-items: start;
+    }
+
+    .tile {
+      border: 1px solid var(--panel-border);
+      border-radius: 0.75rem;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    .tile iframe {
+      display: block;
+      width: 100%;
+      border: none;
+      background: transparent;
+    }
+
+    .tile-wide {
+      grid-column: span 2;
+    }
+
+    @media (max-width: 700px) {
+      .tile-wide {
+        grid-column: span 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="dashboard-grid" id="dashboard-grid"></main>
+
+  <script>
+    // One config entry per widget. Add, remove, reorder here.
+    const WIDGETS = [
+      { id: "teodoro", src: "teodoro.html", height: 200 },
+      { id: "clock", src: "widget-clock.html", height: 180 },
+      { id: "github", src: "widget-github.html", height: 140 },
+      { id: "weather", src: "widget-weather.html", height: 160 },
+      { id: "focus", src: "widget-focus.html", height: 200 },
+      { id: "links", src: "widget-links.html", height: 200 },
+      { id: "today", src: "widget-today.html", height: 260, wide: true },
+      { id: "notes", src: "widget-notes.html", height: 260, wide: true },
+    ];
+
+    const gridEl = document.getElementById( "dashboard-grid" );
+
+    const createTile = ( widget ) => {
+      const tile = document.createElement( "div" );
+      tile.className = widget.wide ? "tile tile-wide" : "tile";
+
+      const frame = document.createElement( "iframe" );
+      frame.src = widget.src;
+      frame.title = widget.id;
+      frame.loading = "lazy";
+      frame.style.height = `${ widget.height }px`;
+
+      tile.appendChild( frame );
+      return tile;
+    };
+
+    WIDGETS.forEach( ( widget ) => {
+      gridEl.appendChild( createTile( widget ) );
+    } );
+  </script>
+</body>
+
+</html>

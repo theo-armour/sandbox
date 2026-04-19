@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="widget-base.css">
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: clamp(0.8rem, 2vw, 0.9rem);
+    }
+
+    th,
+    td {
+      padding: 0.5rem 0.35rem;
+      border-bottom: 1px solid var(--panel-border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 600;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+      background: var(--btn-bg);
+      font-size: 0.75rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Today</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Item</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="today-body"></tbody>
+  </table>
+
+  <script>
+    const TODAY_ITEMS = [
+      { time: "10:00", item: "Review dashboard notes", status: "Open" },
+      { time: "13:30", item: "Tidy quick links", status: "Pending" },
+      { time: "16:00", item: "Walk and think", status: "Planned" },
+    ];
+
+    document.getElementById( "today-body" ).innerHTML = TODAY_ITEMS
+      .map(
+        ( entry ) => `
+					<tr>
+						<td>${ entry.time }</td>
+						<td>${ entry.item }</td>
+						<td><span class="status">${ entry.status }</span></td>
+					</tr>`
+      )
+      .join( "" );
+  </script>
+</body>
+
+</html>
