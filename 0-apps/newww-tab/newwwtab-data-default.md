@@ -2,36 +2,41 @@
 
 ## Theo
 
-### 📁 Theo
+### + Theo
+- gT-A https://github.com/theo-armour
+- [g](https://github.com/theo-armour/theo-armour.github.io) T-A.g.io https://theo-armour.github.io/
+- [g](https://github.com/theo-armour/2025/) t2025 https://theo-armour.github.io/2025
+- [g](https://github.com/theo-armour/2026/) t2026 https://theo-armour.github.io/2026
 - [g](https://github.com/theo-armour/agenda) agenda https://theo-armour.github.io/agenda/
 - [g](https://github.com/theo-armour/qdata/) qData https://theo-armour.github.io/qdata/
 - [g](https://github.com/theo-armour/pages) pages https://theo-armour.github.io/pages/
-- [g](https://github.com/theo-armour/2025/) t2025 https://theo-armour.github.io/2025
 - [g](https://github.com/theo-armour/sandbox/) sandbox https://theo-armour.github.io/sandbox/
 - [g](https://github.com/theo-armour/genealogy/) genealogy https://theo-armour.github.io/genealogy/
 - [g](https://github.com/theo-armour/wikitheo/) wikitheo https://theo-armour.github.io/wikitheo/
+- [g](https://github.com/theo-armour/aa/) aa https://theo-armour.github.io/aa/
+
+### - ta apps
 - [g](https://github.com/theo-armour/qdata/blob/main/apps/iframe-stuff/2023-05-02/iframe-stuff.html) ifrStuff https://theo-armour.github.io/qdata/apps/iframe-stuff
 - [g](https://github.com/theo-armour/qdata/tree/master/apps/newww-tab) newTab https://theo-armour.github.io/qdata/apps/newww-tab/
 - [g](https://github.com/theo-armour/qdata/tree/master/apps/notesy) notesy https://theo-armour.github.io/qdata/apps/notesy
 - [g](https://github.com/theo-armour/qdata/tree/master/apps/teodori) teodori https://theo-armour.github.io/qdata/apps/teodori
 - [g](https://github.com/theo-armour/qdata/tree/master/apps/trayo) trayo https://theo-armour.github.io/qdata/apps/trayo/
 - [g](https://github.com/theo-armour/qdata/tree/master/apps/notesy) days https://theo-armour.github.io/qdata/apps/notesy/days.html
-- gT-A https://github.com/theo-armour
-- gbxml https://www.gbxml.org
-- demo https://theo-armour.github.io/2021/demo-reel/v-2021-08-31/iframe-carousel-r1.html
-- [g](https://github.com/theo-armour/theo-armour.github.io) T-A.g.io https://theo-armour.github.io/
-- mouth https://theo-armour.github.io/mouth-stl-2022/simple-stl
 
-### 📁 ta apps
-- bizcard https://theo-armour.github.io/2024/about/theo-business-card.html
 - [g](https://github.com/evereverland/) evrlnd https://evereverland.github.io/
 - [g](https://github.com/evereverland/2019/) 2019 https://evereverland.github.io/2019
 - ta https://example.com
-
-### 📁 VSCode
 - [g](https://github.com/pushme-pullyou/) PshPll https://pushme-pullyou.github.io/
 - [g](https://github.com/pushme-pullyou/assets/) ppAssets https://pushme-pullyou.github.io/assets/
 - g https://github.com/pushme-pullyou/2024/
+
+### demos
+- gbxml https://www.gbxml.org
+- demo https://theo-armour.github.io/2021/demo-reel/v-2021-08-31/iframe-carousel-r1.html
+- mouth https://theo-armour.github.io/mouth-stl-2022/simple-stl
+- bizcard https://theo-armour.github.io/2024/about/theo-business-card.html
+
+### - vs code
 - >ta 2024 https://vscode.dev/github/theo-armour/2024
 - >ta 23agnd https://vscode.dev/github/theo-armour/agenda
 - >ta pages https://vscode.dev/github/theo-armour/pages
@@ -40,7 +45,7 @@
 
 ## News
 
-### 📁 News
+### + News
 - nytimes https://nytimes.com/
 - chronic https://www.sfchronicle.com/
 - googN https://news.google.com/
@@ -50,7 +55,7 @@
 - hacker_new https://news.ycombinator.com/
 - xkcd https://xkcd.com/
 
-### 📁 MoreNews
+### + MoreNews
 - compuserve http://compuserve.com/
 - allTop https://alltop.com/
 - brutalist https://brutalist.report/
@@ -71,13 +76,13 @@
 
 ## Reads
 
-### 📁 Reads
+### + Reads
 - substack https://substack.com/inbox
 - medium https://medium.com/
 - scanalyst https://scanalyst.fourmilab.ch/
 - kindle https://read.amazon.com/kindle-library
 
-### 📁 MoreRead
+### + MoreRead
 - aeon https://aeon.co/
 - axios https://axios.com/
 - lesswrong https://www.lesswrong.com/
@@ -91,7 +96,7 @@
 
 ## AI
 
-### 📁 AI Creative
+### + AI Creative
 - sora https://sora.com
 - midjourny https://www.midjourney.com/
 - > dd https://discord.com/channels/662267976984297473/@home
@@ -100,7 +105,7 @@
 - kaiber https://kaiber.ai
 - suno/chirp https://suno.com
 
-### 📁 AI&OfficeMS
+### - AI&OfficeMS
 - copilotp https://copilot.microsoft.com/
 - grok https://x.ai/grok
 - ms365 https://office.com
@@ -110,7 +115,7 @@
 
 ## Google
 
-### 📁 GoogleDriv
+### - GoogleDriv
 - g drive https://drive.google.com/
 - > stars https://drive.google.com/drive/starred
 - > theo22 https://drive.google.com/drive/folders/15KhLE7zV4TZhqu4d89x9K-HrubUm6rxV
@@ -127,7 +132,7 @@
 - > 10 https://docs.google.com/document/d/1Es--zDC4I4XYoklRJnSuMyhS1iggsuK2Y1KDTdHAMNQ/edit
 
 
-### 📁 Google Apps
+### + Google Apps
 - g calendar https://calendar.google.com/
 - g contacts https://contacts.google.com/
 - g photos https://photos.google.com/
@@ -140,7 +145,7 @@
 - youtube https://youtube.com/
 - g fiAccnt https://fi.google.com
 
-### 📁 MoreGoogle
+### + MoreGoogle
 - g chat https://chat.google.com/
 - g design https://design.google/
 - g domains https://domains.google/
@@ -150,7 +155,7 @@
 
 ## Apps
 
-### 📁 Apps
+### + Apps
 - geni https://geni.com/family-tree/index/6000000004118029730
 - gedcom https://pewu.github.io/topola-viewer/#/view?url=https://theo-armour.github.io/genealogy/gedcom-files/2025-08-18-export-geni/export-BloodTree.ged
 - myheritage https://www.myheritage.com/
@@ -177,7 +182,7 @@
 - tumblr https://tumblr.com/
 - lowercase https://www.lowercase.app/workspace/9b004c32-5287-4fe7-8d1f-c66a0cc1a31c/edit
 
-### 📁 Reference
+### - Reference
 - threejs https://threejs.org
 - mdn https://developer.mozilla.org/en-US/
 - regex https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions/Cheatsheet
@@ -191,7 +196,7 @@
 
 ## Groups
 
-### 📁 Groups
+### + Groups
 - nextvilge https://nextvillagesf.org/
 - sensay https://sensay.io/
 - sacsem https://sacsem.net
@@ -200,7 +205,7 @@
 - ace-it.gr https://ace-it.groups.io/
 - hertge.gr https://heritage.groups.io/g/residents/messages
 
-### 📁 Heritage
+### + Heritage
 - hotm https://heritageonthemarina.org/
 - p https://photos.fife.usercontent.google.com/pw/AP1GczMD9HRaxaWkG-W4JSgWilu9PVt29jRaMmifj8aZX3qM0I76RQV1RYsvdA=w1473-h831-s-no-gm?authuser=0
 - worxhub https://theheritagesf.theworxhub.com/Dashboard
@@ -222,7 +227,7 @@
 - resdir https://1drv.ms/b/s!ArJ-RZ9B4UhDzOxGlz6HYF0kYMpFwA?e=Lh8FYs
 - granucci https://EverEverLand.github.io/granucci/
 
-### 📁 Orgs & Projects
+### - Orgs & Projects
 - [g](https://github.com/theo-armour/qdata/tree/master/apps/notesy) notesy https://theo-armour.github.io/qdata/apps/notesy
 - read me https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/README.md
 - AxisOrdinry https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/axis-of-ordinary.md

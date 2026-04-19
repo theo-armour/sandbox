@@ -44,7 +44,7 @@
     }
 
     html {
-      font-size: 130%;
+      font-size: 135%;
     }
 
     body {
@@ -62,6 +62,23 @@
       font-weight: 600;
       color: var(--muted);
       line-height: 1;
+      display: flex;
+      gap: 0.5rem;
+      align-items: baseline;
+    }
+
+    h1 a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    h1 a:hover {
+      text-decoration: underline;
+    }
+
+    h1 .src {
+      font-weight: 400;
+      font-size: 0.8rem;
     }
 
     #board {
@@ -81,14 +98,7 @@
     }
 
     .column>h2 {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--muted);
-      margin: 0 0 0.1rem;
-      padding: 0 0.25rem;
-      font-weight: 600;
-      line-height: 1;
+      display: none;
     }
 
     details.section {
@@ -117,7 +127,10 @@
     details.section>summary::before {
       content: "▾";
       display: inline-block;
-      width: 1rem;
+      width: 1.2rem;
+      font-size: 1.4rem;
+      line-height: 1;
+      vertical-align: -0.15rem;
       color: var(--muted);
       transition: transform 0.15s;
     }
@@ -187,7 +200,16 @@
 
 <body>
 
-  <h1>NewwwTab</h1>
+  <h1>
+    <a class="src" href="https://github.com/theo-armour/sandbox/tree/main/0-apps/newww-tab" target="_blank"
+      rel="noopener" title="View source on GitHub" aria-label="View source on GitHub">
+      <svg viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor" aria-hidden="true">
+        <path
+          d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+      </svg>
+    </a>
+    <a href="" title="Reload">NewwwTab</a>
+  </h1>
   <div id="board"></div>
   <div id="error"></div>
 
@@ -219,7 +241,11 @@
             currentColumn = { title: '', sections: [] };
             columns.push( currentColumn );
           }
-          currentSection = { title: h3[ 1 ].trim(), items: [] };
+          const rawTitle = h3[ 1 ].trim();
+          const marker = rawTitle.match( /^([+\-])\s+(.*)$/ );
+          const open = marker ? marker[ 1 ] === '+' : true;
+          const title = marker ? marker[ 2 ].trim() : rawTitle;
+          currentSection = { title, items: [], open };
           currentColumn.sections.push( currentSection );
           continue;
         }
@@ -279,7 +305,7 @@
         for ( const sec of col.sections ) {
           const det = document.createElement( 'details' );
           det.className = 'section';
-          det.open = true;
+          det.open = sec.open;
 
           const sum = document.createElement( 'summary' );
           sum.textContent = sec.title;

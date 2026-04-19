@@ -2,7 +2,7 @@
 
 Build a single-file browser home page / new-tab page for managing ~100 frequently used links.
 
-**Constraints**: One self-contained `.html` file. No frameworks, no build tools, no backend. Vanilla HTML5 + CSS3 + ES6+ JavaScript. Only external dependency: SortableJS 1.15.3 via CDN.
+**Constraints**: One self-contained `.html` file. No frameworks, no build tools, no backend. Vanilla HTML5 + CSS3 + ES6+ JavaScript. No external dependencies.
 
 ---
 
@@ -27,4 +27,28 @@ Example:
 - [g](https://github.com/pushme-pullyou/) PshPll https://pushme-pullyou.github.io/.
 
 The links are displayed as clickable items within each section.
+
+## Section open/closed state
+
+H3 titles may begin with a sign to indicate the default state of the `<details>` section:
+
+- `### + Title` — section is rendered **open**
+- `### - Title` — section is rendered **collapsed**
+- `### Title` (no sign) — defaults to open
+
+The sign is stripped from the rendered summary; it only controls the initial `open` attribute.
+
+## Layout
+
+- Columns are laid out horizontally as a flex row; fixed column width `--col-width: 8rem`.
+- Root font size `html { font-size: 135% }` so the whole page scales with user preference.
+- H2 column headers are **hidden** (columns are distinguished by position/content only).
+- Sections use native `<details>`/`<summary>` with a custom `▾` disclosure marker (1.4rem).
+
+## Header
+
+The page `<h1>` contains two links, in this order:
+
+1. A GitHub mark (inline SVG) linking to the app's source folder on GitHub — opens in a new tab.
+2. The title "NewwwTab" as a self-link (`href=""`) that reloads the app when clicked.
 
