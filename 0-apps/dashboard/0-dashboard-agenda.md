@@ -3,6 +3,8 @@
 ## 2026-04-18
 
 * First version
+
+
 ## Ideas
 
 Here are ideas to consider, grouped by how useful they tend to be at-a-glance in a small iframe pane:

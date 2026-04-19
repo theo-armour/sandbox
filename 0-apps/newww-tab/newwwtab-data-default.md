@@ -5,8 +5,8 @@
 ### + Theo
 - gT-A https://github.com/theo-armour
 - [g](https://github.com/theo-armour/theo-armour.github.io) T-A.g.io https://theo-armour.github.io/
-- [g](https://github.com/theo-armour/2025/) t2025 https://theo-armour.github.io/2025
 - [g](https://github.com/theo-armour/2026/) t2026 https://theo-armour.github.io/2026
+- [g](https://github.com/theo-armour/2025/) t2025 https://theo-armour.github.io/2025
 - [g](https://github.com/theo-armour/agenda) agenda https://theo-armour.github.io/agenda/
 - [g](https://github.com/theo-armour/qdata/) qData https://theo-armour.github.io/qdata/
 - [g](https://github.com/theo-armour/pages) pages https://theo-armour.github.io/pages/
@@ -14,11 +14,13 @@
 - [g](https://github.com/theo-armour/genealogy/) genealogy https://theo-armour.github.io/genealogy/
 - [g](https://github.com/theo-armour/wikitheo/) wikitheo https://theo-armour.github.io/wikitheo/
 - [g](https://github.com/theo-armour/aa/) aa https://theo-armour.github.io/aa/
+- [g](https://github.com/pushme-pullyou/tootoo) tootoo https://pushme-pullyou.github.io/tootoo
 
 ### - ta apps
-- [g](https://github.com/theo-armour/sandbox/tree/main/0-apps/iframe-stuff) ifrStuff https://theo-armour.github.io/sandbox/0-apps/iframe-stuff/
-
 - [g](https://github.com/theo-armour/sandbox/0-apps/newww-tab) newTab https://theo-armour.github.io/sandbox/0-apps/newww-tab/
+- [g](https://github.com/theo-armour/sandbox/gemini/cookbook/newww-tab/index.html) old-tab https://theo-armour.github.io/sandbox/gemini/cookbook/newww-tab/index.html
+
+- [g](https://github.com/theo-armour/sandbox/tree/main/0-apps/iframe-stuff) ifrStuff https://theo-armour.github.io/sandbox/0-apps/iframe-stuff/
 
 - [g](https://github.com/theo-armour/qdata/tree/master/apps/notesy) notesy https://theo-armour.github.io/qdata/apps/notesy
 - [g](https://github.com/theo-armour/qdata/tree/master/apps/teodori) teodori https://theo-armour.github.io/qdata/apps/teodori
@@ -31,17 +33,17 @@
 - [g](https://github.com/pushme-pullyou/assets/) ppAssets https://pushme-pullyou.github.io/assets/
 - g https://github.com/pushme-pullyou/2024/
 
-### demos
+### - demos
+- bizcard https://theo-armour.github.io/2024/about/theo-business-card.html
 - gbxml https://www.gbxml.org
 - demo https://theo-armour.github.io/2021/demo-reel/v-2021-08-31/iframe-carousel-r1.html
 - mouth https://theo-armour.github.io/mouth-stl-2022/simple-stl
-- bizcard https://theo-armour.github.io/2024/about/theo-business-card.html
 
 ### - vs code
-- >ta 2024 https://vscode.dev/github/theo-armour/2024
-- >ta 23agnd https://vscode.dev/github/theo-armour/agenda
+- >ta 2025 https://vscode.dev/github/theo-armour/2025
+- >ta agnd https://vscode.dev/github/theo-armour/agenda
 - >ta pages https://vscode.dev/github/theo-armour/pages
-- >ta 23qDat https://vscode.dev/github/theo-armour/qdata
+- >ta qDat https://vscode.dev/github/theo-armour/qdata
 - >TooToo23 https://vscode.dev/github/pushme-pullyou/assets/
 
 ## News
