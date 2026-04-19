@@ -11,7 +11,6 @@
 
 When you see "Download the sync in GitHub" in vscode, then you know Pages has been updated after your latest save to GitHub.
 
-Done
-- Fix save to GitHub broken
-- Right click menus Instead of icons
-- Title then URL in modal
+### 2026-04-18
+
+* Start again
