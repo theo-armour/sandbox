@@ -4,7 +4,7 @@ Create a single-file HTML countdown timer app with these features:
 
 ## Timer Display & Controls
 * Show remaining time as MM:SS, counting down to 00:00
-* Preset buttons for 8 seconds, 5 minutes, 8 minutes, and 18 minutes — pressing a preset immediately starts the countdown
+* Preset buttons for 5 seconds, 5 minutes, 8 minutes, and 18 minutes — pressing a preset immediately starts the countdown
 * A Pause button that toggles to "Resume" or "Restart" as appropriate
 * Space bar toggles pause/resume regardless of which element has focus
 * +/- buttons to add or subtract time: use seconds when the active preset is 5s, otherwise use minutes
@@ -15,6 +15,8 @@ Create a single-file HTML countdown timer app with these features:
 * During overtime, pause/space pauses the count-up and music; resume continues overtime
 * After 12 minutes of overtime, automatically pause everything (stop counting, stop music)
 * Pressing a preset resets the overtime and starts a new countdown
+* During overtime, +/− buttons are disabled
+* "Restart" re-runs the last preset's duration
 
 ## Music & Audio
 * Background music stream: https://ice1.somafm.com/groovesalad-128-mp3

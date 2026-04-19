@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-04-18 17:07">
+  <meta name="revised" content="2026-04-18 18:10">
   <title>Teodoro Timer</title>
   <style>
     :root {
@@ -33,23 +33,23 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
+      min-height: 100dvh;
       overflow: hidden;
     }
 
     .app-container {
       width: 100%;
       max-width: 500px;
-      padding: clamp(0.5rem, 5vw, 2rem);
+      padding: clamp(0.25rem, 3vw, 2rem);
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: clamp(1rem, 5vw, 2rem);
+      gap: clamp(0.4rem, 3vw, 2rem);
     }
 
     #display {
-      font-size: clamp(3rem, 25vw, 8rem);
+      font-size: clamp(1.5rem, 25vw, 8rem);
       font-weight: 700;
       line-height: 1;
       font-variant-numeric: tabular-nums;
@@ -73,9 +73,9 @@
       background-color: var(--btn-bg);
       color: var(--fg);
       border: none;
-      border-radius: clamp(0.3rem, 2vw, 0.5rem);
-      padding: clamp(0.5rem, 3vw, 1rem) clamp(0.75rem, 4vw, 1.5rem);
-      font-size: clamp(0.9rem, 4vw, 1.2rem);
+      border-radius: clamp(0.2rem, 1.5vw, 0.5rem);
+      padding: clamp(0.3rem, 2vw, 1rem) clamp(0.4rem, 3vw, 1.5rem);
+      font-size: clamp(0.7rem, 3.5vw, 1.2rem);
       font-weight: 600;
       cursor: pointer;
       transition: background-color 0.2s, transform 0.1s;
@@ -301,8 +301,8 @@
     const togglePause = () => {
       initAudioCtx();
 
-      if ( !isOvertime && remainingTime <= 0 && !isRunning ) {
-        startTimer( totalTime > 0 ? totalTime : 300 );
+      if ( btnPause.textContent === "Restart" ) {
+        startTimer( currentPreset > 0 ? currentPreset : 300 );
         return;
       }
 
@@ -314,15 +314,13 @@
         stream.pause();
       } else {
         isRunning = true;
-        btnPause.textContent = isOvertime ? "Restart" : "Pause";
+        btnPause.textContent = "Pause";
         intervalId = setInterval( tick, 1000 );
-        if ( isOvertime ) {
-          stream.play().catch( ( e ) => console.error( "Audio play failed:", e ) );
-        }
       }
     };
 
     const adjustTime = ( deltaSec ) => {
+      if ( isOvertime ) return;
       remainingTime += deltaSec;
       if ( remainingTime < 0 ) remainingTime = 0;
       totalTime = remainingTime;

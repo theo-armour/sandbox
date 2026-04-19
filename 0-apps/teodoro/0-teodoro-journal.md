@@ -1,3 +1,8 @@
+# Teodoro Journal
+
+## 2026-04-18
+
+Big update and clean up.
 
 
 
