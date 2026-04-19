@@ -29,7 +29,8 @@ Create a single-file HTML countdown timer app with these features:
 * Minimalist, Flat, System-Native design (system fonts, monochrome palette, no heavy shadows or borders)
 * Respect OS light/dark color scheme via `prefers-color-scheme`
 * All buttons use bold, large, easy-to-read text
-* Layout adapts fluidly from ~120px wide up to full screen using `clamp()` and viewport units — no fixed minimum widths, no overflow, text and controls scale down gracefully
+* Layout adapts fluidly from ~100px wide up to full screen using `clamp()` and viewport units — no fixed minimum widths, no overflow, text and controls scale down gracefully
+* Must work well embedded in a small iframe panel (compact gaps, small clamp minimums, `100dvh` body height)
 * Single self-contained HTML file — no build tools, no frameworks, no external dependencies except the audio stream URL
 
 ## Snapshot Workflow

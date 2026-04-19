@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iframe Stuff</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: monospace;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+.left-column {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 20%;
+    min-width: 100px;
+}
+
+.right-column {
+    flex: 4 1 80%;
+    min-width: 100px;
+}
+
+.left-row {
+    flex: 1;
+    min-height: 50px;
+}
+
+iframe {
+    width: 100%;
+    height: 100%;
+    border: 1px solid #ccc;
+    display: block;
+}
+
+.splitter-v {
+    width: 6px;
+    cursor: col-resize;
+    background: #ddd;
+}
+
+.splitter-h {
+    height: 6px;
+    cursor: row-resize;
+    background: #ddd;
+}
+
+.splitter-v:hover, .splitter-h:hover {
+    background: #aaa;
+}
+
+.toolbar {
+    position: fixed;
+    top: 6px;
+    right: 6px;
+    z-index: 10;
+    display: flex;
+    gap: 4px;
+}
+
+.toolbar button {
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    opacity: 0.7;
+}
+
+.toolbar button:hover {
+    opacity: 1;
+}
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal {
+    background: #fff;
+    padding: 20px;
+    border-radius: 6px;
+    width: 500px;
+    max-width: 90vw;
+}
+
+.modal h3 {
+    margin-bottom: 12px;
+}
+
+.modal label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-top: 10px;
+    margin-bottom: 2px;
+}
+
+.modal select {
+    width: 100%;
+    padding: 6px 8px;
+    font-size: 13px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+.modal input {
+    width: 100%;
+    padding: 6px 8px;
+    font-size: 13px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    margin-top: 4px;
+}
+
+.modal-buttons {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.modal-buttons button {
+    padding: 6px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    background: #fff;
+}
+
+.modal-buttons button.apply {
+    background: #4a90d9;
+    color: #fff;
+    border-color: #4a90d9;
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+    <button id="settingsBtn">Settings</button>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <h3>Iframe URLs</h3>
+        <label>Top Left</label>
+        <select id="sel0"></select>
+        <input type="text" id="url0" placeholder="Enter custom URL">
+        <label>Middle Left</label>
+        <select id="sel1"></select>
+        <input type="text" id="url1" placeholder="Enter custom URL">
+        <label>Bottom Left</label>
+        <select id="sel2"></select>
+        <input type="text" id="url2" placeholder="Enter custom URL">
+        <label>Right</label>
+        <select id="sel3"></select>
+        <input type="text" id="url3" placeholder="Enter custom URL">
+        <div class="modal-buttons">
+            <button id="resetBtn">Reset Layout</button>
+            <button id="modalCancel">Cancel</button>
+            <button class="apply" id="modalApply">Apply</button>
+        </div>
+    </div>
+</div>
+
+
+<div class="container">
+    <div class="left-column">
+        <div class="left-row" id="leftRow1">
+            <iframe src="https://theo-armour.github.io/sandbox/0-apps/teodoro/"></iframe>
+        </div>
+        <div class="splitter-h" id="splitterH1"></div>
+        <div class="left-row" id="leftRow2">
+            <iframe src="https://theo-armour.github.io/sandbox/0-apps/iframe-stuff/webcam-links.html"></iframe>
+        </div>
+        <div class="splitter-h" id="splitterH2"></div>
+        <div class="left-row" id="leftRow3">
+            <iframe src="https://calendar.google.com/calendar/embed?height=600&wkst=1&bgcolor=%23ffffff&ctz=America%2FLos_Angeles&mode=AGENDA&showTitle=0&showPrint=0&showTz=0&src=dC5hcm1vdXJAZ21haWwuY29t&src=Mmw4cGp1MXB2czc0Ym42ZHY3NWY0Y2JjZjhAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=cnUyMXA3M2VkdDR2MHZqMXM2Zjc1aHRpMmtAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=ajIwNGYzMG1yczNmOTRwNGY5MmJkMjZjZnNAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=Y3RtY2xzY2d1NTVxazZwZXA5ZG84bm1wNGdAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=ZjBnOHM1ODNvcXF2ZG1zYnExbmJnMGhzZ2dAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=ZW4udXNhI2hvbGlkYXlAZ3JvdXAudi5jYWxlbmRhci5nb29nbGUuY29t&color=%23039BE5&color=%23616161&color=%23AD1457&color=%23F4511E&color=%23D50000&color=%230B8043&color=%23009688" scrolling="no"></iframe>
+        </div>
+    </div>
+    <div class="splitter-v" id="splitterV"></div>
+    <div class="right-column">
+        <iframe frameborder="1" src="https://theo-armour.github.io/sandbox/0-apps/dashboard/" width="100%" height="100%"></iframe>
+    </div>
+</div>
+
+<script>
+const DEFAULT_URLS = [
+    "https://theo-armour.github.io/sandbox/cookbook/teodoro/",
+    "https://theo-armour.github.io/sandbox/cookbook/iframe-stuff/iframe-director.html",
+    "https://calendar.google.com/calendar/embed?height=600&wkst=1&bgcolor=%23ffffff&ctz=America%2FLos_Angeles&mode=AGENDA&showTitle=0&showPrint=0&showTz=0&src=dC5hcm1vdXJAZ21haWwuY29t&src=Mmw4cGp1MXB2czc0Ym42ZHY3NWY0Y2JjZjhAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=cnUyMXA3M2VkdDR2MHZqMXM2Zjc1aHRpMmtAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=ajIwNGYzMG1yczNmOTRwNGY5MmJkMjZjZnNAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=Y3RtY2xzY2d1NTVxazZwZXA5ZG84bm1wNGdAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=ZjBnOHM1ODNvcXF2ZG1zYnExbmJnMGhzZ2dAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=ZW4udXNhI2hvbGlkYXlAZ3JvdXAudi5jYWxlbmRhci5nb29nbGUuY29t&color=%23039BE5&color=%23616161&color=%23AD1457&color=%23F4511E&color=%23D50000&color=%230B8043&color=%23009688",
+    "https://www.youtube.com/embed/ph1vpnYIxJk?autoplay=1&mute=1"
+];
+
+const SUGGESTED_URLS = [
+    "https://theo-armour.github.io/sandbox/cookbook/walk-timer/",
+    "https://en.wikipedia.org",
+    "https://archive.org",
+    "https://www.gutenberg.org",
+    "https://www.openstreetmap.org/export/embed.html",
+    "https://text.npr.org",
+    "https://wiby.me",
+    "https://www.wikidata.org",
+    "https://commons.wikimedia.org",
+    "https://www.openlibrary.org",
+    "https://creativecommons.org",
+    "https://librivox.org",
+    "https://mathworld.wolfram.com",
+    "https://www.youtube.com/embed/ph1vpnYIxJk?autoplay=1&mute=1",
+    "https://www.youtube.com/embed/z7SiAaN4ogw?autoplay=1&mute=1",
+    "https://www.youtube.com/embed/2BLqhS59Elc?autoplay=1&mute=1",
+    "https://www.madeira-web.com/en/webcams.html",
+    "https://www.youtube.com/embed/videoseries?list=PLZA7fEFtp1Y0yv24oboNZSVyYuvbawWuZ&autoplay=1&mute=1"
+];
+
+function getPos(e, axis) {
+    if (e.touches) return axis === "x" ? e.touches[0].clientX : e.touches[0].clientY;
+    return axis === "x" ? e.clientX : e.clientY;
+}
+
+function initSplitter(splitter, direction) {
+    let startPos, startSizeBefore, startSizeAfter, before, after;
+
+    function onStart(e) {
+        e.preventDefault();
+        before = splitter.previousElementSibling;
+        after = splitter.nextElementSibling;
+
+        if (direction === "horizontal") {
+            startPos = getPos(e, "y");
+            startSizeBefore = before.getBoundingClientRect().height;
+            startSizeAfter = after.getBoundingClientRect().height;
+        } else {
+            startPos = getPos(e, "x");
+            startSizeBefore = before.getBoundingClientRect().width;
+            startSizeAfter = after.getBoundingClientRect().width;
+        }
+
+        document.addEventListener("mousemove", onMove);
+        document.addEventListener("mouseup", onEnd);
+        document.addEventListener("touchmove", onMove, { passive: false });
+        document.addEventListener("touchend", onEnd);
+
+        document.querySelectorAll("iframe").forEach(f => f.style.pointerEvents = "none");
+    }
+
+    function onMove(e) {
+        e.preventDefault();
+        const currentPos = direction === "horizontal" ? getPos(e, "y") : getPos(e, "x");
+        const delta = currentPos - startPos;
+
+        const newBefore = startSizeBefore + delta;
+        const newAfter = startSizeAfter - delta;
+
+        if (newBefore < 50 || newAfter < 50) return;
+
+        if (direction === "horizontal") {
+            before.style.flex = "none";
+            after.style.flex = "none";
+            before.style.height = newBefore + "px";
+            after.style.height = newAfter + "px";
+        } else {
+            before.style.flex = "none";
+            after.style.flex = "none";
+            before.style.width = newBefore + "px";
+            after.style.width = newAfter + "px";
+        }
+    }
+
+    function onEnd() {
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onEnd);
+        document.removeEventListener("touchmove", onMove);
+        document.removeEventListener("touchend", onEnd);
+        document.querySelectorAll("iframe").forEach(f => f.style.pointerEvents = "");
+        savePositions();
+    }
+
+    splitter.addEventListener("mousedown", onStart);
+    splitter.addEventListener("touchstart", onStart, { passive: false });
+}
+
+function savePositions() {
+    const data = {};
+    const leftCol = document.querySelector(".left-column");
+    const rightCol = document.querySelector(".right-column");
+    const rows = document.querySelectorAll(".left-row");
+
+    if (leftCol.style.width) data.leftColWidth = leftCol.style.width;
+    if (rightCol.style.width) data.rightColWidth = rightCol.style.width;
+    rows.forEach((row, i) => {
+        if (row.style.height) data["row" + i] = row.style.height;
+    });
+
+    localStorage.setItem("iframe-stuff-positions", JSON.stringify(data));
+}
+
+function restorePositions() {
+    const saved = localStorage.getItem("iframe-stuff-positions");
+    if (!saved) return;
+
+    const data = JSON.parse(saved);
+    const leftCol = document.querySelector(".left-column");
+    const rightCol = document.querySelector(".right-column");
+    const rows = document.querySelectorAll(".left-row");
+
+    if (data.leftColWidth) { leftCol.style.flex = "none"; leftCol.style.width = data.leftColWidth; }
+    if (data.rightColWidth) { rightCol.style.flex = "none"; rightCol.style.width = data.rightColWidth; }
+    rows.forEach((row, i) => {
+        if (data["row" + i]) { row.style.flex = "none"; row.style.height = data["row" + i]; }
+    });
+}
+
+const iframes = document.querySelectorAll("iframe");
+const overlay = document.getElementById("modalOverlay");
+const selects = [
+    document.getElementById("sel0"),
+    document.getElementById("sel1"),
+    document.getElementById("sel2"),
+    document.getElementById("sel3")
+];
+const customInputs = [
+    document.getElementById("url0"),
+    document.getElementById("url1"),
+    document.getElementById("url2"),
+    document.getElementById("url3")
+];
+
+function populateSelect(sel) {
+    sel.innerHTML = "";
+    const otherOpt = document.createElement("option");
+    otherOpt.value = "__other__";
+    otherOpt.textContent = "Other...";
+    otherOpt.selected = true;
+    sel.appendChild(otherOpt);
+    SUGGESTED_URLS.forEach(url => {
+        const opt = document.createElement("option");
+        opt.value = url;
+        opt.textContent = url;
+        sel.appendChild(opt);
+    });
+}
+
+selects.forEach((sel, i) => {
+    sel.addEventListener("change", () => {
+        if (sel.value !== "__other__") {
+            customInputs[i].value = sel.value;
+        } else {
+            customInputs[i].value = "";
+            customInputs[i].focus();
+        }
+    });
+});
+
+function getSelectedUrl(i) {
+    return customInputs[i].value;
+}
+
+function saveUrls() {
+    const urls = Array.from(iframes).map(f => f.src);
+    localStorage.setItem("iframe-stuff-urls", JSON.stringify(urls));
+}
+
+function restoreUrls() {
+    const saved = localStorage.getItem("iframe-stuff-urls");
+    if (!saved) return;
+    const urls = JSON.parse(saved);
+    iframes.forEach((f, i) => { if (urls[i]) f.src = urls[i]; });
+}
+
+function openSettings() {
+    iframes.forEach((f, i) => {
+        populateSelect(selects[i]);
+        customInputs[i].value = f.src;
+    });
+    overlay.classList.add("active");
+}
+
+function closeSettings() {
+    overlay.classList.remove("active");
+}
+
+function applySettings() {
+    iframes.forEach((f, i) => { f.src = getSelectedUrl(i); });
+    saveUrls();
+    closeSettings();
+}
+
+document.getElementById("settingsBtn").addEventListener("click", openSettings);
+document.getElementById("modalCancel").addEventListener("click", closeSettings);
+document.getElementById("modalApply").addEventListener("click", applySettings);
+overlay.addEventListener("click", (e) => { if (e.target === overlay) closeSettings(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSettings(); });
+
+function resetLayout() {
+    localStorage.removeItem("iframe-stuff-positions");
+    localStorage.removeItem("iframe-stuff-urls");
+    const leftCol = document.querySelector(".left-column");
+    const rightCol = document.querySelector(".right-column");
+    const rows = document.querySelectorAll(".left-row");
+
+    leftCol.style.flex = ""; leftCol.style.width = "";
+    rightCol.style.flex = ""; rightCol.style.width = "";
+    rows.forEach(row => { row.style.flex = ""; row.style.height = ""; });
+    iframes.forEach((f, i) => { f.src = DEFAULT_URLS[i]; });
+    selects.forEach((sel) => { populateSelect(sel); });
+    customInputs.forEach((input, i) => { input.value = DEFAULT_URLS[i]; });
+    closeSettings();
+}
+
+document.getElementById("resetBtn").addEventListener("click", resetLayout);
+restorePositions();
+restoreUrls();
+initSplitter(document.getElementById("splitterV"), "vertical");
+initSplitter(document.getElementById("splitterH1"), "horizontal");
+initSplitter(document.getElementById("splitterH2"), "horizontal");
+
+// Pick up URL changes from embedded iframe-director.html (same window)
+window.addEventListener("message", (e) => {
+    if (e.data && e.data.type === "iframe-director-urls") {
+        if (e.data.urls) {
+            e.data.urls.forEach((url, i) => { if (url && iframes[i]) iframes[i].src = url; });
+        } else {
+            iframes.forEach((f, i) => { f.src = DEFAULT_URLS[i]; });
+        }
+    }
+});
+
+// Pick up URL changes from iframe-director.html in another tab
+window.addEventListener("storage", (e) => {
+    if (e.key === "iframe-stuff-urls") {
+        if (e.newValue) {
+            const urls = JSON.parse(e.newValue);
+            iframes.forEach((f, i) => { if (urls[i]) f.src = urls[i]; });
+        } else {
+            iframes.forEach((f, i) => { f.src = DEFAULT_URLS[i]; });
+        }
+    }
+    if (e.key === "iframe-stuff-positions" && !e.newValue) {
+        const leftCol = document.querySelector(".left-column");
+        const rightCol = document.querySelector(".right-column");
+        const rows = document.querySelectorAll(".left-row");
+        leftCol.style.flex = ""; leftCol.style.width = "";
+        rightCol.style.flex = ""; rightCol.style.width = "";
+        rows.forEach(row => { row.style.flex = ""; row.style.height = ""; });
+    }
+});
+</script>
+
+</body>
+</html>
