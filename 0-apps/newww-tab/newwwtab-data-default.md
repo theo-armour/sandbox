@@ -27,7 +27,6 @@
 
 - [g](https://github.com/evereverland/) evrlnd https://evereverland.github.io/
 - [g](https://github.com/evereverland/2019/) 2019 https://evereverland.github.io/2019
-- ta https://example.com
 - [g](https://github.com/pushme-pullyou/) PshPll https://pushme-pullyou.github.io/
 - [g](https://github.com/pushme-pullyou/assets/) ppAssets https://pushme-pullyou.github.io/assets/
 - g https://github.com/pushme-pullyou/2024/
