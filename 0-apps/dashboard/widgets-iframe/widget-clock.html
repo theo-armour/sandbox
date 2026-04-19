@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="widget-base.css">
   <style>
     #clock {
-      font-size: clamp(2rem, 12vw, 3.5rem);
+      font-size: clamp(1.8rem, 10vw, 3rem);
       font-weight: 700;
       font-variant-numeric: tabular-nums;
       line-height: 1;
@@ -16,6 +16,30 @@
     #date {
       color: var(--muted);
     }
+
+    #sun,
+    #moon {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #sun-times {
+      display: inline-flex;
+      gap: 0.25rem;
+      align-items: center;
+    }
+
+    .next {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    #facts {
+      color: var(--muted);
+      font-size: clamp(0.75rem, 2.2vw, 0.9rem);
+    }
   </style>
 </head>
 
@@ -23,13 +47,165 @@
   <h2>Now</h2>
   <div id="clock">00:00</div>
   <div id="date"></div>
+  <div id="sun"></div>
+  <div id="moon"></div>
+  <div id="facts"></div>
 
   <script>
     const clockEl = document.getElementById( "clock" );
     const dateEl = document.getElementById( "date" );
+    const sunEl = document.getElementById( "sun" );
+    const moonEl = document.getElementById( "moon" );
+    const factsEl = document.getElementById( "facts" );
 
-    const updateClock = () => {
+    const LOCATION_KEY = "dashboard-widget-clock-location";
+    const DEFAULT_COORDS = { lat: 37.7749, lon: -122.4194 };
+    let coords = DEFAULT_COORDS;
+
+    const savedCoords = localStorage.getItem( LOCATION_KEY );
+    if ( savedCoords !== null ) {
+      try {
+        coords = JSON.parse( savedCoords );
+      } catch ( err ) {
+        coords = DEFAULT_COORDS;
+      }
+    }
+
+    const formatTime = ( date ) => date.toLocaleTimeString( "en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    } );
+
+    const formatDuration = ( ms ) => {
+      const totalMinutes = Math.max( 0, Math.floor( ms / 60000 ) );
+      const h = Math.floor( totalMinutes / 60 );
+      const m = totalMinutes % 60;
+      return `${ h }h ${ m }m`;
+    };
+
+    // NOAA / Wikipedia sunrise equation. Returns Date objects in local tz.
+    const computeSunTimes = ( date, lat, lon ) => {
+      const rad = Math.PI / 180;
+      const deg = 180 / Math.PI;
+      const jDate = date.getTime() / 86400000 + 2440587.5;
+      const n = Math.floor( jDate - 2451545.0 + 0.0008 );
+      const jStar = n - lon / 360;
+      const M = ( 357.5291 + 0.98560028 * jStar ) % 360;
+      const C = 1.9148 * Math.sin( M * rad )
+        + 0.0200 * Math.sin( 2 * M * rad )
+        + 0.0003 * Math.sin( 3 * M * rad );
+      const L = ( M + C + 180 + 102.9372 ) % 360;
+      const jTransit = 2451545.0 + jStar
+        + 0.0053 * Math.sin( M * rad )
+        - 0.0069 * Math.sin( 2 * L * rad );
+      const sinDec = Math.sin( L * rad ) * Math.sin( 23.4397 * rad );
+      const cosDec = Math.cos( Math.asin( sinDec ) );
+      const cosW = ( Math.sin( -0.83 * rad ) - Math.sin( lat * rad ) * sinDec )
+        / ( Math.cos( lat * rad ) * cosDec );
+      if ( cosW > 1 || cosW < -1 ) return { sunrise: null, sunset: null };
+      const w = Math.acos( cosW ) * deg;
+      const jRise = jTransit - w / 360;
+      const jSet = jTransit + w / 360;
+      return {
+        sunrise: new Date( ( jRise - 2440587.5 ) * 86400000 ),
+        sunset: new Date( ( jSet - 2440587.5 ) * 86400000 ),
+      };
+    };
+
+    const MOON_PHASES = [
+      { emoji: "🌑", name: "New Moon" },
+      { emoji: "🌒", name: "Waxing Crescent" },
+      { emoji: "🌓", name: "First Quarter" },
+      { emoji: "🌔", name: "Waxing Gibbous" },
+      { emoji: "🌕", name: "Full Moon" },
+      { emoji: "🌖", name: "Waning Gibbous" },
+      { emoji: "🌗", name: "Last Quarter" },
+      { emoji: "🌘", name: "Waning Crescent" },
+    ];
+
+    const computeMoonPhase = ( date ) => {
+      const synodic = 29.53058867;
+      const newMoonEpoch = Date.UTC( 2000, 0, 6, 18, 14 );
+      const days = ( date.getTime() - newMoonEpoch ) / 86400000;
+      const fraction = ( ( days % synodic ) + synodic ) % synodic / synodic;
+      const idx = Math.floor( fraction * 8 + 0.5 ) % 8;
+      return { ...MOON_PHASES[ idx ], fraction };
+    };
+
+    const dayOfYear = ( date ) => {
+      const start = new Date( date.getFullYear(), 0, 0 );
+      return Math.floor( ( date - start ) / 86400000 );
+    };
+
+    const isoWeek = ( date ) => {
+      const d = new Date( Date.UTC(
+        date.getFullYear(), date.getMonth(), date.getDate()
+      ) );
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate( d.getUTCDate() + 4 - dayNum );
+      const yearStart = new Date( Date.UTC( d.getUTCFullYear(), 0, 1 ) );
+      return Math.ceil( ( ( d - yearStart ) / 86400000 + 1 ) / 7 );
+    };
+
+    const renderSun = ( now, sunrise, sunset ) => {
+      if ( sunrise === null || sunset === null ) {
+        sunEl.innerHTML = `<span>☀</span><span class="muted">no sunrise today</span>`;
+        return { daylightMs: 0, nextLabel: "" };
+      }
+      const beforeSunrise = now < sunrise;
+      const afterSunset = now > sunset;
+      const riseClass = beforeSunrise ? "next" : "";
+      const setClass = ( !beforeSunrise && !afterSunset ) ? "next" : "";
+      sunEl.innerHTML = `
+        <span>☀</span>
+        <span id="sun-times">
+          <span class="${ riseClass }">${ formatTime( sunrise ) }</span>
+          <span class="muted">→</span>
+          <span class="${ setClass }">${ formatTime( sunset ) }</span>
+        </span>
+      `;
+      return {
+        daylightMs: sunset - sunrise,
+        beforeSunrise,
+        afterSunset,
+        sunrise,
+        sunset,
+      };
+    };
+
+    const renderMoon = ( date ) => {
+      const moon = computeMoonPhase( date );
+      moonEl.innerHTML = `<span>${ moon.emoji }</span><span>${ moon.name }</span>`;
+    };
+
+    const renderFacts = ( now, sunInfo ) => {
+      const parts = [
+        `Day ${ dayOfYear( now ) }`,
+        `Week ${ isoWeek( now ) }`,
+      ];
+      if ( sunInfo.sunrise && sunInfo.sunset ) {
+        if ( sunInfo.beforeSunrise ) {
+          parts.push( `sunrise in ${ formatDuration( sunInfo.sunrise - now ) }` );
+        } else if ( sunInfo.afterSunset ) {
+          const tomorrow = new Date( now );
+          tomorrow.setDate( tomorrow.getDate() + 1 );
+          const nextRise = computeSunTimes(
+            tomorrow, coords.lat, coords.lon
+          ).sunrise;
+          if ( nextRise ) {
+            parts.push( `sunrise in ${ formatDuration( nextRise - now ) }` );
+          }
+        } else {
+          parts.push( `${ formatDuration( sunInfo.sunset - now ) } of daylight left` );
+        }
+      }
+      factsEl.textContent = parts.join( " · " );
+    };
+
+    const update = () => {
       const now = new Date();
+
       clockEl.textContent = now.toLocaleTimeString( "en-US", {
         hour: "2-digit",
         minute: "2-digit",
@@ -41,10 +217,35 @@
         month: "long",
         day: "numeric",
       } );
+
+      const { sunrise, sunset } = computeSunTimes(
+        now, coords.lat, coords.lon
+      );
+      const sunInfo = renderSun( now, sunrise, sunset );
+      renderMoon( now );
+      renderFacts( now, sunInfo );
     };
 
-    updateClock();
-    setInterval( updateClock, 60000 );
+    update();
+    setInterval( update, 60000 );
+
+    // Silently try to upgrade from default location to the user's real one.
+    // If denied, unavailable, or iframe lacks allow="geolocation", we stay on
+    // the default — no error UI.
+    if ( navigator.geolocation ) {
+      navigator.geolocation.getCurrentPosition(
+        ( pos ) => {
+          coords = {
+            lat: pos.coords.latitude,
+            lon: pos.coords.longitude,
+          };
+          localStorage.setItem( LOCATION_KEY, JSON.stringify( coords ) );
+          update();
+        },
+        () => { },
+        { timeout: 5000, maximumAge: 86400000 }
+      );
+    }
   </script>
 </body>
 
