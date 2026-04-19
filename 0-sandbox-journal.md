@@ -1,6 +1,11 @@
 # Sandbox Journal
 
 
+## 2026-04-18
+
+Learning how to get help in VS Code Copilot Check.
+
+
 ## 2026-01-10
 
 Notesy updates

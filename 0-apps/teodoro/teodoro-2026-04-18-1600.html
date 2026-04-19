@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teodoro Timer</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #000000;
+      --btn-bg: #e5e5ea;
+      --btn-hover: #d1d1d6;
+      --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1c1e;
+        --fg: #ffffff;
+        --btn-bg: #2c2c2e;
+        --btn-hover: #3a3a3c;
+      }
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 500px;
+      padding: clamp(0.5rem, 5vw, 2rem);
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(1rem, 5vw, 2rem);
+    }
+
+    #display {
+      font-size: clamp(3rem, 25vw, 8rem);
+      font-weight: 700;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      margin: 0;
+    }
+
+    .controls {
+      display: flex;
+      gap: clamp(0.25rem, 2vw, 0.5rem);
+      width: 100%;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background-color: var(--btn-bg);
+      color: var(--fg);
+      border: none;
+      border-radius: clamp(0.3rem, 2vw, 0.5rem);
+      padding: clamp(0.5rem, 3vw, 1rem) clamp(0.75rem, 4vw, 1.5rem);
+      font-size: clamp(0.9rem, 4vw, 1.2rem);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+      flex: 1 1 auto;
+      min-width: clamp(3rem, 15vw, 4rem);
+      text-align: center;
+    }
+
+    button:hover {
+      background-color: var(--btn-hover);
+    }
+
+    button:active {
+      transform: scale(0.96);
+    }
+
+    .preset-group {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: clamp(0.25rem, 2vw, 0.5rem);
+      width: 100%;
+    }
+
+    #audio-controls {
+      display: flex;
+      align-items: center;
+      gap: clamp(0.5rem, 3vw, 1rem);
+      width: 100%;
+      justify-content: center;
+      margin-top: clamp(0.5rem, 3vw, 1rem);
+    }
+
+    .icon-btn {
+      background: transparent;
+      padding: 0;
+      font-size: clamp(1.2rem, 6vw, 1.8rem);
+      flex: 0 0 auto;
+      min-width: auto;
+    }
+
+    .icon-btn:hover {
+      background: transparent;
+      opacity: 0.7;
+    }
+
+    input[type="range"] {
+      flex: 1 1 auto;
+      max-width: 200px;
+      accent-color: var(--fg);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-container">
+    <div id="display">00:00</div>
+
+    <div class="controls">
+      <button id="btn-minus" aria-label="Subtract Time">-</button>
+      <button id="btn-pause" aria-label="Pause/Resume Timer">Pause</button>
+      <button id="btn-plus" aria-label="Add Time">+</button>
+    </div>
+
+    <div class="preset-group">
+      <button class="preset" data-sec="5">5s</button>
+      <button class="preset" data-sec="300">5m</button>
+      <button class="preset" data-sec="480">8m</button>
+      <button class="preset" data-sec="1080">18m</button>
+    </div>
+
+    <div id="audio-controls">
+      <button id="btn-mute" class="icon-btn" title="Toggle Mute">🔊</button>
+      <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5" title="Volume">
+    </div>
+  </div>
+
+  <audio id="stream" src="https://ice1.somafm.com/groovesalad-128-mp3" preload="none"></audio>
+
+  <script>
+
+    // rewrite the URL if we are running on a web server
+    if ( location.protocol !== "file:" ) {
+      window.history.replaceState( null, '', './' );
+    }
+
+    const display = document.getElementById( 'display' );
+    const btnPause = document.getElementById( 'btn-pause' );
+    const btnMinus = document.getElementById( 'btn-minus' );
+    const btnPlus = document.getElementById( 'btn-plus' );
+    const presets = document.querySelectorAll( '.preset' );
+
+    const stream = document.getElementById( 'stream' );
+    const volInput = document.getElementById( 'volume' );
+    const btnMute = document.getElementById( 'btn-mute' );
+
+    let remainingTime = 0;
+    let totalTime = 0;
+    let intervalId = null;
+    let isRunning = false;
+    let currentPreset = 300;
+    let audioCtx = null;
+    let isMuted = false;
+
+    // Load volume
+    const savedVol = localStorage.getItem( 'teodoro-vol' );
+    if ( savedVol !== null ) {
+      volInput.value = savedVol;
+      stream.volume = savedVol;
+    } else {
+      stream.volume = 0.5;
+    }
+
+    function formatTime ( seconds ) {
+      if ( seconds < 0 ) seconds = 0;
+      const m = Math.floor( seconds / 60 ).toString().padStart( 2, '0' );
+      const s = ( seconds % 60 ).toString().padStart( 2, '0' );
+      return `${ m }:${ s }`;
+    }
+
+    function updateDisplay () {
+      display.textContent = formatTime( remainingTime );
+    }
+
+    function initAudioCtx () {
+      if ( !audioCtx ) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+      }
+    }
+
+    function playHalfwayChime () {
+      initAudioCtx();
+      if ( audioCtx.state === 'suspended' ) audioCtx.resume();
+
+      // Random melodic patterns
+      const patterns = [
+        [ 523.25, 659.25, 783.99 ], // C Major
+        [ 587.33, 739.99, 880.00 ], // D Major
+        [ 659.25, 830.61, 987.77 ], // E Major
+        [ 523.25, 622.25, 783.99 ]  // C Minor
+      ];
+      const notes = patterns[ Math.floor( Math.random() * patterns.length ) ];
+
+      notes.forEach( ( freq, i ) => {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+
+        osc.connect( gainNode );
+        gainNode.connect( audioCtx.destination );
+
+        const startTime = audioCtx.currentTime + i * 0.15;
+        gainNode.gain.setValueAtTime( 0, startTime );
+        gainNode.gain.linearRampToValueAtTime( 0.3, startTime + 0.05 );
+        gainNode.gain.exponentialRampToValueAtTime( 0.01, startTime + 0.6 );
+
+        osc.start( startTime );
+        osc.stop( startTime + 0.6 );
+      } );
+    }
+
+    function tick () {
+      remainingTime--;
+
+      if ( remainingTime < 0 ) {
+        remainingTime = 0;
+        updateDisplay();
+        clearInterval( intervalId );
+        isRunning = false;
+        btnPause.textContent = "Restart";
+        stream.play().catch( e => console.error( "Audio play failed:", e ) );
+        return;
+      }
+
+      updateDisplay();
+
+      if ( remainingTime === Math.floor( totalTime / 2 ) && totalTime > 1 ) {
+        playHalfwayChime();
+      }
+    }
+
+    function startTimer ( seconds ) {
+      clearInterval( intervalId );
+      stream.pause();
+
+      remainingTime = seconds;
+      totalTime = seconds;
+      updateDisplay();
+
+      isRunning = true;
+      btnPause.textContent = "Pause";
+
+      if ( seconds > 0 ) {
+        intervalId = setInterval( tick, 1000 );
+        initAudioCtx();
+      } else {
+        btnPause.textContent = "Restart";
+      }
+    }
+
+    function togglePause () {
+      initAudioCtx(); // in case user interacted for first time via resume
+
+      if ( remainingTime <= 0 ) {
+        // Restart
+        startTimer( totalTime > 0 ? totalTime : 300 );
+        return;
+      }
+
+      if ( isRunning ) {
+        clearInterval( intervalId );
+        isRunning = false;
+        btnPause.textContent = "Resume";
+        stream.pause();
+      } else {
+        isRunning = true;
+        btnPause.textContent = "Pause";
+        intervalId = setInterval( tick, 1000 );
+      }
+    }
+
+    function adjustTime ( deltaSec ) {
+      remainingTime += deltaSec;
+      if ( remainingTime < 0 ) remainingTime = 0;
+      totalTime = remainingTime;
+      updateDisplay();
+
+      if ( remainingTime > 0 && btnPause.textContent === "Restart" ) {
+        btnPause.textContent = isRunning ? "Pause" : "Resume";
+        stream.pause();
+      } else if ( remainingTime <= 0 ) {
+        clearInterval( intervalId );
+        isRunning = false;
+        btnPause.textContent = "Restart";
+      }
+    }
+
+    // Event Listeners
+    presets.forEach( btn => {
+      btn.addEventListener( 'click', () => {
+        const sec = parseInt( btn.getAttribute( 'data-sec' ), 10 );
+        currentPreset = sec;
+        startTimer( sec );
+      } );
+    } );
+
+    btnPause.addEventListener( 'click', togglePause );
+
+    btnMinus.addEventListener( 'click', () => {
+      const delta = currentPreset === 5 ? -1 : -60;
+      adjustTime( delta );
+    } );
+
+    btnPlus.addEventListener( 'click', () => {
+      const delta = currentPreset === 5 ? 1 : 60;
+      adjustTime( delta );
+    } );
+
+    document.addEventListener( 'keydown', ( e ) => {
+      if ( e.code === 'Space' ) {
+        e.preventDefault();
+        togglePause();
+      }
+    } );
+
+    volInput.addEventListener( 'input', ( e ) => {
+      const val = parseFloat( e.target.value );
+      stream.volume = val;
+      localStorage.setItem( 'teodoro-vol', val );
+      if ( isMuted && val > 0 ) {
+        isMuted = false;
+        stream.muted = false;
+        btnMute.textContent = '🔊';
+      }
+    } );
+
+    btnMute.addEventListener( 'click', () => {
+      isMuted = !isMuted;
+      stream.muted = isMuted;
+      btnMute.textContent = isMuted ? '🔇' : '🔊';
+    } );
+  </script>
+
+</body>
+
+</html>

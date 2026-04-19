@@ -18,3 +18,7 @@ major news I should know that could impact my business or
 team. Wrap up with an inspiring quote or insight from recent
 reading. Prioritize what requires my attention today, keep it
 concise, and note if anything couldn’t be retrieved.”
+
+## Bookmarks
+
+* https://substack.com/@ruben/note/c-244847519
