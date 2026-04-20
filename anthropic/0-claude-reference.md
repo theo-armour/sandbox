@@ -2,17 +2,6 @@
 
 Projects allow you to add up to 200 files (or 500MB total) as project knowledge.
 
-## Claude Files
-
-* C:\Users\tarmo\.claude
-* "G:\My Drive\2026-theo-github\theo-armour-sandbox\CLAUDE.md"
-
-Skills
-
-* Personal (all projects): ~/.claude/skills/<skill-name>/
-* Project (one repo): .claude/skills/<skill-name>/ (in repo root)
-* Each skill is a folder with a SKILL.md file: .claude/skills/my-skill/
-└── SKILL.md
 
 ## Anthropic Academy
 
