@@ -20,7 +20,7 @@ independent HTML file embedded as an iframe.
 | `widget-clock.html` | Clock and date. |
 | `widget-github.html` | Static GitHub link. |
 | `widget-weather.html` | Current conditions via Open-Meteo. |
-| `widget-focus.html` | Top 3 items. |
+| `widget-calendar.html` | Embedded Google Calendar in agenda mode. |
 | `widget-links.html` | Quick links. |
 | `widget-today.html` | News headlines from a list of RSS feeds. |
 | `widget-notes.html` | Notes with `localStorage` persistence. |
