@@ -19,10 +19,10 @@ independent HTML file embedded as an iframe.
 | `teodoro.html` | Teodoro activity timer. First tile (top left). Self-contained, brings its own styles. |
 | `widget-clock.html` | Clock and date. |
 | `widget-github.html` | Static GitHub link. |
-| `widget-weather.html` | Weather placeholder. |
+| `widget-weather.html` | Current conditions via Open-Meteo. |
 | `widget-focus.html` | Top 3 items. |
 | `widget-links.html` | Quick links. |
-| `widget-today.html` | Today schedule — the only widget that uses a table. |
+| `widget-today.html` | News headlines from a list of RSS feeds. |
 | `widget-notes.html` | Notes with `localStorage` persistence. |
 
 ## Adding a widget
