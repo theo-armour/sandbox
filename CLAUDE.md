@@ -47,6 +47,13 @@ Each copy differs only in its CONFIG values. Apply fixes to all three files.
 - Check `0-sandbox-agenda.md` for current priorities
 - Keep changelogs in READMEs with dated entries
 
+## Pull Request Workflow
+
+- Prefer **small, frequent PRs** — one logical change per PR
+- Start each new unit of work on a **fresh branch off `main`**, not stacked onto a previous feature branch
+- Don't add more commits to a branch whose PR is already open or recently merged — open a new branch + new PR instead
+- I respond to PRs fast, so keep them flowing — don't batch
+
 ---
 
-**Last Updated**: 2026-03-31
+**Last Updated**: 2026-04-20
