@@ -29,6 +29,8 @@
 - [g](https://github.com/theo-armour/qdata/tree/master/apps/trayo) trayo https://theo-armour.github.io/qdata/apps/trayo/
 - [g](https://github.com/theo-armour/qdata/tree/master/apps/notesy) days https://theo-armour.github.io/qdata/apps/notesy/days.html
 
+### - orgs
+
 - [g](https://github.com/evereverland/) evrlnd https://evereverland.github.io/
 - [g](https://github.com/evereverland/2019/) 2019 https://evereverland.github.io/2019
 - [g](https://github.com/pushme-pullyou/) PshPll https://pushme-pullyou.github.io/
@@ -43,10 +45,10 @@
 
 ### - vs code
 - >ta 2025 https://vscode.dev/github/theo-armour/2025
-- >ta agnd https://vscode.dev/github/theo-armour/agenda
+- >ta agnda https://vscode.dev/github/theo-armour/agenda
 - >ta pages https://vscode.dev/github/theo-armour/pages
-- >ta qDat https://vscode.dev/github/theo-armour/qdata
-- >TooToo23 https://vscode.dev/github/pushme-pullyou/assets/
+- >ta qdata https://vscode.dev/github/theo-armour/qdata
+- >pp Assets https://vscode.dev/github/pushme-pullyou/assets/
 
 ## News
 
@@ -59,8 +61,17 @@
 - slashdot https://slashdot.org/
 - hacker_new https://news.ycombinator.com/
 - xkcd https://xkcd.com/
+- [g](https://github.com/koala73/worldmonitor) wrldmon https://www.worldmonitor.app/
 
-### + MoreNews
+### + Reads
+- substack https://substack.com/inbox
+- medium https://medium.com/
+- swiss-miss https://swiss-miss.com
+- kindle https://read.amazon.com/kindle-library
+- kottke https://kottke.org
+- techxplore https://sciencex.com/news/techxplore/
+
+### - MoreNews
 - compuserve http://compuserve.com/
 - allTop https://alltop.com/
 - brutalist https://brutalist.report/
@@ -68,8 +79,6 @@
 - npr https://text.npr.org/
 - apnews https://apnews.com
 - MarktechP https://www.marktechpost.com/
-- swiss-miss https://swiss-miss.com
-- kottke https://kottke.org
 - boing https://boingboing.net/blog/
 - digg https://digg.com/
 - lifehacker https://lifehacker.com/
@@ -79,15 +88,7 @@
 - twitter.com https://twitter.com/
 - reddit https://reddit.com/
 
-## Reads
-
-### + Reads
-- substack https://substack.com/inbox
-- medium https://medium.com/
-- scanalyst https://scanalyst.fourmilab.ch/
-- kindle https://read.amazon.com/kindle-library
-
-### + MoreRead
+### - MoreRead
 - aeon https://aeon.co/
 - axios https://axios.com/
 - lesswrong https://www.lesswrong.com/
@@ -95,14 +96,22 @@
 - nautilus https://nautil.us/
 - noema https://www.noemamag.com/
 - quanta https://www.quantamagazine.org/
+- scanalyst https://scanalyst.fourmilab.ch/
 - feedly https://feedly.com/
 - libbyapp.com https://libbyapp.com/
 - sfpl.org https://sfpl.org/
 
+
+
 ## AI
 
+### + AI
+- claude https://claude.ai/
+- gemini https://gemini.google.com/
+- copilotp https://copilot.microsoft.com/
+- grok https://x.ai/grok
+
 ### + AI Creative
-- sora https://sora.com
 - midjourny https://www.midjourney.com/
 - > dd https://discord.com/channels/662267976984297473/@home
 - ideogram https://ideogram.ai/
@@ -110,15 +119,27 @@
 - kaiber https://kaiber.ai
 - suno/chirp https://suno.com
 
-### - AI&OfficeMS
-- copilotp https://copilot.microsoft.com/
-- grok https://x.ai/grok
+### - OfficeMS
+
 - ms365 https://office.com
 - onedrv https://onedrive.live.com
 - outlook https://outlook.live.com
 
 
 ## Google
+
+### + Google Apps
+- google https://google.com/
+- g calendar https://calendar.google.com/
+- g contacts https://contacts.google.com/
+- g photos https://photos.google.com/
+- g maps https://google.com/maps/
+- g earth https://earth.google.com/web/
+- g mail https://mail.google.com/mail/u/0/?tab=mm#inbox
+- > compose https://mail.google.com/mail/?view=cm&fs=1&tf=1
+- youtube https://youtube.com/
+- g fiMsg https://messages.google.com/web/
+- g fiAccnt https://fi.google.com
 
 ### - GoogleDriv
 - g drive https://drive.google.com/
@@ -137,18 +158,6 @@
 - > 10 https://docs.google.com/document/d/1Es--zDC4I4XYoklRJnSuMyhS1iggsuK2Y1KDTdHAMNQ/edit
 
 
-### + Google Apps
-- g calendar https://calendar.google.com/
-- g contacts https://contacts.google.com/
-- g photos https://photos.google.com/
-- g maps https://google.com/maps/
-- google https://google.com/
-- g FiMsg https://messages.google.com/web/
-- g earth https://earth.google.com/web/
-- g mail https://mail.google.com/mail/u/0/?tab=mm#inbox
-- > compose https://mail.google.com/mail/?view=cm&fs=1&tf=1
-- youtube https://youtube.com/
-- g fiAccnt https://fi.google.com
 
 ### + MoreGoogle
 - g chat https://chat.google.com/
@@ -160,31 +169,38 @@
 
 ## Apps
 
-### + Apps
+### + Soshnet
+- whatsapp https://web.whatsapp.com/
+- linkedin https://linkedin.com/
+- bsky https://bsky.app/
+- facebook https://facebook.com/
+- nextdoor https://nextdoor.com/
+- threads https://www.threads.net/web/
+- instagram https://instagram.com/
+- tumblr https://tumblr.com/
+
+### + apps
+- raindrop https://app.raindrop.io/my/-1
+- dropbox https://dropbox.com/home
+- spotify https://www.spotify.com/
+- flickr https://flickr.com/
+- evernote https://evernote.com/Home.action
+
+
+### - genealogy
 - geni https://geni.com/family-tree/index/6000000004118029730
 - gedcom https://pewu.github.io/topola-viewer/#/view?url=https://theo-armour.github.io/genealogy/gedcom-files/2025-08-18-export-geni/export-BloodTree.ged
 - myheritage https://www.myheritage.com/
 - ancestry https://www.ancestry.com/
 - wikitree https://www.wikitree.com/wiki/Main_Page
 - prompt https://my.promptsmart.com/scripts
-- whatsapp https://web.whatsapp.com/
-- raindrop https://app.raindrop.io/my/-1
-- linkedin https://linkedin.com/
-- instagram https://instagram.com/
+
+### - more apps
 - dictanoth https://dictanote.co/
 - excalidrw https://excalidraw.com/
-- bsky https://bsky.app/
-- threads https://www.threads.net/web/
-- nextdoor https://nextdoor.com/
 - stackoflow https://stackoverflow.com/
-- facebook https://facebook.com/
 - trmnl https://usetrmnl.com/dashboard
 - audiopen https://audiopen.ai/
-- spotify https://www.spotify.com/
-- dropbox https://dropbox.com/home
-- evernote https://evernote.com/Home.action
-- flickr https://flickr.com/
-- tumblr https://tumblr.com/
 - lowercase https://www.lowercase.app/workspace/9b004c32-5287-4fe7-8d1f-c66a0cc1a31c/edit
 
 ### - Reference
@@ -210,17 +226,15 @@
 - ace-it.gr https://ace-it.groups.io/
 - hertge.gr https://heritage.groups.io/g/residents/messages
 
-### + Heritage
+## Heritage
+
+### + heritage
 - hotm https://heritageonthemarina.org/
-- p https://photos.fife.usercontent.google.com/pw/AP1GczMD9HRaxaWkG-W4JSgWilu9PVt29jRaMmifj8aZX3qM0I76RQV1RYsvdA=w1473-h831-s-no-gm?authuser=0
+- photo https://photos.fife.usercontent.google.com/pw/AP1GczMD9HRaxaWkG-W4JSgWilu9PVt29jRaMmifj8aZX3qM0I76RQV1RYsvdA=w1473-h831-s-no-gm?authuser=0
 - worxhub https://theheritagesf.theworxhub.com/Dashboard
 - tchTwn https://www.residentapps.com/
-- pph https://www.pineparkhealth.com/
-- elatn https://app.elationpassport.com/passport/login/
-- g https://github.com/heritage-happenings/heritage-happenings.github.io/
-- HerHap https://heritage-happenings.github.io/
-- g https://github.com/heritage-happenings/documents/
-- documnts https://heritage-happenings.github.io/documents/
+- [g]( https://github.com/heritage-happenings/heritage-happenings.github.io/) HerHap https://heritage-happenings.github.io/
+- [g](https://github.com/heritage-happenings/documents/) documnts https://heritage-happenings.github.io/documents/
 - [g](https://github.com/heritage-happenings/kiosk/) kiosk https://heritage-happenings.github.io/kiosk
 - calendar https://heritage-happenings.github.io/happenings-issues/calendar.html
 - newlettr https://heritage-happenings.github.io/happenings-issues/newsletter.html
@@ -232,7 +246,9 @@
 - resdir https://1drv.ms/b/s!ArJ-RZ9B4UhDzOxGlz6HYF0kYMpFwA?e=Lh8FYs
 - granucci https://EverEverLand.github.io/granucci/
 
-### - Orgs & Projects
+## orgs
+
+### + Orgs & Projects
 - [g](https://github.com/theo-armour/qdata/tree/master/apps/notesy) notesy https://theo-armour.github.io/qdata/apps/notesy
 - read me https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/README.md
 - AxisOrdinry https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/axis-of-ordinary.md
@@ -246,6 +262,8 @@
 - ilike https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/things-i-like.md
 - tips https://theo-armour.github.io/qdata/apps/notesy#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/tips.md
 - poem-otd https://poets.org/poem-a-day
+
+### - orgs
 - Jaanga http://jaanga.github.io/
 - gh https://github.com/jaanga/jaanga.github.io/
 - > demo https://jaanga.github.io/demo/
