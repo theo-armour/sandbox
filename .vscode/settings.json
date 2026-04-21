@@ -1,9 +1,20 @@
 {
-  "python-envs.pythonProjects": [
-    {
-      "path": ".",
-      "envManager": "ms-python.python:venv",
-      "packageManager": "ms-python.python:pip"
-    }
-  ]
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "editor.rulers": [100],
+  "editor.renderWhitespace": "boundary",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "files.eol": "\n",
+  "files.exclude": {
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true
+  },
+  "html.format.wrapLineLength": 0,
+  "emmet.includeLanguages": {
+    "javascript": "javascriptreact"
+  },
+  "[markdown]": {
+    "files.trimTrailingWhitespace": false
+  }
 }
