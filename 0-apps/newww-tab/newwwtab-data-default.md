@@ -107,7 +107,7 @@
 
 ### + AI
 - claude https://claude.ai/
-- [0]( https://openai.com/) chatai https://chatgpt.com/
+- [g]( https://openai.com/) chatai https://chatgpt.com/
 - gemini https://gemini.google.com/
 - copilotp https://copilot.microsoft.com/
 - grok https://x.ai/grok
