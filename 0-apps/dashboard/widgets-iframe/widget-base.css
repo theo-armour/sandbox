@@ -40,7 +40,8 @@ body {
   background: transparent;
   color: var(--fg);
   font-family: var(--font);
-  font-size: clamp(1rem, 2.8vw, 1.15rem);
+  font-size: clamp(1rem, 2.8vw, 1.2rem);
+  font-weight: 500;
   padding: 0.9rem;
   display: flex;
   flex-direction: column;
@@ -48,11 +49,12 @@ body {
 }
 
 h2 {
-  font-size: clamp(0.85rem, 2.2vw, 0.95rem);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: clamp(0.75rem, 2vw, 0.85rem);
+  letter-spacing: 0.02em;
   color: var(--muted);
   font-weight: 600;
+  line-height: 1;
+  margin-bottom: -0.25rem;
 }
 
 a {

@@ -18,7 +18,8 @@
     }
 
     #sun,
-    #moon {
+    #moon,
+    #solar {
       display: flex;
       align-items: center;
       gap: 0.4rem;
@@ -62,12 +63,14 @@
   <div id="worldclocks"></div>
   <div id="sun"></div>
   <div id="moon"></div>
+  <div id="solar"></div>
   <div id="facts"></div>
 
   <script>
     const clockEl = document.getElementById( "clock" );
     const dateEl = document.getElementById( "date" );
     const sunEl = document.getElementById( "sun" );
+    const solarEl = document.getElementById( "solar" );
     const moonEl = document.getElementById( "moon" );
     const factsEl = document.getElementById( "facts" );
     const worldclocksEl = document.getElementById( "worldclocks" );
@@ -129,13 +132,14 @@
       const cosDec = Math.cos( Math.asin( sinDec ) );
       const cosW = ( Math.sin( -0.83 * rad ) - Math.sin( lat * rad ) * sinDec )
         / ( Math.cos( lat * rad ) * cosDec );
-      if ( cosW > 1 || cosW < -1 ) return { sunrise: null, sunset: null };
+      if ( cosW > 1 || cosW < -1 ) return { sunrise: null, sunset: null, solarNoon: null };
       const w = Math.acos( cosW ) * deg;
       const jRise = jTransit - w / 360;
       const jSet = jTransit + w / 360;
       return {
         sunrise: new Date( ( jRise - 2440587.5 ) * 86400000 ),
         sunset: new Date( ( jSet - 2440587.5 ) * 86400000 ),
+        solarNoon: new Date( ( jTransit - 2440587.5 ) * 86400000 ),
       };
     };
 
@@ -174,7 +178,7 @@
       return Math.ceil( ( ( d - yearStart ) / 86400000 + 1 ) / 7 );
     };
 
-    const renderSun = ( now, sunrise, sunset ) => {
+    const renderSun = ( now, sunrise, sunset, solarNoon ) => {
       if ( sunrise === null || sunset === null ) {
         sunEl.innerHTML = `<span>☀</span><span class="muted">no sunrise today</span>`;
         return { daylightMs: 0, nextLabel: "" };
@@ -182,14 +186,12 @@
       const beforeSunrise = now < sunrise;
       const afterSunset = now > sunset;
       const riseClass = beforeSunrise ? "next" : "";
-      const setClass = ( !beforeSunrise && !afterSunset ) ? "next" : "";
+      const noonClass = ( !beforeSunrise && !afterSunset ) ? "next" : "";
+      const setClass = afterSunset ? "" : ( !beforeSunrise && !afterSunset ) ? "" : "";
       sunEl.innerHTML = `
-        <span>☀</span>
-        <span id="sun-times">
-          <span class="${ riseClass }">${ formatTime( sunrise ) }</span>
-          <span class="muted">→</span>
-          <span class="${ setClass }">${ formatTime( sunset ) }</span>
-        </span>
+        <span class="${ riseClass }">🌅 ${ formatTime( sunrise ) }</span>
+        ${ solarNoon ? `<span class="${ noonClass }">🌤 ${ formatTime( solarNoon ) }</span>` : "" }
+        <span>🌇 ${ formatTime( sunset ) }</span>
       `;
       return {
         daylightMs: sunset - sunrise,
@@ -198,6 +200,19 @@
         sunrise,
         sunset,
       };
+    };
+
+    const renderSolar = ( now, sunrise, sunset ) => {
+      if ( !sunrise || !sunset ) { solarEl.innerHTML = ""; return; }
+      const morningEnd = new Date( sunrise.getTime() + 3600000 );
+      const eveningStart = new Date( sunset.getTime() - 3600000 );
+      const inMorning = now >= sunrise && now <= morningEnd;
+      const inEvening = now >= eveningStart && now <= sunset;
+      solarEl.innerHTML = `
+        <span class="${ inMorning ? "next" : "" }">🌅 ${ formatTime( sunrise ) }–${ formatTime( morningEnd ) }</span>
+        <span class="muted">·</span>
+        <span class="${ inEvening ? "next" : "" }">🌇 ${ formatTime( eveningStart ) }–${ formatTime( sunset ) }</span>
+      `;
     };
 
     const renderMoon = ( date ) => {
@@ -223,7 +238,7 @@
             parts.push( `sunrise in ${ formatDuration( nextRise - now ) }` );
           }
         } else {
-          parts.push( `${ formatDuration( sunInfo.sunset - now ) } of daylight left` );
+          parts.push( `${ formatDuration( sunInfo.sunset - now ) } daylight` );
         }
       }
       factsEl.textContent = parts.join( " · " );
@@ -248,10 +263,11 @@
         `<span><span class="city">${ c.name }</span>${ formatTimeInZone( now, c.tz ) }</span>`
       ).join( "" );
 
-      const { sunrise, sunset } = computeSunTimes(
+      const { sunrise, sunset, solarNoon } = computeSunTimes(
         now, coords.lat, coords.lon
       );
-      const sunInfo = renderSun( now, sunrise, sunset );
+      const sunInfo = renderSun( now, sunrise, sunset, solarNoon );
+      renderSolar( now, sunrise, sunset );
       renderMoon( now );
       renderFacts( now, sunInfo );
     };
