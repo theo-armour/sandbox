@@ -15,10 +15,10 @@ independent HTML file embedded as an iframe.
 | File | Role |
 |---|---|
 | `index.html` | Shell page. Renders a grid of iframes from a `WIDGETS` array. |
-| `widget-base.css` | Shared styles used by every small widget for a consistent look. |
+| `widget-base.css` | Shared styles used by every small widget for a consistent look. Each widget `<link>`s to this file directly. |
 | `teodoro.html` | Teodoro activity timer. First tile (top left). Self-contained, brings its own styles. |
 | `widget-clock.html` | Clock and date. |
-| `widget-github.html` | Static GitHub link. |
+| `widget-github.html` | Status monitor for ChatGPT, Claude, and Gemini. |
 | `widget-weather.html` | Current conditions via Open-Meteo. |
 | `widget-calendar.html` | Embedded Google Calendar in agenda mode. |
 | `widget-links.html` | Quick links. |
@@ -32,7 +32,7 @@ independent HTML file embedded as an iframe.
 3. Add an entry to the `WIDGETS` array in `index.html`:
 
 ```js
-{ id: "myname", src: "widget-myname.html", height: 200, wide: false }
+{ id: "myname", src: "widget-myname.html", height: 200, label: "My widget name", wide: false }
 ```
 
 ## Notes

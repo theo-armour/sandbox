@@ -4,14 +4,281 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="revised" content="2026-04-26 14:13">
+  <title>AI Status</title>
   <link rel="stylesheet" href="widget-base.css">
+  <style>
+    body {
+      justify-content: center;
+      gap: 0.55rem;
+    }
+
+    .status-dot {
+      width: 0.7rem;
+      height: 0.7rem;
+      border-radius: 999px;
+      background: var(--muted);
+      flex: 0 0 auto;
+    }
+
+    .status-dot.good {
+      background: var(--accent);
+    }
+
+    .status-dot.warn {
+      background: #d48b0c;
+    }
+
+    .status-dot.bad {
+      background: #c53b32;
+    }
+
+    #services {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+
+    .service {
+      display: flex;
+      flex-direction: column;
+      gap: 0.18rem;
+      padding-top: 0.1rem;
+    }
+
+    .service + .service {
+      border-top: 1px solid var(--panel-border);
+      padding-top: 0.55rem;
+    }
+
+    .service-head {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .service-name {
+      font-size: clamp(0.95rem, 2.7vw, 1.05rem);
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .service-desc,
+    .service-note,
+    #updated {
+      color: var(--muted);
+      font-size: clamp(0.82rem, 2.2vw, 0.92rem);
+      line-height: 1.35;
+    }
+
+    .service-link {
+      font-size: clamp(0.78rem, 2.1vw, 0.88rem);
+    }
+
+    #updated {
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
 </head>
 
 <body>
-  <h2>GitHub</h2>
-  <a href="https://github.com/theo-armour/sandbox/dashboard/" target="_blank" rel="noopener">
-    github.com/theo-armour/sandbox/dashboard
-  </a>
+  <h2>AI Status</h2>
+  <div id="services">
+    <div class="muted">Loading service status...</div>
+  </div>
+  <div id="updated" class="muted"></div>
+
+  <script>
+    const state = {
+      cacheKey: "dashboard-widget-ai-status-cache",
+      refreshMs: 15 * 60 * 1000,
+      services: [
+        {
+          key: "chatgpt",
+          label: "ChatGPT",
+          href: "https://status.openai.com/",
+          load: async () => {
+            const summary = await fetchStatuspageSummary( "https://status.openai.com/api/v2/summary.json" );
+            return fromStatuspage( "ChatGPT", "status.openai.com", summary );
+          },
+        },
+        {
+          key: "claude",
+          label: "Claude",
+          href: "https://status.claude.com/",
+          load: async () => {
+            const summary = await fetchStatuspageSummary( "https://status.anthropic.com/api/v2/summary.json" );
+            return fromStatuspage( "Claude", "status.claude.com", summary );
+          },
+        },
+        {
+          key: "gemini",
+          label: "Gemini",
+          href: "https://status.cloud.google.com/",
+          load: async () => {
+            const incidents = await fetchGoogleIncidents();
+            return fromGoogleGemini( incidents );
+          },
+        },
+      ],
+    };
+
+    const servicesEl = document.getElementById( "services" );
+    const updatedEl = document.getElementById( "updated" );
+
+    const readJson = ( key ) => {
+      const raw = localStorage.getItem( key );
+      if ( raw === null ) return null;
+      try {
+        return JSON.parse( raw );
+      } catch ( err ) {
+        return null;
+      }
+    };
+
+    const formatTime = ( epochMs ) => new Date( epochMs ).toLocaleTimeString( "en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    } );
+
+    const statusTone = ( indicator ) => {
+      if ( indicator === "none" ) return "good";
+      if ( indicator === "minor" ) return "warn";
+      return "bad";
+    };
+
+    const googleTone = ( impact ) => {
+      if ( impact === "SERVICE_INFORMATION" ) return "warn";
+      if ( impact === "SERVICE_DISRUPTION" ) return "bad";
+      if ( impact === "SERVICE_OUTAGE" ) return "bad";
+      return "good";
+    };
+
+    const shortText = ( text, limit = 92 ) => {
+      const compact = text.replace( /\s+/g, " " ).trim();
+      if ( compact.length <= limit ) return compact;
+      return `${ compact.slice( 0, limit - 3 ) }...`;
+    };
+
+    const fetchStatuspageSummary = async ( url ) => {
+      const res = await fetch( url );
+      if ( !res.ok ) throw new Error( `HTTP ${ res.status }` );
+      return res.json();
+    };
+
+    const fetchGoogleIncidents = async () => {
+      const res = await fetch( "https://status.cloud.google.com/incidents.json" );
+      if ( !res.ok ) throw new Error( `HTTP ${ res.status }` );
+      return res.json();
+    };
+
+    const fromStatuspage = ( label, host, summary ) => {
+      const incident = summary.incidents[ 0 ];
+      return {
+        label,
+        tone: statusTone( summary.status.indicator ),
+        description: summary.status.description,
+        note: incident ? shortText( incident.name ) : "No active incidents.",
+        linkLabel: host,
+      };
+    };
+
+    const hasGeminiProduct = ( incident ) => {
+      const products = incident.affected_products || [];
+      return products.some( ( product ) => /gemini/i.test( product.title ) );
+    };
+
+    const fromGoogleGemini = ( incidents ) => {
+      const active = incidents.filter( ( incident ) => !incident.end && hasGeminiProduct( incident ) );
+      const incident = active[ 0 ];
+
+      if ( !incident ) {
+        return {
+          label: "Gemini",
+          tone: "good",
+          description: "No active incidents",
+          note: "Watching Vertex Gemini API and Gemini Enterprise.",
+          linkLabel: "status.cloud.google.com",
+        };
+      }
+
+      return {
+        label: "Gemini",
+        tone: googleTone( incident.status_impact ),
+        description: shortText( incident.external_desc || "Google reported a Gemini incident." ),
+        note: shortText( incident.service_name || "Google Cloud status" ),
+        linkLabel: "status.cloud.google.com",
+      };
+    };
+
+    const render = ( payload, stale ) => {
+      servicesEl.innerHTML = payload.services.map( ( service ) => `
+        <div class="service">
+          <div class="service-head">
+            <span class="status-dot ${ service.tone }"></span>
+            <div class="service-name">${ service.label }: ${ service.description }</div>
+          </div>
+          <div class="service-note">${ service.note }</div>
+          <a class="service-link" href="${ service.href }" target="_blank" rel="noopener">${ service.linkLabel }</a>
+        </div>
+      ` ).join( "" );
+
+      updatedEl.textContent = `${ stale ? "Cached" : "Updated" } ${ formatTime( payload.fetchedAt ) }`;
+    };
+
+    const renderError = () => {
+      servicesEl.innerHTML = '<div class="muted">Unable to load AI service status.</div>';
+      updatedEl.textContent = "";
+    };
+
+    const loadServices = async () => {
+      const results = await Promise.allSettled( state.services.map( async ( service ) => {
+        const data = await service.load();
+        return { ...data, href: service.href };
+      } ) );
+
+      return results.map( ( result, index ) => {
+        if ( result.status === "fulfilled" ) return result.value;
+        return {
+          label: state.services[ index ].label,
+          tone: "warn",
+          description: "Status unavailable",
+          note: "Could not refresh this source right now.",
+          linkLabel: new URL( state.services[ index ].href ).host,
+          href: state.services[ index ].href,
+        };
+      } );
+    };
+
+    const refresh = async () => {
+      const cached = readJson( state.cacheKey );
+      const fresh = cached && ( Date.now() - cached.fetchedAt ) < state.refreshMs;
+
+      if ( fresh ) {
+        render( cached, false );
+        return;
+      }
+
+      try {
+        const payload = {
+          services: await loadServices(),
+          fetchedAt: Date.now(),
+        };
+
+        localStorage.setItem( state.cacheKey, JSON.stringify( payload ) );
+        render( payload, false );
+      } catch ( err ) {
+        if ( cached ) {
+          render( cached, true );
+          return;
+        }
+        renderError();
+      }
+    };
+
+    refresh();
+  </script>
 </body>
 
 </html>
