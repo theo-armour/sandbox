@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-04-26 17:18">
+  <meta name="revised" content="2026-04-26 17:30">
   <title>Service Status</title>
   <link rel="stylesheet" href="widget-base.css">
   <style>
@@ -95,7 +95,7 @@
 
   <script>
     const state = {
-      cacheKey: "dashboard-widget-service-status-cache-v2",
+      cacheKey: "dashboard-widget-service-status-cache-v3",
       refreshMs: 15 * 60 * 1000,
       services: [
         {
@@ -103,8 +103,8 @@
           label: "ChatGPT",
           href: "https://status.openai.com/",
           load: async () => {
-            const summary = await fetchStatuspageSummary( "https://status.openai.com/api/v2/summary.json" );
-            return fromStatuspage( "ChatGPT", "status.openai.com", summary );
+            const status = await fetchStatuspageStatus( "https://status.openai.com/api/v2/status.json" );
+            return fromStatusOnly( "ChatGPT", status );
           },
         },
         {
@@ -185,6 +185,12 @@
       return res.json();
     };
 
+    const fetchStatuspageStatus = async ( url ) => {
+      const res = await fetch( url );
+      if ( !res.ok ) throw new Error( `HTTP ${ res.status }` );
+      return res.json();
+    };
+
     const fetchGoogleIncidents = async () => {
       const res = await fetch( "https://status.cloud.google.com/incidents.json" );
       if ( !res.ok ) throw new Error( `HTTP ${ res.status }` );
@@ -201,6 +207,13 @@
         linkLabel: host,
       };
     };
+
+    const fromStatusOnly = ( label, statusPage ) => ( {
+      label,
+      tone: statusTone( statusPage.status.indicator ),
+      description: statusPage.status.description,
+      note: "See status page for incident details.",
+    } );
 
     const hasGeminiProduct = ( incident ) => {
       const products = incident.affected_products || [];
@@ -270,13 +283,6 @@
 
     const refresh = async () => {
       const cached = readJson( state.cacheKey );
-      const fresh = isValidCache( cached )
-        && ( Date.now() - cached.fetchedAt ) < state.refreshMs;
-
-      if ( fresh ) {
-        render( cached, false );
-        return;
-      }
 
       try {
         const payload = {
