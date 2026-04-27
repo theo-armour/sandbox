@@ -1,8 +1,10 @@
 # Dashboard Agenda
 
-## 2026-04-18
+## Agenda
 
-* First version
+* French headlines
+* Stocks with sparklines
+* Checkout Wrldmon
 
 
 ## Ideas
@@ -10,11 +12,6 @@
 Here are ideas to consider, grouped by how useful they tend to be at-a-glance in a small iframe pane:
 
 ## Time & Place
-* **Clock** (you have it) — add seconds optionally, plus a second timezone for family/collaborators
-* **Sun** — sunrise/sunset, daylight remaining, golden hour
-* **Moon** — phase + illumination %
-* **Weather** (you have it) — current temp, today's high/low, precipitation chance, wind
-* **Air quality** (AQI) — useful in SF
 * **Tide / fog** — SF-specific novelties
 
 ## Personal Status
