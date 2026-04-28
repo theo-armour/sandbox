@@ -1,4 +1,11 @@
-.claude/
+# OS / Drive noise
 .DS_Store
 Thumbs.db
-node_modules/
+desktop.ini
+*.tmp
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~

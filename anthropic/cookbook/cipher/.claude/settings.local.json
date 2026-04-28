@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python solver2.py:*)",
+      "Bash(python solver3.py:*)",
+      "Bash(python:*)"
+    ]
+  }
+}
