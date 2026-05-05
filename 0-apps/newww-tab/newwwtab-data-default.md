@@ -67,7 +67,7 @@
 - substack https://substack.com/inbox
 - medium https://medium.com/
 - swiss-miss https://swiss-miss.com
-- kindle https://read.amazon.com/kindle-library
+- [g](https://www.amazon.com/sendtokindle) kindle https://read.amazon.com/kindle-library
 - kottke https://kottke.org
 - techxplore https://sciencex.com/news/techxplore/
 
