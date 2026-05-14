@@ -61,6 +61,7 @@
 - slashdot https://slashdot.org/
 - hacker_new https://news.ycombinator.com/
 - xkcd https://xkcd.com/
+- aligned https://alignednews.com/
 - [g](https://github.com/koala73/worldmonitor) wrldmon https://www.worldmonitor.app/
 
 ### + Reads
