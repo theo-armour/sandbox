@@ -12,3 +12,7 @@
 ## Gemini Tips and Tricks
 
 * You can add or revert prompts.
+
+## Notebook LM
+
+* Or keep on analysing.
