@@ -110,7 +110,7 @@
 ### + AI
 - claude https://claude.ai/
 - [g]( https://openai.com/) chatai https://chatgpt.com/
-- gemini https://gemini.google.com/
+- [g]( https://deepmind.google/models/gemini-omni/prompt-guide/ ) gemini https://gemini.google.com/
 - copilotp https://copilot.microsoft.com/
 - grok https://x.ai/grok
 
