@@ -1,5 +1,13 @@
 # VSCode Copilot Reference
 
+## Copilot Instructions
+
+
+Global (cross-repo) — A .instructions.md file in your VS Code user prompts folder:
+* C:\Users\tarmo\AppData\Roaming\Code\User\prompts\general-instructions.md
+
+* file://c:\Users\tarmo\AppData\Roaming\Code\User\prompts
+
 ## Slash commands
 
 * /help
