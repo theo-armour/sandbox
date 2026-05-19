@@ -15,6 +15,7 @@
 - [g](https://github.com/theo-armour/wikitheo/) wikitheo https://theo-armour.github.io/wikitheo/
 - [g](https://github.com/theo-armour/aa/) aa https://theo-armour.github.io/aa/
 - [g](https://github.com/pushme-pullyou/tootoo) tootoo https://pushme-pullyou.github.io/tootoo
+- [g](https://github.com/heritage-happenings/tech) hh tech https://heritage-happenings.github.io/tech/
 
 ### - ta apps
 - [g](https://github.com/theo-armour/sandbox/0-apps/newww-tab) newTab https://theo-armour.github.io/sandbox/0-apps/newww-tab/
