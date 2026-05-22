@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="1in" height="1in" role="img" aria-label="THÉO logo with equal letter spacing and accent integrated with the top border">
+  <rect width="32" height="32" fill="#fff"/>
+
+  <!--
+    Geometry:
+    * Color: #880000
+    * Stroke width: 1.6 units throughout
+    * Letter box width: 4.5 units each
+    * Equal spacing between letters: 2.0 units
+    * Letter tops and bottoms align at y=6 and y=29
+    * The acute accent is attached to, and drawn as part of, the top border stroke.
+  -->
+  <g fill="none" stroke="#880000" stroke-width="1.6" stroke-linecap="square" stroke-linejoin="miter" vector-effect="non-scaling-stroke">
+    <!-- Border with acute accent attached to the top border -->
+    <path d="M1.2 2.2H17.8L21.3 0.8M21.3 2.2H30.8V30.8H1.2Z"/>
+
+    <!-- T: x=4.0..8.5 -->
+    <path d="M4 6H8.5M6.25 6V29"/>
+
+    <!-- H: x=10.5..15.0; gap from T = 2.0 -->
+    <path d="M10.5 6V29M15 6V29M10.5 17.5H15"/>
+
+    <!-- E: x=17.0..21.5; gap from H = 2.0 -->
+    <path d="M17 6V29M17 6H21.5M17 17.5H21.5M17 29H21.5"/>
+
+    <!-- O: x=23.5..28.0; gap from E = 2.0 -->
+    <rect x="23.5" y="6" width="4.5" height="23"/>
+  </g>
+</svg>

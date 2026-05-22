@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="1in" height="1in" role="img" aria-label="Theo logo with equal letter widths, heights, and line thickness">
+  <rect width="32" height="32" fill="#fff"/>
+  <g fill="none" stroke="#880000" stroke-width="1.6" stroke-linecap="square" stroke-linejoin="miter" vector-effect="non-scaling-stroke">
+    <!-- Outer border -->
+    <rect x="1" y="1" width="30" height="30"/>
+
+    <!-- All four letters use the same 5-unit width, 24-unit height, and 1.6-unit line thickness. -->
+    <!-- T -->
+    <path d="M4 5H9 M6.5 5V29"/>
+
+    <!-- H -->
+    <path d="M10.5 5V29 M15.5 5V29 M10.5 17H15.5"/>
+
+    <!-- E -->
+    <path d="M17 5V29 M17 5H22 M17 17H22 M17 29H22"/>
+
+    <!-- O -->
+    <rect x="23.5" y="5" width="5" height="24"/>
+
+    <!-- Acute accent, using the same line thickness -->
+    <path d="M18.4 3.4L21.2 1.8"/>
+  </g>
+</svg>
