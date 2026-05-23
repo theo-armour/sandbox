@@ -1,5 +1,7 @@
 # Personal Iframe Dashboard ~ Sandbox Upgrades
 
+🚀 **[Launch Personal Iframe Dashboard](widgets-iframe/index.html)**
+
 This project is a highly refined, modular personal dashboard built entirely with **semantic HTML5, vanilla CSS, and standard JavaScript**. There are no build tools, no framework overheads, and no external Node.js dependencies, making it extremely lightweight and compatible with standard `file://` protocols and static cloud hosting (such as GitHub Pages).
 
 Each widget runs as a fully isolated, sandboxed `<iframe>` layout. This ensures complete code, style, and storage safety: a single failing widget never interrupts or crashes the rest of your dashboard shell.
