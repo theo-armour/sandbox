@@ -87,10 +87,7 @@
     const savedCoords = localStorage.getItem( LOCATION_KEY );
     if ( savedCoords !== null ) {
       try {
-        const parsed = JSON.parse( savedCoords );
-        if ( typeof parsed.lat === "number" && typeof parsed.lon === "number" ) {
-          coords = { lat: parsed.lat, lon: parsed.lon };
-        }
+        coords = JSON.parse( savedCoords );
       } catch ( err ) {
         coords = DEFAULT_COORDS;
       }
@@ -190,6 +187,7 @@
       const afterSunset = now > sunset;
       const riseClass = beforeSunrise ? "next" : "";
       const noonClass = ( !beforeSunrise && !afterSunset ) ? "next" : "";
+      const setClass = afterSunset ? "" : ( !beforeSunrise && !afterSunset ) ? "" : "";
       sunEl.innerHTML = `
         <span class="${ riseClass }">🌅 ${ formatTime( sunrise ) }</span>
         ${ solarNoon ? `<span class="${ noonClass }">🌤 ${ formatTime( solarNoon ) }</span>` : "" }

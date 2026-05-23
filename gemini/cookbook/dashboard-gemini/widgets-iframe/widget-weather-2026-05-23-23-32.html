@@ -19,20 +19,6 @@
       text-decoration: underline;
     }
 
-    #city-input {
-      font: inherit;
-      font-size: clamp(0.88rem, 2.4vw, 1rem);
-      color: var(--fg);
-      background: var(--btn-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 0.2rem;
-      padding: 0 0.3rem;
-      width: 10rem;
-      outline: none;
-    }
-
-    .hidden { display: none !important; }
-
     #current {
       display: flex;
       align-items: center;
@@ -74,7 +60,7 @@
 </head>
 
 <body>
-  <h2>Weather <span id="city" title="Click to change city">San Francisco</span><input id="city-input" class="hidden" type="text" placeholder="City name"></h2>
+  <h2>Weather <span id="city">San Francisco</span></h2>
 
   <div id="current"><span class="muted">Loading…</span></div>
   <div id="range" class="muted"></div>
@@ -85,7 +71,6 @@
 
   <script>
     const cityEl = document.getElementById( "city" );
-    const cityInputEl = document.getElementById( "city-input" );
     const currentEl = document.getElementById( "current" );
     const rangeEl = document.getElementById( "range" );
     const detailsEl = document.getElementById( "details" );
@@ -144,11 +129,6 @@
     };
 
     const LABEL_KEY = "dashboard-location-label";
-    const LABEL_COORDS_KEY = "dashboard-location-label-coords";
-
-    const coordsMatch = ( a, b ) => a && b
-      && Math.abs( a.lat - b.lat ) < 0.01
-      && Math.abs( a.lon - b.lon ) < 0.01;
 
     const loadCoords = () => {
       const saved = readJson( LOCATION_KEY );
@@ -169,84 +149,54 @@
     let currentCityLabel = loadLabel();
     const cityLabel = () => currentCityLabel;
 
-    // Fast, public client-side reverse geocoding API (resolves lat/lon into real city name).
-    // Skipped if we already resolved a label for these coords.
-    const fetchCityName = async ( lat, lon ) => {
-      const cachedCoords = readJson( LABEL_COORDS_KEY );
-      if ( coordsMatch( cachedCoords, { lat, lon } ) && localStorage.getItem( LABEL_KEY ) ) {
-        return;
-      }
+    // Fast, public client-side reverse geocoding API (resolves lat/lon into real city name)
+    const fetchCityName = async (lat, lon) => {
       try {
-        const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${ lat }&longitude=${ lon }&localityLanguage=en`;
-        const res = await fetch( url );
-        if ( res.ok ) {
+        const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`;
+        const res = await fetch(url);
+        if (res.ok) {
           const data = await res.json();
           const name = data.city || data.locality || data.principalSubdivision || "Your location";
-          localStorage.setItem( LABEL_KEY, name );
-          localStorage.setItem( LABEL_COORDS_KEY, JSON.stringify( { lat, lon } ) );
+          localStorage.setItem(LABEL_KEY, name);
           currentCityLabel = name;
           cityEl.textContent = name;
         }
-      } catch ( e ) {
-        console.error( "Reverse geocoding failed", e );
+      } catch (e) {
+        console.error("Reverse geocoding failed", e);
       }
     };
 
-    // Click city label to open inline search (no native prompt/alert).
-    const showCityInput = () => {
-      cityInputEl.value = currentCityLabel;
-      cityEl.classList.add( "hidden" );
-      cityInputEl.classList.remove( "hidden" );
-      cityInputEl.focus();
-      cityInputEl.select();
-    };
+    // Click to manually search and set a city coordinates (bypasses browser file:// geolocation restrictions)
+    cityEl.addEventListener("click", async () => {
+      const query = prompt("Enter city name to search (e.g. Seattle, London):", currentCityLabel);
+      if (!query) return;
 
-    const hideCityInput = ( message ) => {
-      cityInputEl.classList.add( "hidden" );
-      cityEl.classList.remove( "hidden" );
-      cityEl.textContent = message || currentCityLabel;
-    };
-
-    const searchCity = async ( query ) => {
-      cityEl.textContent = "Searching…";
-      cityEl.classList.remove( "hidden" );
-      cityInputEl.classList.add( "hidden" );
+      cityEl.textContent = "Searching...";
       try {
-        const url = `https://geocoding-api.open-meteo.com/v1/search?name=${ encodeURIComponent( query ) }&count=1&language=en&format=json`;
-        const res = await fetch( url );
-        if ( !res.ok ) throw new Error( "Search failed" );
+        const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Search failed");
+
         const data = await res.json();
-        if ( data.results && data.results.length > 0 ) {
-          const result = data.results[ 0 ];
+        if (data.results && data.results.length > 0) {
+          const result = data.results[0];
           const next = { lat: result.latitude, lon: result.longitude };
-          localStorage.setItem( LOCATION_KEY, JSON.stringify( next ) );
-          localStorage.setItem( LABEL_KEY, result.name );
-          localStorage.setItem( LABEL_COORDS_KEY, JSON.stringify( next ) );
+          localStorage.setItem(LOCATION_KEY, JSON.stringify(next));
+          localStorage.setItem(LABEL_KEY, result.name);
+
           coords = { ...next, isDefault: false };
           currentCityLabel = result.name;
           cityEl.textContent = result.name;
           refresh();
         } else {
-          cityEl.textContent = `${ currentCityLabel } (not found)`;
-          setTimeout( () => { cityEl.textContent = currentCityLabel; }, 2000 );
+          alert(`City "${query}" not found.`);
+          cityEl.textContent = currentCityLabel;
         }
-      } catch ( err ) {
-        cityEl.textContent = `${ currentCityLabel } (search failed)`;
-        setTimeout( () => { cityEl.textContent = currentCityLabel; }, 2000 );
+      } catch (err) {
+        alert("Search failed. Check your connection.");
+        cityEl.textContent = currentCityLabel;
       }
-    };
-
-    cityEl.addEventListener( "click", showCityInput );
-    cityInputEl.addEventListener( "keydown", ( e ) => {
-      if ( e.key === "Enter" ) {
-        const q = cityInputEl.value.trim();
-        if ( q ) searchCity( q );
-        else hideCityInput();
-      } else if ( e.key === "Escape" ) {
-        hideCityInput();
-      }
-    } );
-    cityInputEl.addEventListener( "blur", () => hideCityInput() );
+    });
 
     const round = ( n ) => Math.round( n );
 

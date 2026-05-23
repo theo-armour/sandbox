@@ -239,10 +239,6 @@
       return "good";
     };
 
-    const escapeHtml = ( str ) => String( str ).replace( /[&<>"']/g, ( c ) => ( {
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
-    } )[ c ] );
-
     const shortText = ( text, limit = 92 ) => {
       const compact = text.replace( /\s+/g, " " ).trim();
       if ( compact.length <= limit ) return compact;
@@ -274,6 +270,7 @@
         tone: statusTone( summary.status.indicator ),
         description: summary.status.description,
         note: incident ? shortText( incident.name ) : "No active incidents.",
+        linkLabel: host,
       };
     };
 
@@ -299,6 +296,7 @@
           tone: "good",
           description: "No active incidents",
           note: "Watching Vertex Gemini API and Gemini Enterprise.",
+          linkLabel: "status.cloud.google.com",
         };
       }
 
@@ -307,6 +305,7 @@
         tone: googleTone( incident.status_impact ),
         description: shortText( incident.external_desc || "Google reported a Gemini incident." ),
         note: shortText( incident.service_name || "Google Cloud status" ),
+        linkLabel: "status.cloud.google.com",
       };
     };
 
@@ -314,10 +313,10 @@
       servicesEl.innerHTML = payload.services.map( ( service ) => `
         <div class="service">
           <div class="service-head">
-            <span class="status-dot ${ escapeHtml( service.tone ) }"></span>
-            <div class="service-name"><a href="${ escapeHtml( service.href ) }" target="_blank" rel="noopener">${ escapeHtml( service.label ) }</a>: ${ escapeHtml( service.description ) }</div>
+            <span class="status-dot ${ service.tone }"></span>
+            <div class="service-name"><a href="${ service.href }" target="_blank" rel="noopener">${ service.label }</a>: ${ service.description }</div>
           </div>
-          <div class="service-note">${ escapeHtml( service.note ) }</div>
+          <div class="service-note">${ service.note }</div>
         </div>
       ` ).join( "" );
 

@@ -166,14 +166,14 @@
       }
     } );
 
-    const resetClearButton = () => {
+    function resetClearButton() {
       clearBtnEl.classList.remove( "confirming" );
       clearBtnEl.textContent = "Clear";
       if ( clearConfirmTimeout ) {
         clearTimeout( clearConfirmTimeout );
         clearConfirmTimeout = null;
       }
-    };
+    }
 
     // Init stats
     updateStats();
