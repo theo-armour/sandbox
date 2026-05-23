@@ -60,8 +60,8 @@
 </head>
 
 <body>
-  <h2>Weather</h2>
-  <div id="city">San Francisco</div>
+  <h2>Weather <span id="city">San Francisco</span></h2>
+
   <div id="current"><span class="muted">Loading…</span></div>
   <div id="range" class="muted"></div>
   <div id="details" class="muted"></div>
@@ -176,14 +176,14 @@
         const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`;
         const res = await fetch(url);
         if (!res.ok) throw new Error("Search failed");
-        
+
         const data = await res.json();
         if (data.results && data.results.length > 0) {
           const result = data.results[0];
           const next = { lat: result.latitude, lon: result.longitude };
           localStorage.setItem(LOCATION_KEY, JSON.stringify(next));
           localStorage.setItem(LABEL_KEY, result.name);
-          
+
           coords = { ...next, isDefault: false };
           currentCityLabel = result.name;
           cityEl.textContent = result.name;
@@ -259,7 +259,7 @@
         <span class="condition">${ meta.emoji } ${ meta.label }</span>
       `;
       rangeEl.textContent = `H ${ hi }°  L ${ lo }°  ·  feels ${ feels }°`;
-      detailsEl.textContent = `💧${ humidity }%  💨${ wind } mph ${ windDir( windDeg ) }  🌂${ rainChance }%  uv${ uv }`;
+      detailsEl.textContent = `💧${ humidity }% 💨${ wind }mph ${ windDir( windDeg ) } 🌂${ rainChance }% uv${ uv }`;
 
       forecastEl.innerHTML = data.daily.time.slice( 0, 2 ).map( ( dateStr, i ) => {
         const d = new Date( dateStr + "T12:00:00" );
