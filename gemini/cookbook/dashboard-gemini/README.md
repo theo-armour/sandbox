@@ -2,10 +2,9 @@
 
 ### 🚀 How to Run the Dashboard
 
-Since GitHub's standard repository folder view displays source code rather than executing HTML webpages, you can launch the fully runnable application using either of these direct links:
+Since GitHub's standard repository folder view displays source code rather than executing HTML webpages, you can launch the fully runnable application directly in your browser here:
 
-* 🌐 **[Live Cloud Version (via GitHub Pages)](https://theo-armour.github.io/sandbox/gemini/cookbook/dashboard-gemini/widgets-iframe/index.html)**
-* 💻 **[Local Desktop Version (file:// Link)](file:///G:/My%20Drive/2026-theo-github/theo-armour-sandbox/gemini/cookbook/dashboard-gemini/widgets-iframe/index.html)** *(Requires opening index.html in a browser configured with your `--allow-file-access-from-files` flag)*
+👉 🌐 **[Live Cloud Version (via GitHub Pages)](https://theo-armour.github.io/sandbox/gemini/cookbook/dashboard-gemini/widgets-iframe/index.html)**
 
 ---
 
