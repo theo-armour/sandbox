@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="widget-base.css">
+  <style>
+    ul {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    a {
+      display: inline-block;
+      background: var(--btn-bg);
+      color: var(--fg);
+      text-decoration: none;
+      padding: 0.3rem 0.6rem;
+      border-radius: 0.3rem;
+      font-size: clamp(0.95rem, 2.3vw, 1.05rem);
+    }
+
+    a:hover {
+      background: var(--btn-hover);
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Links</h2>
+  <ul id="links-list"></ul>
+
+  <script>
+    const LINKS = [
+      { label: "GitHub", url: "https://github.com" },
+      { label: "Gmail", url: "https://mail.google.com" },
+      { label: "Calendar", url: "https://calendar.google.com" },
+      { label: "Drive", url: "https://drive.google.com" },
+      { label: "ChatGPT", url: "https://chat.openai.com" },
+      { label: "Claude", url: "https://claude.ai" },
+    ];
+
+    document.getElementById( "links-list" ).innerHTML = LINKS
+      .map(
+        ( link ) =>
+          `<li><a href="${ link.url }" target="_blank" rel="noopener">${ link.label }</a></li>`
+      )
+      .join( "" );
+  </script>
+</body>
+
+</html>

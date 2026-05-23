@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="widget-base.css">
+  <style>
+    #city {
+      color: var(--muted);
+      font-size: clamp(0.88rem, 2.4vw, 1rem);
+    }
+
+    #current {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .temp {
+      font-size: clamp(1.6rem, 5.5vw, 2.2rem);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .condition {
+      font-size: clamp(1rem, 2.8vw, 1.15rem);
+    }
+
+    #range {
+      font-variant-numeric: tabular-nums;
+    }
+
+    #updated {
+      color: var(--muted);
+      font-size: clamp(0.82rem, 2.2vw, 0.92rem);
+    }
+
+    #forecast {
+      display: flex;
+      gap: 0.25rem 0.6rem;
+      flex-wrap: wrap;
+      font-variant-numeric: tabular-nums;
+      font-size: clamp(0.8rem, 2.1vw, 0.88rem);
+    }
+
+    #forecast span {
+      white-space: nowrap;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Weather</h2>
+  <div id="city">San Francisco</div>
+  <div id="current"><span class="muted">Loading…</span></div>
+  <div id="range" class="muted"></div>
+  <div id="details" class="muted"></div>
+  <div id="aqi" class="muted"></div>
+  <div id="forecast"></div>
+  <div id="updated"></div>
+
+  <script>
+    const cityEl = document.getElementById( "city" );
+    const currentEl = document.getElementById( "current" );
+    const rangeEl = document.getElementById( "range" );
+    const detailsEl = document.getElementById( "details" );
+    const aqiEl = document.getElementById( "aqi" );
+    const forecastEl = document.getElementById( "forecast" );
+    const updatedEl = document.getElementById( "updated" );
+
+    const LOCATION_KEY = "dashboard-location";
+    const CACHE_KEY = "dashboard-widget-weather-cache";
+    const AQI_CACHE_KEY = "dashboard-widget-aqi-cache";
+    const REFRESH_MS = 15 * 60 * 1000;
+    const DEFAULT_COORDS = { lat: 37.7749, lon: -122.4194 };
+    const DEFAULT_LABEL = "San Francisco";
+
+    // WMO weather interpretation codes
+    // https://open-meteo.com/en/docs#weather_variable_documentation
+    const WEATHER_CODES = {
+      0: { emoji: "☀️", label: "Clear" },
+      1: { emoji: "🌤️", label: "Mainly clear" },
+      2: { emoji: "⛅", label: "Partly cloudy" },
+      3: { emoji: "☁️", label: "Overcast" },
+      45: { emoji: "🌫️", label: "Fog" },
+      48: { emoji: "🌫️", label: "Rime fog" },
+      51: { emoji: "🌦️", label: "Light drizzle" },
+      53: { emoji: "🌦️", label: "Drizzle" },
+      55: { emoji: "🌦️", label: "Heavy drizzle" },
+      56: { emoji: "🌧️", label: "Freezing drizzle" },
+      57: { emoji: "🌧️", label: "Freezing drizzle" },
+      61: { emoji: "🌦️", label: "Light rain" },
+      63: { emoji: "🌧️", label: "Rain" },
+      65: { emoji: "🌧️", label: "Heavy rain" },
+      66: { emoji: "🌧️", label: "Freezing rain" },
+      67: { emoji: "🌧️", label: "Freezing rain" },
+      71: { emoji: "🌨️", label: "Light snow" },
+      73: { emoji: "🌨️", label: "Snow" },
+      75: { emoji: "❄️", label: "Heavy snow" },
+      77: { emoji: "🌨️", label: "Snow grains" },
+      80: { emoji: "🌦️", label: "Rain showers" },
+      81: { emoji: "🌧️", label: "Rain showers" },
+      82: { emoji: "⛈️", label: "Violent showers" },
+      85: { emoji: "🌨️", label: "Snow showers" },
+      86: { emoji: "🌨️", label: "Heavy snow showers" },
+      95: { emoji: "⛈️", label: "Thunderstorm" },
+      96: { emoji: "⛈️", label: "Storm with hail" },
+      99: { emoji: "⛈️", label: "Storm with hail" },
+    };
+
+    const readJson = ( key ) => {
+      const raw = localStorage.getItem( key );
+      if ( raw === null ) return null;
+      try {
+        return JSON.parse( raw );
+      } catch ( err ) {
+        return null;
+      }
+    };
+
+    const loadCoords = () => {
+      const saved = readJson( LOCATION_KEY );
+      if ( saved && typeof saved.lat === "number" && typeof saved.lon === "number" ) {
+        return { lat: saved.lat, lon: saved.lon, isDefault: false };
+      }
+      return { ...DEFAULT_COORDS, isDefault: true };
+    };
+
+    let coords = loadCoords();
+
+    const cityLabel = () => coords.isDefault ? DEFAULT_LABEL : "Your location";
+
+    const round = ( n ) => Math.round( n );
+
+    const fetchWeather = async ( c ) => {
+      const url = `https://api.open-meteo.com/v1/forecast`
+        + `?latitude=${ c.lat }&longitude=${ c.lon }`
+        + `&current=temperature_2m,weather_code,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m`
+        + `&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max,weather_code`
+        + `&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto&forecast_days=2`;
+      const res = await fetch( url );
+      if ( !res.ok ) throw new Error( `HTTP ${ res.status }` );
+      return res.json();
+    };
+
+    const fetchAqi = async ( c ) => {
+      const url = `https://air-quality-api.open-meteo.com/v1/air-quality`
+        + `?latitude=${ c.lat }&longitude=${ c.lon }`
+        + `&current=us_aqi,pm2_5`;
+      const res = await fetch( url );
+      if ( !res.ok ) throw new Error( `HTTP ${ res.status }` );
+      return res.json();
+    };
+
+    const formatTime = ( date ) => date.toLocaleTimeString( "en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    } );
+
+    const windDir = ( deg ) => {
+      const dirs = [ "N", "NE", "E", "SE", "S", "SW", "W", "NW" ];
+      return dirs[ Math.round( deg / 45 ) % 8 ];
+    };
+
+    const aqiLabel = ( aqi ) => {
+      if ( aqi <= 50 ) return "Good";
+      if ( aqi <= 100 ) return "Moderate";
+      if ( aqi <= 150 ) return "Sensitive groups";
+      if ( aqi <= 200 ) return "Unhealthy";
+      if ( aqi <= 300 ) return "Very unhealthy";
+      return "Hazardous";
+    };
+
+    const render = ( data, fetchedAt, stale ) => {
+      cityEl.textContent = cityLabel();
+      const code = data.current.weather_code;
+      const meta = WEATHER_CODES[ code ] || { emoji: "", label: "—" };
+      const t = round( data.current.temperature_2m );
+      const feels = round( data.current.apparent_temperature );
+      const hi = round( data.daily.temperature_2m_max[ 0 ] );
+      const lo = round( data.daily.temperature_2m_min[ 0 ] );
+      const humidity = round( data.current.relative_humidity_2m );
+      const wind = round( data.current.wind_speed_10m );
+      const windDeg = data.current.wind_direction_10m;
+      const rainChance = data.daily.precipitation_probability_max[ 0 ];
+      const uv = data.daily.uv_index_max[ 0 ];
+
+      currentEl.innerHTML = `
+        <span class="temp">${ t }°F</span>
+        <span class="condition">${ meta.emoji } ${ meta.label }</span>
+      `;
+      rangeEl.textContent = `H ${ hi }°  L ${ lo }°  ·  feels ${ feels }°`;
+      detailsEl.textContent = `💧${ humidity }%  💨${ wind } mph ${ windDir( windDeg ) }  🌂${ rainChance }%  uv${ uv }`;
+
+      forecastEl.innerHTML = data.daily.time.slice( 0, 2 ).map( ( dateStr, i ) => {
+        const d = new Date( dateStr + "T12:00:00" );
+        const day = i === 0 ? "Today" : d.toLocaleDateString( "en-US", { weekday: "short" } );
+        const wcode = data.daily.weather_code[ i ];
+        const emoji = ( WEATHER_CODES[ wcode ] || {} ).emoji || "";
+        const dayHi = round( data.daily.temperature_2m_max[ i ] );
+        const dayLo = round( data.daily.temperature_2m_min[ i ] );
+        return `<span>${ day } ${ emoji } ${ dayHi }/${ dayLo }°</span>`;
+      } ).join( "" );
+
+      const prefix = stale ? "Cached" : "Updated";
+      updatedEl.textContent = `${ prefix } ${ formatTime( new Date( fetchedAt ) ) }`;
+    };
+
+    const renderAqi = ( data ) => {
+      const aqi = round( data.current.us_aqi );
+      const pm25 = ( +data.current.pm2_5 ).toFixed( 1 );
+      aqiEl.textContent = `🌬 AQI ${ aqi } · ${ aqiLabel( aqi ) } · PM2.5 ${ pm25 }`;
+    };
+
+    const renderError = ( msg ) => {
+      currentEl.innerHTML = `<span class="muted">${ msg }</span>`;
+      rangeEl.textContent = "";
+      detailsEl.textContent = "";
+      aqiEl.textContent = "";
+      forecastEl.innerHTML = "";
+      updatedEl.textContent = "";
+    };
+
+    const cacheMatches = ( cached, c ) => cached
+      && cached.coords
+      && cached.coords.lat === c.lat
+      && cached.coords.lon === c.lon;
+
+    const refresh = async () => {
+      // Weather
+      const cached = readJson( CACHE_KEY );
+      const fresh = cacheMatches( cached, coords )
+        && ( Date.now() - cached.ts ) < REFRESH_MS;
+      if ( fresh ) {
+        render( cached.data, cached.ts, false );
+      } else {
+        try {
+          const data = await fetchWeather( coords );
+          const ts = Date.now();
+          localStorage.setItem( CACHE_KEY, JSON.stringify( {
+            ts, data, coords: { lat: coords.lat, lon: coords.lon },
+          } ) );
+          render( data, ts, false );
+        } catch ( err ) {
+          if ( cacheMatches( cached, coords ) ) {
+            render( cached.data, cached.ts, true );
+          } else {
+            renderError( "Unable to load weather" );
+          }
+        }
+      }
+
+      // AQI (independent — failure doesn't affect weather display)
+      const aqiCached = readJson( AQI_CACHE_KEY );
+      const aqiFresh = cacheMatches( aqiCached, coords )
+        && ( Date.now() - aqiCached.ts ) < REFRESH_MS;
+      if ( aqiFresh ) {
+        renderAqi( aqiCached.data );
+      } else {
+        try {
+          const aqiData = await fetchAqi( coords );
+          localStorage.setItem( AQI_CACHE_KEY, JSON.stringify( {
+            ts: Date.now(), data: aqiData, coords: { lat: coords.lat, lon: coords.lon },
+          } ) );
+          renderAqi( aqiData );
+        } catch ( err ) {
+          if ( cacheMatches( aqiCached, coords ) ) {
+            renderAqi( aqiCached.data );
+          } else {
+            aqiEl.textContent = "";
+          }
+        }
+      }
+    };
+
+    cityEl.textContent = cityLabel();
+    refresh();
+    setInterval( refresh, REFRESH_MS );
+
+    if ( navigator.geolocation ) {
+      navigator.geolocation.getCurrentPosition(
+        ( pos ) => {
+          const next = {
+            lat: pos.coords.latitude,
+            lon: pos.coords.longitude,
+          };
+          localStorage.setItem( LOCATION_KEY, JSON.stringify( next ) );
+          coords = { ...next, isDefault: false };
+          cityEl.textContent = cityLabel();
+          refresh();
+        },
+        () => { },
+        { timeout: 5000, maximumAge: 86400000 }
+      );
+    }
+  </script>
+</body>
+
+</html>

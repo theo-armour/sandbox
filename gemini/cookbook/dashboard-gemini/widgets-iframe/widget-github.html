@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="revised" content="2026-04-26 17:30">
+  <title>Service Status</title>
+  <link rel="stylesheet" href="widget-base.css">
+  <style>
+    body {
+      justify-content: center;
+      gap: 0.55rem;
+    }
+
+    .status-dot {
+      width: 0.7rem;
+      height: 0.7rem;
+      border-radius: 999px;
+      background: var(--muted);
+      flex: 0 0 auto;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+
+    .status-dot.good {
+      background: var(--accent);
+      box-shadow: 0 0 6px rgba(10, 127, 90, 0.4);
+      animation: pulse-good 2s infinite alternate ease-in-out;
+    }
+
+    .status-dot.warn {
+      background: #d48b0c;
+      box-shadow: 0 0 6px rgba(212, 139, 12, 0.4);
+      animation: pulse-warn 1.5s infinite alternate ease-in-out;
+    }
+
+    .status-dot.bad {
+      background: #c53b32;
+      box-shadow: 0 0 8px rgba(197, 59, 50, 0.6);
+      animation: pulse-bad 1s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulse-good {
+      from { box-shadow: 0 0 2px rgba(10, 127, 90, 0.25); }
+      to { box-shadow: 0 0 8px rgba(10, 127, 90, 0.6); }
+    }
+
+    @keyframes pulse-warn {
+      from { box-shadow: 0 0 2px rgba(212, 139, 12, 0.25); }
+      to { box-shadow: 0 0 10px rgba(212, 139, 12, 0.65); }
+    }
+
+    @keyframes pulse-bad {
+      from { box-shadow: 0 0 2px rgba(197, 59, 50, 0.25); transform: scale(1); }
+      to { box-shadow: 0 0 12px rgba(197, 59, 50, 0.75); transform: scale(1.06); }
+    }
+
+    #services {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .service {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding-top: 0.1rem;
+    }
+
+    .service+.service {
+      padding-top: 0;
+    }
+
+    .service-head {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .service-name {
+      font-size: clamp(0.95rem, 2.7vw, 1.05rem);
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .service-name a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .service-name a:hover,
+    .service-name a:focus-visible {
+      text-decoration: underline;
+    }
+
+    .service-desc,
+    .service-note,
+    #updated {
+      color: var(--muted);
+      font-size: clamp(0.82rem, 2.2vw, 0.92rem);
+      line-height: 1.35;
+    }
+
+    #updated {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    #refresh-btn {
+      background: var(--btn-bg);
+      color: var(--fg);
+      border: none;
+      border-radius: 0.25rem;
+      padding: 0.15rem 0.4rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    #refresh-btn:hover {
+      background: var(--btn-hover);
+    }
+
+    #refresh-btn:active {
+      transform: scale(0.9);
+    }
+
+    #refresh-btn.spinning {
+      animation: spin 1s infinite linear;
+      pointer-events: none;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header-row">
+    <h2>Service Status</h2>
+    <button id="refresh-btn" title="Refresh Status">↻</button>
+  </div>
+  <div id="services">
+    <div class="muted">Loading service status...</div>
+  </div>
+  <div id="updated" class="muted"></div>
+
+  <script>
+    const state = {
+      cacheKey: "dashboard-widget-service-status-cache-v3",
+      refreshMs: 15 * 60 * 1000,
+      services: [
+        {
+          key: "chatgpt",
+          label: "ChatGPT",
+          href: "https://status.openai.com/",
+          load: async () => {
+            const status = await fetchStatuspageStatus( "https://status.openai.com/api/v2/status.json" );
+            return fromStatusOnly( "ChatGPT", status );
+          },
+        },
+        {
+          key: "claude",
+          label: "Claude",
+          href: "https://status.claude.com/",
+          load: async () => {
+            const summary = await fetchStatuspageSummary( "https://status.claude.com/api/v2/summary.json" );
+            return fromStatuspage( "Claude", "status.claude.com", summary );
+          },
+        },
+        {
+          key: "gemini",
+          label: "Gemini",
+          href: "https://status.cloud.google.com/",
+          load: async () => {
+            const incidents = await fetchGoogleIncidents();
+            return fromGoogleGemini( incidents );
+          },
+        },
+        {
+          key: "github",
+          label: "GitHub",
+          href: "https://www.githubstatus.com/",
+          load: async () => {
+            const summary = await fetchStatuspageSummary( "https://www.githubstatus.com/api/v2/summary.json" );
+            return fromStatuspage( "GitHub", "www.githubstatus.com", summary );
+          },
+        },
+      ],
+    };
+
+    const servicesEl = document.getElementById( "services" );
+    const updatedEl = document.getElementById( "updated" );
+
+    const readJson = ( key ) => {
+      const raw = localStorage.getItem( key );
+      if ( raw === null ) return null;
+      try {
+        return JSON.parse( raw );
+      } catch ( err ) {
+        return null;
+      }
+    };
+
+    const isValidCache = ( cached ) => cached
+      && Array.isArray( cached.services )
+      && cached.services.length === state.services.length;
+
+    const formatTime = ( epochMs ) => new Date( epochMs ).toLocaleTimeString( "en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    } );
+
+    const statusTone = ( indicator ) => {
+      if ( indicator === "none" ) return "good";
+      if ( indicator === "minor" ) return "warn";
+      return "bad";
+    };
+
+    const googleTone = ( impact ) => {
+      if ( impact === "SERVICE_INFORMATION" ) return "warn";
+      if ( impact === "SERVICE_DISRUPTION" ) return "bad";
+      if ( impact === "SERVICE_OUTAGE" ) return "bad";
+      return "good";
+    };
+
+    const shortText = ( text, limit = 92 ) => {
+      const compact = text.replace( /\s+/g, " " ).trim();
+      if ( compact.length <= limit ) return compact;
+      return `${ compact.slice( 0, limit - 3 ) }...`;
+    };
+
+    const fetchStatuspageSummary = async ( url ) => {
+      const res = await fetch( url );
+      if ( !res.ok ) throw new Error( `HTTP ${ res.status }` );
+      return res.json();
+    };
+
+    const fetchStatuspageStatus = async ( url ) => {
+      const res = await fetch( url );
+      if ( !res.ok ) throw new Error( `HTTP ${ res.status }` );
+      return res.json();
+    };
+
+    const fetchGoogleIncidents = async () => {
+      const res = await fetch( "https://status.cloud.google.com/incidents.json" );
+      if ( !res.ok ) throw new Error( `HTTP ${ res.status }` );
+      return res.json();
+    };
+
+    const fromStatuspage = ( label, host, summary ) => {
+      const incident = summary.incidents[ 0 ];
+      return {
+        label,
+        tone: statusTone( summary.status.indicator ),
+        description: summary.status.description,
+        note: incident ? shortText( incident.name ) : "No active incidents.",
+        linkLabel: host,
+      };
+    };
+
+    const fromStatusOnly = ( label, statusPage ) => ( {
+      label,
+      tone: statusTone( statusPage.status.indicator ),
+      description: statusPage.status.description,
+      note: "See status page for incident details.",
+    } );
+
+    const hasGeminiProduct = ( incident ) => {
+      const products = incident.affected_products || [];
+      return products.some( ( product ) => /gemini/i.test( product.title ) );
+    };
+
+    const fromGoogleGemini = ( incidents ) => {
+      const active = incidents.filter( ( incident ) => !incident.end && hasGeminiProduct( incident ) );
+      const incident = active[ 0 ];
+
+      if ( !incident ) {
+        return {
+          label: "Gemini",
+          tone: "good",
+          description: "No active incidents",
+          note: "Watching Vertex Gemini API and Gemini Enterprise.",
+          linkLabel: "status.cloud.google.com",
+        };
+      }
+
+      return {
+        label: "Gemini",
+        tone: googleTone( incident.status_impact ),
+        description: shortText( incident.external_desc || "Google reported a Gemini incident." ),
+        note: shortText( incident.service_name || "Google Cloud status" ),
+        linkLabel: "status.cloud.google.com",
+      };
+    };
+
+    const render = ( payload, stale ) => {
+      servicesEl.innerHTML = payload.services.map( ( service ) => `
+        <div class="service">
+          <div class="service-head">
+            <span class="status-dot ${ service.tone }"></span>
+            <div class="service-name"><a href="${ service.href }" target="_blank" rel="noopener">${ service.label }</a>: ${ service.description }</div>
+          </div>
+          <div class="service-note">${ service.note }</div>
+        </div>
+      ` ).join( "" );
+
+      updatedEl.textContent = `${ stale ? "Cached" : "Updated" } ${ formatTime( payload.fetchedAt ) }`;
+    };
+
+    const renderError = () => {
+      servicesEl.innerHTML = '<div class="muted">Unable to load AI service status.</div>';
+      updatedEl.textContent = "";
+    };
+
+    const loadServices = async () => {
+      const results = await Promise.allSettled( state.services.map( async ( service ) => {
+        const data = await service.load();
+        return { ...data, href: service.href };
+      } ) );
+
+      return results.map( ( result, index ) => {
+        if ( result.status === "fulfilled" ) return result.value;
+        return {
+          label: state.services[ index ].label,
+          tone: "warn",
+          description: "Status unavailable",
+          note: "Could not refresh this source right now.",
+          linkLabel: new URL( state.services[ index ].href ).host,
+          href: state.services[ index ].href,
+        };
+      } );
+    };
+
+    const refreshBtn = document.getElementById( "refresh-btn" );
+
+    const refresh = async () => {
+      refreshBtn.classList.add( "spinning" );
+      const cached = readJson( state.cacheKey );
+
+      try {
+        const payload = {
+          services: await loadServices(),
+          fetchedAt: Date.now(),
+        };
+
+        localStorage.setItem( state.cacheKey, JSON.stringify( payload ) );
+        render( payload, false );
+      } catch ( err ) {
+        if ( isValidCache( cached ) ) {
+          render( cached, true );
+        } else {
+          renderError();
+        }
+      } finally {
+        refreshBtn.classList.remove( "spinning" );
+      }
+    };
+
+    refreshBtn.addEventListener( "click", refresh );
+    refresh();
+    setInterval( refresh, state.refreshMs );
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="widget-base.css">
+  <style>
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .status-msg {
+      font-size: 0.72rem;
+      color: var(--accent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .status-msg.visible {
+      opacity: 1;
+    }
+
+    #clear-btn {
+      background: var(--btn-bg);
+      color: var(--fg);
+      border: none;
+      border-radius: 0.25rem;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, transform 0.1s;
+    }
+
+    #clear-btn:hover {
+      background: var(--btn-hover);
+    }
+
+    #clear-btn:active {
+      transform: scale(0.95);
+    }
+
+    #clear-btn.confirming {
+      background: #c53b32;
+      color: #ffffff;
+    }
+
+    textarea {
+      width: 100%;
+      flex: 1;
+      min-height: 6rem;
+      resize: vertical;
+      background: var(--btn-bg);
+      color: var(--fg);
+      border: 1px solid var(--panel-border);
+      border-radius: 0.3rem;
+      padding: 0.6rem;
+      font-family: var(--font);
+      font-size: clamp(0.95rem, 2.3vw, 1.05rem);
+      line-height: 1.45;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus {
+      border-color: var(--muted);
+    }
+
+    .footer-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--muted);
+      padding: 0 0.1rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header-row">
+    <h2>Notes</h2>
+    <div class="header-controls">
+      <span id="save-status" class="status-msg">Saved</span>
+      <button id="clear-btn" title="Clear all notes">Clear</button>
+    </div>
+  </div>
+
+  <textarea id="notes" placeholder="Type notes here..."></textarea>
+
+  <div class="footer-row">
+    <span id="word-count">0 words</span>
+    <span id="char-count">0 characters</span>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "dashboard-widget-notes";
+    const notesEl = document.getElementById( "notes" );
+    const saveStatusEl = document.getElementById( "save-status" );
+    const clearBtnEl = document.getElementById( "clear-btn" );
+    const wordCountEl = document.getElementById( "word-count" );
+    const charCountEl = document.getElementById( "char-count" );
+
+    let saveTimeout = null;
+    let clearConfirmTimeout = null;
+
+    // Load initial values
+    const saved = localStorage.getItem( STORAGE_KEY );
+    if ( saved !== null ) {
+      notesEl.value = saved;
+    }
+
+    const updateStats = () => {
+      const text = notesEl.value;
+      
+      // Character count
+      charCountEl.textContent = `${text.length} char${text.length === 1 ? '' : 's'}`;
+      
+      // Word count
+      const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+      wordCountEl.textContent = `${words.length} word${words.length === 1 ? '' : 's'}`;
+    };
+
+    const triggerSaveIndicator = () => {
+      saveStatusEl.classList.add( "visible" );
+      if ( saveTimeout ) clearTimeout( saveTimeout );
+      saveTimeout = setTimeout( () => {
+        saveStatusEl.classList.remove( "visible" );
+      }, 1000 );
+    };
+
+    // Listeners
+    notesEl.addEventListener( "input", () => {
+      localStorage.setItem( STORAGE_KEY, notesEl.value );
+      updateStats();
+      triggerSaveIndicator();
+    } );
+
+    // Double-click to clear check
+    clearBtnEl.addEventListener( "click", () => {
+      if ( clearBtnEl.classList.contains( "confirming" ) ) {
+        // Confirmed clear
+        notesEl.value = "";
+        localStorage.setItem( STORAGE_KEY, "" );
+        updateStats();
+        triggerSaveIndicator();
+        resetClearButton();
+      } else {
+        // First click
+        clearBtnEl.classList.add( "confirming" );
+        clearBtnEl.textContent = "Confirm?";
+        if ( clearConfirmTimeout ) clearTimeout( clearConfirmTimeout );
+        clearConfirmTimeout = setTimeout( resetClearButton, 3000 ); // Reset back after 3 seconds
+      }
+    } );
+
+    function resetClearButton() {
+      clearBtnEl.classList.remove( "confirming" );
+      clearBtnEl.textContent = "Clear";
+      if ( clearConfirmTimeout ) {
+        clearTimeout( clearConfirmTimeout );
+        clearConfirmTimeout = null;
+      }
+    }
+
+    // Init stats
+    updateStats();
+  </script>
+</body>
+
+</html>

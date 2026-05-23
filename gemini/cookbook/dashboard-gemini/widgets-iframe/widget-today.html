@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="widget-base.css">
+  <style>
+    #news {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .headline {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid var(--panel-border);
+      font-size: clamp(0.95rem, 2.3vw, 1.05rem);
+    }
+
+    .headline:last-child {
+      border-bottom: none;
+    }
+
+    .headline .source {
+      flex-shrink: 0;
+      display: inline-block;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      background: var(--btn-bg);
+      font-size: 0.82rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .headline .title {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .headline .title a {
+      color: var(--fg);
+      text-decoration: none;
+    }
+
+    .headline .title a:hover {
+      text-decoration: underline;
+    }
+
+    .headline .ago {
+      flex-shrink: 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #updated {
+      color: var(--muted);
+      font-size: clamp(0.82rem, 2.2vw, 0.92rem);
+    }
+  </style>
+</head>
+
+<body>
+  <h2>News</h2>
+  <div id="news"><span class="muted">Loading headlines…</span></div>
+  <div id="updated"></div>
+
+  <script>
+    const newsEl = document.getElementById( "news" );
+    const updatedEl = document.getElementById( "updated" );
+
+    const CACHE_KEY = "dashboard-widget-news-cache";
+    const REFRESH_MS = 15 * 60 * 1000;
+    const MAX_HEADLINES = 12;
+
+    // RSS feeds don't send CORS headers, so we fetch through a public proxy
+    // that does. Swap this if api.allorigins.win stops working.
+    const CORS_PROXY = "https://api.allorigins.win/raw?url=";
+
+    // Edit this list to change what news appears. Any RSS 2.0 or Atom feed works.
+    const FEEDS = [
+      { name: "BBC", url: "https://feeds.bbci.co.uk/news/world/rss.xml" },
+      { name: "NPR", url: "https://feeds.npr.org/1001/rss.xml" },
+      { name: "HN",  url: "https://hnrss.org/frontpage" },
+    ];
+
+    const readJson = ( key ) => {
+      const raw = localStorage.getItem( key );
+      if ( raw === null ) return null;
+      try {
+        return JSON.parse( raw );
+      } catch ( err ) {
+        return null;
+      }
+    };
+
+    const escapeHtml = ( s ) => s
+      .replace( /&/g, "&amp;" )
+      .replace( /</g, "&lt;" )
+      .replace( />/g, "&gt;" )
+      .replace( /"/g, "&quot;" );
+
+    // Handles both RSS 2.0 (<item>) and Atom (<entry>) feeds.
+    const parseFeed = ( xml ) => {
+      const doc = new DOMParser().parseFromString( xml, "application/xml" );
+      const items = [ ...doc.getElementsByTagName( "item" ) ];
+      if ( items.length > 0 ) {
+        return items.map( ( item ) => ( {
+          title: item.querySelector( "title" )?.textContent?.trim() || "",
+          link: item.querySelector( "link" )?.textContent?.trim() || "",
+          pubDate: new Date(
+            item.querySelector( "pubDate" )?.textContent || Date.now()
+          ).getTime(),
+        } ) );
+      }
+      const entries = [ ...doc.getElementsByTagName( "entry" ) ];
+      return entries.map( ( entry ) => ( {
+        title: entry.querySelector( "title" )?.textContent?.trim() || "",
+        link: entry.querySelector( "link" )?.getAttribute( "href" ) || "",
+        pubDate: new Date(
+          entry.querySelector( "updated, published" )?.textContent || Date.now()
+        ).getTime(),
+      } ) );
+    };
+
+    const fetchFeed = async ( feed ) => {
+      const url = CORS_PROXY + encodeURIComponent( feed.url );
+      const res = await fetch( url );
+      if ( !res.ok ) throw new Error( `HTTP ${ res.status }` );
+      const xml = await res.text();
+      return parseFeed( xml ).map( ( item ) => ( { ...item, source: feed.name } ) );
+    };
+
+    const formatAgo = ( ts ) => {
+      const secs = ( Date.now() - ts ) / 1000;
+      if ( secs < 60 ) return "now";
+      const mins = Math.floor( secs / 60 );
+      if ( mins < 60 ) return `${ mins }m`;
+      const hours = Math.floor( mins / 60 );
+      if ( hours < 24 ) return `${ hours }h`;
+      const days = Math.floor( hours / 24 );
+      if ( days < 7 ) return `${ days }d`;
+      return new Date( ts ).toLocaleDateString( "en-US", {
+        month: "short",
+        day: "numeric",
+      } );
+    };
+
+    const formatTime = ( date ) => date.toLocaleTimeString( "en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    } );
+
+    const render = ( items, fetchedAt, stale ) => {
+      if ( items.length === 0 ) {
+        newsEl.innerHTML = `<span class="muted">No headlines available</span>`;
+        updatedEl.textContent = "";
+        return;
+      }
+      const top = items
+        .slice()
+        .sort( ( a, b ) => b.pubDate - a.pubDate )
+        .slice( 0, MAX_HEADLINES );
+      newsEl.innerHTML = top.map( ( h ) => `
+        <div class="headline">
+          <span class="source">${ escapeHtml( h.source ) }</span>
+          <span class="title"><a href="${ escapeHtml( h.link ) }" target="_blank" rel="noopener">${ escapeHtml( h.title ) }</a></span>
+          <span class="ago">${ formatAgo( h.pubDate ) }</span>
+        </div>
+      ` ).join( "" );
+      const prefix = stale ? "Cached" : "Updated";
+      updatedEl.textContent = `${ prefix } ${ formatTime( new Date( fetchedAt ) ) }`;
+    };
+
+    const renderError = ( msg ) => {
+      newsEl.innerHTML = `<span class="muted">${ msg }</span>`;
+      updatedEl.textContent = "";
+    };
+
+    const refresh = async () => {
+      const cached = readJson( CACHE_KEY );
+      const fresh = cached && ( Date.now() - cached.ts ) < REFRESH_MS;
+      if ( fresh ) {
+        render( cached.items, cached.ts, false );
+        return;
+      }
+      try {
+        const results = await Promise.allSettled( FEEDS.map( fetchFeed ) );
+        const items = results.flatMap( ( r ) =>
+          r.status === "fulfilled" ? r.value : []
+        );
+        if ( items.length === 0 ) throw new Error( "no items" );
+        const ts = Date.now();
+        localStorage.setItem( CACHE_KEY, JSON.stringify( { ts, items } ) );
+        render( items, ts, false );
+      } catch ( err ) {
+        // Offline / proxy down / all feeds failed — fall back to cache, even
+        // if it's older than REFRESH_MS.
+        if ( cached && cached.items ) {
+          render( cached.items, cached.ts, true );
+        } else {
+          renderError( "Unable to load headlines" );
+        }
+      }
+    };
+
+    refresh();
+    setInterval( refresh, REFRESH_MS );
+  </script>
+</body>
+
+</html>
