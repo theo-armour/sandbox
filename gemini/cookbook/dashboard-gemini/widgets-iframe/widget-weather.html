@@ -9,6 +9,14 @@
     #city {
       color: var(--muted);
       font-size: clamp(0.88rem, 2.4vw, 1rem);
+      cursor: pointer;
+      display: inline-block;
+      transition: color 0.2s;
+    }
+
+    #city:hover {
+      color: var(--fg);
+      text-decoration: underline;
     }
 
     #current {
@@ -120,6 +128,8 @@
       }
     };
 
+    const LABEL_KEY = "dashboard-location-label";
+
     const loadCoords = () => {
       const saved = readJson( LOCATION_KEY );
       if ( saved && typeof saved.lat === "number" && typeof saved.lon === "number" ) {
@@ -130,7 +140,63 @@
 
     let coords = loadCoords();
 
-    const cityLabel = () => coords.isDefault ? DEFAULT_LABEL : "Your location";
+    const loadLabel = () => {
+      const saved = localStorage.getItem( LABEL_KEY );
+      if ( saved ) return saved;
+      return coords.isDefault ? DEFAULT_LABEL : "Your location";
+    };
+
+    let currentCityLabel = loadLabel();
+    const cityLabel = () => currentCityLabel;
+
+    // Fast, public client-side reverse geocoding API (resolves lat/lon into real city name)
+    const fetchCityName = async (lat, lon) => {
+      try {
+        const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          const name = data.city || data.locality || data.principalSubdivision || "Your location";
+          localStorage.setItem(LABEL_KEY, name);
+          currentCityLabel = name;
+          cityEl.textContent = name;
+        }
+      } catch (e) {
+        console.error("Reverse geocoding failed", e);
+      }
+    };
+
+    // Click to manually search and set a city coordinates (bypasses browser file:// geolocation restrictions)
+    cityEl.addEventListener("click", async () => {
+      const query = prompt("Enter city name to search (e.g. Seattle, London):", currentCityLabel);
+      if (!query) return;
+
+      cityEl.textContent = "Searching...";
+      try {
+        const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Search failed");
+        
+        const data = await res.json();
+        if (data.results && data.results.length > 0) {
+          const result = data.results[0];
+          const next = { lat: result.latitude, lon: result.longitude };
+          localStorage.setItem(LOCATION_KEY, JSON.stringify(next));
+          localStorage.setItem(LABEL_KEY, result.name);
+          
+          coords = { ...next, isDefault: false };
+          currentCityLabel = result.name;
+          cityEl.textContent = result.name;
+          refresh();
+        } else {
+          alert(`City "${query}" not found.`);
+          cityEl.textContent = currentCityLabel;
+        }
+      } catch (err) {
+        alert("Search failed. Check your connection.");
+        cityEl.textContent = currentCityLabel;
+      }
+    });
 
     const round = ( n ) => Math.round( n );
 
@@ -282,14 +348,14 @@
 
     if ( navigator.geolocation ) {
       navigator.geolocation.getCurrentPosition(
-        ( pos ) => {
+        async ( pos ) => {
           const next = {
             lat: pos.coords.latitude,
             lon: pos.coords.longitude,
           };
           localStorage.setItem( LOCATION_KEY, JSON.stringify( next ) );
           coords = { ...next, isDefault: false };
-          cityEl.textContent = cityLabel();
+          await fetchCityName(next.lat, next.lon);
           refresh();
         },
         () => { },
