@@ -2,12 +2,16 @@
 
 ### 🚀 How to Run the Dashboard
 
-Since GitHub's standard file repository view only displays raw source code for safety, you can launch the live runnable application using either of these links:
+Since GitHub's standard repository folder view displays source code rather than executing HTML webpages, you can launch the fully runnable application using either of these direct links:
 
-* 🌐 **[Live Cloud Version (via GitHub Pages)](https://theo-armour.github.io/theo-armour-sandbox/gemini/cookbook/dashboard-gemini/widgets-iframe/index.html)**
-* 💻 **[Local Desktop Version (via Localhost)](http://localhost:8000)** *(Requires running your local Python server as detailed below)*
+* 🌐 **[Live Cloud Version (via GitHub Pages)](https://theo-armour.github.io/sandbox/gemini/cookbook/dashboard-gemini/widgets-iframe/index.html)**
+* 💻 **[Local Desktop Version (file:// Link)](file:///G:/My%20Drive/2026-theo-github/theo-armour-sandbox/gemini/cookbook/dashboard-gemini/widgets-iframe/index.html)** *(Requires opening index.html in a browser configured with your `--allow-file-access-from-files` flag)*
 
-This project is a highly refined, modular personal dashboard built entirely with **semantic HTML5, vanilla CSS, and standard JavaScript**. There are no build tools, no framework overheads, and no external Node.js dependencies, making it extremely lightweight and compatible with standard `file://` protocols and static cloud hosting (such as GitHub Pages).
+---
+
+## 📦 Modular Architecture & Features
+
+This project is a highly refined, modular personal dashboard built entirely with **semantic HTML5, vanilla CSS, and standard JavaScript**. There are no build tools, no framework overheads, and no external Node.js dependencies, keeping it extremely lightweight and local-first.
 
 Each widget runs as a fully isolated, sandboxed `<iframe>` layout. This ensures complete code, style, and storage safety: a single failing widget never interrupts or crashes the rest of your dashboard shell.
 
@@ -15,7 +19,7 @@ Each widget runs as a fully isolated, sandboxed `<iframe>` layout. This ensures 
 
 ## 🛠️ Refined Widgets & Upgrades
 
-Here are the premium visual and functional enhancements integrated into the sandbox widgets:
+Here are the visual and functional enhancements integrated into your sandbox widgets:
 
 ### 1. 📅 Google Calendar Agenda ([widget-calendar.html](widgets-iframe/widget-calendar.html))
 * **Smart CSS Dark Filter**: Uses a media query for `prefers-color-scheme: dark` that applies `filter: invert(0.92) hue-rotate(180deg)` directly on the Google Calendar iframe. 
@@ -31,30 +35,7 @@ Here are the premium visual and functional enhancements integrated into the sand
 * **Live Metadata Counters**: Displays real-time character and word count statistics in a footer row.
 * **Accidental Clear Protection**: The "Clear" notes button requires a double-action. Click once to prompt `Confirm?` in a highlighted red state; it will automatically reset after 3 seconds of inactivity, preventing accidental note deletion.
 
-### 4. 🤖 AI & Service Status Monitor ([widget-github.html](widgets-github.html))
+### 4. 🤖 AI & Service Status Monitor ([widget-github.html](widgets-iframe/widget-github.html))
 * **Pulsing Indicator Dots**: Built soft breathing glow keyframe animations for the health dots (green breathing glow for active, orange pulse for warnings, and a rapid red scaling pulse for critical outages).
 * **Manual Refresh Utility**: Created an elegant `↻` refresh button in the header that spins (`spin` keyframes) during fetch execution, enabling instant checks of Claude, ChatGPT, Gemini, and GitHub APIs without reloading your dashboard.
 * **Auto-Refresh Loop**: Integrated a background `setInterval` loop that automatically checks statuses every 15 minutes.
-
----
-
-## 🚀 How to Run Locally
-
-Because some widgets utilize advanced browser hardware APIs (like Web Audio capture or device permissions), browsers enforce strict **Secure Context** rules:
-
-### 1. Simple Local Server (Recommended)
-To run the dashboard locally with full hardware features active, open a terminal in the project directory and start a local server:
-```powershell
-# Serve inside the widgets-iframe directory
-cd "G:\My Drive\2026-theo-github\theo-armour-sandbox\gemini\cookbook\dashboard-gemini\widgets-iframe"
-python -m http.server 8000
-```
-Open your browser and navigate to:
-👉 **`http://localhost:8000`**
-
-### 2. Secure File Protocol Flags
-Alternatively, you can launch your browser with the file access flag enabled:
-```bash
---allow-file-access-from-files
-```
-Then, double-click **[index.html](widgets-iframe/index.html)** to run it directly from your file system.
