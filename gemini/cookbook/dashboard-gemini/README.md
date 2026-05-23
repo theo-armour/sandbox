@@ -1,6 +1,11 @@
 # Personal Iframe Dashboard ~ Sandbox Upgrades
 
-🚀 **[Launch Personal Iframe Dashboard](widgets-iframe/index.html)**
+### 🚀 How to Run the Dashboard
+
+Since GitHub's standard file repository view only displays raw source code for safety, you can launch the live runnable application using either of these links:
+
+* 🌐 **[Live Cloud Version (via GitHub Pages)](https://theo-armour.github.io/theo-armour-sandbox/gemini/cookbook/dashboard-gemini/widgets-iframe/index.html)**
+* 💻 **[Local Desktop Version (via Localhost)](http://localhost:8000)** *(Requires running your local Python server as detailed below)*
 
 This project is a highly refined, modular personal dashboard built entirely with **semantic HTML5, vanilla CSS, and standard JavaScript**. There are no build tools, no framework overheads, and no external Node.js dependencies, making it extremely lightweight and compatible with standard `file://` protocols and static cloud hosting (such as GitHub Pages).
 
