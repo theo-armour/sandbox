@@ -19,18 +19,40 @@
       border-radius: 999px;
       background: var(--muted);
       flex: 0 0 auto;
+      transition: background 0.3s, box-shadow 0.3s;
     }
 
     .status-dot.good {
       background: var(--accent);
+      box-shadow: 0 0 6px rgba(10, 127, 90, 0.4);
+      animation: pulse-good 2s infinite alternate ease-in-out;
     }
 
     .status-dot.warn {
       background: #d48b0c;
+      box-shadow: 0 0 6px rgba(212, 139, 12, 0.4);
+      animation: pulse-warn 1.5s infinite alternate ease-in-out;
     }
 
     .status-dot.bad {
       background: #c53b32;
+      box-shadow: 0 0 8px rgba(197, 59, 50, 0.6);
+      animation: pulse-bad 1s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulse-good {
+      from { box-shadow: 0 0 2px rgba(10, 127, 90, 0.25); }
+      to { box-shadow: 0 0 8px rgba(10, 127, 90, 0.6); }
+    }
+
+    @keyframes pulse-warn {
+      from { box-shadow: 0 0 2px rgba(212, 139, 12, 0.25); }
+      to { box-shadow: 0 0 10px rgba(212, 139, 12, 0.65); }
+    }
+
+    @keyframes pulse-bad {
+      from { box-shadow: 0 0 2px rgba(197, 59, 50, 0.25); transform: scale(1); }
+      to { box-shadow: 0 0 12px rgba(197, 59, 50, 0.75); transform: scale(1.06); }
     }
 
     #services {
@@ -83,11 +105,55 @@
     #updated {
       font-variant-numeric: tabular-nums;
     }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    #refresh-btn {
+      background: var(--btn-bg);
+      color: var(--fg);
+      border: none;
+      border-radius: 0.25rem;
+      padding: 0.15rem 0.4rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    #refresh-btn:hover {
+      background: var(--btn-hover);
+    }
+
+    #refresh-btn:active {
+      transform: scale(0.9);
+    }
+
+    #refresh-btn.spinning {
+      animation: spin 1s infinite linear;
+      pointer-events: none;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 
 <body>
-  <h2>Service Status</h2>
+  <div class="header-row">
+    <h2>Service Status</h2>
+    <button id="refresh-btn" title="Refresh Status">↻</button>
+  </div>
   <div id="services">
     <div class="muted">Loading service status...</div>
   </div>
@@ -173,6 +239,10 @@
       return "good";
     };
 
+    const escapeHtml = ( str ) => String( str ).replace( /[&<>"']/g, ( c ) => ( {
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+    } )[ c ] );
+
     const shortText = ( text, limit = 92 ) => {
       const compact = text.replace( /\s+/g, " " ).trim();
       if ( compact.length <= limit ) return compact;
@@ -204,7 +274,6 @@
         tone: statusTone( summary.status.indicator ),
         description: summary.status.description,
         note: incident ? shortText( incident.name ) : "No active incidents.",
-        linkLabel: host,
       };
     };
 
@@ -230,7 +299,6 @@
           tone: "good",
           description: "No active incidents",
           note: "Watching Vertex Gemini API and Gemini Enterprise.",
-          linkLabel: "status.cloud.google.com",
         };
       }
 
@@ -239,7 +307,6 @@
         tone: googleTone( incident.status_impact ),
         description: shortText( incident.external_desc || "Google reported a Gemini incident." ),
         note: shortText( incident.service_name || "Google Cloud status" ),
-        linkLabel: "status.cloud.google.com",
       };
     };
 
@@ -247,10 +314,10 @@
       servicesEl.innerHTML = payload.services.map( ( service ) => `
         <div class="service">
           <div class="service-head">
-            <span class="status-dot ${ service.tone }"></span>
-            <div class="service-name"><a href="${ service.href }" target="_blank" rel="noopener">${ service.label }</a>: ${ service.description }</div>
+            <span class="status-dot ${ escapeHtml( service.tone ) }"></span>
+            <div class="service-name"><a href="${ escapeHtml( service.href ) }" target="_blank" rel="noopener">${ escapeHtml( service.label ) }</a>: ${ escapeHtml( service.description ) }</div>
           </div>
-          <div class="service-note">${ service.note }</div>
+          <div class="service-note">${ escapeHtml( service.note ) }</div>
         </div>
       ` ).join( "" );
 
@@ -281,7 +348,10 @@
       } );
     };
 
+    const refreshBtn = document.getElementById( "refresh-btn" );
+
     const refresh = async () => {
+      refreshBtn.classList.add( "spinning" );
       const cached = readJson( state.cacheKey );
 
       try {
@@ -295,13 +365,17 @@
       } catch ( err ) {
         if ( isValidCache( cached ) ) {
           render( cached, true );
-          return;
+        } else {
+          renderError();
         }
-        renderError();
+      } finally {
+        refreshBtn.classList.remove( "spinning" );
       }
     };
 
+    refreshBtn.addEventListener( "click", refresh );
     refresh();
+    setInterval( refresh, state.refreshMs );
   </script>
 </body>
 

@@ -13,6 +13,14 @@
       border: 0;
       border-radius: 4px;
       background: #ffffff;
+      transition: filter 0.3s ease;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      #cal {
+        filter: invert(0.92) hue-rotate(180deg);
+        background: #1c1c1e;
+      }
     }
   </style>
 </head>

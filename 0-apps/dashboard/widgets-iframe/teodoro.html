@@ -39,6 +39,12 @@
 
     #display.overtime {
       color: #e03030;
+      animation: pulse-overtime 1s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulse-overtime {
+      from { transform: scale(1); opacity: 1; text-shadow: 0 0 10px rgba(224, 48, 48, 0.25); }
+      to { transform: scale(1.03); opacity: 0.8; text-shadow: 0 0 20px rgba(224, 48, 48, 0.55); }
     }
 
     .controls {
@@ -101,9 +107,30 @@
     }
 
     input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
       flex: 1 1 auto;
       max-width: 200px;
-      accent-color: var(--fg);
+      height: 4px;
+      border-radius: 2px;
+      background: var(--btn-bg);
+      outline: none;
+      transition: background 0.3s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--fg);
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
     }
   </style>
 </head>
@@ -222,6 +249,33 @@
       } );
     };
 
+    const playCompletionChime = () => {
+      initAudioCtx();
+      if ( audioCtx.state === "suspended" ) audioCtx.resume();
+      
+      const now = audioCtx.currentTime;
+      // Synthesize a gorgeous high-fidelity Zen bell (A-major chord: E4, A4, C#5, E5)
+      const freqs = [329.63, 440.00, 554.37, 659.25];
+      const gains = [0.35, 0.25, 0.15, 0.1];
+      
+      freqs.forEach((freq, idx) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.type = idx === 0 ? "sine" : "triangle";
+        osc.frequency.setValueAtTime(freq, now);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(gains[idx], now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.0 - (idx * 0.4));
+        
+        osc.start(now);
+        osc.stop(now + 3.0);
+      });
+    };
+
     const tick = () => {
       if ( isOvertime ) {
         overtimeSeconds++;
@@ -244,6 +298,7 @@
         overtimeSeconds = 0;
         updateDisplay();
         btnPause.textContent = "Restart";
+        playCompletionChime(); // Play reliable Web Audio chime
         stream.play().catch( ( e ) => console.error( "Audio play failed:", e ) );
         return;
       }
