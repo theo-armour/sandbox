@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="widget-base.css">
+  <style>
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .spark-box {
+      flex: 1;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      border: 1px solid var(--panel-border);
+      border-radius: 0.5rem;
+      padding: 0.9rem;
+      background: color-mix(in srgb, var(--btn-bg) 70%, transparent);
+      min-height: 7.25rem;
+      line-height: 1.4;
+      font-size: clamp(1rem, 2.3vw, 1.1rem);
+    }
+
+    .spark-text {
+      max-width: 34ch;
+    }
+
+    .controls-row {
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      border-radius: 0.3rem;
+      background: var(--btn-bg);
+      color: var(--fg);
+      padding: 0.35rem 0.65rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.08s ease;
+    }
+
+    button:hover {
+      background: var(--btn-hover);
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    #save-btn.saved {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    .footer-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--muted);
+      gap: 0.5rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header-row">
+    <h2>Daily Spark ✨</h2>
+  </div>
+
+  <div class="spark-box" aria-live="polite">
+    <p id="spark-text" class="spark-text"></p>
+  </div>
+
+  <div class="controls-row">
+    <button id="new-btn" type="button" title="Show a different spark">New spark</button>
+    <button id="save-btn" type="button" title="Save this spark to favorites">☆ Save</button>
+  </div>
+
+  <div class="footer-row">
+    <span id="day-label">Today</span>
+    <span id="favorites-count">0 saved</span>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "dashboard-widget-spark-v1";
+
+    const SPARKS = [
+      "What would make today feel like a win by 5 PM?",
+      "Name one tiny task you can finish in 10 minutes.",
+      "Stand up, stretch, and take 3 deep breaths.",
+      "Write one sentence that future-you will thank you for.",
+      "Pick one tab to close forever. Be brave.",
+      "What can you simplify before you optimize?",
+      "Do one thing now that your Monday-self needs.",
+      "Turn one worry into a 2-step plan.",
+      "Drink some water and unclench your jaw.",
+      "What is the kindest next action for yourself?",
+      "Send one message you've been postponing.",
+      "Choose progress over perfect for the next 20 minutes.",
+      "Rename one messy file while your future memory still works.",
+      "What deserves your best energy today?",
+      "Take a 60-second desk reset: clear one small area.",
+      "What's one thing you can say no to this week?",
+      "Pick the hardest useful thing and start for 5 minutes.",
+      "Document one useful thing you learned today.",
+      "Turn notifications off for one focused sprint.",
+      "Write your next action as a verb + object.",
+      "What can you ship before lunch?",
+      "Replace one doom-scroll with one deep breath.",
+      "Celebrate one small win from today.",
+      "Open notes and capture one idea before it escapes."
+    ];
+
+    const sparkTextEl = document.getElementById( "spark-text" );
+    const dayLabelEl = document.getElementById( "day-label" );
+    const favoritesCountEl = document.getElementById( "favorites-count" );
+    const newBtnEl = document.getElementById( "new-btn" );
+    const saveBtnEl = document.getElementById( "save-btn" );
+
+    const getDayKey = () => {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String( now.getMonth() + 1 ).padStart( 2, "0" );
+      const day = String( now.getDate() ).padStart( 2, "0" );
+      return `${ year }-${ month }-${ day }`;
+    };
+
+    const hashString = ( text ) => {
+      let hash = 0;
+      for ( const char of text ) {
+        hash = ( ( hash << 5 ) - hash ) + char.charCodeAt( 0 );
+        hash |= 0;
+      }
+      return Math.abs( hash );
+    };
+
+    const pickDifferentIndex = ( currentIndex ) => {
+      if ( SPARKS.length < 2 ) return currentIndex;
+
+      let next = currentIndex;
+      while ( next === currentIndex ) {
+        next = Math.floor( Math.random() * SPARKS.length );
+      }
+      return next;
+    };
+
+    const loadState = () => {
+      try {
+        const parsed = JSON.parse( localStorage.getItem( STORAGE_KEY ) || "{}" );
+        const favorites = Array.isArray( parsed.favorites ) ? parsed.favorites : [];
+        const sparkIndex = Number.isInteger( parsed.sparkIndex ) ? parsed.sparkIndex : 0;
+        return {
+          dayKey: typeof parsed.dayKey === "string" ? parsed.dayKey : "",
+          sparkIndex,
+          favorites
+        };
+      } catch {
+        return {
+          dayKey: "",
+          sparkIndex: 0,
+          favorites: []
+        };
+      }
+    };
+
+    const state = loadState();
+
+    const saveState = () => {
+      localStorage.setItem( STORAGE_KEY, JSON.stringify( state ) );
+    };
+
+    const ensureTodaySpark = () => {
+      const today = getDayKey();
+      if ( state.dayKey !== today ) {
+        state.dayKey = today;
+        state.sparkIndex = hashString( today ) % SPARKS.length;
+        saveState();
+      }
+    };
+
+    const isCurrentSaved = () => state.favorites.includes( state.sparkIndex );
+
+    const updateButtons = () => {
+      const saved = isCurrentSaved();
+      saveBtnEl.classList.toggle( "saved", saved );
+      saveBtnEl.textContent = saved ? "★ Saved" : "☆ Save";
+      saveBtnEl.setAttribute(
+        "title",
+        saved ? "Remove this spark from favorites" : "Save this spark to favorites"
+      );
+    };
+
+    const updateFooter = () => {
+      const [ year, month, day ] = state.dayKey.split( "-" );
+      dayLabelEl.textContent = `Today · ${ month }/${ day }/${ year }`;
+
+      const count = state.favorites.length;
+      favoritesCountEl.textContent = `${ count } saved`;
+    };
+
+    const render = () => {
+      sparkTextEl.textContent = SPARKS[ state.sparkIndex ] || "Time for a small kind action.";
+      updateButtons();
+      updateFooter();
+    };
+
+    newBtnEl.addEventListener( "click", () => {
+      state.sparkIndex = pickDifferentIndex( state.sparkIndex );
+      saveState();
+      render();
+    } );
+
+    saveBtnEl.addEventListener( "click", () => {
+      if ( isCurrentSaved() ) {
+        state.favorites = state.favorites.filter( ( index ) => index !== state.sparkIndex );
+      } else {
+        state.favorites = [ ...state.favorites, state.sparkIndex ];
+      }
+      saveState();
+      render();
+    } );
+
+    ensureTodaySpark();
+    render();
+  </script>
+</body>
+
+</html>
