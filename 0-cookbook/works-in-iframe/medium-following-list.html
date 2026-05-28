@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📋 Medium Following → Clickable List</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #666;
+      --line: #e2e2e2;
+      --accent: #1a8917;
+      --accent-bg: #f0f7ef;
+      --radius: 8px;
+      --maxw: 820px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 1.5rem;
+      font: 16px/1.5 system-ui, sans-serif;
+      color: var(--fg);
+      background: var(--bg);
+    }
+
+    main { max-width: var(--maxw); margin: 0 auto; }
+
+    h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+
+    .hint { color: var(--muted); margin: 0 0 1rem; font-size: .9rem; }
+
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      padding: .75rem;
+      font: 13px/1.4 ui-monospace, monospace;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      resize: vertical;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      align-items: center;
+      margin: .75rem 0;
+    }
+
+    button {
+      padding: .5rem .9rem;
+      font-size: .9rem;
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+    }
+
+    button.secondary { background: #fff; color: var(--accent); }
+
+    input[type="search"] {
+      flex: 1;
+      min-width: 160px;
+      padding: .5rem .75rem;
+      font-size: .9rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .count { color: var(--muted); font-size: .9rem; }
+
+    ol { padding-left: 1.5rem; }
+
+    li { margin: .35rem 0; }
+
+    li a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    li a:hover { text-decoration: underline; }
+
+    .bio { display: block; color: var(--muted); font-size: .82rem; font-weight: 400; }
+
+    footer { margin-top: 2rem; color: var(--muted); font-size: .8rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>📋 Medium Following → Clickable List</h1>
+      <p class="hint">
+        Paste the text from your Medium <strong>Following → People</strong> page
+        (the whole thing, after scrolling to the bottom). Names link to Medium's
+        user search, since the rendered page doesn't expose usernames.
+      </p>
+    </header>
+
+    <textarea id="input" placeholder="Paste your following list here…"></textarea>
+
+    <div class="controls">
+      <button id="parseBtn">Parse 🔍</button>
+      <button id="copyBtn" class="secondary">Copy as Markdown 📋</button>
+      <input id="filter" type="search" placeholder="Filter by name or bio…">
+      <span id="count" class="count"></span>
+    </div>
+
+    <ol id="output"></ol>
+
+    <footer>
+      Want real profile links instead of search links? Those need the page
+      <em>source</em> (which carries usernames), fully loaded for all entries.
+    </footer>
+  </main>
+
+  <script>
+    const state = {
+      people: [],
+      filter: ""
+    };
+
+    // Lines that are page chrome, not people
+    const isNoise = (line) =>
+      line === "People" ||
+      line === "Publications" ||
+      /^[\d,]+\s+following$/i.test(line);
+
+    // True for blank lines or lines made only of invisible filler characters
+    const isEmpty = (line) =>
+      /^[\s\u3164\u00a0\u200b\u200c\uFEFF]*$/.test(line);
+
+    const searchUrl = (name) =>
+      "https://medium.com/search/users?q=" + encodeURIComponent(name);
+
+    // Turn the pasted text into [{ name, bio }]
+    const parseFollowing = (text) => {
+      const blocks = [];
+      let buffer = [];
+
+      text.split("\n").forEach((raw) => {
+        if (raw.trim() === "Following") {
+          blocks.push(buffer);
+          buffer = [];
+        } else {
+          buffer.push(raw);
+        }
+      });
+
+      const people = [];
+      const seen = new Set();
+
+      blocks.forEach((block) => {
+        const lines = block
+          .map((l) => l.trim())
+          .filter((l) => !isEmpty(l) && !isNoise(l));
+
+        if (lines.length === 0) return;
+
+        const name = lines[0];
+        // Bio is the first line after the duplicated name that differs from it
+        const bio = lines.slice(1).find((l) => l !== name) || "";
+
+        const key = name + "|" + bio;
+        if (seen.has(key)) return;
+        seen.add(key);
+
+        people.push({ name, bio });
+      });
+
+      return people;
+    };
+
+    const matchesFilter = (person, needle) =>
+      person.name.toLowerCase().includes(needle) ||
+      person.bio.toLowerCase().includes(needle);
+
+    const visiblePeople = () => {
+      const needle = state.filter.trim().toLowerCase();
+      if (!needle) return state.people;
+      return state.people.filter((p) => matchesFilter(p, needle));
+    };
+
+    const render = () => {
+      const list = visiblePeople();
+      const output = document.getElementById("output");
+
+      output.innerHTML = list
+        .map((p) => {
+          const bio = p.bio
+            ? '<span class="bio">' + escapeHtml(p.bio) + "</span>"
+            : "";
+          return (
+            '<li><a href="' + searchUrl(p.name) + '" target="_blank" rel="noopener">' +
+            escapeHtml(p.name) + "</a>" + bio + "</li>"
+          );
+        })
+        .join("");
+
+      const total = state.people.length;
+      const shown = list.length;
+      document.getElementById("count").textContent =
+        shown === total
+          ? total + " people"
+          : shown + " of " + total + " people";
+    };
+
+    const escapeHtml = (s) =>
+      s.replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+
+    const handleParse = () => {
+      state.people = parseFollowing(document.getElementById("input").value);
+      render();
+    };
+
+    const handleFilter = (event) => {
+      state.filter = event.target.value;
+      render();
+    };
+
+    const handleCopy = () => {
+      const markdown = visiblePeople()
+        .map((p) => "* [" + p.name + "](" + searchUrl(p.name) + ")")
+        .join("\n");
+      navigator.clipboard.writeText(markdown);
+      const btn = document.getElementById("copyBtn");
+      btn.textContent = "Copied ✓";
+      setTimeout(() => (btn.textContent = "Copy as Markdown 📋"), 1500);
+    };
+
+    document.getElementById("parseBtn").addEventListener("click", handleParse);
+    document.getElementById("filter").addEventListener("input", handleFilter);
+    document.getElementById("copyBtn").addEventListener("click", handleCopy);
+  </script>
+</body>
+</html>
