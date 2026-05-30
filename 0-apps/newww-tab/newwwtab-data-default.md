@@ -17,6 +17,14 @@
 - [g](https://github.com/pushme-pullyou/tootoo) tootoo https://pushme-pullyou.github.io/tootoo
 - [g](https://github.com/heritage-happenings/tech) hh tech https://heritage-happenings.github.io/tech/
 
+
+### - vs code
+- >ta 2025 https://vscode.dev/github/theo-armour/2025
+- >ta agnda https://vscode.dev/github/theo-armour/agenda
+- >ta pages https://vscode.dev/github/theo-armour/pages
+- >ta qdata https://vscode.dev/github/theo-armour/qdata
+- >pp Assets https://vscode.dev/github/pushme-pullyou/assets/
+
 ### - ta apps
 - [g](https://github.com/theo-armour/sandbox/0-apps/newww-tab) newTab https://theo-armour.github.io/sandbox/0-apps/newww-tab/
 - [g](https://github.com/theo-armour/sandbox/gemini/cookbook/newww-tab/index.html) old-tab https://theo-armour.github.io/sandbox/gemini/cookbook/newww-tab/index.html
@@ -43,13 +51,6 @@
 - gbxml https://www.gbxml.org
 - demo https://theo-armour.github.io/2021/demo-reel/v-2021-08-31/iframe-carousel-r1.html
 - mouth https://theo-armour.github.io/mouth-stl-2022/simple-stl
-
-### - vs code
-- >ta 2025 https://vscode.dev/github/theo-armour/2025
-- >ta agnda https://vscode.dev/github/theo-armour/agenda
-- >ta pages https://vscode.dev/github/theo-armour/pages
-- >ta qdata https://vscode.dev/github/theo-armour/qdata
-- >pp Assets https://vscode.dev/github/pushme-pullyou/assets/
 
 ## News
 
@@ -173,7 +174,7 @@
 
 ## Apps
 
-### + Soshnet
+### + Socialnet
 - whatsapp https://web.whatsapp.com/
 - linkedin https://linkedin.com/
 - bsky https://bsky.app/
@@ -184,6 +185,7 @@
 - tumblr https://tumblr.com/
 
 ### + apps
+- plaud https://web.plaud.ai/
 - raindrop https://app.raindrop.io/my/-1
 - dropbox https://dropbox.com/home
 - spotify https://www.spotify.com/
@@ -191,25 +193,10 @@
 - evernote https://evernote.com/Home.action
 
 
-### - genealogy
-- geni https://geni.com/family-tree/index/6000000004118029730
-- gedcom https://pewu.github.io/topola-viewer/#/view?url=https://theo-armour.github.io/genealogy/gedcom-files/2025-08-18-export-geni/export-BloodTree.ged
-- myheritage https://www.myheritage.com/
-- ancestry https://www.ancestry.com/
-- wikitree https://www.wikitree.com/wiki/Main_Page
-- prompt https://my.promptsmart.com/scripts
-
-### - more apps
-- dictanoth https://dictanote.co/
-- excalidrw https://excalidraw.com/
-- stackoflow https://stackoverflow.com/
-- trmnl https://usetrmnl.com/dashboard
-- audiopen https://audiopen.ai/
-- lowercase https://www.lowercase.app/workspace/9b004c32-5287-4fe7-8d1f-c66a0cc1a31c/edit
-
 ### - reference
 - annas arch https://en.wikipedia.org/wiki/Anna%27s_Archive
 - threejs https://threejs.org
+- stackoflow https://stackoverflow.com/
 - mdn https://developer.mozilla.org/en-US/
 - regex https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions/Cheatsheet
 - wiki https://en.wikipedia.org
@@ -219,6 +206,13 @@
 - translate https://translate.google.com/
 - validator https://validator.w3.org/
 - speedtest https://speed.cloudflare.com/
+
+### - more apps
+- dictanoth https://dictanote.co/
+- excalidrw https://excalidraw.com/
+- trmnl https://usetrmnl.com/dashboard
+- audiopen https://audiopen.ai/
+- lowercase https://www.lowercase.app/workspace/9b004c32-5287-4fe7-8d1f-c66a0cc1a31c/edit
 
 ## Groups
 
@@ -230,6 +224,16 @@
 - groups.io https://groups.io/groups
 - ace-it.gr https://ace-it.groups.io/
 - hertge.gr https://heritage.groups.io/g/residents/messages
+
+
+### - genealogy
+- geni https://geni.com/family-tree/index/6000000004118029730
+- gedcom https://pewu.github.io/topola-viewer/#/view?url=https://theo-armour.github.io/genealogy/gedcom-files/2025-08-18-export-geni/export-BloodTree.ged
+- myheritage https://www.myheritage.com/
+- ancestry https://www.ancestry.com/
+- wikitree https://www.wikitree.com/wiki/Main_Page
+- prompt https://my.promptsmart.com/scripts
+
 
 ## Heritage
 
