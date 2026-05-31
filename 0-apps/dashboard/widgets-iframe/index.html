@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-05-24 23:46">
+  <meta name="revised" content="2026-05-31 00:41">
   <title>Dashboard ~ iframe widgets</title>
   <link rel="icon" href="../favicon-dashboard.svg" type="image/svg+xml">
   <style>
@@ -80,15 +80,15 @@
   <script>
     // One config entry per widget. Add, remove, reorder here.
     const WIDGETS = [
-      { id: "teodoro", src: "teodoro.html", height: 240, label: "Teodoro activity timer" },
-      { id: "clock", src: "widget-clock.html", height: 240, label: "Clock and date" },
-      { id: "weather", src: "widget-weather.html", height: 240, label: "Current weather", allow: "geolocation" },
-      { id: "github", src: "widget-github.html", height: 240, label: "Service status" },
-      { id: "calendar", src: "widget-calendar.html", height: 360, label: "Calendar", wide: true },
-      { id: "today", src: "widget-today.html", height: 260, label: "Today's news", wide: true },
-      { id: "spark", src: "widget-spark.html", height: 260, label: "Daily spark" },
-      { id: "links", src: "widget-links.html", height: 200, label: "Quick links" },
-      { id: "notes", src: "widget-notes.html", height: 260, label: "Notes", wide: true },
+      { id: "teodoro", src: "teodoro.html", height: 210, label: "Teodoro activity timer" },
+      { id: "clock", src: "widget-clock.html", height: 220, label: "Clock and date", allow: "geolocation" },
+      { id: "weather", src: "widget-weather.html", height: 200, label: "Current weather", allow: "geolocation" },
+      { id: "github", src: "widget-github.html", height: 200, label: "Service status" },
+      { id: "calendar", src: "widget-calendar.html", height: 300, label: "Calendar", wide: true },
+      { id: "today", src: "widget-today.html", height: 220, label: "Today's news", wide: true },
+      { id: "spark", src: "widget-spark.html", height: 220, label: "Daily spark" },
+      { id: "links", src: "widget-links.html", height: 170, label: "Quick links" },
+      { id: "notes", src: "widget-notes.html", height: 220, label: "Notes", wide: true },
     ];
 
     const gridEl = document.getElementById( "dashboard-grid" );

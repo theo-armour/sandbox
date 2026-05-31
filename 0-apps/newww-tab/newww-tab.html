@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-04-18 12:00">
+  <meta name="revised" content="2026-05-30 10:48">
   <title>NewwwTab</title>
   <style>
     :root {
@@ -258,13 +258,15 @@
     };
 
     const parseItem = ( text ) => {
-      // Match leading [g](url) prefix
-      const gh = text.match( /^\[g\]\(([^)]+)\)\s+(.+)$/ );
+      // Match leading [x](url) prefix, where x is any single letter
+      const gh = text.match( /^\[([a-zA-Z])\]\(([^)]+)\)\s+(.+)$/ );
       let ghUrl = null;
+      let ghLabel = null;
       let rest = text;
       if ( gh ) {
-        ghUrl = gh[ 1 ].trim();
-        rest = gh[ 2 ];
+        ghLabel = gh[ 1 ];
+        ghUrl = gh[ 2 ].trim();
+        rest = gh[ 3 ];
       }
 
       // Find last whitespace-separated token that looks like a URL
@@ -285,7 +287,7 @@
         }
       }
 
-      return { ghUrl, name, url };
+      return { ghUrl, ghLabel, name, url };
     };
 
     const render = ( columns ) => {
@@ -321,7 +323,7 @@
               const gh = document.createElement( 'a' );
               gh.className = 'gh';
               gh.href = it.ghUrl;
-              gh.textContent = 'g';
+              gh.textContent = it.ghLabel;
               gh.title = it.ghUrl;
               gh.target = '_blank';
               gh.rel = 'noopener';
@@ -365,7 +367,7 @@
         const columns = parseMarkdown( text );
         render( columns );
       } catch ( err ) {
-        showError( `Could not load ${ DATA_URL }\n${ err.message }\n\nServe via http:// (e.g. "python -m http.server") — file:// fetch is blocked by browsers.` );
+        showError( `Could not load ${ DATA_URL }\n${ err.message }\n\nCheck that ${ DATA_URL } sits next to this file.` );
       }
     };
 
