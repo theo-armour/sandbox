@@ -16,9 +16,9 @@
 
     .headline {
       display: flex;
-      align-items: baseline;
-      gap: 0.5rem;
-      padding: 0.4rem 0;
+      align-items: center;
+      gap: 0.8rem;
+      height: 2rem;
       border-bottom: 1px solid var(--panel-border);
       font-size: clamp(0.95rem, 2.3vw, 1.05rem);
     }
@@ -41,11 +41,18 @@
     .headline .title {
       flex: 1;
       min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .headline .title a {
       color: var(--fg);
       text-decoration: none;
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .headline .title a:hover {
@@ -63,17 +70,44 @@
       color: var(--muted);
       font-size: clamp(0.82rem, 2.2vw, 0.92rem);
     }
+
+    .footer {
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+    }
+
+    #refreshBtn {
+      border: 1px solid var(--panel-border);
+      background: var(--btn-bg);
+      color: var(--fg);
+      border-radius: 999px;
+      padding: 0.25rem 0.7rem;
+      font-size: 0.86rem;
+      cursor: pointer;
+    }
+
+    #refreshBtn:disabled {
+      opacity: 0.65;
+      cursor: wait;
+    }
   </style>
 </head>
 
 <body>
   <h2>News</h2>
   <div id="news"><span class="muted">Loading headlines…</span></div>
-  <div id="updated"></div>
+  <div class="footer">
+    <div id="updated"></div>
+    <button id="refreshBtn" type="button" aria-label="Refresh headlines">Refresh</button>
+  </div>
 
   <script>
     const newsEl = document.getElementById( "news" );
     const updatedEl = document.getElementById( "updated" );
+    const refreshBtnEl = document.getElementById( "refreshBtn" );
 
     const CACHE_KEY = "dashboard-widget-news-cache";
     const REFRESH_MS = 15 * 60 * 1000;
@@ -87,7 +121,7 @@
     const FEEDS = [
       { name: "BBC", url: "https://feeds.bbci.co.uk/news/world/rss.xml" },
       { name: "NPR", url: "https://feeds.npr.org/1001/rss.xml" },
-      { name: "HN",  url: "https://hnrss.org/frontpage" },
+      { name: "HN", url: "https://hnrss.org/frontpage" },
     ];
 
     const readJson = ( key ) => {
@@ -184,10 +218,10 @@
       updatedEl.textContent = "";
     };
 
-    const refresh = async () => {
+    const refresh = async ( force = false ) => {
       const cached = readJson( CACHE_KEY );
       const fresh = cached && ( Date.now() - cached.ts ) < REFRESH_MS;
-      if ( fresh ) {
+      if ( fresh && !force ) {
         render( cached.items, cached.ts, false );
         return;
       }
@@ -211,8 +245,18 @@
       }
     };
 
+    const refreshNow = async () => {
+      refreshBtnEl.disabled = true;
+      try {
+        await refresh( true );
+      } finally {
+        refreshBtnEl.disabled = false;
+      }
+    };
+
     refresh();
     setInterval( refresh, REFRESH_MS );
+    refreshBtnEl.addEventListener( "click", refreshNow );
   </script>
 </body>
 

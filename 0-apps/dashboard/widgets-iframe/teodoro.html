@@ -20,16 +20,16 @@
     .app-container {
       width: 100%;
       max-width: 500px;
-      padding: clamp(0.25rem, 3vw, 2rem);
+      padding: clamp(0.2rem, 3vw, 0.2rem);
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: clamp(0.4rem, 3vw, 2rem);
+      gap: clamp(0.5rem, 3vw, 0.5rem);
     }
 
     #display {
-      font-size: clamp(1.5rem, 25vw, 8rem);
+      font-size: clamp(0.5rem, 25vw, 7rem);
       font-weight: 700;
       line-height: 1;
       font-variant-numeric: tabular-nums;
@@ -87,10 +87,11 @@
     #audio-controls {
       display: flex;
       align-items: center;
-      gap: clamp(0.5rem, 3vw, 1rem);
+      gap: clamp(0.2rem, 1vw, 0.2rem);
       width: 100%;
       justify-content: center;
-      margin-top: clamp(0.5rem, 3vw, 1rem);
+      margin-top: clamp(0.2rem, 3vw, 0.2rem);
+      margin-bottom: clamp(0.2rem, 1vw, 0.2rem);
     }
 
     .icon-btn {
@@ -252,25 +253,25 @@
     const playCompletionChime = () => {
       initAudioCtx();
       if ( audioCtx.state === "suspended" ) audioCtx.resume();
-      
+
       const now = audioCtx.currentTime;
       // Synthesize a gorgeous high-fidelity Zen bell (A-major chord: E4, A4, C#5, E5)
       const freqs = [329.63, 440.00, 554.37, 659.25];
       const gains = [0.35, 0.25, 0.15, 0.1];
-      
+
       freqs.forEach((freq, idx) => {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        
+
         osc.type = idx === 0 ? "sine" : "triangle";
         osc.frequency.setValueAtTime(freq, now);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
-        
+
         gain.gain.setValueAtTime(0, now);
         gain.gain.linearRampToValueAtTime(gains[idx], now + 0.02);
         gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.0 - (idx * 0.4));
-        
+
         osc.start(now);
         osc.stop(now + 3.0);
       });
