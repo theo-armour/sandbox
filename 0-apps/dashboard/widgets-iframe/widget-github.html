@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-04-26 17:30">
+  <meta name="revised" content="2026-05-31 19:01">
   <title>Service Status</title>
   <link rel="stylesheet" href="widget-base.css">
   <style>
@@ -79,7 +79,7 @@
     }
 
     .service-name {
-      font-size: clamp(0.95rem, 2.7vw, 1.05rem);
+      font-size: var(--text-lg);
       font-weight: 600;
       line-height: 1.2;
     }
@@ -97,8 +97,7 @@
     .service-desc,
     .service-note,
     #updated {
-      color: var(--muted);
-      font-size: clamp(0.82rem, 2.2vw, 0.92rem);
+      font-size: var(--text-sm);
       line-height: 1.35;
     }
 
@@ -114,23 +113,13 @@
     }
 
     #refresh-btn {
-      background: var(--btn-bg);
-      color: var(--fg);
-      border: none;
-      border-radius: 0.25rem;
       padding: 0.15rem 0.4rem;
       font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
+      border-radius: 0.25rem;
       line-height: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.2s, transform 0.2s;
-    }
-
-    #refresh-btn:hover {
-      background: var(--btn-hover);
     }
 
     #refresh-btn:active {
@@ -149,7 +138,7 @@
   </style>
 </head>
 
-<body>
+<body class="widget">
   <div class="header-row">
     <h2>Service Status</h2>
     <button id="refresh-btn" title="Refresh Status">↻</button>
@@ -317,7 +306,7 @@
             <span class="status-dot ${ escapeHtml( service.tone ) }"></span>
             <div class="service-name"><a href="${ escapeHtml( service.href ) }" target="_blank" rel="noopener">${ escapeHtml( service.label ) }</a>: ${ escapeHtml( service.description ) }</div>
           </div>
-          <div class="service-note">${ escapeHtml( service.note ) }</div>
+          <div class="service-note muted">${ escapeHtml( service.note ) }</div>
         </div>
       ` ).join( "" );
 

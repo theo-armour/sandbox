@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-05-31 00:41">
+  <meta name="revised" content="2026-05-31 18:43">
   <title>Dashboard ~ iframe widgets</title>
   <link rel="icon" href="../favicon-dashboard.svg" type="image/svg+xml">
   <style>
@@ -43,7 +43,7 @@
 
     .dashboard-grid {
       display: grid;
-      gap: clamp(0.75rem, 3vw, 1rem);
+      gap: clamp(0.75rem, 3vw, 0.1rem);
       grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
       align-items: start;
     }
@@ -80,12 +80,12 @@
   <script>
     // One config entry per widget. Add, remove, reorder here.
     const WIDGETS = [
-      { id: "teodoro", src: "teodoro.html", height: 210, label: "Teodoro activity timer" },
+      { id: "teodoro", src: "teodoro.html", height: 220, label: "Teodoro activity timer" },
       { id: "clock", src: "widget-clock.html", height: 220, label: "Clock and date", allow: "geolocation" },
-      { id: "weather", src: "widget-weather.html", height: 200, label: "Current weather", allow: "geolocation" },
-      { id: "github", src: "widget-github.html", height: 200, label: "Service status" },
-      { id: "calendar", src: "widget-calendar.html", height: 300, label: "Calendar", wide: true },
-      { id: "today", src: "widget-today.html", height: 220, label: "Today's news", wide: true },
+      { id: "weather", src: "widget-weather.html", height: 220, label: "Current weather", allow: "geolocation" },
+      { id: "github", src: "widget-github.html", height: 220, label: "Service status" },
+      { id: "calendar", src: "widget-calendar.html", height: 240, label: "Calendar", wide: true },
+      { id: "today", src: "widget-today.html", height: 240, label: "Today's news", wide: true },
       { id: "spark", src: "widget-spark.html", height: 220, label: "Daily spark" },
       { id: "links", src: "widget-links.html", height: 170, label: "Quick links" },
       { id: "notes", src: "widget-notes.html", height: 220, label: "Notes", wide: true },

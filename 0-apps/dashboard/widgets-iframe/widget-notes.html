@@ -34,23 +34,9 @@
     }
 
     #clear-btn {
-      background: var(--btn-bg);
-      color: var(--fg);
-      border: none;
       border-radius: 0.25rem;
       padding: 0.2rem 0.5rem;
       font-size: 0.72rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s, transform 0.1s;
-    }
-
-    #clear-btn:hover {
-      background: var(--btn-hover);
-    }
-
-    #clear-btn:active {
-      transform: scale(0.95);
     }
 
     #clear-btn.confirming {
@@ -89,7 +75,7 @@
   </style>
 </head>
 
-<body>
+<body class="widget">
   <div class="header-row">
     <h2>Notes</h2>
     <div class="header-controls">
@@ -124,10 +110,10 @@
 
     const updateStats = () => {
       const text = notesEl.value;
-      
+
       // Character count
       charCountEl.textContent = `${text.length} char${text.length === 1 ? '' : 's'}`;
-      
+
       // Word count
       const words = text.trim().split(/\s+/).filter(w => w.length > 0);
       wordCountEl.textContent = `${words.length} word${words.length === 1 ? '' : 's'}`;

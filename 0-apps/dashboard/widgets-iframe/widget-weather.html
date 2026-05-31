@@ -7,8 +7,7 @@
   <link rel="stylesheet" href="widget-base.css">
   <style>
     #city {
-      color: var(--muted);
-      font-size: clamp(0.88rem, 2.4vw, 1rem);
+      font-size: var(--text-md);
       cursor: pointer;
       display: inline-block;
       transition: color 0.2s;
@@ -21,7 +20,7 @@
 
     #city-input {
       font: inherit;
-      font-size: clamp(0.88rem, 2.4vw, 1rem);
+      font-size: var(--text-md);
       color: var(--fg);
       background: var(--btn-bg);
       border: 1px solid var(--panel-border);
@@ -55,8 +54,7 @@
     }
 
     #updated {
-      color: var(--muted);
-      font-size: clamp(0.82rem, 2.2vw, 0.92rem);
+      font-size: var(--text-sm);
     }
 
     #forecast {
@@ -64,7 +62,7 @@
       gap: 0.25rem 0.6rem;
       flex-wrap: wrap;
       font-variant-numeric: tabular-nums;
-      font-size: clamp(0.8rem, 2.1vw, 0.88rem);
+      font-size: var(--text-sm);
     }
 
     #forecast span {
@@ -73,15 +71,14 @@
   </style>
 </head>
 
-<body>
-  <div id="loc"><span id="city" title="Click to change city">San Francisco</span><input id="city-input" class="hidden" type="text" placeholder="City name"></div>
+<body class="widget">
 
   <div id="current"><span class="muted">Loading…</span></div>
   <div id="range" class="muted"></div>
   <div id="details" class="muted"></div>
   <div id="aqi" class="muted"></div>
   <div id="forecast"></div>
-  <div id="updated"></div>
+  <div id="loc"><span id="city" class="muted" title="Click to change city">San Francisco</span> <span id="updated" class="muted"></span><input id="city-input" class="hidden" type="text" placeholder="City name"></div>
 
   <script>
     const cityEl = document.getElementById( "city" );

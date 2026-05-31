@@ -13,10 +13,6 @@
       line-height: 1;
     }
 
-    #date {
-      color: var(--muted);
-    }
-
     #sun,
     #moon,
     #solar {
@@ -50,21 +46,20 @@
     }
 
     #facts {
-      color: var(--muted);
-      font-size: clamp(0.88rem, 2.4vw, 1rem);
+      font-size: var(--text-md);
     }
   </style>
 </head>
 
-<body>
+<body class="widget">
   <h2>Now</h2>
   <div id="clock">00:00</div>
-  <div id="date"></div>
+  <div id="date" class="muted"></div>
   <div id="worldclocks"></div>
   <div id="sun"></div>
   <div id="moon"></div>
   <div id="solar"></div>
-  <div id="facts"></div>
+  <div id="facts" class="muted"></div>
 
   <script>
     const clockEl = document.getElementById( "clock" );
