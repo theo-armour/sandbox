@@ -20,10 +20,21 @@
       opacity: 1;
     }
 
-    #clear-btn {
+    .footer-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .footer-actions button {
       border-radius: 0.25rem;
       padding: 0.2rem 0.5rem;
       font-size: 0.72rem;
+    }
+
+    .footer-actions button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
     }
 
     #clear-btn.confirming {
@@ -52,10 +63,17 @@
       border-color: var(--muted);
     }
 
+    /* Dimmed look while the textarea holds an unedited spark prompt */
+    textarea.is-prompt {
+      color: var(--muted);
+      font-style: italic;
+    }
+
     .footer-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 0.5rem;
       font-size: 0.75rem;
       color: var(--muted);
       padding: 0 0.1rem;
@@ -76,14 +94,50 @@
       <span id="word-count">0 words</span>
       <span id="char-count">0 characters</span>
     </span>
-    <span id="save-status" class="status-msg">Saved</span>
-    <button id="clear-btn" title="Clear all notes">Clear</button>
+    <span class="footer-actions">
+      <span id="save-status" class="status-msg">Saved</span>
+      <button id="new-spark-btn" type="button" title="Show a different spark prompt">✨ New spark</button>
+      <button id="save-btn" type="button" title="Save these notes">Save</button>
+      <button id="clear-btn" type="button" title="Clear all notes">Clear</button>
+    </span>
   </div>
 
   <script>
-    const STORAGE_KEY = "dashboard-widget-notes";
+    const NOTES_KEY = "dashboard-widget-notes";
+    const SPARK_KEY = "dashboard-widget-notes-spark";
+
+    // Spark prompts seed the empty notes area as a starting point.
+    const SPARKS = [
+      "What would make today feel like a win by 5 PM?",
+      "Name one tiny task you can finish in 10 minutes.",
+      "Stand up, stretch, and take 3 deep breaths.",
+      "Write one sentence that future-you will thank you for.",
+      "Pick one tab to close forever. Be brave.",
+      "What can you simplify before you optimize?",
+      "Do one thing now that your Monday-self needs.",
+      "Turn one worry into a 2-step plan.",
+      "Drink some water and unclench your jaw.",
+      "What is the kindest next action for yourself?",
+      "Send one message you've been postponing.",
+      "Choose progress over perfect for the next 20 minutes.",
+      "Rename one messy file while your future memory still works.",
+      "What deserves your best energy today?",
+      "Take a 60-second desk reset: clear one small area.",
+      "What's one thing you can say no to this week?",
+      "Pick the hardest useful thing and start for 5 minutes.",
+      "Document one useful thing you learned today.",
+      "Turn notifications off for one focused sprint.",
+      "Write your next action as a verb + object.",
+      "What can you ship before lunch?",
+      "Replace one doom-scroll with one deep breath.",
+      "Celebrate one small win from today.",
+      "Open notes and capture one idea before it escapes."
+    ];
+
     const notesEl = document.getElementById( "notes" );
     const saveStatusEl = document.getElementById( "save-status" );
+    const newSparkBtnEl = document.getElementById( "new-spark-btn" );
+    const saveBtnEl = document.getElementById( "save-btn" );
     const clearBtnEl = document.getElementById( "clear-btn" );
     const wordCountEl = document.getElementById( "word-count" );
     const charCountEl = document.getElementById( "char-count" );
@@ -91,21 +145,70 @@
     let saveTimeout = null;
     let clearConfirmTimeout = null;
 
-    // Load initial values
-    const saved = localStorage.getItem( STORAGE_KEY );
-    if ( saved !== null ) {
-      notesEl.value = saved;
-    }
+    // ----- Spark state (deterministic per day, like the original Spark widget) -----
+
+    const getDayKey = () => {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String( now.getMonth() + 1 ).padStart( 2, "0" );
+      const day = String( now.getDate() ).padStart( 2, "0" );
+      return `${ year }-${ month }-${ day }`;
+    };
+
+    const hashString = ( text ) => {
+      let hash = 0;
+      for ( const char of text ) {
+        hash = ( ( hash << 5 ) - hash ) + char.charCodeAt( 0 );
+        hash |= 0;
+      }
+      return Math.abs( hash );
+    };
+
+    const pickDifferentIndex = ( currentIndex ) => {
+      if ( SPARKS.length < 2 ) return currentIndex;
+      let next = currentIndex;
+      while ( next === currentIndex ) {
+        next = Math.floor( Math.random() * SPARKS.length );
+      }
+      return next;
+    };
+
+    const loadSparkState = () => {
+      try {
+        const parsed = JSON.parse( localStorage.getItem( SPARK_KEY ) || "{}" );
+        return {
+          dayKey: typeof parsed.dayKey === "string" ? parsed.dayKey : "",
+          sparkIndex: Number.isInteger( parsed.sparkIndex ) ? parsed.sparkIndex : 0,
+          // isPrompt: the textarea currently shows an unedited spark, not real notes
+          isPrompt: parsed.isPrompt === true
+        };
+      } catch {
+        return { dayKey: "", sparkIndex: 0, isPrompt: false };
+      }
+    };
+
+    const spark = loadSparkState();
+
+    const saveSparkState = () => {
+      localStorage.setItem( SPARK_KEY, JSON.stringify( spark ) );
+    };
+
+    const ensureTodaySpark = () => {
+      const today = getDayKey();
+      if ( spark.dayKey !== today ) {
+        spark.dayKey = today;
+        spark.sparkIndex = hashString( today ) % SPARKS.length;
+        saveSparkState();
+      }
+    };
+
+    // ----- Rendering helpers -----
 
     const updateStats = () => {
       const text = notesEl.value;
-
-      // Character count
-      charCountEl.textContent = `${text.length} char${text.length === 1 ? '' : 's'}`;
-
-      // Word count
-      const words = text.trim().split(/\s+/).filter(w => w.length > 0);
-      wordCountEl.textContent = `${words.length} word${words.length === 1 ? '' : 's'}`;
+      charCountEl.textContent = `${ text.length } char${ text.length === 1 ? '' : 's' }`;
+      const words = text.trim().split( /\s+/ ).filter( w => w.length > 0 );
+      wordCountEl.textContent = `${ words.length } word${ words.length === 1 ? '' : 's' }`;
     };
 
     const triggerSaveIndicator = () => {
@@ -116,28 +219,87 @@
       }, 1000 );
     };
 
-    // Listeners
-    notesEl.addEventListener( "input", () => {
-      localStorage.setItem( STORAGE_KEY, notesEl.value );
+    // New spark may only replace the text when there are no user notes yet.
+    const canReplaceWithSpark = () => spark.isPrompt || notesEl.value.trim() === "";
+
+    const updateButtons = () => {
+      newSparkBtnEl.disabled = !canReplaceWithSpark();
+    };
+
+    // Fill the textarea with the current day's spark as an editable starting point.
+    const showSparkPrompt = () => {
+      notesEl.value = SPARKS[ spark.sparkIndex ] || "Capture one idea before it escapes.";
+      notesEl.classList.add( "is-prompt" );
+      spark.isPrompt = true;
+      saveSparkState();
+      localStorage.setItem( NOTES_KEY, notesEl.value );
       updateStats();
+      updateButtons();
+    };
+
+    // ----- Init -----
+
+    ensureTodaySpark();
+
+    const savedNotes = localStorage.getItem( NOTES_KEY );
+    const hasUserNotes = savedNotes !== null && savedNotes.trim() !== "" && !spark.isPrompt;
+
+    if ( hasUserNotes ) {
+      notesEl.value = savedNotes;
+      notesEl.classList.remove( "is-prompt" );
+      spark.isPrompt = false;
+      saveSparkState();
+      updateStats();
+      updateButtons();
+    } else {
+      // Empty notes (or yesterday's untouched prompt) -> prefill today's spark.
+      showSparkPrompt();
+    }
+
+    // ----- Listeners -----
+
+    // Select the prompt text on focus so the first keystroke replaces it.
+    notesEl.addEventListener( "focus", () => {
+      if ( spark.isPrompt ) notesEl.select();
+    } );
+
+    notesEl.addEventListener( "input", () => {
+      // Typing turns the prompt into the user's own notes.
+      spark.isPrompt = false;
+      notesEl.classList.remove( "is-prompt" );
+      saveSparkState();
+      localStorage.setItem( NOTES_KEY, notesEl.value );
+      updateStats();
+      triggerSaveIndicator();
+      updateButtons();
+    } );
+
+    newSparkBtnEl.addEventListener( "click", () => {
+      if ( !canReplaceWithSpark() ) return;
+      spark.sparkIndex = pickDifferentIndex( spark.sparkIndex );
+      saveSparkState();
+      showSparkPrompt();
+      notesEl.focus();
+    } );
+
+    saveBtnEl.addEventListener( "click", () => {
+      localStorage.setItem( NOTES_KEY, notesEl.value );
       triggerSaveIndicator();
     } );
 
-    // Double-click to clear check
+    // Two-step confirm before clearing.
     clearBtnEl.addEventListener( "click", () => {
       if ( clearBtnEl.classList.contains( "confirming" ) ) {
-        // Confirmed clear
-        notesEl.value = "";
-        localStorage.setItem( STORAGE_KEY, "" );
-        updateStats();
-        triggerSaveIndicator();
         resetClearButton();
+        localStorage.setItem( NOTES_KEY, "" );
+        // Empty again -> bring back today's spark prompt.
+        showSparkPrompt();
+        triggerSaveIndicator();
       } else {
-        // First click
         clearBtnEl.classList.add( "confirming" );
         clearBtnEl.textContent = "Confirm?";
         if ( clearConfirmTimeout ) clearTimeout( clearConfirmTimeout );
-        clearConfirmTimeout = setTimeout( resetClearButton, 3000 ); // Reset back after 3 seconds
+        clearConfirmTimeout = setTimeout( resetClearButton, 3000 );
       }
     } );
 
@@ -149,9 +311,6 @@
         clearConfirmTimeout = null;
       }
     };
-
-    // Init stats
-    updateStats();
   </script>
 </body>
 
