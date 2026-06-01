@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="revised" content="2026-05-31 18:43">
+  <title>Wikipedia ~ In the news</title>
+  <link rel="stylesheet" href="widget-base.css">
+  <style>
+    #news {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .story {
+      font-size: 1rem;
+      line-height: 1.25;
+      padding-bottom: 0.3rem;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .story:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .story a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .story a:hover {
+      text-decoration: underline;
+    }
+
+    #updated {
+      font-size: var(--text-sm);
+    }
+
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    #refreshBtn {
+      border: 1px solid var(--panel-border);
+      border-radius: 999px;
+      padding: 0em 0.7rem;
+      font-size: 0.86rem;
+    }
+
+    #refreshBtn:disabled {
+      opacity: 0.65;
+      cursor: wait;
+    }
+  </style>
+</head>
+
+<body class="widget">
+  <h2>In the news</h2>
+  <div id="news"><span class="muted">Loading current events…</span></div>
+  <div class="footer">
+    <div id="updated" class="muted"></div>
+    <button id="refreshBtn" type="button" aria-label="Refresh current events">Refresh</button>
+  </div>
+
+  <script>
+    const newsEl = document.getElementById( "news" );
+    const updatedEl = document.getElementById( "updated" );
+    const refreshBtnEl = document.getElementById( "refreshBtn" );
+
+    const CACHE_KEY = "dashboard-widget-wikinews-cache";
+    const REFRESH_MS = 60 * 60 * 1000;
+    const WIKI = "https://en.wikipedia.org";
+
+    // Wikimedia's "featured" feed sends CORS headers, so we can fetch directly.
+    // Its `news` array is the Main Page "In the news" / current events block.
+    const feedUrl = ( date ) => {
+      const y = date.getUTCFullYear();
+      const m = String( date.getUTCMonth() + 1 ).padStart( 2, "0" );
+      const d = String( date.getUTCDate() ).padStart( 2, "0" );
+      return `${ WIKI }/api/rest_v1/feed/featured/${ y }/${ m }/${ d }`;
+    };
+
+    const readJson = ( key ) => {
+      const raw = localStorage.getItem( key );
+      if ( raw === null ) return null;
+      try {
+        return JSON.parse( raw );
+      } catch ( err ) {
+        return null;
+      }
+    };
+
+    // Story HTML uses relative links like <a href="./Page_name">. Rewrite them
+    // to absolute Wikipedia URLs that open in a new tab.
+    const fixStoryHtml = ( html ) => {
+      const doc = new DOMParser().parseFromString( html, "text/html" );
+      doc.querySelectorAll( "a[href]" ).forEach( ( a ) => {
+        const href = a.getAttribute( "href" );
+        if ( href.startsWith( "./" ) ) {
+          a.setAttribute( "href", `${ WIKI }/wiki/${ href.slice( 2 ) }` );
+        } else if ( href.startsWith( "/" ) ) {
+          a.setAttribute( "href", WIKI + href );
+        }
+        a.setAttribute( "target", "_blank" );
+        a.setAttribute( "rel", "noopener" );
+      } );
+      return doc.body.innerHTML;
+    };
+
+    const fetchNews = async () => {
+      // The current day's feed may not exist yet (UTC), so fall back a day.
+      const today = new Date();
+      const yesterday = new Date( today.getTime() - 24 * 60 * 60 * 1000 );
+      for ( const date of [ today, yesterday ] ) {
+        const res = await fetch( feedUrl( date ) );
+        if ( !res.ok ) continue;
+        const data = await res.json();
+        const news = ( data.news || [] ).map( ( item ) => fixStoryHtml( item.story ) );
+        if ( news.length > 0 ) return news;
+      }
+      throw new Error( "no news" );
+    };
+
+    const formatTime = ( ts ) => new Date( ts ).toLocaleTimeString( "en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    } );
+
+    const render = ( stories, fetchedAt, stale ) => {
+      if ( stories.length === 0 ) {
+        newsEl.innerHTML = `<span class="muted">No current events available</span>`;
+        updatedEl.textContent = "";
+        return;
+      }
+      newsEl.innerHTML = stories
+        .map( ( story ) => `<div class="story">${ story }</div>` )
+        .join( "" );
+      const prefix = stale ? "Cached" : "Updated";
+      updatedEl.textContent = `${ prefix } ${ formatTime( fetchedAt ) }`;
+    };
+
+    const renderError = ( msg ) => {
+      newsEl.innerHTML = `<span class="muted">${ msg }</span>`;
+      updatedEl.textContent = "";
+    };
+
+    const refresh = async ( force = false ) => {
+      const cached = readJson( CACHE_KEY );
+      const fresh = cached && ( Date.now() - cached.ts ) < REFRESH_MS;
+      if ( fresh && !force ) {
+        render( cached.stories, cached.ts, false );
+        return;
+      }
+      try {
+        const stories = await fetchNews();
+        const ts = Date.now();
+        localStorage.setItem( CACHE_KEY, JSON.stringify( { ts, stories } ) );
+        render( stories, ts, false );
+      } catch ( err ) {
+        // Offline / feed unavailable — fall back to cache even if it's stale.
+        if ( cached && cached.stories ) {
+          render( cached.stories, cached.ts, true );
+        } else {
+          renderError( "Unable to load current events" );
+        }
+      }
+    };
+
+    const refreshNow = async () => {
+      refreshBtnEl.disabled = true;
+      try {
+        await refresh( true );
+      } finally {
+        refreshBtnEl.disabled = false;
+      }
+    };
+
+    refresh();
+    setInterval( refresh, REFRESH_MS );
+    refreshBtnEl.addEventListener( "click", refreshNow );
+  </script>
+</body>
+
+</html>

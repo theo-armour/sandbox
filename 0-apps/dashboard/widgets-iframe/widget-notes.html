@@ -6,19 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="widget-base.css">
   <style>
-    .header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-    }
-
-    .header-controls {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-    }
-
     .status-msg {
       font-size: 0.72rem;
       color: var(--accent);
@@ -67,28 +54,30 @@
 
     .footer-row {
       display: flex;
+      align-items: center;
       justify-content: space-between;
       font-size: 0.75rem;
       color: var(--muted);
       padding: 0 0.1rem;
     }
+
+    .counts {
+      display: flex;
+      gap: 0.6rem;
+    }
   </style>
 </head>
 
 <body class="widget">
-  <div class="header-row">
-    <h2>Notes</h2>
-    <div class="header-controls">
-      <span id="save-status" class="status-msg">Saved</span>
-      <button id="clear-btn" title="Clear all notes">Clear</button>
-    </div>
-  </div>
-
   <textarea id="notes" placeholder="Type notes here..."></textarea>
 
   <div class="footer-row">
-    <span id="word-count">0 words</span>
-    <span id="char-count">0 characters</span>
+    <span class="counts">
+      <span id="word-count">0 words</span>
+      <span id="char-count">0 characters</span>
+    </span>
+    <span id="save-status" class="status-msg">Saved</span>
+    <button id="clear-btn" title="Clear all notes">Clear</button>
   </div>
 
   <script>

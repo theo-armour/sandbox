@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-05-31 19:01">
+  <meta name="revised" content="2026-05-31 16:38">
   <title>Service Status</title>
   <link rel="stylesheet" href="widget-base.css">
   <style>
@@ -41,18 +41,35 @@
     }
 
     @keyframes pulse-good {
-      from { box-shadow: 0 0 2px rgba(10, 127, 90, 0.25); }
-      to { box-shadow: 0 0 8px rgba(10, 127, 90, 0.6); }
+      from {
+        box-shadow: 0 0 2px rgba(10, 127, 90, 0.25);
+      }
+
+      to {
+        box-shadow: 0 0 8px rgba(10, 127, 90, 0.6);
+      }
     }
 
     @keyframes pulse-warn {
-      from { box-shadow: 0 0 2px rgba(212, 139, 12, 0.25); }
-      to { box-shadow: 0 0 10px rgba(212, 139, 12, 0.65); }
+      from {
+        box-shadow: 0 0 2px rgba(212, 139, 12, 0.25);
+      }
+
+      to {
+        box-shadow: 0 0 10px rgba(212, 139, 12, 0.65);
+      }
     }
 
     @keyframes pulse-bad {
-      from { box-shadow: 0 0 2px rgba(197, 59, 50, 0.25); transform: scale(1); }
-      to { box-shadow: 0 0 12px rgba(197, 59, 50, 0.75); transform: scale(1.06); }
+      from {
+        box-shadow: 0 0 2px rgba(197, 59, 50, 0.25);
+        transform: scale(1);
+      }
+
+      to {
+        box-shadow: 0 0 12px rgba(197, 59, 50, 0.75);
+        transform: scale(1.06);
+      }
     }
 
     #services {
@@ -103,6 +120,15 @@
 
     #updated {
       font-variant-numeric: tabular-nums;
+      flex: 1;
+    }
+
+    .updated-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.45rem;
+      width: 100%;
     }
 
     .header-row {
@@ -132,8 +158,13 @@
     }
 
     @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
     }
   </style>
 </head>
@@ -141,12 +172,14 @@
 <body class="widget">
   <div class="header-row">
     <h2>Service Status</h2>
-    <button id="refresh-btn" title="Refresh Status">↻</button>
   </div>
   <div id="services">
     <div class="muted">Loading service status...</div>
   </div>
-  <div id="updated" class="muted"></div>
+  <div class="updated-row muted">
+    <div id="updated"></div>
+    <button id="refresh-btn" title="Refresh Status">↻</button>
+  </div>
 
   <script>
     const state = {
