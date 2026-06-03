@@ -52,6 +52,24 @@
 - demo https://theo-armour.github.io/2021/demo-reel/v-2021-08-31/iframe-carousel-r1.html
 - mouth https://theo-armour.github.io/mouth-stl-2022/simple-stl
 
+### + local
+
+- tootoo file:///G:/My%20Drive/2026-theo-github/pushme-pullyou-tootoo/index.html
+- hh file:///G:/My%20Drive/2026-theo-github/heritage-happenings.github.io/index.html
+- 2025 file:///G:/My%20Drive/2026-theo-github/theo-armour-2025/index.html
+- 2026 file:///G:/My%20Drive/2026-theo-github/theo-armour-2026/index.html
+- agenda file:///G:/My%20Drive/2026-theo-github/theo-armour-agenda/index.html
+- agenda file:///G:/My%20Drive/2026-theo-github/theo-armour-agenda/index.html
+- pages file:///G:/My%20Drive/2026-theo-github/theo-armour-pages/index.html
+- qdata file:///G:/My%20Drive/2026-theo-github/theo-armour-qdata/index.html
+- sandbox file:///g%3A/My%20Drive/2026-theo-github/theo-armour-sandbox/index.html
+- ***
+- aa file:///G:/My%20Drive/2026-theo-github/theo-armour-aa/index.html
+- genealogy file:///G:/My%20Drive/2026-theo-github/theo-armour-genealogy/index.html
+- wikitheo file:///G:/My%20Drive/2026-theo-github/theo-armour-wikitheo/index.html
+- tech file:///G:/My%20Drive/2026-theo-github/heritage-happenings.github.io/tech/index.html
+
+
 ## News
 
 ### + News
