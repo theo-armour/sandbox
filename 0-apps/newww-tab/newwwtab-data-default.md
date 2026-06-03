@@ -67,7 +67,7 @@
 - aa file:///G:/My%20Drive/2026-theo-github/theo-armour-aa/index.html
 - genealogy file:///G:/My%20Drive/2026-theo-github/theo-armour-genealogy/index.html
 - wikitheo file:///G:/My%20Drive/2026-theo-github/theo-armour-wikitheo/index.html
-- tech file:///G:/My%20Drive/2026-theo-github/heritage-happenings.github.io/tech/index.html
+- tech file:///I:/My%20Drive/tech/index.html
 
 
 ## News
