@@ -259,6 +259,8 @@
 
 ### + heritage
 - hotm https://heritageonthemarina.org/
+- sflprs https://en.wikipedia.org/wiki/San_Francisco_Ladies_Protection_and_Relief_Society
+- jm b https://en.wikipedia.org/wiki/Julia_Morgan_Building
 - photo https://photos.fife.usercontent.google.com/pw/AP1GczMD9HRaxaWkG-W4JSgWilu9PVt29jRaMmifj8aZX3qM0I76RQV1RYsvdA=w1473-h831-s-no-gm?authuser=0
 - worxhub https://theheritagesf.theworxhub.com/Dashboard
 - tchTwn https://www.residentapps.com/
