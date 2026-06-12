@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<meta name="description" content="Get and put Markdown files to a private or public GitHub repo">
+	<meta name="date" content="2026-06-12">
+
+	<title>notesy</title>
+
+	<style>
+		body {
+			box-sizing: border-box;
+			font: 100% monospace;
+			margin: 0;
+			max-width: 50rem;
+			padding: 0;
+		}
+
+		a {
+			cursor: pointer;
+			font-weight: bold;
+		}
+
+		h2 {
+			color: darkblue;
+			display: inline;
+			font-size: 120%;
+			margin: 0;
+			padding: 0;
+		}
+
+		img {
+			max-width: 100%;
+			vertical-align: middle;
+		}
+
+		.aDingbat {
+			text-decoration: none;
+			font-size: 1.5rem;
+		}
+
+		#header {
+			background: white;
+			position: fixed;
+			top: 0;
+			left: 0;
+			z-index: 1;
+		}
+
+		#divContent {
+			border: 1px solid #ccc;
+			margin: 25px 0 0 0;
+			padding: 0.25rem;
+		}
+	</style>
+
+</head>
+
+<body>
+
+	<main>
+
+		<div id="header">
+
+			<h2>
+				<a id=aSource href="https://github.com/theo-armour/sandbox/tree/main/0-apps/notesy" target="_blank"
+					title="View this file on GitHub"><img
+						src=https://pushme-pullyou.github.io/assets/svg/mark-github.svg></a>
+				<a href="" id="aTitle" title="Click this menu title to reload the file">
+					<span id=spnTitle></span></a>
+			</h2>
+
+			<div id=divMessage style=display:inline;>msg</div>
+
+
+		</div>
+
+		<div id="divContent" contenteditable="true"></div>
+
+		<center title="Hello! Click me to go up to the top">
+			<a class=aDingbat href=javascript:window.scrollTo(0,0);> ❦ </a>
+		</center>
+
+		<button id="saveButton" onclick="requestSync()">save</button>
+
+	</main>
+
+	<script>
+		// copyright 2026 Theo Armour. MIT license.
+
+		// [X]MLHTTPRequest [G]et [P]ush = XGP
+
+		const XGP = {
+
+			// Default file ~ open another via location.hash or edit these, e.g.
+			// base: "https://api.github.com/repos/theo-armour/qdata/contents/", path: "apps/notesy/test.md",
+
+			base: "https://api.github.com/repos/theo-armour/agenda/contents/",
+			path: "1-notes.md",
+
+			branch: "main",
+
+			githubContent: "", // Raw content as of last successful load/save from GitHub
+			editorBaseline: "", // Same content as the editor reports it (innerText normalizes whitespace)
+			sha: "",           // SHA of XGP.githubContent
+
+			isSyncing: false,  // True if a sync operation is in progress
+
+			notesyURL: "https://theo-armour.github.io/sandbox/0-apps/notesy/notesy.html#",
+			commitMessage: "notesy: file update" // Default commit message
+
+		};
+
+
+		if (window.self === window.top) {
+
+			init();
+
+		}
+
+		function init(hash = XGP.base + XGP.path) {
+
+			XGP.hash = hash; // Set initial URL (can be overridden by hash)
+
+			window.addEventListener("hashchange", onHashChange, false);
+
+			window.addEventListener("beforeunload", checkForChange);
+
+			window.addEventListener("focus", requestSync); // Catch up right away when returning to a backgrounded tab/window
+
+			divContent.addEventListener('blur', requestSync);
+
+			githubAccessToken();
+
+			autoSave(); // Will call requestSync
+
+			onHashChange(); // Load initial file based on hash or default XGP.hash
+
+		};
+
+
+		function timeNow() {
+
+			return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+		};
+
+
+		// https://developer.mozilla.org/en-US/docs/Glossary/Base64#solution_1_%E2%80%93_escaping_the_string_before_encoding_it
+
+		function decodeBase64(data) {
+
+			return decodeURIComponent(escape(window.atob(data)));
+
+		};
+
+
+		function encodeBase64(text) {
+
+			return window.btoa(unescape(encodeURIComponent(text)));
+
+		};
+
+
+		function githubAccessToken() {
+
+			XGP.accessToken = localStorage.getItem("githubAccessToken") || "";
+
+			if (!XGP.accessToken || XGP.accessToken === "" || XGP.accessToken === "null") {
+
+				XGP.accessToken = prompt("Enter GitHub Personal Access Token");
+
+				localStorage.setItem("githubAccessToken", XGP.accessToken);
+
+			}
+		}
+
+
+		function onHashChange() {
+
+			XGP.hash = location.hash ? location.hash.slice(1) : XGP.hash;
+
+			if (!XGP.hash.includes("/contents/")) {
+
+				divMessage.innerText = "Bad hash ~ expected a GitHub contents API URL";
+				return;
+
+			}
+
+			XGP.base = XGP.hash.split("contents")[0] + "contents/";
+			XGP.path = XGP.hash.split("contents")[1].slice(1);
+			XGP.fileName = XGP.path.split("/").pop();
+
+			getMarkdown();
+
+		};
+
+
+		function checkForChange(event) {
+
+			if (divContent.innerText === XGP.editorBaseline) { return; } // No real edits since load/save
+
+			if (!(/\.(md|txt|ini)$/i.test(XGP.hash))) return;
+
+			event.preventDefault();
+
+			event.returnValue = "";
+
+		};
+
+
+		function getMarkdown() {
+
+			const xhr = new XMLHttpRequest();
+
+			xhr.open("GET", XGP.hash, true);
+			xhr.setRequestHeader("Authorization", "token " + XGP.accessToken);
+			xhr.responseType = "json";
+			xhr.onload = onLoad;
+			xhr.onerror = () => { divMessage.innerText = "Load failed (network error)"; };
+			xhr.send(null);
+
+		}
+
+
+		function onLoad(xhr) {
+
+			const status = xhr.target.status;
+
+			if (status === 401 || status === 403) {
+
+				localStorage.removeItem("githubAccessToken"); // Bad token: clear so reload re-prompts
+				divMessage.innerText = `Load failed (${status}). Token rejected ~ reload page to re-enter token`;
+				return;
+
+			}
+
+			if (status !== 200 || !xhr.target.response || !xhr.target.response.content) {
+
+				divMessage.innerText = `Load failed (${status}). Check file path in URL hash`;
+				return;
+
+			}
+
+			const content = decodeBase64(xhr.target.response.content);
+
+			divContent.innerText = content;
+
+			XGP.githubContent = content;
+			XGP.editorBaseline = divContent.innerText; // Read back so the no-change checks compare like with like
+			XGP.sha = xhr.target.response.sha;      // Set the SHA for this content
+
+			divMessage.innerText = `T:${timeNow()} B:${content.length.toLocaleString()}`;
+
+			aSource.href = xhr.target.response.html_url;
+
+			aTitle.href = XGP.notesyURL + XGP.hash;
+
+			spnTitle.innerHTML = XGP.hash.split("/").pop().split(".").shift();
+
+			document.title = spnTitle.innerText;
+
+			window.scrollTo(0, 0);
+
+		};
+
+		function autoSave() {
+
+			XGP.saveInterval = setInterval(requestSync, 15000); // 15 seconds
+
+		};
+
+
+		// Called when there are no local edits: quietly pull the latest version if the file changed on GitHub
+		// Keeps long-lived instances (other tabs, browsers, computers) in step with the repo
+
+		function refreshIfServerChanged() {
+
+			const xhr = new XMLHttpRequest();
+
+			xhr.open("GET", XGP.hash, true);
+			xhr.setRequestHeader("Authorization", "token " + XGP.accessToken);
+			xhr.responseType = "json";
+
+			xhr.onload = () => {
+
+				if (xhr.status !== 200 || !xhr.response || !xhr.response.content) { return; } // Background check ~ stay quiet on errors
+
+				if (xhr.response.sha === XGP.sha) { return; } // No change on GitHub
+
+				if (divContent.innerText !== XGP.editorBaseline) { return; } // Edits began while checking ~ let the save path handle it
+
+				const content = decodeBase64(xhr.response.content);
+
+				divContent.innerText = content;
+
+				XGP.githubContent = content;
+				XGP.editorBaseline = divContent.innerText;
+				XGP.sha = xhr.response.sha;
+
+				divMessage.innerText = `Updated from GitHub T:${timeNow()} B:${content.length.toLocaleString()}`;
+
+			};
+
+			xhr.send(null);
+
+		};
+
+
+		function requestSync() {
+			const editorContent = divContent.innerText;
+
+			if (XGP.isSyncing) {
+				divMessage.innerText = "Sync in progress... please wait.";
+				return;
+			}
+
+			if (editorContent === XGP.editorBaseline) {
+				refreshIfServerChanged(); // No local edits ~ safe to pull any newer version from GitHub
+				return;
+			}
+
+			if (!XGP.hash) {
+				return;
+			}
+
+			if (!XGP.accessToken) {
+				githubAccessToken(); // Attempt to get it again
+				if (!XGP.accessToken) return;
+			}
+
+			XGP.isSyncing = true;
+			divMessage.innerText = `Syncing ${XGP.fileName}...`;
+
+			// Step 1: Get the latest SHA for the file
+			const getShaXhr = new XMLHttpRequest();
+			getShaXhr.open("GET", XGP.hash, true);
+			getShaXhr.setRequestHeader("Authorization", "token " + XGP.accessToken);
+			getShaXhr.responseType = "json";
+
+			getShaXhr.onload = () => {
+				if (getShaXhr.status === 200) {
+
+					// Guard: warn before overwriting changes made on GitHub since last load/save
+					const serverContent = decodeBase64(getShaXhr.response.content);
+
+					if (serverContent !== XGP.githubContent) {
+
+						if (!confirm(`${XGP.fileName} has changed on GitHub since this copy was loaded.\nOK = overwrite GitHub. Cancel = pause autosave so you can copy your edits and reload.`)) {
+
+							XGP.isSyncing = false;
+							clearInterval(XGP.saveInterval);
+							XGP.saveInterval = null;
+							divMessage.innerText = "Save cancelled ~ autosave paused. Reload to get the GitHub version";
+							return;
+
+						}
+					}
+
+					XGP.sha = getShaXhr.response.sha; // Update SHA to the latest
+					doPutContent(editorContent); // Proceed to save with the fresh SHA
+				} else {
+					// responseText is unavailable when responseType is "json"
+					XGP.isSyncing = false;
+					divMessage.innerText = `Error preparing sync (SHA fetch failed ${getShaXhr.status})`;
+					alert(`Error getting file version from GitHub (Status ${getShaXhr.status}). Cannot save.`);
+				}
+			};
+
+			getShaXhr.onerror = () => {
+				alert("Network error while trying to get file version from GitHub. Cannot save.");
+				divMessage.innerText = "Network error (SHA fetch). Sync failed.";
+				XGP.isSyncing = false;
+			};
+
+			getShaXhr.send(null);
+		}
+
+		function doPutContent(contentToSave) {
+			const codedData = encodeBase64(contentToSave);
+
+			const bodyPayload = {
+				"branch": XGP.branch,
+				"content": codedData,
+				"message": `${XGP.commitMessage} (${XGP.fileName})`
+			};
+
+			if (XGP.sha) {
+				bodyPayload.sha = XGP.sha;
+			}
+
+			const body = JSON.stringify(bodyPayload);
+
+			const putXhr = new XMLHttpRequest();
+			putXhr.open("PUT", XGP.hash, true);
+			putXhr.setRequestHeader("Authorization", "token " + XGP.accessToken);
+			putXhr.setRequestHeader("Content-Type", "application/json");
+
+			putXhr.onload = () => {
+				const responseStatus = putXhr.status;
+				const responseText = putXhr.responseText;
+
+				if (responseStatus === 200 || responseStatus === 201) { // 200 for update, 201 for create
+					XGP.githubContent = contentToSave; // Server now holds exactly what the editor reported
+					XGP.editorBaseline = contentToSave;
+					try {
+						const jsonResponse = JSON.parse(responseText);
+						XGP.sha = jsonResponse.content.sha; // Update SHA from server response
+					} catch (e) {
+						console.error("Error parsing PUT response JSON:", e);
+						// SHA might not be updated if parsing fails, but content is saved.
+					}
+					divMessage.innerText = `Saved: ${XGP.fileName} ${timeNow()} B:${XGP.githubContent.length.toLocaleString()}`;
+				} else if (responseStatus === 409 || responseStatus === 422) { // Conflict or Unprocessable (often SHA mismatch)
+					divMessage.innerText = `Save failed (conflict/validation ${responseStatus}). File changed on server or invalid data.`;
+				} else if (responseStatus === 401 || responseStatus === 403) {
+					divMessage.innerText = `Save failed (Authorization Error ${responseStatus})`;
+				} else {
+					divMessage.innerText = `Save failed (error ${responseStatus})`;
+				}
+				XGP.isSyncing = false;
+			};
+
+			putXhr.onerror = () => {
+				divMessage.innerText = "Save failed (network error)";
+				XGP.isSyncing = false;
+			};
+
+			putXhr.send(body);
+		}
+
+	</script>
+
+</body>
+
+</html>
