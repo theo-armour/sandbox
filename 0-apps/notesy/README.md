@@ -15,9 +15,12 @@ Canonical home since 2026-06-12. Earlier dated versions remain in <a href="https
 * My primary test bed for Markdown to HTML and back; load test files
 * Footer dingbat to go to top of page
 
+## Test
+
+* <a href="./notesy-test-iframe.html">notesy-test-iframe.html</a> ~ two instances side by side on a scratch file, with a test checklist
+
 ## To Do / Wish List
 
-* 2026-06-12 ~ bring the iframe test harness (notesy-test-iframe.html, menu-test.html) over from qdata
 * Notesy: retrieve 2024 data from archive
 * Notesy: fix masthead link so that it points to the file in use and not the notes file
 * 2024-12-25 ~ improve styles?
@@ -39,6 +42,9 @@ Canonical home since 2026-06-12. Earlier dated versions remain in <a href="https
 * Tighten: removed dead CSS (editor is plain text ~ p/ul/h1 etc never render), unused `lastSyncTime` and `spnVersion`, stale commented presets, console.logs; base64 code now shared `decodeBase64()`/`encodeBase64()` helpers
 * New: multi-instance support ~ when there are no local edits, each autosave tick (and window focus) quietly pulls the latest version from GitHub, so instances in other tabs/browsers/computers stay in step; conflict prompt now only fires on truly simultaneous edits
 * Moved: canonical home is now sandbox/0-apps/notesy (was qdata/apps/notesy) ~ source link and notesyURL updated; timestamped backups now live in .archive/
+* New: file title tooltip shows the date/time of the last update ~ from the commits API on load/refresh, stamped locally on save
+* Remove: save button ~ redundant; clicking it always fired the blur save first anyway; timer/blur/focus cover all paths
+* New: notesy-test-iframe.html rebuilt for the new home ~ two iframe instances on sandbox test.md, reload-both and 2-second-autosave buttons, checklist of test scenarios
 
 ### 2024-12-24
 

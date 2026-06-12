@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="Notesy test harness ~ two instances side by side sharing one scratch file">
+	<meta name="date" content="2026-06-12">
+
+	<title>Notesy Test Harness</title>
+
+	<style>
+		:root {
+			--border: 1px solid #ccc;
+			--gap: 0.5rem;
+		}
+
+		body {
+			font: 100% monospace;
+			margin: var(--gap);
+		}
+
+		h1 {
+			font-size: 120%;
+			margin: 0;
+		}
+
+		p {
+			margin: 0.25rem 0;
+		}
+
+		main {
+			display: flex;
+			gap: var(--gap);
+		}
+
+		iframe {
+			border: var(--border);
+			flex: 1;
+			height: 70vh;
+			width: 50%;
+		}
+
+		button {
+			cursor: pointer;
+			font: inherit;
+		}
+
+		summary {
+			cursor: pointer;
+		}
+	</style>
+
+</head>
+
+<body>
+
+	<header>
+
+		<h1>🧪 Notesy Test Harness</h1>
+
+		<p>Two instances of <a href="notesy.html">notesy.html</a> share one scratch file: <b id=spnFile></b></p>
+
+		<p>Edit one side ~ the other shows “Updated from GitHub” within 15 seconds (sooner on click).
+			Edit both sides quickly to trigger the conflict prompt.</p>
+
+		<p>
+			<button id=btnReload>🔄 reload both</button>
+			<button id=btnSpeedUp>⏩ 2-second autosave</button>
+			~ or open another file via the hash:
+			<code>#https://api.github.com/repos/owner/repo/contents/path</code>
+		</p>
+
+	</header>
+
+	<main>
+
+		<iframe id=ifrLeft src="notesy.html"></iframe>
+		<iframe id=ifrRight src="notesy.html"></iframe>
+
+	</main>
+
+	<details>
+
+		<summary>📋 Test checklist</summary>
+
+		<ul>
+			<li>Load: file title, byte count, tooltip on the title shows the last commit time</li>
+			<li>No phantom saves: touch nothing for a minute ~ no new commits appear on GitHub</li>
+			<li>Save: type on the left, wait for “Saved:” ~ the right shows “Updated from GitHub”</li>
+			<li>Conflict: type on both sides within one autosave tick ~ the slower side prompts;
+				Cancel pauses its autosave, OK overwrites</li>
+			<li>Bad hash: open with <code>#foo</code> ~ “Bad hash” message, no console error</li>
+			<li>Bad token: in the console run
+				<code>localStorage.setItem("githubAccessToken","bad")</code> then reload
+				~ “Load failed (401)” and the token is cleared for re-entry</li>
+		</ul>
+
+	</details>
+
+	<script>
+		// copyright 2026 Theo Armour. MIT license.
+
+		// Scratch file ~ safe to scribble on
+		const testFile = "https://api.github.com/repos/theo-armour/sandbox/contents/test.md";
+
+		const fileURL = location.hash ? location.hash.slice(1) : testFile;
+
+		init();
+
+		function init() {
+
+			spnFile.innerText = fileURL.split("/contents/").pop();
+
+			// Notesy instances inside iframes wait for the parent to call init()
+			ifrLeft.onload = () => ifrLeft.contentWindow.init(fileURL);
+			ifrRight.onload = () => ifrRight.contentWindow.init(fileURL);
+
+			// Reload rather than re-init ~ re-calling init() would stack duplicate listeners and timers
+			window.addEventListener("hashchange", () => location.reload());
+
+			btnReload.addEventListener("click", reloadFrames);
+			btnSpeedUp.addEventListener("click", speedUpAutosave);
+
+		}
+
+		function reloadFrames() {
+
+			ifrLeft.contentWindow.location.reload();
+			ifrRight.contentWindow.location.reload();
+
+		}
+
+		function speedUpAutosave() {
+
+			for (const ifr of [ifrLeft, ifrRight]) {
+
+				const win = ifr.contentWindow;
+
+				win.clearInterval(win.XGP.saveInterval);
+				win.XGP.saveInterval = win.setInterval(win.requestSync, 2000);
+
+			}
+
+			btnSpeedUp.innerText = "⏩ 2-second autosave ~ on";
+
+		}
+
+	</script>
+
+</body>
+
+</html>

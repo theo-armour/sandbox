@@ -83,6 +83,8 @@
 			<a class=aDingbat href=javascript:window.scrollTo(0,0);> ❦ </a>
 		</center>
 
+		<button id="saveButton" onclick="requestSync()">save</button>
+
 	</main>
 
 	<script>
@@ -158,38 +160,6 @@
 		function encodeBase64(text) {
 
 			return window.btoa(unescape(encodeURIComponent(text)));
-
-		};
-
-
-		function setUpdatedTooltip(date) {
-
-			aTitle.title = `Updated ${date.toLocaleString()}\nClick this menu title to reload the file`;
-
-		};
-
-
-		// Ask the commits API when the file last changed ~ shown as the title tooltip
-
-		function showLastUpdate() {
-
-			const url = XGP.base.replace("/contents/", "/commits") + `?path=${XGP.path}&sha=${XGP.branch}&per_page=1`;
-
-			const xhr = new XMLHttpRequest();
-
-			xhr.open("GET", url, true);
-			xhr.setRequestHeader("Authorization", "token " + XGP.accessToken);
-			xhr.responseType = "json";
-
-			xhr.onload = () => {
-
-				if (xhr.status !== 200 || !xhr.response || !xhr.response[0]) { return; } // Background lookup ~ stay quiet on errors
-
-				setUpdatedTooltip(new Date(xhr.response[0].commit.committer.date));
-
-			};
-
-			xhr.send(null);
 
 		};
 
@@ -292,8 +262,6 @@
 
 			document.title = spnTitle.innerText;
 
-			showLastUpdate();
-
 			window.scrollTo(0, 0);
 
 		};
@@ -333,8 +301,6 @@
 				XGP.sha = xhr.response.sha;
 
 				divMessage.innerText = `Updated from GitHub T:${timeNow()} B:${content.length.toLocaleString()}`;
-
-				showLastUpdate();
 
 			};
 
@@ -447,7 +413,6 @@
 						// SHA might not be updated if parsing fails, but content is saved.
 					}
 					divMessage.innerText = `Saved: ${XGP.fileName} ${timeNow()} B:${XGP.githubContent.length.toLocaleString()}`;
-					setUpdatedTooltip(new Date()); // A save is the latest update ~ no need to ask the API
 				} else if (responseStatus === 409 || responseStatus === 422) { // Conflict or Unprocessable (often SHA mismatch)
 					divMessage.innerText = `Save failed (conflict/validation ${responseStatus}). File changed on server or invalid data.`;
 				} else if (responseStatus === 401 || responseStatus === 403) {
