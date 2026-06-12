@@ -29,4 +29,4 @@ Hosted at `theo-armour.github.io/sandbox/`.
 - Experimentation is encouraged — rough edges are fine
 - Check `0-sandbox-agenda.md` for current priorities
 - Notes go in `0-sandbox-journal.md`
-- Each experiment is typically self-contained; prefer adding new files over editing old ones
+- Each experiment is typically self-contained; prefer adding a new file over editing an old experiment (this is per-experiment — within a file, the global "small incremental changes" rule still applies)
