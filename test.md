@@ -28,8 +28,5 @@ quaerat voluptatem. ut enim ad minima veniam, quis nostrum exercitationem ullam 
 
 </details>
 
-text
-
-text
 
 text
