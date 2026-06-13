@@ -50,14 +50,8 @@
 			cursor: pointer;
 		}
 
-		#tokenResult,
-		#burstResult {
+		#tokenResult {
 			white-space: pre-wrap;
-		}
-
-		#burstCount {
-			font: inherit;
-			width: 4rem;
 		}
 	</style>
 
@@ -87,14 +81,6 @@
 			<span id=tokenResult></span>
 		</p>
 
-		<p>
-			<button id=btnBurst>💥 burst write</button>
-			<input id=burstCount type=number value=15 min=2 max=100>
-			rapid concurrent writes to the scratch file ~ tests conflicts (409) and GitHub's rate limit (403).
-			Uses ~that many of your hourly 5,000 and may briefly trip the secondary limit (~1 min).
-			<span id=burstResult></span>
-		</p>
-
 	</header>
 
 	<main>
@@ -116,7 +102,6 @@
 				Cancel pauses its autosave, OK overwrites</li>
 			<li>Bad hash: open with <code>#foo</code> ~ “Bad hash” message, no console error</li>
 			<li>Token: hit “🔑 test token” ~ shows the user, scopes, write access and rate limit, or flags a bad token</li>
-			<li>Rate limit: hit “💥 burst write” ~ one 200, many 409 conflicts; raise the count until a 403 appears</li>
 			<li>Bad token: run <code>localStorage.setItem("githubAccessToken","bad")</code>, then “🔑 test token”
 				flags 401; reloading an instance shows “Load failed (401)” and clears it for re-entry</li>
 		</ul>
@@ -148,7 +133,6 @@
 			btnSpeedUp.addEventListener("click", speedUpAutosave);
 			btnTestToken.addEventListener("click", testToken);
 			btnClearToken.addEventListener("click", clearToken);
-			btnBurst.addEventListener("click", burstTest);
 
 		}
 
@@ -220,107 +204,6 @@
 
 			localStorage.removeItem(tokenKey);
 			tokenResult.innerText = "🗑️ Token cleared ~ reload an instance to enter a new one";
-
-		}
-
-
-		// Fire many writes at once to see how the scratch file and GitHub's limits respond.
-		// All PUTs share one SHA: exactly one wins (200), the rest conflict (409),
-		// and the rapid concurrency is what can trip a 403 secondary rate limit.
-
-		async function burstTest() {
-
-			const token = localStorage.getItem(tokenKey);
-
-			if (!token || token === "null") {
-
-				burstResult.innerText = "⚠️ No token stored ~ reload an instance to be prompted";
-				return;
-
-			}
-
-			const count = Math.min(Math.max(Number(burstCount.value) || 15, 2), 100);
-			const headers = { Authorization: "token " + token };
-
-			burstResult.innerText = `Firing ${count} writes…`;
-
-			const getRes = await fetch(testFile, { headers });
-
-			if (!getRes.ok) {
-
-				burstResult.innerText = `❌ could not read the scratch file (${getRes.status})`;
-				return;
-
-			}
-
-			const sha = (await getRes.json()).sha;
-			const stamp = new Date().toISOString();
-
-			const writes = Array.from({ length: count }, (_, i) =>
-
-				fetch(testFile, {
-					method: "PUT",
-					headers: { ...headers, "Content-Type": "application/json" },
-					body: JSON.stringify({
-						message: `notesy burst test ${i + 1}/${count}`,
-						content: btoa(`burst write ${i + 1} of ${count} at ${stamp}\n`),
-						sha: sha,
-						branch: "main"
-					})
-				}).then(async res => {
-
-					const out = {
-						status: res.status,
-						retryAfter: res.headers.get("retry-after"),
-						remaining: res.headers.get("x-ratelimit-remaining")
-					};
-
-					if (res.status === 403 || res.status === 429) {
-
-						out.message = (await res.json().catch(() => ({}))).message || "";
-
-					}
-
-					return out;
-
-				})
-
-			);
-
-			const start = performance.now();
-			const results = await Promise.all(writes);
-			const ms = Math.round(performance.now() - start);
-
-			// Tally by status code
-			const tally = {};
-			let limited = null;
-
-			for (const r of results) {
-
-				tally[r.status] = (tally[r.status] || 0) + 1;
-				if (r.status === 403 || r.status === 429) { limited = r; }
-
-			}
-
-			const counts = Object.keys(tally).sort()
-				.map(code => `${code}×${tally[code]}`).join("  ");
-
-			const lines = [`${count} writes in ${ms}ms`, counts];
-
-			if (limited) {
-
-				const wait = limited.retryAfter ? ` (Retry-After ${limited.retryAfter}s)` : "";
-				lines.push(`⚠️ rate limited${wait} ~ "${limited.message}"`);
-
-			} else {
-
-				lines.push("no rate limiting hit ~ raise the count to push harder");
-
-			}
-
-			lines.push(`hourly quota remaining: ${results[0].remaining}`);
-
-			burstResult.innerText = lines.join("\n");
 
 		}
 

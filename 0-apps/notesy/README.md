@@ -45,6 +45,8 @@ Canonical home since 2026-06-12. Earlier dated versions remain in <a href="https
 * New: file title tooltip shows the date/time of the last update ~ from the commits API on load/refresh, stamped locally on save
 * Remove: save button ~ redundant; clicking it always fired the blur save first anyway; timer/blur/focus cover all paths
 * New: notesy-test-iframe.html rebuilt for the new home ~ two iframe instances on sandbox test.md, reload-both and 2-second-autosave buttons, checklist of test scenarios
+* New: harness token tester ~ "test token" checks the stored PAT against /user (valid? who? scopes? rate limit) and the sandbox repo (write access?); "clear token" forces re-entry
+* New: harness burst-write test ~ fires N concurrent writes at the scratch file and tallies the response codes (one 200, many 409 conflicts, 403 when GitHub's rate limit trips), reporting Retry-After and remaining quota
 
 ### 2024-12-24
 
