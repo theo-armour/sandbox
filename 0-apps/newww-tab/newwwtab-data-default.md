@@ -17,8 +17,16 @@
 - [g](https://github.com/theo-armour/wikitheo/) wikitheo https://theo-armour.github.io/wikitheo/
 - [g](https://github.com/heritage-happenings/tech) hh tech https://heritage-happenings.github.io/tech/
 
+### - orgs
+- [g](https://github.com/theo-armour/qdata/tree/master/apps/trayo) trayo https://theo-armour.github.io/qdata/apps/trayo/
+- [g](https://github.com/theo-armour/qdata/tree/master/apps/notesy) days https://theo-armour.github.io/qdata/apps/notesy/days.html
+- [g](https://github.com/evereverland/) evrevrlnd https://evereverland.github.io/
+- [g](https://github.com/evereverland/2019/) 2019 https://evereverland.github.io/2019
+- [g](https://github.com/pushme-pullyou/) PshPll https://pushme-pullyou.github.io/
+- [g](https://github.com/pushme-pullyou/assets/) ppAssets https://pushme-pullyou.github.io/assets/
+- g https://github.com/pushme-pullyou/2024/
 
-### - vs code
+### - vs dev
 - >ta 2025 https://vscode.dev/github/theo-armour/2025
 - >ta agnda https://vscode.dev/github/theo-armour/agenda
 - >ta pages https://vscode.dev/github/theo-armour/pages
@@ -35,16 +43,6 @@
 
 - [g](https://github.com/theo-armour/qdata/tree/master/apps/notesy) notesy https://theo-armour.github.io/qdata/apps/notesy
 - [g](https://github.com/theo-armour/qdata/tree/master/apps/teodori) teodori https://theo-armour.github.io/qdata/apps/teodori
-- [g](https://github.com/theo-armour/qdata/tree/master/apps/trayo) trayo https://theo-armour.github.io/qdata/apps/trayo/
-- [g](https://github.com/theo-armour/qdata/tree/master/apps/notesy) days https://theo-armour.github.io/qdata/apps/notesy/days.html
-
-### - orgs
-
-- [g](https://github.com/evereverland/) evrevrlnd https://evereverland.github.io/
-- [g](https://github.com/evereverland/2019/) 2019 https://evereverland.github.io/2019
-- [g](https://github.com/pushme-pullyou/) PshPll https://pushme-pullyou.github.io/
-- [g](https://github.com/pushme-pullyou/assets/) ppAssets https://pushme-pullyou.github.io/assets/
-- g https://github.com/pushme-pullyou/2024/
 
 ### - demos
 - bizcard https://theo-armour.github.io/2024/about/theo-business-card.html
@@ -87,12 +85,13 @@
 ### + Reads
 - substack https://substack.com/inbox
 - medium https://medium.com/
-- swiss-miss https://swiss-miss.com
 - [g](https://www.amazon.com/sendtokindle) kindle https://read.amazon.com/kindle-library
+- KindSend https://www.amazon.com/sendtokindle
 - kottke https://kottke.org
-- techxplore https://sciencex.com/news/techxplore/
+- swiss-miss https://swiss-miss.com
 
 ### - MoreNews
+- techxplore https://sciencex.com/news/techxplore/
 - compuserve http://compuserve.com/
 - allTop https://alltop.com/
 - brutalist https://brutalist.report/
