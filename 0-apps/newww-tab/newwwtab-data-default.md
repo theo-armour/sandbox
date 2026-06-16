@@ -40,7 +40,7 @@
 
 ### - orgs
 
-- [g](https://github.com/evereverland/) evrlnd https://evereverland.github.io/
+- [g](https://github.com/evereverland/) evrevrlnd https://evereverland.github.io/
 - [g](https://github.com/evereverland/2019/) 2019 https://evereverland.github.io/2019
 - [g](https://github.com/pushme-pullyou/) PshPll https://pushme-pullyou.github.io/
 - [g](https://github.com/pushme-pullyou/assets/) ppAssets https://pushme-pullyou.github.io/assets/
@@ -52,7 +52,7 @@
 - demo https://theo-armour.github.io/2021/demo-reel/v-2021-08-31/iframe-carousel-r1.html
 - mouth https://theo-armour.github.io/mouth-stl-2022/simple-stl
 
-### + local
+### - local
 
 - tootoo file:///G:/My%20Drive/2026-theo-github/pushme-pullyou-tootoo/index.html
 - hh file:///G:/My%20Drive/2026-theo-github/heritage-happenings.github.io/index.html
