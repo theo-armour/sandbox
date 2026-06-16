@@ -276,12 +276,11 @@
 - resdir https://1drv.ms/b/s!ArJ-RZ9B4UhDzOxGlz6HYF0kYMpFwA?e=Lh8FYs
 - granucci https://EverEverLand.github.io/granucci/
 
-## orgs
+## Snippets & Orgs
 
-### + Orgs & Projects
+### + Snips & Orgs
 - [g](https://github.com/theo-armour/sandbox/tree/master/0-apps/notesy/notesy.html) notesy https://theo-armour.github.io/sandbox/0-apps/notesy/notesy.html
 - read me https://theo-armour.github.io/sandbox/0-apps/notesy/notesy.html#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/README.md
-- AxisOrdinry https://theo-armour.github.io/sandbox/0-apps/notesy/notesy.html#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/axis-of-ordinary.md
 - Art2Write https://theo-armour.github.io/sandbox/0-apps/notesy/notesy.html#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/articles-to-write-video.md
 - Inspiration https://theo-armour.github.io/sandbox/0-apps/notesy/notesy.html#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/inspirations-sources.md
 - jokes https://theo-armour.github.io/sandbox/0-apps/notesy/notesy.html#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/jokes-quotes.md
