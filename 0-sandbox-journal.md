@@ -1,14 +1,35 @@
 # Sandbox Journal
 
 
+## 2026-06-20
+
+Boris Cherney Anthropic
+
+https://x.com/ai_rohitt/status/2068205229481632032/video/1
+
+before you write code, make a plan
+
+Use 3 parallel agents To brainstorm ideas for how to clean up the app
+
+memory files ~ list all files being used
+
+@ to add file or content
+
+Esc any time ~ twice to jump back history
+
+## 2026-06-20
+
 ## 2026-04-18
+
 
 Learning how to get help in VS Code Copilot Check.
 
+Iterate
 
 ## 2026-01-10
 
 Notesy updates
+
 thing2
 
 thing 3
