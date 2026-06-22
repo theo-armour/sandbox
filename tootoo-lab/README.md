@@ -53,6 +53,33 @@ writes / reads / exposes).
 
 ## Status
 
+- 2026-06-21 — **🟧 list complete** (batch 4): full self-test (§12b) — renders each
+  visible file off-screen by type with a pass/fail/skip table + concurrency, replacing
+  the fetch-only check. **All 🟥 blockers + 🟧 important items are now closed.** What
+  remains is minor 🟨 polish + a manual verification pass before graduation.
+- 2026-06-21 — **🟧 Keyboard navigation** (batch 3): Ctrl/⌘ B, / (filter), \\ (tree),
+  arrows/Home/End/PgUp/PgDn, Enter/Space, →/←, Esc-clears-filter — plus `toggleSidebar`
+  extracted + sidebar-hidden persistence. ⚠️ needs a manual key test (not headless-
+  verifiable). With this, the only remaining 🟧 is a fuller self-test (refinement).
+- 2026-06-21 — **🟧 Important items (batch 2):** responsive + print + reduced-motion
+  CSS (responsive verified at 600px — file-header stacks), token panel auto-opens on
+  403/404, "Reset all data" button, `#printTitle` for print. Remaining 🟧: keyboard
+  navigation, full self-test (real renderers).
+- 2026-06-21 — **🟧 Important items (batch 1):** branch switcher (chip + dropdown +
+  switch-in-place, verified), About panel + repo stats + About/Token toggle-return,
+  dark-mode code theme + persistence, global error handlers, breadcrumb folder
+  scroll, and a simplified self-test (fetch-check of text files). Remaining 🟧:
+  keyboard navigation, responsive/print CSS, token auto-open on errors, full self-test.
+- 2026-06-21 — **🟥 Graduation blockers closed** (see PARITY.md): GitHub Pages
+  auto-detection + repo cache + manual-entry form, Markdown relative image/link
+  resolution, real New-Tab/Download URLs, and blob-URL revocation. Plus the
+  breadcrumb folder links now work. `detectRepo` is now async; regression-clean.
+  Remaining for full parity: the 🟧 important items (About/self-test, keyboard nav,
+  branch switcher, responsive/print CSS, …).
+- 2026-06-21 — Review fixes: `selectFile` now opens ancestor folders + scrolls the
+  active row into view (deep-links into nested folders are now visible); refreshed a
+  stale `core.js` comment; `assemble.ps1` reports char count (Get-Item read a stale
+  cluster size right after write). Wrote `PARITY.md` (graduation audit).
 - 2026-06-21 — **Parity gaps closed.**
   - Renderers: added audio / video / PDF / spreadsheet (SheetJS, lazy-loaded). All
     file types now render. Verified live: CSV→table, PDF→inline iframe (plus md /

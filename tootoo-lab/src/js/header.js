@@ -19,9 +19,19 @@ const updateHeaderFromConfig = () => {
   }
 };
 
+/* Header owns the sidebar toggle (Ctrl/⌘ B + the ☰ button both call this). */
+const toggleSidebar = () => {
+  const hidden = document.body.classList.toggle( 'sidebar-hidden' );
+  document.getElementById( 'btnToggleSidebar' )?.setAttribute( 'aria-expanded', String( !hidden ) );
+  try { localStorage.setItem( storageKey( 'sidebarHidden' ), hidden ? '1' : '0' ); } catch ( _ ) { /* storage off */ }
+};
+
 const initHeaderControls = () => {
-  document.getElementById( 'btnDarkMode' )?.addEventListener( 'click', () =>
-    document.body.classList.toggle( 'dark-mode' ) );
+  document.getElementById( 'btnDarkMode' )?.addEventListener( 'click', () => {
+    const isDark = document.body.classList.toggle( 'dark-mode' );
+    setHljsTheme( isDark );
+    try { localStorage.setItem( storageKey( 'darkMode' ), isDark ? '1' : '0' ); } catch ( _ ) { /* storage off */ }
+  } );
 
   let fontSize = 16;
   const setFont = ( n ) => {
@@ -31,14 +41,10 @@ const initHeaderControls = () => {
   document.getElementById( 'btnFontDec' )?.addEventListener( 'click', () => setFont( fontSize - 1 ) );
   document.getElementById( 'btnFontInc' )?.addEventListener( 'click', () => setFont( fontSize + 1 ) );
 
-  document.getElementById( 'btnHelp' )?.addEventListener( 'click', ( e ) => e.currentTarget.classList.toggle( 'active' ) );
-  document.getElementById( 'btnToken' )?.addEventListener( 'click', ( e ) => { e.currentTarget.classList.toggle( 'active' ); showTokenPanel(); } );
+  document.getElementById( 'btnHelp' )?.addEventListener( 'click', () => toggleInfoPanel( 'about' ) );
+  document.getElementById( 'btnToken' )?.addEventListener( 'click', () => toggleInfoPanel( 'token' ) );
 
-  // Header owns the sidebar toggle (cross-component: hides the sidebar).
-  document.getElementById( 'btnToggleSidebar' )?.addEventListener( 'click', ( e ) => {
-    const hidden = document.body.classList.toggle( 'sidebar-hidden' );
-    e.currentTarget.setAttribute( 'aria-expanded', String( !hidden ) );
-  } );
+  document.getElementById( 'btnToggleSidebar' )?.addEventListener( 'click', toggleSidebar );
 
   const rb = document.getElementById( 'rateBadge' );
   if ( rb ) { rb.textContent = '4983 / 5000'; rb.style.display = 'inline-block'; }
@@ -65,6 +71,9 @@ const showTokenPanel = () => {
           <button id="btnTokenClear" class="secondary">Clear</button>
         </div>
       </div>
+      <hr style="margin:1rem 0;border:none;border-top:1px solid var(--border-color);">
+      <p style="font-size:0.85rem;opacity:0.8;">Wipe every preference, cached file, and the token from this browser — useful when testing.</p>
+      <button id="btnResetAll" class="secondary">Reset all data</button>
     </div>`;
   const inp = document.getElementById( 'inpToken' );
   inp.focus();
@@ -83,6 +92,109 @@ const showTokenPanel = () => {
     clearFileCache();
     location.reload();
   } );
+  document.getElementById( 'btnResetAll' )?.addEventListener( 'click', () => {
+    if ( !window.confirm( `Wipe all ${ CONFIG.appName } data from this browser?` ) ) return;
+    try {
+      const prefix = `${ CONFIG.storagePrefix }-lab:`;
+      const keys = [];
+      for ( let i = 0; i < localStorage.length; i++ ) { const k = localStorage.key( i ); if ( k && k.startsWith( prefix ) ) keys.push( k ); }
+      for ( const k of keys ) localStorage.removeItem( k );
+    } catch ( _ ) { /* storage disabled */ }
+    clearFileCache();
+    location.reload();
+  } );
 };
 
-const initHeader = () => { updateHeaderFromConfig(); initHeaderControls(); };
+/* ── About panel + About/Token toggle (reference §12c). ? / ⚙️ open their panel;
+   clicking again returns to the file you were on (panelReturnPath). ── */
+let activePanel = null;       // 'about' | 'token' | null
+let panelReturnPath = '';
+
+const updateInfoButtonState = () => {
+  const help = document.getElementById( 'btnHelp' );
+  const token = document.getElementById( 'btnToken' );
+  help?.classList.toggle( 'active', activePanel === 'about' );
+  help?.setAttribute( 'aria-pressed', String( activePanel === 'about' ) );
+  token?.classList.toggle( 'active', activePanel === 'token' );
+  token?.setAttribute( 'aria-pressed', String( activePanel === 'token' ) );
+};
+
+const renderAboutPanel = async () => {
+  const revised = document.querySelector( 'meta[name="revised"]' )?.content || 'unknown';
+  const sourceUrl = CONFIG.sourceRepoUrl;
+  const repoUrl = state.owner && state.repo ? `https://github.com/${ state.owner }/${ state.repo }` : sourceUrl;
+  const tokenStatus = getToken() ? 'Set' : 'Not set (anonymous — 60 requests/hour)';
+
+  let rateLimitInfo = 'Unable to fetch';
+  try {
+    const res = await fetch( 'https://api.github.com/rate_limit', { headers: ghHeaders() } );
+    if ( res.ok ) { const core = ( await res.json() ).resources.core; rateLimitInfo = `${ core.remaining } / ${ core.limit } remaining`; }
+  } catch ( _ ) { /* offline */ }
+
+  const branchHtml = ( state.owner && state.repo && state.branch )
+    ? `<li><strong>Branch:</strong> <a href="https://github.com/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/tree/${ encodeURIComponent( state.branch ) }" target="_blank" rel="noopener">${ escapeHTML( state.branch ) }</a></li>`
+    : '';
+
+  const statsHtml = ( () => {
+    const stats = getRepoStats();
+    if ( !stats ) return '<h3>Repository statistics</h3><p>No tree loaded yet.</p>';
+    const types = stats.topTypes.map( ( [ ext, n ] ) => `<li>${ escapeHTML( ext ) }: ${ n }</li>` ).join( '' );
+    const largest = stats.largest.map( ( f ) => `<li>${ escapeHTML( f.path ) } — ${ formatFileSize( f.size ) }</li>` ).join( '' );
+    return `<h3>Repository statistics</h3><ul><li><strong>Files:</strong> ${ stats.fileCount }</li><li><strong>Folders:</strong> ${ stats.folderCount }</li><li><strong>Total size:</strong> ${ formatFileSize( stats.totalSize ) }</li></ul><h4>Top file types</h4><ol>${ types }</ol><h4>Largest files</h4><ol>${ largest }</ol>`;
+  } )();
+
+  setContentHeader( makeSimpleHeader( 'About' ) );
+  document.getElementById( 'contentBody' ).innerHTML = `
+    <div class="markdown-body">
+      <h2>${ escapeHTML( CONFIG.appName ) }</h2>
+      <p>A lightweight single-file GitHub repository browser (component build).</p>
+      <ul>
+        <li><strong>Source:</strong> <a href="${ escapeHTML( sourceUrl ) }" target="_blank" rel="noopener">${ escapeHTML( sourceUrl ) }</a></li>
+        <li><strong>Repository:</strong> <a href="${ escapeHTML( repoUrl ) }" target="_blank" rel="noopener">${ escapeHTML( repoUrl ) }</a></li>
+        ${ branchHtml }
+        <li><strong>Updated:</strong> ${ escapeHTML( revised ) }</li>
+        <li><strong>Token:</strong> ${ escapeHTML( tokenStatus ) }</li>
+        <li><strong>Rate limit:</strong> ${ escapeHTML( rateLimitInfo ) }</li>
+      </ul>
+      ${ statsHtml }
+      <h3>Keyboard shortcuts</h3>
+      <ul>
+        <li><kbd>Ctrl/⌘ B</kbd> — toggle sidebar</li>
+        <li><kbd>/</kbd> focus filter · <kbd>Esc</kbd> clear filter</li>
+        <li><kbd>↑</kbd> <kbd>↓</kbd> move · <kbd>→</kbd>/<kbd>←</kbd> open/close folder · <kbd>Enter</kbd> open</li>
+      </ul>
+      <h3>Maintenance</h3>
+      <button id="btnSelfTest" class="secondary">🧪 Run self-test</button>
+    </div>`;
+  document.getElementById( 'btnSelfTest' )?.addEventListener( 'click', runSelfTest );
+};
+
+const closeInfoPanel = () => {
+  activePanel = null;
+  updateInfoButtonState();
+  const path = panelReturnPath;
+  panelReturnPath = '';
+  if ( path && state.tree?.some( ( i ) => i.path === path && i.type === 'blob' ) ) selectFile( path );
+  else autoSelectReadme();
+};
+
+const toggleInfoPanel = async ( panel ) => {
+  if ( activePanel === panel ) { closeInfoPanel(); return; }
+  if ( !activePanel ) panelReturnPath = state.currentFilePath || '';
+  activePanel = panel;
+  updateInfoButtonState();
+  if ( panel === 'about' ) await renderAboutPanel();
+  else showTokenPanel();
+};
+
+const initHeader = () => {
+  updateHeaderFromConfig();
+  try {
+    if ( localStorage.getItem( storageKey( 'darkMode' ) ) === '1' ) {
+      document.body.classList.add( 'dark-mode' );
+      setHljsTheme( true );
+    }
+    if ( localStorage.getItem( storageKey( 'sidebarHidden' ) ) === '1' ) document.body.classList.add( 'sidebar-hidden' );
+  } catch ( _ ) { /* storage off */ }
+  initHeaderControls();
+};

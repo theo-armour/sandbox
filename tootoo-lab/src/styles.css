@@ -648,3 +648,59 @@ body.dark-mode .app-footer a { color: color-mix(in srgb, var(--highlight-color) 
 .xlsx-sheet td,
 .xlsx-sheet th { border: 1px solid var(--border-color); padding: 0.3rem 0.5rem; font-size: 0.85rem; }
 .xlsx-sheet th { background: var(--primary-bg); font-weight: bold; }
+
+/* ===================================================================
+   RESPONSIVE / PRINT / REDUCED-MOTION  (carved 2026-06-21)
+   =================================================================== */
+
+@media (max-width: 768px) {
+  .resizer { width: 4px; }
+  .file-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+}
+
+/* Print: only the current file's content, with its name as a title. */
+.print-only { display: none; }
+
+@media print {
+  header, .sidebar, .resizer, .file-header, .back-to-top, .app-footer {
+    display: none !important;
+  }
+  body, main, .content-area, #contentBody {
+    display: block; height: auto; max-height: none; overflow: visible;
+  }
+  body { border-top: none; }
+  #contentBody { padding: 0; }
+  .markdown-body, pre { max-width: none; }
+  body, body.dark-mode {
+    --primary-bg: #fff; --secondary-bg: #fff; --text-color: #000;
+    --border-color: #999; --highlight-color: #000;
+    background: #fff; color: #000;
+  }
+  body.dark-mode pre, body.dark-mode code,
+  body.dark-mode .hljs, body.dark-mode .hljs * {
+    background: #fff !important; color: #000 !important;
+  }
+  .print-only { display: block; }
+  #printTitle {
+    margin: 0 0 1rem 0; padding-bottom: 0.4rem;
+    font-size: 1.4rem; font-weight: bold; border-bottom: 1px solid #999;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+/* ── Self-test report table ── */
+.selftest-table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+.selftest-table th, .selftest-table td {
+  border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; text-align: left; vertical-align: top;
+}
+.selftest-table td:first-child { width: 1.5rem; text-align: center; }
+.selftest-table tr.st-fail { background: var(--error-bg); }
+.selftest-table tr.st-skip { background: var(--warning-bg); }
+
+.error-panel {
+  background: var(--error-bg); border: 2px solid var(--error-border); color: var(--text-color);
+  padding: 1rem; border-radius: 6px; margin: 1rem; font-size: 0.9rem;
+}

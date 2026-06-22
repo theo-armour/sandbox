@@ -31,4 +31,6 @@ $template = [regex]::Replace($template, '/\*\s*@include\s+([^\s\*]+)\s*\*/', {
 })
 
 Set-Content -Path $out -Value $template -Encoding UTF8
-"assembled -> $out  ({0:N0} bytes)" -f (Get-Item $out).Length
+# Report the content length (Get-Item right after Set-Content can read a stale
+# pre-flush cluster size, e.g. 4096, and look truncated when it isn't).
+"assembled -> $out  ({0:N0} chars)" -f $template.Length

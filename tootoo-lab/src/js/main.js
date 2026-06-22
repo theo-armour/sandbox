@@ -2,13 +2,17 @@
    Init order per ARCHITECTURE.md: header → content → footer → detect repo →
    sidebar → fetch tree → route to a file (hash or README). Reference §40. */
 
+/* ── global error handlers (reference §39) ── */
+window.addEventListener( 'error', ( e ) => console.error( 'TooToo error:', e.message ) );
+window.addEventListener( 'unhandledrejection', ( e ) => console.error( 'TooToo unhandled rejection:', e.reason ) );
+
 const initApp = async () => {
   initHeader();     // header.js  — branding + appearance controls
   initContent();    // content.js — wire Copy / view-toggle / etc.
   renderFooter();   // footer.js  — brand bar
 
   await detectLocalMode();  // core.js — file:// drop-in: seed owner/repo, read files from disk
-  detectRepo();     // core.js    — ?owner=&repo=&branch=  →  CONFIG defaults (params win)
+  await detectRepo();       // core.js — params → cache → Pages host → CONFIG → manual form
   initSidebar();    // sidebar.js — wire filter/expand/select (tree fills next)
 
   if ( !state.owner || !state.repo ) {

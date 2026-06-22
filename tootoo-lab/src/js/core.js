@@ -86,8 +86,14 @@ const isTextOpenAsPlain = ( ext ) =>
 /* ── encode an in-repo path for a URL (keep the slashes) ── */
 const encodePath = ( p ) => p.split( '/' ).map( encodeURIComponent ).join( '/' );
 
-/* ── blob URL (real app tracks + revokes these; lab keeps it simple) ── */
-const createBlobUrl = ( blob ) => URL.createObjectURL( blob );
+/* ── blob URL tracking + revocation (reference §5) — revoked on each navigate
+   so media/PDF blobs don't leak as you browse. ── */
+const blobUrls = new Set();
+const createBlobUrl = ( blob ) => { const u = URL.createObjectURL( blob ); blobUrls.add( u ); return u; };
+const revokeAllBlobUrls = () => {
+  for ( const u of blobUrls ) { try { URL.revokeObjectURL( u ); } catch ( _ ) { /* noop */ } }
+  blobUrls.clear();
+};
 
 /* ── GitHub mark, for the content file-header link ── */
 const GITHUB_SVG_ICON =
@@ -104,9 +110,11 @@ const setPreferredView = ( ext, view ) => {
 
 /* ===================================================================
    DATA LAYER  (carved 2026-06-21) — GitHub services + repo detection.
-   Simplified vs the reference: query-param/CONFIG repo detection (no
-   .git/config probe), raw.githubusercontent for files (no API blob
-   fetch / no local mode), no token UI. Enough for a live public-repo viewer.
+   Includes: GitHub REST (tree + default branch), raw.githubusercontent file
+   fetch (text / blob / arraybuffer) with an in-memory cache + request abort,
+   optional token auth, hash routing, and a simplified local file:// mode.
+   Repo detection is query-param / CONFIG / .git/config — NOT yet GitHub Pages
+   hostname detection (see PARITY.md blockers).
    =================================================================== */
 
 /* ── request abort (cancel in-flight fetch when navigating away) ── */
@@ -219,19 +227,91 @@ const detectLocalMode = async () => {
     if ( !res.ok ) return;
     const text = await res.text();
     const m = text.match( /github\.com[:/]([^/\s]+)\/([^/\s.]+)(?:\.git)?/i );
-    if ( m ) { CONFIG.owner = CONFIG.owner || m[ 1 ]; CONFIG.repo = CONFIG.repo || m[ 2 ]; }
+    // Local .git/config wins over the static CONFIG default (canonical precedence:
+    // .git/config beats CONFIG_DEFAULTS). Query params still override, in detectRepo.
+    if ( m ) { CONFIG.owner = m[ 1 ]; CONFIG.repo = m[ 2 ]; CONFIG.branch = ''; }
     localMode = true;
   } catch ( _ ) { /* no readable .git/config — stay remote */ }
 };
 const localUrlFor = ( path ) => ( localMode ? './' + encodePath( path ) : null );
 
-/* ── repo detection: ?owner=&repo=&branch=  →  CONFIG defaults ── */
-const detectRepo = () => {
-  const p = new URLSearchParams( location.search );
-  state.owner = p.get( 'owner' ) || CONFIG.owner || '';
-  state.repo = p.get( 'repo' ) || CONFIG.repo || '';
-  state.branch = p.get( 'branch' ) || CONFIG.branch || '';
+/* ── per-pathname storage + repo cache (reference §4) ── */
+const storageKey = ( suffix ) => `${ CONFIG.storagePrefix }-lab:${ location.pathname }:${ suffix }`;
+const repoCacheKey = () => storageKey( 'repo' );
+const cacheRepo = () => {
+  try { localStorage.setItem( repoCacheKey(), JSON.stringify( { owner: state.owner, repo: state.repo, branch: state.branch } ) ); }
+  catch ( _ ) { /* storage disabled */ }
 };
+const applyRepo = () => { state.owner = CONFIG.owner; state.repo = CONFIG.repo; state.branch = CONFIG.branch; };
+
+/* ── repo detection (reference §9): params → localStorage cache → GitHub Pages
+   hostname → CONFIG (incl. the local .git/config seed) → manual entry form. ── */
+const detectRepo = async () => {
+  const p = new URLSearchParams( location.search );
+  if ( p.get( 'owner' ) ) CONFIG.owner = p.get( 'owner' );
+  if ( p.get( 'repo' ) ) CONFIG.repo = p.get( 'repo' );
+  if ( p.get( 'branch' ) ) CONFIG.branch = p.get( 'branch' );
+  if ( CONFIG.owner && CONFIG.repo ) { applyRepo(); return; }
+
+  try {
+    const cached = JSON.parse( localStorage.getItem( repoCacheKey() ) || 'null' );
+    if ( cached?.owner && cached?.repo ) {
+      CONFIG.owner = cached.owner; CONFIG.repo = cached.repo;
+      if ( cached.branch ) CONFIG.branch = cached.branch;
+      applyRepo(); return;
+    }
+  } catch ( _ ) { /* malformed cache */ }
+
+  // Deployed forks: <owner>.github.io/<repo>/ → browse the repo it's served from.
+  if ( location.hostname.endsWith( '.github.io' ) ) {
+    const owner = location.hostname.split( '.' )[ 0 ];
+    const segs = location.pathname.split( '/' ).filter( Boolean );
+    CONFIG.owner = owner;
+    CONFIG.repo = segs[ 0 ] || `${ owner }.github.io`;
+    applyRepo(); cacheRepo(); return;
+  }
+
+  if ( CONFIG.owner && CONFIG.repo ) { applyRepo(); return; }
+
+  return promptForRepo();   // nothing detected — ask the user
+};
+
+const promptForRepo = () => new Promise( ( resolve ) => {
+  setContentHeader( makeSimpleHeader( 'Choose a repository' ) );
+  document.getElementById( 'contentBody' ).innerHTML = `
+    <div class="repo-form">
+      <p>Couldn't auto-detect a repository — enter one:</p>
+      <label for="inpOwner">GitHub owner</label>
+      <input id="inpOwner" type="text" placeholder="e.g. octocat" autocomplete="off">
+      <label for="inpRepo">Repository</label>
+      <input id="inpRepo" type="text" placeholder="e.g. hello-world" autocomplete="off">
+      <button id="btnSetRepo" class="primary">Open repository</button>
+    </div>`;
+  const go = () => {
+    const owner = document.getElementById( 'inpOwner' ).value.trim();
+    const repo = document.getElementById( 'inpRepo' ).value.trim();
+    if ( !owner || !repo ) return;
+    CONFIG.owner = owner; CONFIG.repo = repo; applyRepo(); cacheRepo(); resolve();
+  };
+  document.getElementById( 'btnSetRepo' ).addEventListener( 'click', go );
+  document.getElementById( 'inpRepo' ).addEventListener( 'keydown', ( e ) => { if ( e.key === 'Enter' ) go(); } );
+} );
+
+/* ── resolve a repo-relative path against a directory (Markdown links/images) ── */
+const resolveRepoPath = ( href, currentDir ) => {
+  if ( href.startsWith( '/' ) ) return href.replace( /^\/+/, '' );   // root-relative
+  const stack = currentDir ? currentDir.split( '/' ) : [];
+  for ( const part of href.split( '/' ) ) {
+    if ( part === '' || part === '.' ) continue;
+    if ( part === '..' ) stack.pop();
+    else stack.push( part );
+  }
+  return stack.join( '/' );
+};
+
+/* ── URL to open in a new tab / download (reference §31, simplified): the local
+   file in drop-in mode, else the raw GitHub URL (text/images view, binaries download). ── */
+const getNewTabUrl = ( path ) => localUrlFor( path ) || rawUrl( path );
 
 const getDefaultBranch = async ( signal ) => {
   const data = await ghApi( `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }`, signal );
@@ -241,3 +321,29 @@ const getDefaultBranch = async ( signal ) => {
 /* ── hash routing ── */
 const updateHash = ( path ) => { try { history.replaceState( null, '', '#' + encodePath( path ) ); } catch ( _ ) { /* noop */ } };
 const currentHashPath = () => { try { return decodeURIComponent( location.hash.replace( /^#/, '' ) ); } catch ( _ ) { return ''; } };
+
+/* ── repo statistics (reference §17) — for the About panel ── */
+const getRepoStats = () => {
+  if ( !state.tree ) return null;
+  const blobs = state.tree.filter( ( i ) => i.type === 'blob' );
+  const trees = state.tree.filter( ( i ) => i.type === 'tree' );
+  const totalSize = blobs.reduce( ( s, i ) => s + ( i.size || 0 ), 0 );
+  const extCounts = {};
+  for ( const b of blobs ) {
+    const name = b.path.split( '/' ).pop();
+    const ext = name.includes( '.' ) ? '.' + name.split( '.' ).pop().toLowerCase() : '(no ext)';
+    extCounts[ ext ] = ( extCounts[ ext ] || 0 ) + 1;
+  }
+  const topTypes = Object.entries( extCounts ).sort( ( a, b ) => b[ 1 ] - a[ 1 ] ).slice( 0, 10 );
+  const largest = [ ...blobs ].sort( ( a, b ) => ( b.size || 0 ) - ( a.size || 0 ) ).slice( 0, 5 );
+  return { fileCount: blobs.length, folderCount: trees.length, totalSize, topTypes, largest };
+};
+
+/* ── highlight.js theme follows dark mode (reference §10) ── */
+const setHljsTheme = ( isDark ) => {
+  const link = document.getElementById( 'hljsTheme' );
+  if ( !link ) return;
+  link.href = isDark
+    ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css'
+    : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
+};

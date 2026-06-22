@@ -90,15 +90,32 @@ const renderMarkdown = ( text, filePath ) => {
 
   const mdBody = document.getElementById( 'viewRendered' );
   if ( !mdBody ) return;
+  const currentDir = filePath.includes( '/' ) ? filePath.slice( 0, filePath.lastIndexOf( '/' ) ) : '';
+
+  // Links: external → new tab; in-repo → resolve against currentDir + load via selectFile.
   mdBody.querySelectorAll( 'a[href]' ).forEach( ( a ) => {
     const href = a.getAttribute( 'href' );
     if ( !href || href.startsWith( '#' ) ) return;
-    if ( /^https?:\/\//.test( href ) ) { a.target = '_blank'; a.rel = 'noopener'; return; }
-    // Relative/in-repo link → load via selectFile (lab: no path resolution yet).
-    const repoPath = href.replace( /^\.?\//, '' );
+    if ( /^https?:\/\//.test( href ) || href.startsWith( '//' ) ) { a.target = '_blank'; a.rel = 'noopener'; return; }
+    const frag = href.indexOf( '#' );
+    const clean = frag >= 0 ? href.slice( 0, frag ) : href;
+    if ( !clean ) return;
+    const repoPath = resolveRepoPath( clean, currentDir );
     a.removeAttribute( 'href' ); a.classList.add( 'internal-link' );
     a.addEventListener( 'click', ( e ) => { e.preventDefault(); selectFile( repoPath ); } );
   } );
+
+  // Images: resolve repo-relative src against the current file's directory.
+  mdBody.querySelectorAll( 'img[src]' ).forEach( ( img ) => {
+    const src = img.getAttribute( 'src' );
+    if ( !src || /^(https?:)?\/\//.test( src ) || src.startsWith( 'data:' ) || src.startsWith( 'blob:' ) ) return;
+    const frag = src.indexOf( '#' );
+    const clean = frag >= 0 ? src.slice( 0, frag ) : src;
+    if ( !clean ) return;
+    img.setAttribute( 'src', resolveMediaUrl( resolveRepoPath( clean, currentDir ) ) );
+    img.setAttribute( 'loading', 'lazy' );
+  } );
+
   mdBody.querySelectorAll( 'pre code' ).forEach( ( el ) => {
     try { hljs.highlightElement( el ); } catch ( _ ) { /* plain fallback */ }
   } );
@@ -200,15 +217,26 @@ const setContentHeader = ( el ) => {
 const selectFile = async ( path ) => {
   const ext = path.includes( '.' ) ? path.split( '.' ).pop().toLowerCase() : '';
   state.currentFilePath = path;               // Content owns this
+  // Opening a real file dismisses any About/Token panel highlight (assembled build).
+  if ( typeof updateInfoButtonState === 'function' ) { activePanel = null; updateInfoButtonState(); }
   const signal = newAbort();                  // cancel any in-flight load
+  revokeAllBlobUrls();                         // free the previous file's blob URLs
 
-  // Highlight the matching tree row, if a sidebar is present.
+  // Highlight the matching tree row, open its ancestor folders, scroll it in view.
   document.querySelectorAll( '.tree-item' ).forEach( ( el ) =>
     el.classList.toggle( 'active', el.dataset.path === path ) );
+  const activeRow = document.querySelector( '.tree-item.active' );
+  if ( activeRow ) {
+    let ancestor = activeRow.closest( 'details' );
+    while ( ancestor ) { ancestor.open = true; ancestor = ancestor.parentElement?.closest( 'details' ); }
+    activeRow.scrollIntoView( { block: 'center', behavior: 'auto' } );
+  }
 
   const hdr = document.createElement( 'div' );
   hdr.innerHTML = buildFileHeader( path, ext );
   setContentHeader( hdr.firstElementChild );
+  const pt = document.getElementById( 'printTitle' );   // file name on the printout
+  if ( pt ) pt.textContent = path.split( '/' ).pop();
 
   const body = document.getElementById( 'contentBody' );
   body.innerHTML = '<p>Loading…</p>';
@@ -249,6 +277,14 @@ const selectFile = async ( path ) => {
 /* ── content actions: view toggle, copy, print, new-tab (reference §38) ── */
 const setupContentActions = () => {
   document.getElementById( 'contentArea' ).addEventListener( 'click', async ( e ) => {
+    // Breadcrumb folder link → open + scroll that folder in the sidebar.
+    const folderLink = e.target.closest( '[data-action="scroll-folder"]' );
+    if ( folderLink ) {
+      e.preventDefault();
+      const d = document.querySelector( `details[data-folder-path="${ CSS.escape( folderLink.dataset.folder ) }"]` );
+      if ( d ) { let a = d; while ( a ) { a.open = true; a = a.parentElement?.closest( 'details' ); } d.scrollIntoView( { block: 'center', behavior: 'auto' } ); }
+      return;
+    }
     const toggleBtn = e.target.closest( '[data-action="view-toggle"]' );
     if ( toggleBtn ) {
       const viewRendered = document.getElementById( 'viewRendered' );
@@ -276,13 +312,100 @@ const setupContentActions = () => {
     if ( printBtn ) { window.print(); return; }
 
     const newTabBtn = e.target.closest( '[data-action="new-tab"]' );
-    if ( newTabBtn && lastRawText ) {
-      const url = createBlobUrl( new Blob( [ lastRawText ], { type: 'text/plain;charset=utf-8' } ) );
-      window.open( url, '_blank', 'noopener' );
+    if ( newTabBtn ) {
+      window.open( getNewTabUrl( newTabBtn.dataset.path ), '_blank', 'noopener' );
       return;
     }
-    // scroll-folder breadcrumb: no tree in this standalone page — ignore.
   } );
+};
+
+/* ── self-test (reference §12b): render every visible file the way the viewer
+   would — off-screen — and report pass/fail/skip. A pass means it loaded and
+   parsed/decoded without throwing, not that it looks perfect. ── */
+const runSelfTest = async () => {
+  const cb = document.getElementById( 'contentBody' );
+  setContentHeader( makeSimpleHeader( 'Self-test' ) );
+  if ( !state.tree ) { cb.innerHTML = '<div class="markdown-body"><p>No repository tree loaded yet.</p></div>'; return; }
+
+  const files = state.tree.filter( ( i ) => i.type === 'blob' && isVisibleTreeItem( i, hiddenFolderSet(), hiddenFileSet() ) );
+  const signal = newAbort();
+  const total = files.length;
+  const results = [];
+  let done = 0, pass = 0, fail = 0, skip = 0;
+  const LARGE_SKIP = 5 * 1024 * 1024;
+
+  const render = () => {
+    const rows = results.map( ( r ) => {
+      const icon = r.status === 'pass' ? '✅' : r.status === 'fail' ? '❌' : '⏭';
+      return `<tr class="st-${ r.status }"><td>${ icon }</td><td>${ escapeHTML( r.path ) }</td><td>${ escapeHTML( r.detail || '' ) }</td></tr>`;
+    } ).join( '' );
+    const heading = done < total ? `Testing… <strong>${ done }</strong> / ${ total }`
+      : `<strong>${ fail ? 'Some failures' : 'All passed' }</strong> — ${ done } of ${ total } checked`;
+    cb.innerHTML = '<div class="markdown-body"><h2>Self-test</h2>' +
+      '<p>Renders every file the way the viewer would, off-screen, to confirm it displays.</p>' +
+      `<p>${ heading } &middot; ✅ ${ pass } &middot; ❌ ${ fail } &middot; ⏭ ${ skip }</p>` +
+      `<table class="selftest-table"><thead><tr><th></th><th>File</th><th>Result</th></tr></thead><tbody>${ rows }</tbody></table></div>`;
+  };
+  render();
+
+  const decodeImage = ( url ) => new Promise( ( resolve, reject ) => {
+    const img = new Image();
+    const timer = setTimeout( () => { img.src = ''; reject( new Error( 'timed out' ) ); }, 15000 );
+    img.onload = () => { clearTimeout( timer ); resolve(); };
+    img.onerror = () => { clearTimeout( timer ); reject( new Error( 'failed to decode' ) ); };
+    img.src = url;
+  } );
+  const revokeIfBlob = ( u ) => { if ( typeof u === 'string' && u.startsWith( 'blob:' ) ) URL.revokeObjectURL( u ); };
+
+  const testFile = async ( item ) => {
+    const path = item.path;
+    const ext = path.includes( '.' ) ? path.split( '.' ).pop().toLowerCase() : '';
+    if ( ( item.size || 0 ) > LARGE_SKIP ) return { path, status: 'skip', detail: `${ formatFileSize( item.size ) } — too large` };
+    try {
+      if ( ext === 'md' ) { DOMPurify.sanitize( marked.parse( await fetchFileText( path, signal ) ) ); return { path, status: 'pass', detail: 'markdown parsed' }; }
+      if ( ext === 'svg' ) {
+        const url = createBlobUrl( new Blob( [ await fetchFileText( path, signal ) ], { type: 'image/svg+xml' } ) );
+        try { await decodeImage( url ); } finally { revokeIfBlob( url ); }
+        return { path, status: 'pass', detail: 'svg decoded' };
+      }
+      if ( IMAGE_EXTS.includes( ext ) ) {
+        const url = resolveMediaUrl( path );
+        try { await decodeImage( url ); } finally { revokeIfBlob( url ); }
+        return { path, status: 'pass', detail: 'image decoded' };
+      }
+      if ( SHEET_EXTS.includes( ext ) ) {
+        await ensureXLSX();
+        const wb = XLSX.read( await fetchFileArrayBuffer( path, signal ), { type: 'array' } );
+        return { path, status: 'pass', detail: `${ wb.SheetNames.length } sheet${ wb.SheetNames.length === 1 ? '' : 's' }` };
+      }
+      if ( AUDIO_EXTS.includes( ext ) || VIDEO_EXTS.includes( ext ) || ext === 'pdf' ) {
+        revokeIfBlob( await fetchFileBlob( path, MIME[ ext ], signal ) );   // confirm it downloads
+        return { path, status: 'pass', detail: `${ ext } reachable` };
+      }
+      await fetchFileText( path, signal );   // text / code / html / json / other
+      return { path, status: 'pass', detail: ext ? `${ ext } loaded` : 'loaded' };
+    } catch ( err ) {
+      if ( err?.name === 'AbortError' ) throw err;
+      return { path, status: 'fail', detail: err?.message || 'error' };
+    }
+  };
+
+  const CONCURRENCY = localMode ? 8 : 4;
+  let cursor = 0;
+  const worker = async () => {
+    while ( cursor < files.length ) {
+      const item = files[ cursor++ ];
+      let res;
+      try { res = await testFile( item ); }
+      catch ( err ) { if ( err?.name === 'AbortError' ) return; res = { path: item.path, status: 'fail', detail: err?.message || 'error' }; }
+      results.push( res );
+      done++;
+      if ( res.status === 'pass' ) pass++; else if ( res.status === 'fail' ) fail++; else skip++;
+      if ( !signal.aborted && done % 5 === 0 ) render();
+    }
+  };
+  await Promise.all( Array.from( { length: Math.max( 1, Math.min( CONCURRENCY, files.length ) ) }, worker ) );
+  if ( !signal.aborted ) render();
 };
 
 const initContent = () => setupContentActions();
