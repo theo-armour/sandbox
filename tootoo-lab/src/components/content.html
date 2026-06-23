@@ -51,6 +51,7 @@
         and the breadcrumb on a nested file.</p>
       </div>
       <button id="btnBackToTop" class="back-to-top" aria-label="Back to top" title="Back to Top">↑</button>
+      <!-- @include components/footer.html -->
     </div>
     <!-- @part:content:end -->
   </main>
@@ -60,7 +61,7 @@
   <script src="../mock/mock-data.js"></script>
   <script src="../js/content.js"></script>
 
-  <!-- Lab harness: file picker + back-to-top + init. Not part of the component. -->
+  <!-- Lab harness: file picker + init. (Back-to-top now lives in content.js.) -->
   <script>
     initContent();
 
@@ -68,11 +69,6 @@
       const btn = e.target.closest( '[data-open]' );
       if ( btn ) selectFile( btn.dataset.open );
     } );
-
-    const area = document.getElementById( 'contentArea' );
-    const toTop = document.getElementById( 'btnBackToTop' );
-    area.addEventListener( 'scroll', () => { toTop.style.display = area.scrollTop > 200 ? 'flex' : 'none'; } );
-    toTop.addEventListener( 'click', () => area.scrollTo( { top: 0, behavior: 'smooth' } ) );
 
     selectFile( 'README.md' );   // show something on load
   </script>

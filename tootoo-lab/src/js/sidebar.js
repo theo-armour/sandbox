@@ -1,4 +1,4 @@
-/* TooToo Lab — sidebar.js  (the "what files exist & how they're shown" component).
+/* TooToo — sidebar.js  (the "what files exist & how they're shown" component).
    Ported from reference §18-§26. Reads: state.tree, CONFIG.hidden*.
    Writes: nothing global — display only. Hands off via Content's selectFile(path).
    Depends on core.js helpers + globals CONFIG/state (mock-data.js).
@@ -41,6 +41,22 @@ const sortedEntries = ( children ) =>
     return aName.toLowerCase().localeCompare( bName.toLowerCase() );
   } );
 
+/* ── recursive folder contents (for the folder tooltip) ── */
+const folderStats = ( node ) => {
+  let files = 0, folders = 0, bytes = 0;
+  for ( const child of Object.values( node.children ) ) {
+    const isFolder = child.type === 'tree' || Object.keys( child.children ).length > 0;
+    if ( isFolder ) {
+      folders++;
+      const s = folderStats( child );
+      files += s.files; folders += s.folders; bytes += s.bytes;
+    } else {
+      files++; bytes += ( child.size || 0 );
+    }
+  }
+  return { files, folders, bytes };
+};
+
 /* ── one tree node -> HTML (recursive for folders) ── */
 const renderNode = ( name, node, parentPath ) => {
   const fullPath = parentPath ? `${ parentPath }/${ name }` : name;
@@ -51,22 +67,27 @@ const renderNode = ( name, node, parentPath ) => {
     const childrenHtml = sortedEntries( node.children )
       .map( ( [ childName, childNode ] ) => renderNode( childName, childNode, fullPath ) )
       .join( '' );
+    // Tooltip: what's inside — recursive file/folder counts + total size.
+    const s = folderStats( node );
+    const tip = `${ fullPath } — ${ s.files } file${ s.files === 1 ? '' : 's' }` +
+      ( s.folders ? ` · ${ s.folders } folder${ s.folders === 1 ? '' : 's' }` : '' ) +
+      ` · ${ formatFileSize( s.bytes ) }`;
     return `<details data-folder-path="${ escapeHTML( fullPath ) }">` +
-      `<summary class="tree-folder" tabindex="0" title="${ escapeHTML( fullPath ) }">` +
+      `<summary class="tree-folder" tabindex="0" title="${ escapeHTML( tip ) }">` +
       `<span aria-hidden="true">📁</span> <span class="folder-name">${ escapeHTML( displayName ) }</span>` +
       `</summary>` + childrenHtml + `</details>`;
   }
 
   const icon = getFileIcon( name );
-  const sizeStr = formatFileSize( node.size );
   const isReadme = /^readme/i.test( name );
   const nameHtml = isReadme ? `<strong>${ escapeHTML( displayName ) }</strong>` : escapeHTML( displayName );
   const folderDisplay = parentPath ? parentPath.split( '/' ).map( displayTreeName ).join( ' / ' ) : '';
   const folderHtml = folderDisplay ? `<span class="tree-item-folder">${ escapeHTML( folderDisplay ) }</span>` : '';
+  // Tooltip: path on line 1, then "Type · size" — the size now lives here, not on the row.
+  const tip = `${ fullPath }\n${ getFileTypeLabel( name ) } · ${ formatFileSize( node.size || 0 ) }`;
 
-  return `<div class="tree-item" role="button" tabindex="0" data-action="select-file" data-path="${ escapeHTML( fullPath ) }" title="${ escapeHTML( fullPath ) }">` +
-    `<span class="tree-item-name"><span aria-hidden="true">${ icon }</span> ${ nameHtml }</span>` +
-    `<span class="tree-item-size">${ sizeStr }</span>` + folderHtml + `</div>`;
+  return `<div class="tree-item" role="button" tabindex="0" data-action="select-file" data-path="${ escapeHTML( fullPath ) }" title="${ escapeHTML( tip ) }">` +
+    `<span class="tree-item-name"><span aria-hidden="true">${ icon }</span> ${ nameHtml }</span>` + folderHtml + `</div>`;
 };
 
 /* ── expand-all glyph state ── */
@@ -186,6 +207,7 @@ const fetchTree = async () => {
   try {
     if ( !state.branch ) state.branch = await getDefaultBranch( signal );
     cacheRepo();   // persist owner/repo/branch now that the branch is resolved
+    setHeaderTimestamp();   // refresh the title tooltip with this repo's last-push date
     updateBranchControl();   // show the branch chip in the sidebar header
     const data = await ghApi( `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/git/trees/${ encodeURIComponent( state.branch ) }?recursive=1`, signal );
     const count = data.tree?.length || 0;
@@ -204,7 +226,10 @@ const fetchTree = async () => {
     const files = vis.filter( ( i ) => i.type === 'blob' ).length;
     const bytes = vis.reduce( ( s, i ) => s + ( i.type === 'blob' ? ( i.size || 0 ) : 0 ), 0 );
     const h = document.getElementById( 'hFiles' );
-    h.textContent = `📁 ${ folders.toLocaleString() } · 📄 ${ files.toLocaleString() } · ${ formatFileSize( bytes ) }`;
+    h.textContent = `${ files.toLocaleString() } file${ files === 1 ? '' : 's' } · ${ formatFileSize( bytes ) }`;
+    // Spelled-out tooltip (includes the folder count + truncated summary on a narrow sidebar).
+    h.title = `${ folders.toLocaleString() } folder${ folders === 1 ? '' : 's' }, ` +
+      `${ files.toLocaleString() } file${ files === 1 ? '' : 's' }, ${ formatFileSize( bytes ) } total`;
     treeSummaryText = h.textContent;
   } catch ( err ) {
     if ( err.name === 'AbortError' ) return;
@@ -398,14 +423,12 @@ const initSidebar = () => {
     if ( opt ) switchBranch( opt.dataset.branch );
   } );
   document.addEventListener( 'click', ( e ) => {
-    if ( !e.target.closest( '#filesPanelHeader' ) ) closeBranchMenu();
+    if ( !e.target.closest( '.branch-control' ) ) closeBranchMenu();
   } );
 
-  // Sidebar footer brand mark + scroll-to-top.
+  // Sidebar footer brand mark (from CONFIG favicon) + scroll-to-top.
   const footImg = document.querySelector( '#btnScrollTreeTop img' );
-  if ( footImg && !footImg.getAttribute( 'src' ) ) {
-    footImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%232563eb'/%3E%3Cg font-family='system-ui,sans-serif' font-size='30' font-weight='700' fill='white' text-anchor='middle' dominant-baseline='middle'%3E%3Ctext x='22' y='28'%3ET%3C/text%3E%3Ctext x='42' y='40'%3ET%3C/text%3E%3C/g%3E%3C/svg%3E";
-  }
+  if ( footImg ) footImg.src = faviconDataUrl();
   document.getElementById( 'btnScrollTreeTop' )?.addEventListener( 'click', () =>
     document.getElementById( 'treeList' ).scrollTo( { top: 0, behavior: 'smooth' } ) );
 
@@ -414,7 +437,11 @@ const initSidebar = () => {
   if ( resizer ) {
     let dragging = false;
     resizer.addEventListener( 'pointerdown', ( e ) => { dragging = true; resizer.classList.add( 'dragging' ); resizer.setPointerCapture( e.pointerId ); } );
-    resizer.addEventListener( 'pointermove', ( e ) => { if ( dragging ) document.documentElement.style.setProperty( '--sidebar-width', Math.min( 600, Math.max( 150, e.clientX ) ) + 'px' ); } );
-    resizer.addEventListener( 'pointerup', () => { dragging = false; resizer.classList.remove( 'dragging' ); } );
+    resizer.addEventListener( 'pointermove', ( e ) => { if ( dragging ) document.documentElement.style.setProperty( '--sidebar-width', Math.min( window.innerWidth - 100, Math.max( 100, e.clientX ) ) + 'px' ); } );
+    resizer.addEventListener( 'pointerup', () => {
+      dragging = false; resizer.classList.remove( 'dragging' );
+      const w = getComputedStyle( document.documentElement ).getPropertyValue( '--sidebar-width' ).trim();
+      try { localStorage.setItem( storageKey( 'sidebarWidth' ), w ); } catch ( _ ) { /* storage off */ }
+    } );
   }
 };

@@ -1,4 +1,4 @@
-/* TooToo Lab — shared stylesheet.
+/* TooToo — shared stylesheet.
    Carved from tootoo-reference.html. This is the "standard CSS file" every
    component page links, and what the assembler will inline into index.html.
    Currently holds: base tokens + header. More sections get added as we carve
@@ -59,7 +59,9 @@ h1, h2, h3, h4, h5, h6,
 body {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;            /* lock the shell to the viewport so the sidebar +
+                               content scroll INTERNALLY (sidebar footer pins to
+                               the sidebar bottom; tree scroll-to-top works) */
   margin: 0;
   overflow-x: hidden;
   font-family: var(--font-family);
@@ -76,7 +78,7 @@ header {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1rem 0.5rem 0.5rem;   /* left 0.5rem: ☰ flush with the sidebar's left edge */
   background: var(--primary-bg);
   border-bottom: 1px solid var(--border-color);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -89,6 +91,10 @@ header {
   color: var(--highlight-color);
   text-decoration: none;
 }
+
+/* Size the GitHub mark in rem so it scales with A−/A+ (the SVG's width/height
+   attributes are fixed px; CSS overrides them). */
+#headerGitHub svg { width: 1.15rem; height: 1.15rem; }
 
 body.dark-mode #headerGitHub {
   color: color-mix(in srgb, var(--highlight-color) 65%, white);
@@ -118,6 +124,20 @@ button.secondary {
   cursor: pointer;
   font-size: 1rem;
   transition: background-color 0.2s, color 0.2s, transform 0.1s;
+}
+
+/* Uniform button box: fixed height + square-ish min-width + centered content, so
+   emoji and text glyphs yield the same-sized button. */
+.header-btn,
+.file-btn {
+  box-sizing: border-box;
+  height: 1.7rem;
+  min-width: 1.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.4rem;
+  line-height: 1;
 }
 
 .header-btn:hover,
@@ -179,6 +199,8 @@ body.sidebar-hidden .resizer {
   color: var(--text-color);
   border: 1px solid var(--border-color);
 }
+.rate-limit-badge.low { background: var(--warning-bg); border-color: var(--warning-border); }
+.rate-limit-badge.critical { background: var(--error-bg); border-color: var(--error-border); }
 
 /* ===================================================================
    SIDEBAR  (carved 2026-06-21)
@@ -243,8 +265,9 @@ body.dark-mode .panel-header h3 {
   line-height: 1;
 }
 
-/* ── Branch switcher (sidebar title) ── */
+/* ── Branch switcher (now in the header; positioned relative to its chip) ── */
 #filesPanelHeader { position: relative; }
+.branch-control { position: relative; display: inline-flex; }
 
 .files-meta {
   display: flex;
@@ -351,7 +374,7 @@ body.dark-mode .panel-header h3 {
 .tree-folder {
   display: flex;
   align-items: center;
-  padding: 0.2rem 0.4rem;
+  padding: 0.2rem 0.4rem 0.2rem 0;   /* left flush with the filter input edge */
   cursor: pointer;
   border-radius: 4px;
   font-family: monospace;
@@ -367,7 +390,7 @@ body.dark-mode .panel-header h3 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.2rem 0.4rem;
+  padding: 0.2rem 0.4rem 0.2rem 0;   /* left flush with the filter input edge */
   cursor: pointer;
   border-radius: 4px;
   font-family: monospace;
@@ -431,11 +454,14 @@ details { padding-left: 0; }
   overflow-y: auto;
   background: var(--secondary-bg);
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 #contentBody {
   padding: 0 1rem 1rem 1rem;
   background: var(--secondary-bg);
+  flex: 1 0 auto;   /* grow so the in-pane footer sits at the bottom on short content */
 }
 
 /* ── Back to Top ── */
@@ -522,6 +548,7 @@ body.dark-mode pre { background-color: var(--secondary-bg); }
 }
 
 .file-title > a { color: var(--highlight-color); }
+.file-title > a svg { width: 1.1rem; height: 1.1rem; }   /* scale with A−/A+ */
 body.dark-mode .file-title > a { color: color-mix(in srgb, var(--highlight-color) 65%, white); }
 
 #breadcrumbs {
@@ -584,7 +611,7 @@ body.dark-mode .file-title > a { color: color-mix(in srgb, var(--highlight-color
   background: transparent;
   color: var(--highlight-color);
   border: 1px solid var(--highlight-color);
-  padding: 0.1rem 0.5rem;
+  padding: 0 0.4rem;   /* sizing comes from the shared uniform-box rule above */
   border-radius: 6px;
   cursor: pointer;
   font-size: 1rem;
@@ -608,7 +635,9 @@ body.dark-mode .file-btn:hover {
 .app-footer {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: space-between;   /* brand left · status right */
+  gap: 0.5rem 1rem;
+  flex-wrap: wrap;
   padding: 0.3rem 1rem;
   font-size: 0.8rem;
   border-top: 1px solid var(--border-color);
@@ -616,6 +645,8 @@ body.dark-mode .file-btn:hover {
   color: var(--text-color);
   flex-shrink: 0;
 }
+.app-footer-brand { display: inline-flex; align-items: center; gap: 0.4rem; }
+.app-footer-status { display: inline-flex; align-items: center; gap: 0.75rem; opacity: 0.85; }
 .app-footer-mark { border-radius: 4px; }
 .app-footer a { color: var(--highlight-color); }
 body.dark-mode .app-footer a { color: color-mix(in srgb, var(--highlight-color) 65%, white); }

@@ -1,4 +1,4 @@
-/* TooToo Lab — content.js  (the "show the file & act on it" component).
+/* TooToo — content.js  (the "show the file & act on it" component).
    Ported from reference §32, §33, §37, §38. Reads: state.owner/repo/branch,
    CONFIG. Writes: state.currentFilePath (Content owns this). Depends on core.js
    + marked/hljs/DOMPurify (CDN, same as the real app).
@@ -266,6 +266,7 @@ const selectFile = async ( path ) => {
       else renderCode( text, ext );
     }
     updateHash( path );
+    saveCurrentFile( path );   // remember last-opened file for this repo (sessionStorage)
   } catch ( err ) {
     if ( err.name === 'AbortError' ) return;   // superseded by a newer selection
     lastRawText = '';
@@ -408,4 +409,13 @@ const runSelfTest = async () => {
   if ( !signal.aborted ) render();
 };
 
-const initContent = () => setupContentActions();
+const initContent = () => {
+  setupContentActions();
+  // Floating back-to-top: appears after scrolling, click returns the content to top.
+  const area = document.getElementById( 'contentArea' );
+  const toTop = document.getElementById( 'btnBackToTop' );
+  if ( area && toTop ) {
+    area.addEventListener( 'scroll', () => { toTop.style.display = area.scrollTop > 200 ? 'flex' : 'none'; } );
+    toTop.addEventListener( 'click', () => area.scrollTo( { top: 0, behavior: 'smooth' } ) );
+  }
+};

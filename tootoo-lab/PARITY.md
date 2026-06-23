@@ -58,6 +58,40 @@ Also fixed: the breadcrumb folder links (previously dead) open + scroll the fold
 - Oversized-repo panel richness (§21b), per-pathname storage scoping (§4),
   rate-badge low/critical styling, `headingFont`/`faviconLetters` theming knobs.
 
+## 🔎 Final canonical review (2026-06-21) — newly found gaps
+
+A pre-graduation re-read of canonical surfaced a consistent theme the section-by-
+section parity pass had missed: **the lab does the live behaviors but skips
+persistence** — canonical centralizes save/restore in `initAppearance` /
+`setupListeners`, which the per-component carve didn't fully replicate.
+
+### Should fix before promoting to the fleet (real UX regressions) — ✅ ALL DONE 2026-06-21
+- ✅ **Font size persists** — `setFont` saves `fontSize` (±2, 10–28); `initAppearance` restores it.
+- ✅ **Sidebar width persists** — resizer `pointerup` saves `sidebarWidth`; `initAppearance`
+  restores it (+ narrow-viewport 25% default).
+- ✅ **Dark mode** — 🌙↔☀️ icon swap, `prefers-color-scheme` default when unset, stored as `'true'/'false'`.
+- ✅ **Last-opened file remembered** — `selectFile` saves to sessionStorage per
+  owner/repo/branch; init open-priority is hash → last file → README.
+- ✅ **`hashchange` listener** — back/forward + address-bar hash edits re-open the file;
+  `updateHash` now assigns `location.hash` (creates history entries) with a guard against loops.
+- ✅ **Header-title click** resets to home repo: clears hash/query, cached repo, last file, reloads.
+
+### Minor (🟨)
+- Dynamic favicon (`faviconLetters`/`faviconColor`) + heading font knobs
+  (`applyFavicon`/`applyHeadingFont`).
+- README auto-select variants (`.markdown/.mkd/.mdown/.txt/bare`) + About fallback;
+  lab matches only `^readme`.
+- `isValidGitHubName` charset validation on owner/repo (canonical hardens against a
+  crafted `?owner=` building an off-origin URL).
+- Sidebar-toggle Open/Close tooltip; reduced-motion-aware smooth scrolls;
+  back-to-top threshold (lab 200 vs canonical 400).
+- `APP_ORIGIN` (header branding independent of browsed repo); `restoreFileCache`
+  (sessionStorage); legacy-key migrations (N/A for a fresh build).
+
+**Takeaway:** functionally the lab demonstrates every feature, but it would feel
+like a regression on *persistence/navigation* (settings reset, back button dead,
+last file forgotten). Close the "should fix" list before any promote to the fleet.
+
 ## Verification log
 
 - ✅ **2026-06-21 — Panels + print** user-verified: About (+ Run self-test), Token
@@ -65,10 +99,11 @@ Also fixed: the breadcrumb folder links (previously dead) open + scroll the fold
 - 🟡 **Keyboard nav** — keys confirmed working; added a fix so `\` exits the filter
   (so `/` ⇄ `\` toggles filter↔tree). Awaiting re-confirm of that toggle.
 - ✅ **2026-06-21 — Markdown relative images** user-verified OK.
-- ✅ **2026-06-21 — Local `file://` drop-in** verified: dropped the assembled file at
-  the `theo-armour-sandbox` checkout root → it detected `theo-armour/sandbox` from
-  `.git/config` and loaded it. (Bug fixed: the static CONFIG default repo had been
-  overriding `.git/config`; local detection now wins.)
+- ✅ **2026-06-21 — Local `file://` drop-in** verified (me: `theo-armour-sandbox`;
+  Theo: `theo-armour-genealogy`). Detects the repo from `.git/config` and loads it.
+  (Bugs fixed: the static CONFIG default had overridden `.git/config`; regex widened
+  for dotted names / ssh remotes; added a "Choose a repository" fallback for git
+  repos with no GitHub remote. An earlier failure was a non-GitHub folder — expected.)
 
 ## Recommended path
 

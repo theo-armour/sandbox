@@ -1,17 +1,38 @@
-/* TooToo Lab — footer.js  (the branding / identity component).
-   Reads: CONFIG (appName, sourceRepoUrl, faviconColor). A new page-level footer
-   the single-file app doesn't have yet — the component model makes it cheap. */
+/* TooToo — footer.js  (repo-owner copyright + MIT license link).
+   Left: TT mark + "© <year> <owner> · No rights reserved." Right: MIT License link. */
 
 const renderFooter = () => {
-  const brand = document.getElementById( 'footerBrand' );
-  if ( brand ) {
-    const src = CONFIG.sourceRepoUrl || '#';
-    brand.innerHTML =
-      `<strong>${ escapeHTML( CONFIG.appName ) }</strong> · single-file GitHub repository browser · ` +
-      `<a href="${ escapeHTML( src ) }" target="_blank" rel="noopener">source</a>`;
-  }
   const mark = document.querySelector( '.app-footer-mark' );
-  if ( mark && !mark.getAttribute( 'src' ) ) {
-    mark.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%232563eb'/%3E%3Cg font-family='system-ui,sans-serif' font-size='30' font-weight='700' fill='white' text-anchor='middle' dominant-baseline='middle'%3E%3Ctext x='22' y='28'%3ET%3C/text%3E%3Ctext x='42' y='40'%3ET%3C/text%3E%3C/g%3E%3C/svg%3E";
+  if ( mark ) mark.src = faviconDataUrl();   // brand mark from CONFIG favicon
+  updateFooterCopyright();
+};
+
+/* Copyright by the repo owner, e.g. "© 2026 pushme-pullyou · No rights reserved." */
+const updateFooterCopyright = () => {
+  const el = document.getElementById( 'footerCopyright' );
+  if ( !el ) return;
+  el.textContent = state.owner
+    ? `© ${ new Date().getFullYear() } ${ state.owner } · No rights reserved.`
+    : 'No rights reserved.';
+};
+
+/* Point the license link at the repo's own root LICENSE file (opened in-app via the
+   hash); fall back to opensource.org if the repo has no license file. Call after the
+   tree loads. */
+const updateFooterLicense = () => {
+  const el = document.querySelector( '.app-footer-license' );
+  if ( !el ) return;
+  const lic = state.tree?.find( ( i ) =>
+    i.type === 'blob' && /^(licen[sc]e|copying)(\.\w+)?$/i.test( i.path ) );
+  if ( lic ) {
+    el.href = '#' + encodePath( lic.path );   // opens it in TooToo via hash routing
+    el.removeAttribute( 'target' );
+    el.removeAttribute( 'rel' );
+    el.title = `View ${ lic.path }`;
+  } else {
+    el.href = 'https://opensource.org/license/mit';
+    el.target = '_blank';
+    el.rel = 'noopener';
+    el.title = 'MIT License (opensource.org)';
   }
 };

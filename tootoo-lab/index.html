@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-06-21 21:23">
+  <meta name="revised" content="2026-06-22 23:26">
   <title>TooToo</title>
   <link rel="icon" type="image/svg+xml"
     href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%232563eb'/%3E%3Cg font-family='system-ui,sans-serif' font-size='30' font-weight='700' fill='white' text-anchor='middle' dominant-baseline='middle'%3E%3Ctext x='22' y='28'%3ET%3C/text%3E%3Ctext x='42' y='40'%3ET%3C/text%3E%3C/g%3E%3C/svg%3E">
@@ -15,6 +15,12 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.4.1/dist/purify.min.js"></script>
+
+  <!-- Optional per-repo config: a tootoo.config.js sitting next to this file sets
+       window.TOOTOO_CONFIG, merged over CONFIG at init so a repo can rebrand (theme,
+       favicon, appName, hidden files…) without editing index.html. No file → onerror
+       swallows the 404. Loads over file:// without the file-access flag. -->
+  <script src="tootoo.config.js" onerror="void 0"></script>
 
   <style>
 /* TooToo Lab — shared stylesheet.
@@ -78,7 +84,9 @@ h1, h2, h3, h4, h5, h6,
 body {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;            /* lock the shell to the viewport so the sidebar +
+                               content scroll INTERNALLY (sidebar footer pins to
+                               the sidebar bottom; tree scroll-to-top works) */
   margin: 0;
   overflow-x: hidden;
   font-family: var(--font-family);
@@ -95,7 +103,7 @@ header {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1rem 0.5rem 0.5rem;   /* left 0.5rem: ☰ flush with the sidebar's left edge */
   background: var(--primary-bg);
   border-bottom: 1px solid var(--border-color);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -108,6 +116,10 @@ header {
   color: var(--highlight-color);
   text-decoration: none;
 }
+
+/* Size the GitHub mark in rem so it scales with A−/A+ (the SVG's width/height
+   attributes are fixed px; CSS overrides them). */
+#headerGitHub svg { width: 1.15rem; height: 1.15rem; }
 
 body.dark-mode #headerGitHub {
   color: color-mix(in srgb, var(--highlight-color) 65%, white);
@@ -137,6 +149,20 @@ button.secondary {
   cursor: pointer;
   font-size: 1rem;
   transition: background-color 0.2s, color 0.2s, transform 0.1s;
+}
+
+/* Uniform button box: fixed height + square-ish min-width + centered content, so
+   emoji and text glyphs yield the same-sized button. */
+.header-btn,
+.file-btn {
+  box-sizing: border-box;
+  height: 1.7rem;
+  min-width: 1.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.4rem;
+  line-height: 1;
 }
 
 .header-btn:hover,
@@ -198,6 +224,8 @@ body.sidebar-hidden .resizer {
   color: var(--text-color);
   border: 1px solid var(--border-color);
 }
+.rate-limit-badge.low { background: var(--warning-bg); border-color: var(--warning-border); }
+.rate-limit-badge.critical { background: var(--error-bg); border-color: var(--error-border); }
 
 /* ===================================================================
    SIDEBAR  (carved 2026-06-21)
@@ -262,8 +290,9 @@ body.dark-mode .panel-header h3 {
   line-height: 1;
 }
 
-/* ── Branch switcher (sidebar title) ── */
+/* ── Branch switcher (now in the header; positioned relative to its chip) ── */
 #filesPanelHeader { position: relative; }
+.branch-control { position: relative; display: inline-flex; }
 
 .files-meta {
   display: flex;
@@ -370,7 +399,7 @@ body.dark-mode .panel-header h3 {
 .tree-folder {
   display: flex;
   align-items: center;
-  padding: 0.2rem 0.4rem;
+  padding: 0.2rem 0.4rem 0.2rem 0;   /* left flush with the filter input edge */
   cursor: pointer;
   border-radius: 4px;
   font-family: monospace;
@@ -386,7 +415,7 @@ body.dark-mode .panel-header h3 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.2rem 0.4rem;
+  padding: 0.2rem 0.4rem 0.2rem 0;   /* left flush with the filter input edge */
   cursor: pointer;
   border-radius: 4px;
   font-family: monospace;
@@ -450,11 +479,14 @@ details { padding-left: 0; }
   overflow-y: auto;
   background: var(--secondary-bg);
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 #contentBody {
   padding: 0 1rem 1rem 1rem;
   background: var(--secondary-bg);
+  flex: 1 0 auto;   /* grow so the in-pane footer sits at the bottom on short content */
 }
 
 /* ── Back to Top ── */
@@ -541,6 +573,7 @@ body.dark-mode pre { background-color: var(--secondary-bg); }
 }
 
 .file-title > a { color: var(--highlight-color); }
+.file-title > a svg { width: 1.1rem; height: 1.1rem; }   /* scale with A−/A+ */
 body.dark-mode .file-title > a { color: color-mix(in srgb, var(--highlight-color) 65%, white); }
 
 #breadcrumbs {
@@ -603,7 +636,7 @@ body.dark-mode .file-title > a { color: color-mix(in srgb, var(--highlight-color
   background: transparent;
   color: var(--highlight-color);
   border: 1px solid var(--highlight-color);
-  padding: 0.1rem 0.5rem;
+  padding: 0 0.4rem;   /* sizing comes from the shared uniform-box rule above */
   border-radius: 6px;
   cursor: pointer;
   font-size: 1rem;
@@ -627,7 +660,9 @@ body.dark-mode .file-btn:hover {
 .app-footer {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: space-between;   /* brand left · status right */
+  gap: 0.5rem 1rem;
+  flex-wrap: wrap;
   padding: 0.3rem 1rem;
   font-size: 0.8rem;
   border-top: 1px solid var(--border-color);
@@ -635,6 +670,8 @@ body.dark-mode .file-btn:hover {
   color: var(--text-color);
   flex-shrink: 0;
 }
+.app-footer-brand { display: inline-flex; align-items: center; gap: 0.4rem; }
+.app-footer-status { display: inline-flex; align-items: center; gap: 0.75rem; opacity: 0.85; }
 .app-footer-mark { border-radius: 4px; }
 .app-footer a { color: var(--highlight-color); }
 body.dark-mode .app-footer a { color: color-mix(in srgb, var(--highlight-color) 65%, white); }
@@ -741,6 +778,16 @@ body.dark-mode .app-footer a { color: color-mix(in srgb, var(--highlight-color) 
 
     <a id="headerTitle" href="." title="Reload" aria-label="Reload page">TooToo</a>
 
+    <span class="branch-control">
+      <button id="btnBranch" class="branch-switcher" type="button" hidden
+        aria-haspopup="listbox" aria-expanded="false" title="Switch branch">
+        <span class="branch-glyph" aria-hidden="true">⎇</span>
+        <span id="branchName"></span>
+        <span class="branch-caret" aria-hidden="true">▾</span>
+      </button>
+      <div id="branchMenu" class="branch-menu" role="listbox" aria-label="Branches" hidden></div>
+    </span>
+
     <button id="btnDarkMode" class="header-btn dark-mode-btn" title="Toggle Dark Mode"
       aria-label="Toggle dark mode">🌙</button>
     <button id="btnFontDec" class="header-btn" title="Decrease Font Size" aria-label="Decrease font size">A−</button>
@@ -755,18 +802,9 @@ body.dark-mode .app-footer a { color: color-mix(in srgb, var(--highlight-color) 
   <main>
     <div class="sidebar">
       <div class="panel-header" id="filesPanelHeader">
-        <div class="files-meta">
-          <button id="btnBranch" class="branch-switcher" type="button" hidden
-            aria-haspopup="listbox" aria-expanded="false" title="Switch branch">
-            <span class="branch-glyph" aria-hidden="true">⎇</span>
-            <span id="branchName"></span>
-            <span class="branch-caret" aria-hidden="true">▾</span>
-          </button>
-          <h3 id="hFiles">Files</h3>
-        </div>
+        <h3 id="hFiles">Files</h3>
         <button id="btnExpandAll" class="file-btn" style="display: none;" title="Expand all folders"
           aria-label="Expand all folders">⊞</button>
-        <div id="branchMenu" class="branch-menu" role="listbox" aria-label="Branches" hidden></div>
       </div>
       <div class="filter-wrap">
         <label for="treeFilter" class="sr-only">Filter files by name</label>
@@ -791,13 +829,15 @@ body.dark-mode .app-footer a { color: color-mix(in srgb, var(--highlight-color) 
         and the breadcrumb on a nested file.</p>
       </div>
       <button id="btnBackToTop" class="back-to-top" aria-label="Back to top" title="Back to Top">↑</button>
+      <footer class="app-footer">
+    <span class="app-footer-brand">
+      <img class="app-footer-mark" width="18" height="18" alt="">
+      <span id="footerCopyright"></span>
+    </span>
+    <a class="app-footer-license" href="https://opensource.org/license/mit" target="_blank" rel="noopener">MIT License</a>
+  </footer>
     </div>
   </main>
-
-  <footer class="app-footer">
-    <img class="app-footer-mark" width="18" height="18" alt="">
-    <span id="footerBrand"></span>
-  </footer>
 
   <script>
 /* TooToo Lab — core.js  (shared services, no DOM, no UI).
@@ -810,12 +850,16 @@ body.dark-mode .app-footer a { color: color-mix(in srgb, var(--highlight-color) 
    live build, or by mock-data.js for the offline standalone component pages) ── */
 const CONFIG = {
   owner: '', repo: '', branch: '',
-  appName: 'TooToo', subtitle: '', themeColor: '#2563eb',
+  appName: 'TooToo', subtitle: '',
+  themeColor: '',           // empty = the CSS default (blue) — and lets body.dark-mode's
+                            // brighter #3b82f6 win; a fork's explicit color applies to both modes
+  faviconLetters: 'TT', faviconColor: '#2563eb',
+  headingFontUrl: '', headingFont: '',
   sourceRepoUrl: 'https://github.com/pushme-pullyou/tootoo',
   storagePrefix: 'tootoo',
   hiddenFolders: [ 'Images' ], hiddenFiles: [], maxRepoFiles: 5000,
 };
-const state = { owner: '', repo: '', branch: '', tree: null, currentFilePath: '' };
+const state = { owner: '', repo: '', branch: '', tree: null, currentFilePath: '', repoUpdated: '' };
 
 /* ── escape for safe innerHTML ── */
 const escapeHTML = ( s ) =>
@@ -853,6 +897,28 @@ const formatFileSize = ( bytes ) => {
   if ( bytes < 1024 ) return `${ bytes } B`;
   if ( bytes < 1024 * 1024 ) return `${ ( bytes / 1024 ).toFixed( 1 ) } KB`;
   return `${ ( bytes / ( 1024 * 1024 ) ).toFixed( 1 ) } MB`;
+};
+
+/* ── friendly file-type label (for tooltips) ── */
+const FILE_TYPE_LABELS = {
+  md: 'Markdown', markdown: 'Markdown', mkd: 'Markdown', mdown: 'Markdown',
+  js: 'JavaScript', mjs: 'JavaScript', cjs: 'JavaScript', jsx: 'JavaScript',
+  ts: 'TypeScript', tsx: 'TypeScript',
+  py: 'Python', rb: 'Ruby', go: 'Go', rs: 'Rust', java: 'Java', kt: 'Kotlin',
+  c: 'C', h: 'C header', cpp: 'C++', cc: 'C++', hpp: 'C++ header', cs: 'C#', php: 'PHP', swift: 'Swift',
+  sh: 'Shell', bash: 'Shell', zsh: 'Shell', pl: 'Perl', lua: 'Lua', r: 'R', sql: 'SQL',
+  html: 'HTML', htm: 'HTML', css: 'CSS', scss: 'Sass', less: 'Less',
+  json: 'JSON', xml: 'XML', yaml: 'YAML', yml: 'YAML', toml: 'TOML', ini: 'INI',
+  csv: 'CSV', tsv: 'TSV', txt: 'Text', log: 'Log',
+  png: 'PNG image', jpg: 'JPEG image', jpeg: 'JPEG image', gif: 'GIF image',
+  webp: 'WebP image', svg: 'SVG image', ico: 'Icon',
+  mp3: 'Audio', wav: 'Audio', ogg: 'Audio', mp4: 'Video', webm: 'Video',
+  pdf: 'PDF', xlsx: 'Spreadsheet', xls: 'Spreadsheet', ods: 'Spreadsheet',
+  zip: 'Archive', tar: 'Archive', gz: 'Archive', '7z': 'Archive',
+};
+const getFileTypeLabel = ( name ) => {
+  const ext = name.includes( '.' ) ? name.split( '.' ).pop().toLowerCase() : '';
+  return FILE_TYPE_LABELS[ ext ] || ( ext ? `${ ext.toUpperCase() } file` : 'File' );
 };
 
 /* ── hidden-from-tree config (CONFIG.hiddenFolders / hiddenFiles) ── */
@@ -900,6 +966,38 @@ const revokeAllBlobUrls = () => {
 /* ── GitHub mark, for the content file-header link ── */
 const GITHUB_SVG_ICON =
   `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path></svg>`;
+
+/* ── favicon from CONFIG.faviconLetters / faviconColor (reference §11) — reused
+   for the footer + sidebar brand marks so all three reflect the config. ── */
+const faviconDataUrl = () => {
+  const letters = String( CONFIG.faviconLetters || 'TT' );
+  const l1 = encodeURIComponent( ( letters[ 0 ] || 'T' ).toUpperCase() );
+  const l2 = encodeURIComponent( ( letters[ 1 ] || letters[ 0 ] || 'T' ).toUpperCase() );
+  const fill = ( CONFIG.faviconColor || '#2563eb' ).replace( '#', '%23' );
+  return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E` +
+    `%3Crect width='64' height='64' rx='12' fill='${ fill }'/%3E` +
+    `%3Cg font-family='system-ui,sans-serif' font-size='30' font-weight='700' fill='white' text-anchor='middle' dominant-baseline='middle'%3E` +
+    `%3Ctext x='22' y='28'%3E${ l1 }%3C/text%3E%3Ctext x='42' y='40'%3E${ l2 }%3C/text%3E%3C/g%3E%3C/svg%3E`;
+};
+const applyFavicon = () => {
+  const link = document.querySelector( 'link[rel="icon"]' );
+  if ( link ) link.href = faviconDataUrl();
+};
+
+/* ── optional heading typeface (reference §11): load CONFIG.headingFontUrl into
+   <head> and set --heading-font, which the h1–h6/#headerTitle CSS already consumes.
+   Omitting either knob is a no-op (the var falls back to the body font). ── */
+const applyHeadingFont = () => {
+  if ( CONFIG.headingFontUrl ) {
+    const link = document.createElement( 'link' );
+    link.rel = 'stylesheet';
+    link.href = CONFIG.headingFontUrl;
+    document.head.appendChild( link );
+  }
+  if ( CONFIG.headingFont ) {
+    document.documentElement.style.setProperty( '--heading-font', CONFIG.headingFont );
+  }
+};
 
 /* ── per-extension Rendered/Raw preference (reference §7) ── */
 const viewPrefKey = ( ext ) => `${ CONFIG.storagePrefix || 'tootoo' }-lab:viewPref:${ ext }`;
@@ -952,12 +1050,21 @@ const ghHeaders = () => {
 const updateRateBadge = ( res ) => {
   const remaining = res.headers.get( 'X-RateLimit-Remaining' );
   const limit = res.headers.get( 'X-RateLimit-Limit' );
-  const badge = document.getElementById( 'rateBadge' );
-  if ( remaining === null || !badge ) return;
+  if ( remaining === null || limit === null ) return;
+  const n = parseInt( remaining, 10 );
+
+  // Live count lives in the ⚙️ tooltip; the header badge surfaces it when low.
   const tokenBtn = document.getElementById( 'btnToken' );
-  if ( tokenBtn ) tokenBtn.title = `${ remaining }/${ limit } GitHub API requests left this hour`;
-  badge.textContent = `${ remaining } / ${ limit }`;
-  badge.style.display = 'inline-block';
+  if ( tokenBtn ) tokenBtn.title = `${ remaining }/${ limit } GitHub API requests left this hour — click to set a token`;
+
+  // The header badge only surfaces as a warning when low (≤30) / critical (≤10).
+  const badge = document.getElementById( 'rateBadge' );
+  if ( badge ) {
+    badge.textContent = `${ remaining }/${ limit }`;
+    badge.classList.toggle( 'critical', n <= 10 );
+    badge.classList.toggle( 'low', n > 10 && n <= 30 );
+    badge.style.display = n <= 30 ? 'inline-block' : 'none';
+  }
 };
 
 /* ── GitHub REST call (JSON) ── */
@@ -1017,23 +1124,36 @@ const fetchFileArrayBuffer = async ( path, signal ) =>
   new Uint8Array( await ( await fetchFileResponse( path, signal ) ).arrayBuffer() );
 
 /* ── local file:// mode (drop-in next to a checkout) ──
-   ⚠️ UNVERIFIED in this sandbox. Assumes the app sits at the repo ROOT, so files
-   are siblings ('./path') and .git/config is './.git/config'. The tree still
-   comes from the GitHub API (a directory can't be enumerated over file://); local
-   mode just sources FILE CONTENTS from disk and seeds owner/repo from .git/config. ── */
+   Assumes the app sits at the repo ROOT, so files are siblings ('./path') and
+   .git/config is './.git/config'. The tree still comes from the GitHub API (a
+   directory can't be enumerated over file://); local mode sources FILE CONTENTS
+   from disk and seeds owner/repo from .git/config. Needs a GitHub remote + a
+   browser that allows file:// fetches (Chrome --allow-file-access-from-files). ── */
 let localMode = false;
+let fileAccessBlocked = false;   // file:// reads denied (Chrome missing --allow-file-access-from-files)
 const detectLocalMode = async () => {
   if ( location.protocol !== 'file:' ) return;
   try {
     const res = await fetch( '.git/config' );
     if ( !res.ok ) return;
     const text = await res.text();
-    const m = text.match( /github\.com[:/]([^/\s]+)\/([^/\s.]+)(?:\.git)?/i );
+    // Match the origin URL — https + ssh (git@), repo names with dots, an optional
+    // .git suffix and trailing slash, anchored to the end of the line.
+    const m = text.match( /github\.com[:/]+([\w.-]+)\/([\w.-]+?)(?:\.git)?\/?\s*$/im );
     // Local .git/config wins over the static CONFIG default (canonical precedence:
-    // .git/config beats CONFIG_DEFAULTS). Query params still override, in detectRepo.
+    // .git/config beats CONFIG_DEFAULTS). Query params still override in detectRepo.
     if ( m ) { CONFIG.owner = m[ 1 ]; CONFIG.repo = m[ 2 ]; CONFIG.branch = ''; }
+    else { CONFIG.owner = ''; CONFIG.repo = ''; }   // in a git repo but no GitHub remote → ask, don't silently load tootoo
     localMode = true;
-  } catch ( _ ) { /* no readable .git/config — stay remote */ }
+  } catch ( _ ) {
+    // .git/config wasn't readable. Over file:// that's ambiguous: either there's no
+    // git repo here, or Chrome is blocking ALL local reads (no --allow-file-access-
+    // from-files). Disambiguate by probing a file we KNOW exists — this very page.
+    // If even that read is blocked, the flag is missing → flag it so the UI explains
+    // instead of silently browsing the configured default repo (the confusing case).
+    try { await fetch( location.href.split( '#' )[ 0 ] ); /* readable → genuinely no .git here */ }
+    catch ( _e ) { fileAccessBlocked = true; }
+  }
 };
 const localUrlFor = ( path ) => ( localMode ? './' + encodePath( path ) : null );
 
@@ -1041,7 +1161,7 @@ const localUrlFor = ( path ) => ( localMode ? './' + encodePath( path ) : null )
 const storageKey = ( suffix ) => `${ CONFIG.storagePrefix }-lab:${ location.pathname }:${ suffix }`;
 const repoCacheKey = () => storageKey( 'repo' );
 const cacheRepo = () => {
-  try { localStorage.setItem( repoCacheKey(), JSON.stringify( { owner: state.owner, repo: state.repo, branch: state.branch } ) ); }
+  try { localStorage.setItem( repoCacheKey(), JSON.stringify( { owner: state.owner, repo: state.repo, branch: state.branch, updated: state.repoUpdated } ) ); }
   catch ( _ ) { /* storage disabled */ }
 };
 const applyRepo = () => { state.owner = CONFIG.owner; state.repo = CONFIG.repo; state.branch = CONFIG.branch; };
@@ -1060,7 +1180,9 @@ const detectRepo = async () => {
     if ( cached?.owner && cached?.repo ) {
       CONFIG.owner = cached.owner; CONFIG.repo = cached.repo;
       if ( cached.branch ) CONFIG.branch = cached.branch;
-      applyRepo(); return;
+      applyRepo();
+      if ( cached.updated ) state.repoUpdated = cached.updated;   // keep the title tooltip's repo date on cached loads
+      return;
     }
   } catch ( _ ) { /* malformed cache */ }
 
@@ -1117,12 +1239,25 @@ const getNewTabUrl = ( path ) => localUrlFor( path ) || rawUrl( path );
 
 const getDefaultBranch = async ( signal ) => {
   const data = await ghApi( `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }`, signal );
+  // Capture the repo's real last-push date so the header tooltip reflects the
+  // repo being viewed (incl. drop-in mode), not this file's static build date.
+  state.repoUpdated = data.pushed_at || '';
   return data.default_branch;
 };
 
 /* ── hash routing ── */
-const updateHash = ( path ) => { try { history.replaceState( null, '', '#' + encodePath( path ) ); } catch ( _ ) { /* noop */ } };
+// Assigning location.hash (vs replaceState) creates a history entry so browser
+// back/forward navigate between files; the != guard avoids a redundant set/loop.
+const updateHash = ( path ) => {
+  const target = '#' + encodePath( path );
+  if ( location.hash !== target ) { try { location.hash = target; } catch ( _ ) { /* noop */ } }
+};
 const currentHashPath = () => { try { return decodeURIComponent( location.hash.replace( /^#/, '' ) ); } catch ( _ ) { return ''; } };
+
+/* ── last-opened file (sessionStorage, per owner/repo/branch) ── */
+const getCurrentFileKey = () => storageKey( `currentFile:${ state.owner }/${ state.repo }/${ state.branch }` );
+const saveCurrentFile = ( path ) => { try { sessionStorage.setItem( getCurrentFileKey(), path ); } catch ( _ ) { /* storage off */ } };
+const clearCurrentFile = () => { try { sessionStorage.removeItem( getCurrentFileKey() ); } catch ( _ ) { /* storage off */ } };
 
 /* ── repo statistics (reference §17) — for the About panel ── */
 const getRepoStats = () => {
@@ -1159,20 +1294,39 @@ Object.assign( CONFIG, {
   appName: 'TooToo Lab',
   owner: 'pushme-pullyou',
   repo: 'tootoo',
+  faviconLetters: 'TT',     // 2 letters drawn into the favicon + brand marks
+  faviconColor: '#2563eb',  // favicon background color
 } );
 /* TooToo Lab — header.js  (the "where are we?" component).
    Ported from reference §8 (updateHeaderFromConfig) + appearance controls (§11).
    Reads: CONFIG + meta[revised]. Writes: state.owner/repo/branch (repo/branch
    pickers not built yet). Depends on globals CONFIG/state. */
 
+// Header title tooltip. Prefers the VIEWED repo's last-push date (set by
+// getDefaultBranch) so a dropped-in copy reflects that repo, not this file's static
+// build date; falls back to meta[revised] before the repo loads / if the API fails.
+const setHeaderTimestamp = () => {
+  const titleEl = document.getElementById( 'headerTitle' );
+  if ( !titleEl ) return;
+  let when;
+  if ( state.repoUpdated ) {
+    const d = new Date( state.repoUpdated );
+    when = isNaN( d.getTime() ) ? state.repoUpdated : d.toLocaleString();
+  } else {
+    when = document.querySelector( 'meta[name="revised"]' )?.content || 'unknown';
+  }
+  titleEl.title = `Last updated: ${ when } · click to reload`;
+};
+
 const updateHeaderFromConfig = () => {
   if ( CONFIG.themeColor ) document.documentElement.style.setProperty( '--highlight-color', CONFIG.themeColor );
-  const label = CONFIG.appName;
+  // Once a repo is known, the header shows owner / repo; appName is the fallback
+  // shown only before detection (reference §8 uses APP_ORIGIN for the same effect).
+  const label = ( state.owner && state.repo ) ? `${ state.owner } / ${ state.repo }` : CONFIG.appName;
   const titleEl = document.getElementById( 'headerTitle' );
   document.title = CONFIG.subtitle ? `${ label } · ${ CONFIG.subtitle }` : label;
   titleEl.textContent = label;
-  const revised = document.querySelector( 'meta[name="revised"]' )?.content || 'unknown';
-  titleEl.title = `Last updated: ${ revised } · click to reload`;
+  setHeaderTimestamp();
   if ( CONFIG.subtitle ) {
     const sub = document.createElement( 'span' );
     sub.style.cssText = 'opacity: 0.6; font-weight: normal; margin-left: 0.4rem; font-size: 0.9rem;';
@@ -1182,34 +1336,56 @@ const updateHeaderFromConfig = () => {
 };
 
 /* Header owns the sidebar toggle (Ctrl/⌘ B + the ☰ button both call this). */
+const updateSidebarToggle = ( hidden ) => {
+  const btn = document.getElementById( 'btnToggleSidebar' );
+  if ( !btn ) return;
+  btn.setAttribute( 'aria-expanded', String( !hidden ) );
+  btn.title = hidden ? 'Open sidebar (Ctrl/⌘ B)' : 'Close sidebar (Ctrl/⌘ B)';
+};
 const toggleSidebar = () => {
   const hidden = document.body.classList.toggle( 'sidebar-hidden' );
-  document.getElementById( 'btnToggleSidebar' )?.setAttribute( 'aria-expanded', String( !hidden ) );
-  try { localStorage.setItem( storageKey( 'sidebarHidden' ), hidden ? '1' : '0' ); } catch ( _ ) { /* storage off */ }
+  updateSidebarToggle( hidden );
+  try { localStorage.setItem( storageKey( 'sidebarHidden' ), hidden ); } catch ( _ ) { /* storage off */ }
 };
 
 const initHeaderControls = () => {
-  document.getElementById( 'btnDarkMode' )?.addEventListener( 'click', () => {
+  document.getElementById( 'btnDarkMode' )?.addEventListener( 'click', ( e ) => {
     const isDark = document.body.classList.toggle( 'dark-mode' );
+    e.currentTarget.textContent = isDark ? '☀️' : '🌙';
     setHljsTheme( isDark );
-    try { localStorage.setItem( storageKey( 'darkMode' ), isDark ? '1' : '0' ); } catch ( _ ) { /* storage off */ }
+    try { localStorage.setItem( storageKey( 'darkMode' ), isDark ); } catch ( _ ) { /* storage off */ }
   } );
 
-  let fontSize = 16;
-  const setFont = ( n ) => {
-    fontSize = Math.min( 24, Math.max( 11, n ) );
-    document.documentElement.style.setProperty( '--font-size', fontSize + 'px' );
+  // Font size: read the live value, step ±2 (10–36), persist, and show the
+  // current size in the A−/A+ tooltips.
+  const getFontSize = () => parseInt( getComputedStyle( document.documentElement ).getPropertyValue( '--font-size' ), 10 ) || 16;
+  const updateFontTitles = ( sz ) => {
+    const dec = document.getElementById( 'btnFontDec' );
+    const inc = document.getElementById( 'btnFontInc' );
+    if ( dec ) dec.title = `Decrease text size — currently ${ sz }px`;
+    if ( inc ) inc.title = `Increase text size — currently ${ sz }px`;
   };
-  document.getElementById( 'btnFontDec' )?.addEventListener( 'click', () => setFont( fontSize - 1 ) );
-  document.getElementById( 'btnFontInc' )?.addEventListener( 'click', () => setFont( fontSize + 1 ) );
+  const setFont = ( sz ) => {
+    document.documentElement.style.setProperty( '--font-size', sz + 'px' );
+    try { localStorage.setItem( storageKey( 'fontSize' ), sz + 'px' ); } catch ( _ ) { /* storage off */ }
+    updateFontTitles( sz );
+  };
+  document.getElementById( 'btnFontDec' )?.addEventListener( 'click', () => setFont( Math.max( getFontSize() - 2, 10 ) ) );
+  document.getElementById( 'btnFontInc' )?.addEventListener( 'click', () => setFont( Math.min( getFontSize() + 2, 36 ) ) );
+  updateFontTitles( getFontSize() );   // seed the tooltips with the current size
 
   document.getElementById( 'btnHelp' )?.addEventListener( 'click', () => toggleInfoPanel( 'about' ) );
   document.getElementById( 'btnToken' )?.addEventListener( 'click', () => toggleInfoPanel( 'token' ) );
-
   document.getElementById( 'btnToggleSidebar' )?.addEventListener( 'click', toggleSidebar );
 
-  const rb = document.getElementById( 'rateBadge' );
-  if ( rb ) { rb.textContent = '4983 / 5000'; rb.style.display = 'inline-block'; }
+  // Header title → reset to the home repo: clear hash/query, cached repo, last file.
+  document.getElementById( 'headerTitle' )?.addEventListener( 'click', ( e ) => {
+    e.preventDefault();
+    clearCurrentFile();
+    try { localStorage.removeItem( repoCacheKey() ); } catch ( _ ) { /* storage off */ }
+    if ( location.search || location.hash ) location.replace( location.pathname );
+    else location.reload();
+  } );
 
   document.getElementById( 'headerGitHub' )?.setAttribute( 'href', CONFIG.sourceRepoUrl || '#' );
 };
@@ -1349,17 +1525,35 @@ const toggleInfoPanel = async ( panel ) => {
   else showTokenPanel();
 };
 
-const initHeader = () => {
-  updateHeaderFromConfig();
-  try {
-    if ( localStorage.getItem( storageKey( 'darkMode' ) ) === '1' ) {
-      document.body.classList.add( 'dark-mode' );
-      setHljsTheme( true );
-    }
-    if ( localStorage.getItem( storageKey( 'sidebarHidden' ) ) === '1' ) document.body.classList.add( 'sidebar-hidden' );
-  } catch ( _ ) { /* storage off */ }
-  initHeaderControls();
+/* Restore persisted appearance (reference §11 initAppearance): dark mode (else OS
+   preference), font size, sidebar width (+ narrow default), theme color, collapse. */
+const initAppearance = () => {
+  const stored = localStorage.getItem( storageKey( 'darkMode' ) );
+  const isDark = stored === null ? window.matchMedia( '(prefers-color-scheme: dark)' ).matches : stored === 'true';
+  if ( isDark ) {
+    document.body.classList.add( 'dark-mode' );
+    const b = document.getElementById( 'btnDarkMode' ); if ( b ) b.textContent = '☀️';
+  }
+  setHljsTheme( isDark );
+
+  const savedFont = localStorage.getItem( storageKey( 'fontSize' ) );
+  if ( savedFont ) document.documentElement.style.setProperty( '--font-size', savedFont );
+
+  const savedWidth = localStorage.getItem( storageKey( 'sidebarWidth' ) );
+  if ( savedWidth ) document.documentElement.style.setProperty( '--sidebar-width', savedWidth );
+  else if ( window.innerWidth <= 768 ) document.documentElement.style.setProperty( '--sidebar-width', Math.round( window.innerWidth * 0.25 ) + 'px' );
+
+  if ( CONFIG.themeColor ) {
+    document.documentElement.style.setProperty( '--highlight-color', CONFIG.themeColor );
+    document.body.style.setProperty( '--highlight-color', CONFIG.themeColor );
+  }
+
+  const hidden = localStorage.getItem( storageKey( 'sidebarHidden' ) ) === 'true';
+  document.body.classList.toggle( 'sidebar-hidden', hidden );
+  updateSidebarToggle( hidden );
 };
+
+const initHeader = () => { updateHeaderFromConfig(); initAppearance(); initHeaderControls(); };
 /* TooToo Lab — sidebar.js  (the "what files exist & how they're shown" component).
    Ported from reference §18-§26. Reads: state.tree, CONFIG.hidden*.
    Writes: nothing global — display only. Hands off via Content's selectFile(path).
@@ -1403,6 +1597,22 @@ const sortedEntries = ( children ) =>
     return aName.toLowerCase().localeCompare( bName.toLowerCase() );
   } );
 
+/* ── recursive folder contents (for the folder tooltip) ── */
+const folderStats = ( node ) => {
+  let files = 0, folders = 0, bytes = 0;
+  for ( const child of Object.values( node.children ) ) {
+    const isFolder = child.type === 'tree' || Object.keys( child.children ).length > 0;
+    if ( isFolder ) {
+      folders++;
+      const s = folderStats( child );
+      files += s.files; folders += s.folders; bytes += s.bytes;
+    } else {
+      files++; bytes += ( child.size || 0 );
+    }
+  }
+  return { files, folders, bytes };
+};
+
 /* ── one tree node -> HTML (recursive for folders) ── */
 const renderNode = ( name, node, parentPath ) => {
   const fullPath = parentPath ? `${ parentPath }/${ name }` : name;
@@ -1413,22 +1623,27 @@ const renderNode = ( name, node, parentPath ) => {
     const childrenHtml = sortedEntries( node.children )
       .map( ( [ childName, childNode ] ) => renderNode( childName, childNode, fullPath ) )
       .join( '' );
+    // Tooltip: what's inside — recursive file/folder counts + total size.
+    const s = folderStats( node );
+    const tip = `${ fullPath } — ${ s.files } file${ s.files === 1 ? '' : 's' }` +
+      ( s.folders ? ` · ${ s.folders } folder${ s.folders === 1 ? '' : 's' }` : '' ) +
+      ` · ${ formatFileSize( s.bytes ) }`;
     return `<details data-folder-path="${ escapeHTML( fullPath ) }">` +
-      `<summary class="tree-folder" tabindex="0" title="${ escapeHTML( fullPath ) }">` +
+      `<summary class="tree-folder" tabindex="0" title="${ escapeHTML( tip ) }">` +
       `<span aria-hidden="true">📁</span> <span class="folder-name">${ escapeHTML( displayName ) }</span>` +
       `</summary>` + childrenHtml + `</details>`;
   }
 
   const icon = getFileIcon( name );
-  const sizeStr = formatFileSize( node.size );
   const isReadme = /^readme/i.test( name );
   const nameHtml = isReadme ? `<strong>${ escapeHTML( displayName ) }</strong>` : escapeHTML( displayName );
   const folderDisplay = parentPath ? parentPath.split( '/' ).map( displayTreeName ).join( ' / ' ) : '';
   const folderHtml = folderDisplay ? `<span class="tree-item-folder">${ escapeHTML( folderDisplay ) }</span>` : '';
+  // Tooltip: path on line 1, then "Type · size" — the size now lives here, not on the row.
+  const tip = `${ fullPath }\n${ getFileTypeLabel( name ) } · ${ formatFileSize( node.size || 0 ) }`;
 
-  return `<div class="tree-item" role="button" tabindex="0" data-action="select-file" data-path="${ escapeHTML( fullPath ) }" title="${ escapeHTML( fullPath ) }">` +
-    `<span class="tree-item-name"><span aria-hidden="true">${ icon }</span> ${ nameHtml }</span>` +
-    `<span class="tree-item-size">${ sizeStr }</span>` + folderHtml + `</div>`;
+  return `<div class="tree-item" role="button" tabindex="0" data-action="select-file" data-path="${ escapeHTML( fullPath ) }" title="${ escapeHTML( tip ) }">` +
+    `<span class="tree-item-name"><span aria-hidden="true">${ icon }</span> ${ nameHtml }</span>` + folderHtml + `</div>`;
 };
 
 /* ── expand-all glyph state ── */
@@ -1548,6 +1763,7 @@ const fetchTree = async () => {
   try {
     if ( !state.branch ) state.branch = await getDefaultBranch( signal );
     cacheRepo();   // persist owner/repo/branch now that the branch is resolved
+    setHeaderTimestamp();   // refresh the title tooltip with this repo's last-push date
     updateBranchControl();   // show the branch chip in the sidebar header
     const data = await ghApi( `https://api.github.com/repos/${ encodeURIComponent( state.owner ) }/${ encodeURIComponent( state.repo ) }/git/trees/${ encodeURIComponent( state.branch ) }?recursive=1`, signal );
     const count = data.tree?.length || 0;
@@ -1566,7 +1782,10 @@ const fetchTree = async () => {
     const files = vis.filter( ( i ) => i.type === 'blob' ).length;
     const bytes = vis.reduce( ( s, i ) => s + ( i.type === 'blob' ? ( i.size || 0 ) : 0 ), 0 );
     const h = document.getElementById( 'hFiles' );
-    h.textContent = `📁 ${ folders.toLocaleString() } · 📄 ${ files.toLocaleString() } · ${ formatFileSize( bytes ) }`;
+    h.textContent = `${ files.toLocaleString() } file${ files === 1 ? '' : 's' } · ${ formatFileSize( bytes ) }`;
+    // Spelled-out tooltip (includes the folder count + truncated summary on a narrow sidebar).
+    h.title = `${ folders.toLocaleString() } folder${ folders === 1 ? '' : 's' }, ` +
+      `${ files.toLocaleString() } file${ files === 1 ? '' : 's' }, ${ formatFileSize( bytes ) } total`;
     treeSummaryText = h.textContent;
   } catch ( err ) {
     if ( err.name === 'AbortError' ) return;
@@ -1760,14 +1979,12 @@ const initSidebar = () => {
     if ( opt ) switchBranch( opt.dataset.branch );
   } );
   document.addEventListener( 'click', ( e ) => {
-    if ( !e.target.closest( '#filesPanelHeader' ) ) closeBranchMenu();
+    if ( !e.target.closest( '.branch-control' ) ) closeBranchMenu();
   } );
 
-  // Sidebar footer brand mark + scroll-to-top.
+  // Sidebar footer brand mark (from CONFIG favicon) + scroll-to-top.
   const footImg = document.querySelector( '#btnScrollTreeTop img' );
-  if ( footImg && !footImg.getAttribute( 'src' ) ) {
-    footImg.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%232563eb'/%3E%3Cg font-family='system-ui,sans-serif' font-size='30' font-weight='700' fill='white' text-anchor='middle' dominant-baseline='middle'%3E%3Ctext x='22' y='28'%3ET%3C/text%3E%3Ctext x='42' y='40'%3ET%3C/text%3E%3C/g%3E%3C/svg%3E";
-  }
+  if ( footImg ) footImg.src = faviconDataUrl();
   document.getElementById( 'btnScrollTreeTop' )?.addEventListener( 'click', () =>
     document.getElementById( 'treeList' ).scrollTo( { top: 0, behavior: 'smooth' } ) );
 
@@ -1776,8 +1993,12 @@ const initSidebar = () => {
   if ( resizer ) {
     let dragging = false;
     resizer.addEventListener( 'pointerdown', ( e ) => { dragging = true; resizer.classList.add( 'dragging' ); resizer.setPointerCapture( e.pointerId ); } );
-    resizer.addEventListener( 'pointermove', ( e ) => { if ( dragging ) document.documentElement.style.setProperty( '--sidebar-width', Math.min( 600, Math.max( 150, e.clientX ) ) + 'px' ); } );
-    resizer.addEventListener( 'pointerup', () => { dragging = false; resizer.classList.remove( 'dragging' ); } );
+    resizer.addEventListener( 'pointermove', ( e ) => { if ( dragging ) document.documentElement.style.setProperty( '--sidebar-width', Math.min( window.innerWidth - 100, Math.max( 100, e.clientX ) ) + 'px' ); } );
+    resizer.addEventListener( 'pointerup', () => {
+      dragging = false; resizer.classList.remove( 'dragging' );
+      const w = getComputedStyle( document.documentElement ).getPropertyValue( '--sidebar-width' ).trim();
+      try { localStorage.setItem( storageKey( 'sidebarWidth' ), w ); } catch ( _ ) { /* storage off */ }
+    } );
   }
 };
 /* TooToo Lab — content.js  (the "show the file & act on it" component).
@@ -2048,6 +2269,7 @@ const selectFile = async ( path ) => {
       else renderCode( text, ext );
     }
     updateHash( path );
+    saveCurrentFile( path );   // remember last-opened file for this repo (sessionStorage)
   } catch ( err ) {
     if ( err.name === 'AbortError' ) return;   // superseded by a newer selection
     lastRawText = '';
@@ -2190,22 +2412,52 @@ const runSelfTest = async () => {
   if ( !signal.aborted ) render();
 };
 
-const initContent = () => setupContentActions();
-/* TooToo Lab — footer.js  (the branding / identity component).
-   Reads: CONFIG (appName, sourceRepoUrl, faviconColor). A new page-level footer
-   the single-file app doesn't have yet — the component model makes it cheap. */
+const initContent = () => {
+  setupContentActions();
+  // Floating back-to-top: appears after scrolling, click returns the content to top.
+  const area = document.getElementById( 'contentArea' );
+  const toTop = document.getElementById( 'btnBackToTop' );
+  if ( area && toTop ) {
+    area.addEventListener( 'scroll', () => { toTop.style.display = area.scrollTop > 200 ? 'flex' : 'none'; } );
+    toTop.addEventListener( 'click', () => area.scrollTo( { top: 0, behavior: 'smooth' } ) );
+  }
+};
+/* TooToo Lab — footer.js  (repo-owner copyright + MIT license link).
+   Left: TT mark + "© <year> <owner> · No rights reserved." Right: MIT License link. */
 
 const renderFooter = () => {
-  const brand = document.getElementById( 'footerBrand' );
-  if ( brand ) {
-    const src = CONFIG.sourceRepoUrl || '#';
-    brand.innerHTML =
-      `<strong>${ escapeHTML( CONFIG.appName ) }</strong> · single-file GitHub repository browser · ` +
-      `<a href="${ escapeHTML( src ) }" target="_blank" rel="noopener">source</a>`;
-  }
   const mark = document.querySelector( '.app-footer-mark' );
-  if ( mark && !mark.getAttribute( 'src' ) ) {
-    mark.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%232563eb'/%3E%3Cg font-family='system-ui,sans-serif' font-size='30' font-weight='700' fill='white' text-anchor='middle' dominant-baseline='middle'%3E%3Ctext x='22' y='28'%3ET%3C/text%3E%3Ctext x='42' y='40'%3ET%3C/text%3E%3C/g%3E%3C/svg%3E";
+  if ( mark ) mark.src = faviconDataUrl();   // brand mark from CONFIG favicon
+  updateFooterCopyright();
+};
+
+/* Copyright by the repo owner, e.g. "© 2026 pushme-pullyou · No rights reserved." */
+const updateFooterCopyright = () => {
+  const el = document.getElementById( 'footerCopyright' );
+  if ( !el ) return;
+  el.textContent = state.owner
+    ? `© ${ new Date().getFullYear() } ${ state.owner } · No rights reserved.`
+    : 'No rights reserved.';
+};
+
+/* Point the license link at the repo's own root LICENSE file (opened in-app via the
+   hash); fall back to opensource.org if the repo has no license file. Call after the
+   tree loads. */
+const updateFooterLicense = () => {
+  const el = document.querySelector( '.app-footer-license' );
+  if ( !el ) return;
+  const lic = state.tree?.find( ( i ) =>
+    i.type === 'blob' && /^(licen[sc]e|copying)(\.\w+)?$/i.test( i.path ) );
+  if ( lic ) {
+    el.href = '#' + encodePath( lic.path );   // opens it in TooToo via hash routing
+    el.removeAttribute( 'target' );
+    el.removeAttribute( 'rel' );
+    el.title = `View ${ lic.path }`;
+  } else {
+    el.href = 'https://opensource.org/license/mit';
+    el.target = '_blank';
+    el.rel = 'noopener';
+    el.title = 'MIT License (opensource.org)';
   }
 };
 /* TooToo Lab — main.js  (init + wiring) for the ASSEMBLED live build.
@@ -2217,12 +2469,27 @@ window.addEventListener( 'error', ( e ) => console.error( 'TooToo error:', e.mes
 window.addEventListener( 'unhandledrejection', ( e ) => console.error( 'TooToo unhandled rejection:', e.reason ) );
 
 const initApp = async () => {
+  // Per-repo branding: tootoo.config.js (loaded in <head>, if present) sets
+  // window.TOOTOO_CONFIG; merge it over the built-in + baked config so a dropped-in
+  // repo can override theme/favicon/appName/hidden files (canonical's fork model).
+  if ( window.TOOTOO_CONFIG && typeof window.TOOTOO_CONFIG === 'object' ) Object.assign( CONFIG, window.TOOTOO_CONFIG );
+
   initHeader();     // header.js  — branding + appearance controls
   initContent();    // content.js — wire Copy / view-toggle / etc.
   renderFooter();   // footer.js  — brand bar
+  applyFavicon();   // core.js    — set the browser-tab favicon from CONFIG
+  applyHeadingFont(); // core.js  — load + apply CONFIG.headingFont(Url) for headings/title
 
   await detectLocalMode();  // core.js — file:// drop-in: seed owner/repo, read files from disk
+  // Can't read local files → explain, don't silently browse the baked default. But if a
+  // repo is explicitly chosen — URL ?owner=… or a per-repo tootoo.config.js — browse it
+  // over GitHub (https needs no flag) instead of showing the help.
+  const haveExplicitRepo = new URLSearchParams( location.search ).get( 'owner' )
+    || ( window.TOOTOO_CONFIG && window.TOOTOO_CONFIG.owner );
+  if ( fileAccessBlocked && !haveExplicitRepo ) { showFileAccessHelp(); return; }
   await detectRepo();       // core.js — params → cache → Pages host → CONFIG → manual form
+  updateHeaderFromConfig(); // header.js — repo now known, so refresh the title (owner / repo)
+  updateFooterCopyright();  // footer.js — repo owner now known, set the © line
   initSidebar();    // sidebar.js — wire filter/expand/select (tree fills next)
 
   if ( !state.owner || !state.repo ) {
@@ -2232,9 +2499,47 @@ const initApp = async () => {
   }
 
   await fetchTree();                       // sidebar.js — GitHub tree → state.tree → render
-  const hashPath = currentHashPath();      // core.js
-  if ( hashPath ) selectFile( hashPath );  // content.js — deep-linked file
-  else autoSelectReadme();                 // sidebar.js — default to README
+  updateFooterLicense();                   // footer.js — link to the repo's own LICENSE (tree now loaded)
+
+  // Back/forward + address-bar hash edits re-open the file.
+  window.addEventListener( 'hashchange', () => {
+    const p = currentHashPath();
+    if ( p && p !== state.currentFilePath ) selectFile( p );
+  } );
+
+  // File-open priority: URL hash → last-opened (this session) → README.
+  const hashPath = currentHashPath();
+  if ( hashPath ) {
+    selectFile( hashPath );
+  } else {
+    let last = null;
+    try { last = sessionStorage.getItem( getCurrentFileKey() ); } catch ( _ ) { /* storage off */ }
+    if ( last && state.tree?.some( ( i ) => i.path === last && i.type === 'blob' ) ) selectFile( last );
+    else autoSelectReadme();
+  }
+};
+
+/* file:// + local reads blocked → tell the user how to enable the flag instead of
+   silently browsing the configured default repo (which looks like a bug). */
+const showFileAccessHelp = () => {
+  const cb = document.getElementById( 'contentBody' );
+  if ( !cb ) return;
+  cb.innerHTML = `
+    <div style="padding:1rem; max-width:46rem; line-height:1.55;">
+      <h2 style="margin-top:0;">Can't read local files</h2>
+      <p>This page is running from <code>file://</code> inside what looks like a git
+      repository, but the browser blocked reading local files — so TooToo can't tell
+      which repo this is, and won't guess.</p>
+      <p>To browse the local repo, Chrome needs the file-access flag:</p>
+      <ol>
+        <li><strong>Quit Chrome completely</strong> — every window. (Chrome reuses a
+        running process and ignores new flags, which is the usual culprit.)</li>
+        <li>Relaunch it with <code>--allow-file-access-from-files</code>.</li>
+        <li>Confirm at <code>chrome://version</code> → “Command Line” that the flag is
+        listed, then reopen this file.</li>
+      </ol>
+      <p style="opacity:0.7;">Or add <code>?owner=…&amp;repo=…</code> to the URL to browse a repo over the network.</p>
+    </div>`;
 };
 
 initApp();

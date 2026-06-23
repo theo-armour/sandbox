@@ -37,6 +37,16 @@
 
     <a id="headerTitle" href="." title="Reload" aria-label="Reload page">TooToo</a>
 
+    <span class="branch-control">
+      <button id="btnBranch" class="branch-switcher" type="button" hidden
+        aria-haspopup="listbox" aria-expanded="false" title="Switch branch">
+        <span class="branch-glyph" aria-hidden="true">⎇</span>
+        <span id="branchName"></span>
+        <span class="branch-caret" aria-hidden="true">▾</span>
+      </button>
+      <div id="branchMenu" class="branch-menu" role="listbox" aria-label="Branches" hidden></div>
+    </span>
+
     <button id="btnDarkMode" class="header-btn dark-mode-btn" title="Toggle Dark Mode"
       aria-label="Toggle dark mode">🌙</button>
     <button id="btnFontDec" class="header-btn" title="Decrease Font Size" aria-label="Decrease font size">A−</button>

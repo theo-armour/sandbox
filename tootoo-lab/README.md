@@ -45,11 +45,13 @@ mock data, no GitHub needed) **and** a source fragment the assembler extracts.
 3. **Carve JS incrementally** — `main.js` as one blob first, then peel off `core.js`
    and one component at a time, re-assembling and testing each step.
 
-## Blueprint
+## Docs
 
-See [src/ARCHITECTURE.md](src/ARCHITECTURE.md) — layers, the shared-global
-**one-writer-per-field** rule, and each component's contract (mission / owns /
-writes / reads / exposes).
+- [src/ARCHITECTURE.md](src/ARCHITECTURE.md) — layers, the shared-global
+  **one-writer-per-field** rule, and each component's contract.
+- [PARITY.md](PARITY.md) — graduation audit: what's closed vs canonical, verification log.
+- [lab-fixes.md](lab-fixes.md) — every spot the lab diverged from canonical + the fix
+  (raw material for the graduation diff).
 
 ## Status
 
