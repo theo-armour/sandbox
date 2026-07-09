@@ -1,8 +1,14 @@
 # Dashboard Journal
 
+## 2026-07-09
+
 ## 2026-04-26
 
+* Dropped Wiki news, added New York Times.
 * More clock, weather and service status
+* Some issues on the table drawer all
+* Updated time and weather widgets, Add Celsius
+* Reposition widgets
 
 Done
 

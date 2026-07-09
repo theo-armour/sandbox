@@ -66,35 +66,6 @@
       font-variant-numeric: tabular-nums;
     }
 
-    .story-popover {
-      position: fixed;
-      right: 0.75rem;
-      z-index: 10;
-      max-width: min(24rem, calc(100vw - 1rem));
-      padding: 0.65rem 0.75rem;
-      background: var(--bg);
-      color: var(--fg);
-      border: 1px solid var(--panel-border);
-      border-radius: 0.35rem;
-      box-shadow: 0 0.35rem 1rem rgb(0 0 0 / 20%);
-      font-size: var(--text-sm);
-      line-height: 1.35;
-      pointer-events: none;
-    }
-
-    .story-popover .popover-title {
-      font-weight: 700;
-    }
-
-    .story-popover .popover-summary {
-      margin-top: 0.3rem;
-    }
-
-    .story-popover .popover-meta {
-      margin-top: 0.3rem;
-      color: var(--muted);
-    }
-
     #updated {
       font-size: var(--text-sm);
     }
@@ -130,15 +101,12 @@
     <button id="refreshBtn" type="button" aria-label="Refresh headlines">Refresh</button>
   </div>
 
-  <div id="story-popover" class="story-popover" role="tooltip" hidden></div>
-
   <script>
     const newsEl = document.getElementById( "news" );
     const updatedEl = document.getElementById( "updated" );
     const refreshBtnEl = document.getElementById( "refreshBtn" );
-    const storyPopoverEl = document.getElementById( "story-popover" );
 
-    const CACHE_KEY = "dashboard-widget-news-cache-v2";
+    const CACHE_KEY = "dashboard-widget-news-cache";
     const REFRESH_MS = 15 * 60 * 1000;
     const MAX_HEADLINES = 9;
 
@@ -169,11 +137,6 @@
       .replace( />/g, "&gt;" )
       .replace( /"/g, "&quot;" );
 
-    const textFromHtml = ( html ) => {
-      const doc = new DOMParser().parseFromString( html || "", "text/html" );
-      return ( doc.body.textContent || "" ).replace( /\s+/g, " " ).trim();
-    };
-
     // Handles both RSS 2.0 (<item>) and Atom (<entry>) feeds.
     const parseFeed = ( xml ) => {
       const doc = new DOMParser().parseFromString( xml, "application/xml" );
@@ -182,7 +145,6 @@
         return items.map( ( item ) => ( {
           title: item.querySelector( "title" )?.textContent?.trim() || "",
           link: item.querySelector( "link" )?.textContent?.trim() || "",
-          summary: textFromHtml( item.querySelector( "description" )?.textContent ),
           pubDate: new Date(
             item.querySelector( "pubDate" )?.textContent || Date.now()
           ).getTime(),
@@ -192,7 +154,6 @@
       return entries.map( ( entry ) => ( {
         title: entry.querySelector( "title" )?.textContent?.trim() || "",
         link: entry.querySelector( "link" )?.getAttribute( "href" ) || "",
-        summary: textFromHtml( entry.querySelector( "summary, content" )?.textContent ),
         pubDate: new Date(
           entry.querySelector( "updated, published" )?.textContent || Date.now()
         ).getTime(),
@@ -228,62 +189,7 @@
       hour12: false,
     } );
 
-    const formatStoryDate = ( ts ) => {
-      const date = new Date( ts );
-      if ( Number.isNaN( date.getTime() ) ) return "";
-      return date.toLocaleString( "en-US", {
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-      } );
-    };
-
-    const hideStoryPopover = () => {
-      storyPopoverEl.hidden = true;
-    };
-
-    const showStoryPopover = ( story, linkEl ) => {
-      const titleEl = document.createElement( "div" );
-      titleEl.className = "popover-title";
-      titleEl.textContent = story.title;
-
-      const summaryEl = document.createElement( "div" );
-      summaryEl.className = "popover-summary";
-      summaryEl.textContent = story.summary || "Open the headline for the full story.";
-
-      storyPopoverEl.replaceChildren( titleEl, summaryEl );
-      const published = formatStoryDate( story.pubDate );
-      const metaEl = document.createElement( "div" );
-      metaEl.className = "popover-meta";
-      metaEl.textContent = [ story.source, published ].filter( Boolean ).join( " · " );
-      storyPopoverEl.appendChild( metaEl );
-
-      storyPopoverEl.hidden = false;
-      const linkRect = linkEl.getBoundingClientRect();
-      const popoverRect = storyPopoverEl.getBoundingClientRect();
-      const margin = 8;
-      const belowTop = linkRect.bottom + margin;
-      const top = belowTop + popoverRect.height <= window.innerHeight
-        ? belowTop
-        : Math.max( margin, linkRect.top - popoverRect.height - margin );
-      storyPopoverEl.style.left = "auto";
-      storyPopoverEl.style.right = `${ margin }px`;
-      storyPopoverEl.style.top = `${ top }px`;
-    };
-
-    const bindStoryPopovers = ( items ) => {
-      newsEl.querySelectorAll( ".headline a" ).forEach( ( linkEl ) => {
-        const story = items[ +linkEl.dataset.storyIndex ];
-        linkEl.addEventListener( "mouseenter", () => showStoryPopover( story, linkEl ) );
-        linkEl.addEventListener( "mouseleave", hideStoryPopover );
-        linkEl.addEventListener( "focus", () => showStoryPopover( story, linkEl ) );
-        linkEl.addEventListener( "blur", hideStoryPopover );
-      } );
-    };
-
     const render = ( items, fetchedAt, stale ) => {
-      hideStoryPopover();
       if ( items.length === 0 ) {
         newsEl.innerHTML = `<span class="muted">No headlines available</span>`;
         updatedEl.textContent = "";
@@ -293,20 +199,18 @@
         .slice()
         .sort( ( a, b ) => b.pubDate - a.pubDate )
         .slice( 0, MAX_HEADLINES );
-      newsEl.innerHTML = top.map( ( h, i ) => `
+      newsEl.innerHTML = top.map( ( h ) => `
         <div class="headline">
           <span class="source">${ escapeHtml( h.source ) }</span>
-          <span class="title"><a data-story-index="${ i }" href="${ escapeHtml( h.link ) }" target="_blank" rel="noopener">${ escapeHtml( h.title ) }</a></span>
+          <span class="title"><a href="${ escapeHtml( h.link ) }" target="_blank" rel="noopener">${ escapeHtml( h.title ) }</a></span>
           <span class="ago">${ formatAgo( h.pubDate ) }</span>
         </div>
       ` ).join( "" );
-      bindStoryPopovers( top );
       const prefix = stale ? "Cached" : "Updated";
       updatedEl.textContent = `${ prefix } ${ formatTime( new Date( fetchedAt ) ) }`;
     };
 
     const renderError = ( msg ) => {
-      hideStoryPopover();
       newsEl.innerHTML = `<span class="muted">${ msg }</span>`;
       updatedEl.textContent = "";
     };
@@ -328,6 +232,8 @@
         localStorage.setItem( CACHE_KEY, JSON.stringify( { ts, items } ) );
         render( items, ts, false );
       } catch ( err ) {
+        // Offline / proxy down / all feeds failed — fall back to cache, even
+        // if it's older than REFRESH_MS.
         if ( cached && cached.items ) {
           render( cached.items, cached.ts, true );
         } else {

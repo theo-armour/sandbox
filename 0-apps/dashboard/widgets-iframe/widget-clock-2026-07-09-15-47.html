@@ -76,7 +76,6 @@
     ];
 
     const LOCATION_KEY = "dashboard-location";
-    const LOCATION_MESSAGE = "dashboard-location-update";
     const DEFAULT_COORDS = { lat: 37.7749, lon: -122.4194 };
     let coords = DEFAULT_COORDS;
 
@@ -272,15 +271,6 @@
 
     update();
     setInterval( update, 60000 );
-
-    window.addEventListener( "message", ( event ) => {
-      const message = event.data;
-      const next = message && message.type === LOCATION_MESSAGE
-        ? message.coords : null;
-      if ( !next || typeof next.lat !== "number" || typeof next.lon !== "number" ) return;
-      coords = { lat: next.lat, lon: next.lon };
-      update();
-    });
 
   </script>
 </body>

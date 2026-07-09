@@ -78,64 +78,16 @@
   <main class="dashboard-grid" id="dashboard-grid"></main>
 
   <script>
-    const LOCATION_KEY = "dashboard-location";
-    const LOCATION_MESSAGE = "dashboard-location-update";
-    const LOCATION_ATTEMPTED_KEY = "dashboard-location-attempted";
-
-    const readSavedLocation = () => {
-      const raw = localStorage.getItem( LOCATION_KEY );
-      if ( raw === null ) return null;
-      try {
-        const saved = JSON.parse( raw );
-        if ( typeof saved.lat === "number" && typeof saved.lon === "number" ) {
-          return { lat: saved.lat, lon: saved.lon };
-        }
-      } catch ( err ) {
-        // Ignore malformed saved location data.
-      }
-      return null;
-    };
-
-    const broadcastLocation = ( coords ) => {
-      document.querySelectorAll( "#dashboard-grid iframe" ).forEach( ( frame ) => {
-        if ( frame.contentWindow ) {
-          frame.contentWindow.postMessage(
-            { type: LOCATION_MESSAGE, coords }, "*"
-          );
-        }
-      } );
-    };
-
-    const requestLocation = () => {
-      if ( !navigator.geolocation || readSavedLocation() ) return;
-      if ( sessionStorage.getItem( LOCATION_ATTEMPTED_KEY ) === "1" ) return;
-      sessionStorage.setItem( LOCATION_ATTEMPTED_KEY, "1" );
-
-      navigator.geolocation.getCurrentPosition(
-        ( position ) => {
-          const coords = {
-            lat: position.coords.latitude,
-            lon: position.coords.longitude,
-          };
-          localStorage.setItem( LOCATION_KEY, JSON.stringify( coords ) );
-          broadcastLocation( coords );
-        },
-        () => { },
-        { timeout: 5000, maximumAge: 86400000 }
-      );
-    };
-
     // One config entry per widget. Add, remove, reorder here.
     const WIDGETS = [
       { id: "teodoro", src: "widget-teodoro.html", height: 220, label: "Teodoro activity timer" },
-      { id: "clock", src: "widget-clock.html", height: 220, label: "Clock and date" },
-      { id: "weather", src: "widget-weather.html", height: 220, label: "Current weather" },
-      { id: "calendar", src: "widget-calendar.html", height: 220, label: "Calendar"},
-      { id: "today", src: "widget-today.html", height: 240, label: "Today's news", wide: true },
-      { id: "nytimes", src: "widget-nytimes.html", height: 240, label: "New York Times: Latest news", wide: true },
-      { id: "notes", src: "widget-notes.html", height: 220, label: "Notes & spark"},
+      { id: "clock", src: "widget-clock.html", height: 220, label: "Clock and date", allow: "geolocation" },
+      { id: "weather", src: "widget-weather.html", height: 220, label: "Current weather", allow: "geolocation" },
       { id: "github", src: "widget-github.html", height: 220, label: "Service status" },
-
+      { id: "calendar", src: "widget-calendar.html", height: 240, label: "Calendar", wide: true },
+      { id: "today", src: "widget-today.html", height: 240, label: "Today's news", wide: true },
+      { id: "wikinews", src: "widget-wikinews.html", height: 240, label: "Wikipedia: In the news", wide: true },
+      { id: "notes", src: "widget-notes.html", height: 220, label: "Notes & spark", wide: true },
       { id: "links", src: "widget-links.html", height: 170, label: "Quick links" },
     ];
 
@@ -159,8 +111,6 @@
     WIDGETS.forEach( ( widget ) => {
       gridEl.appendChild( createTile( widget ) );
     } );
-
-    requestLocation();
   </script>
 </body>
 

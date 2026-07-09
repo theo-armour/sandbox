@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="revised" content="2026-05-31 18:43">
+  <title>New York Times ~ Latest News</title>
+  <link rel="stylesheet" href="widget-base.css">
+  <style>
+    #news {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .story {
+      font-size: 1rem;
+      line-height: 1.25;
+      padding-bottom: 0.3rem;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .story:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .story a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .story a:hover {
+      text-decoration: underline;
+    }
+
+    #updated {
+      font-size: var(--text-sm);
+    }
+
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    #refreshBtn {
+      border: 1px solid var(--panel-border);
+      border-radius: 999px;
+      padding: 0em 0.7rem;
+      font-size: 0.86rem;
+    }
+
+    #refreshBtn:disabled {
+      opacity: 0.65;
+      cursor: wait;
+    }
+  </style>
+</head>
+
+<body class="widget">
+  <h2>Latest news</h2>
+  <div id="news"><span class="muted">Loading latest news…</span></div>
+  <div class="footer">
+    <div id="updated" class="muted"></div>
+    <button id="refreshBtn" type="button" aria-label="Refresh latest news">Refresh</button>
+  </div>
+
+  <script>
+    const newsEl = document.getElementById( "news" );
+    const updatedEl = document.getElementById( "updated" );
+    const refreshBtnEl = document.getElementById( "refreshBtn" );
+
+    const CACHE_KEY = "dashboard-widget-nyt-cache";
+    const REFRESH_MS = 15 * 60 * 1000;
+    const FEED_URL = "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml";
+    const MAX_STORIES = 8;
+
+    const readJson = ( key ) => {
+      const raw = localStorage.getItem( key );
+      if ( raw === null ) return null;
+      try {
+        return JSON.parse( raw );
+      } catch ( err ) {
+        return null;
+      }
+    };
+
+    const escapeHtml = ( value ) => String( value ).replace( /[&<>"']/g, ( char ) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    })[ char ] );
+
+    const parseFeed = ( xmlText ) => {
+      const xml = new DOMParser().parseFromString( xmlText, "application/xml" );
+      if ( xml.querySelector( "parsererror" ) ) throw new Error( "invalid feed" );
+
+      return Array.from( xml.querySelectorAll( "item" ) )
+        .slice( 0, MAX_STORIES )
+        .map( ( item ) => ({
+          title: item.querySelector( "title" )?.textContent.trim() || "",
+          link: item.querySelector( "link" )?.textContent.trim() || "",
+        }) )
+        .filter( ( story ) => story.title && story.link );
+    };
+
+    const fetchNews = async () => {
+      const res = await fetch( FEED_URL, { cache: "no-store" } );
+      if ( !res.ok ) throw new Error( `HTTP ${ res.status }` );
+      return parseFeed( await res.text() );
+    };
+
+    const formatTime = ( ts ) => new Date( ts ).toLocaleTimeString( "en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    } );
+
+    const render = ( stories, fetchedAt, stale ) => {
+      if ( stories.length === 0 ) {
+        newsEl.innerHTML = `<span class="muted">No latest news available</span>`;
+        updatedEl.textContent = "";
+        return;
+      }
+      newsEl.innerHTML = stories
+        .map( ( story ) => `<div class="story"><a href="${ escapeHtml( story.link ) }" target="_blank" rel="noopener">${ escapeHtml( story.title ) }</a></div>` )
+        .join( "" );
+      const prefix = stale ? "Cached" : "Updated";
+      updatedEl.textContent = `${ prefix } ${ formatTime( fetchedAt ) }`;
+    };
+
+    const renderError = ( msg ) => {
+      newsEl.innerHTML = `<span class="muted">${ msg }</span>`;
+      updatedEl.textContent = "";
+    };
+
+    const refresh = async ( force = false ) => {
+      const cached = readJson( CACHE_KEY );
+      const fresh = cached && ( Date.now() - cached.ts ) < REFRESH_MS;
+      if ( fresh && !force ) {
+        render( cached.stories, cached.ts, false );
+        return;
+      }
+      try {
+        const stories = await fetchNews();
+        const ts = Date.now();
+        localStorage.setItem( CACHE_KEY, JSON.stringify( { ts, stories } ) );
+        render( stories, ts, false );
+      } catch ( err ) {
+        if ( cached && cached.stories ) {
+          render( cached.stories, cached.ts, true );
+        } else {
+          renderError( "Unable to load latest news" );
+        }
+      }
+    };
+
+    const refreshNow = async () => {
+      refreshBtnEl.disabled = true;
+      try {
+        await refresh( true );
+      } finally {
+        refreshBtnEl.disabled = false;
+      }
+    };
+
+    refresh();
+    setInterval( refresh, REFRESH_MS );
+    refreshBtnEl.addEventListener( "click", refreshNow );
+  </script>
+</body>
+
+</html>

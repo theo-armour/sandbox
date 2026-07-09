@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-07-09 15:33">
+  <meta name="revised" content="2026-07-09 15:27">
   <title>Teodoro Timer</title>
   <link rel="stylesheet" href="widget-base.css">
   <style>
@@ -131,7 +131,7 @@
 
     <div class="controls">
       <button id="btn-minus" aria-label="Subtract Time">−</button>
-      <button id="btn-pause">Start</button>
+      <button id="btn-pause" aria-label="Start Timer">Start</button>
       <button id="btn-plus" aria-label="Add Time">+</button>
     </div>
 
@@ -174,7 +174,6 @@
     let currentPreset = 300;
     let audioCtx = null;
     let isMuted = false;
-    let wakeLock = null;
 
     const savedVol = localStorage.getItem( "teodoro-vol" );
     if ( savedVol !== null ) {
@@ -205,39 +204,6 @@
       if ( !audioCtx ) {
         const AC = window.AudioContext || window.webkitAudioContext;
         audioCtx = new AC();
-      }
-    };
-
-    // Screen wake lock — keep the display awake during an active session
-    const acquireWakeLock = async () => {
-      if ( !( "wakeLock" in navigator ) ) return;
-      try {
-        wakeLock = await navigator.wakeLock.request( "screen" );
-      } catch ( e ) { /* denied or unsupported — ignore */ }
-    };
-
-    const releaseWakeLock = () => {
-      if ( wakeLock ) {
-        wakeLock.release().catch( () => {} );
-        wakeLock = null;
-      }
-    };
-
-    // Wake locks auto-release when the tab is hidden; re-acquire on return
-    document.addEventListener( "visibilitychange", () => {
-      if ( document.visibilityState === "visible" && isRunning ) acquireWakeLock();
-    } );
-
-    // Desktop notification on completion
-    const requestNotifyPermission = () => {
-      if ( "Notification" in window && Notification.permission === "default" ) {
-        Notification.requestPermission();
-      }
-    };
-
-    const notifyCompletion = () => {
-      if ( "Notification" in window && Notification.permission === "granted" ) {
-        new Notification( "⏰ Time's up!", { body: "Your Teodoro session is complete." } );
       }
     };
 
@@ -309,7 +275,6 @@
           isRunning = false;
           btnPause.textContent = "Restart";
           stream.pause();
-          releaseWakeLock();
         }
         return;
       }
@@ -323,7 +288,6 @@
         updateDisplay();
         btnPause.textContent = "Restart";
         playCompletionChime(); // Play reliable Web Audio chime
-        notifyCompletion();
         stream.play().catch( ( e ) => console.error( "Audio play failed:", e ) );
         return;
       }
@@ -339,7 +303,6 @@
       clearInterval( intervalId );
       intervalId = null;
       stream.pause();
-      releaseWakeLock();
 
       isOvertime = false;
       overtimeSeconds = 0;
@@ -352,8 +315,6 @@
         btnPause.textContent = "Pause";
         intervalId = setInterval( tick, 1000 );
         initAudioCtx();
-        acquireWakeLock();
-        requestNotifyPermission();
       } else {
         isRunning = false;
         btnPause.textContent = "Restart";
@@ -362,7 +323,6 @@
 
     const togglePause = () => {
       initAudioCtx();
-      requestNotifyPermission();
 
       if ( btnPause.textContent === "Restart" || totalTime === 0 ) {
         startTimer( currentPreset > 0 ? currentPreset : 300 );
@@ -375,12 +335,10 @@
         isRunning = false;
         btnPause.textContent = "Resume";
         stream.pause();
-        releaseWakeLock();
       } else {
         isRunning = true;
         btnPause.textContent = "Pause";
         intervalId = setInterval( tick, 1000 );
-        acquireWakeLock();
       }
     };
 
@@ -399,7 +357,6 @@
         intervalId = null;
         isRunning = false;
         btnPause.textContent = "Restart";
-        releaseWakeLock();
       }
     };
 
@@ -421,7 +378,7 @@
 
     // Space bar toggles pause
     document.addEventListener( "keydown", ( e ) => {
-      if ( e.code === "Space" && e.target.tagName !== "BUTTON" ) {
+      if ( e.code === "Space" ) {
         e.preventDefault();
         togglePause();
       }

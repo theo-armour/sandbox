@@ -76,7 +76,6 @@
     ];
 
     const LOCATION_KEY = "dashboard-location";
-    const LOCATION_MESSAGE = "dashboard-location-update";
     const DEFAULT_COORDS = { lat: 37.7749, lon: -122.4194 };
     let coords = DEFAULT_COORDS;
 
@@ -273,15 +272,23 @@
     update();
     setInterval( update, 60000 );
 
-    window.addEventListener( "message", ( event ) => {
-      const message = event.data;
-      const next = message && message.type === LOCATION_MESSAGE
-        ? message.coords : null;
-      if ( !next || typeof next.lat !== "number" || typeof next.lon !== "number" ) return;
-      coords = { lat: next.lat, lon: next.lon };
-      update();
-    });
-
+    // Silently try to upgrade from default location to the user's real one.
+    // If denied, unavailable, or iframe lacks allow="geolocation", we stay on
+    // the default — no error UI.
+    if ( navigator.geolocation ) {
+      navigator.geolocation.getCurrentPosition(
+        ( pos ) => {
+          coords = {
+            lat: pos.coords.latitude,
+            lon: pos.coords.longitude,
+          };
+          localStorage.setItem( LOCATION_KEY, JSON.stringify( coords ) );
+          update();
+        },
+        () => { },
+        { timeout: 5000, maximumAge: 86400000 }
+      );
+    }
   </script>
 </body>
 
