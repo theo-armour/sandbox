@@ -1,8 +1,11 @@
 {
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
-  "editor.rulers": [100],
+  "editor.rulers": [
+    100
+  ],
   "editor.renderWhitespace": "boundary",
+  "editor.inlineSuggest.enabled": true,
   "files.insertFinalNewline": true,
   "files.trimTrailingWhitespace": true,
   "files.eol": "\n",
