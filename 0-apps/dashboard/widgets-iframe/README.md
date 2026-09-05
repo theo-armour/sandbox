@@ -5,7 +5,7 @@ independent HTML file embedded as an iframe.
 
 ## Why this pattern
 
-* Each widget is fully isolated — its own DOM, CSS, scripts, and storage
+* Each widget has its own DOM, CSS, and scripts; same-origin storage is shared by key
 * Adding or removing a widget is a one-line change in `index.html`
 * A broken widget does not break the rest of the dashboard
 * Each widget can be opened directly and tested on its own

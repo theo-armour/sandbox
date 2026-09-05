@@ -11,9 +11,15 @@
       cursor: pointer;
       display: inline-block;
       transition: color 0.2s;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      padding: 0;
     }
 
-    #city:hover {
+    #city:hover,
+    #city:focus-visible {
       color: var(--fg);
       text-decoration: underline;
     }
@@ -30,7 +36,9 @@
       outline: none;
     }
 
-    .hidden { display: none !important; }
+    .hidden {
+      display: none !important;
+    }
 
     #current {
       display: flex;
@@ -78,7 +86,7 @@
   <div id="details" class="muted"></div>
   <div id="aqi" class="muted"></div>
   <div id="forecast"></div>
-  <div id="loc"><span id="city" class="muted" title="Click to change city">San Francisco</span> <span id="updated" class="muted"></span><input id="city-input" class="hidden" type="text" placeholder="City name"></div>
+  <div id="loc"><button id="city" class="muted" type="button" title="Change city">San Francisco</button> <span id="updated" class="muted"></span><input id="city-input" class="hidden" type="text" placeholder="City name"></div>
 
   <script>
     const cityEl = document.getElementById( "city" );
@@ -223,6 +231,7 @@
           coords = { ...next, isDefault: false };
           currentCityLabel = result.name;
           cityEl.textContent = result.name;
+          window.parent.postMessage( { type: LOCATION_MESSAGE, coords: next }, "*" );
           refresh();
         } else {
           cityEl.textContent = `${ currentCityLabel } (not found)`;
@@ -292,7 +301,7 @@
 
     const render = ( data, fetchedAt, stale ) => {
 
-    cityEl.textContent = cityLabel();
+      cityEl.textContent = cityLabel();
       const code = data.current.weather_code;
       const meta = WEATHER_CODES[ code ] || { emoji: "", label: "—" };
       const t = formatTemperature( data.current.temperature_2m );
@@ -406,7 +415,7 @@
         ? message.coords : null;
       if ( !next || typeof next.lat !== "number" || typeof next.lon !== "number" ) return;
       applyParentLocation( { lat: next.lat, lon: next.lon } );
-    });
+    } );
 
     cityEl.textContent = cityLabel();
     refresh();

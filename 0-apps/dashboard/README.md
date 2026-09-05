@@ -12,7 +12,7 @@ Since GitHub's standard repository folder view displays source code rather than 
 
 This project is a highly refined, modular personal dashboard built entirely with **semantic HTML5, vanilla CSS, and standard JavaScript**. There are no build tools, no framework overheads, and no external Node.js dependencies, keeping it extremely lightweight and local-first.
 
-Each widget runs as a fully isolated, sandboxed `<iframe>` layout. This ensures complete code, style, and storage safety: a single failing widget never interrupts or crashes the rest of your dashboard shell.
+Each widget runs in its own `<iframe>` document, isolating its DOM and styles so a failed widget does not interrupt the dashboard shell. Same-origin widgets intentionally share browser storage by key; the iframes are not sandboxed.
 
 ---
 

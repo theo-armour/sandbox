@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-09-04 20:54">
+  <meta name="revised" content="2026-05-31 18:43">
   <title>Dashboard ~ iframe widgets</title>
   <link rel="icon" href="../favicon-dashboard.svg" type="image/svg+xml">
   <style>
@@ -43,7 +43,7 @@
 
     .dashboard-grid {
       display: grid;
-      gap: clamp(0.1rem, 3vw, 0.75rem);
+      gap: clamp(0.75rem, 3vw, 0.1rem);
       grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
       align-items: start;
     }
@@ -158,15 +158,6 @@
 
     WIDGETS.forEach( ( widget ) => {
       gridEl.appendChild( createTile( widget ) );
-    } );
-
-    window.addEventListener( "message", ( event ) => {
-      const message = event.data;
-      const coords = message && message.type === LOCATION_MESSAGE
-        ? message.coords : null;
-      if ( !coords || typeof coords.lat !== "number" || typeof coords.lon !== "number" ) return;
-      localStorage.setItem( LOCATION_KEY, JSON.stringify( coords ) );
-      broadcastLocation( coords );
     } );
 
     requestLocation();

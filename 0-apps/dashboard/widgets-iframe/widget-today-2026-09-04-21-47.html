@@ -33,7 +33,7 @@
       padding: 0rem 0.45rem;
       border-radius: 999px;
       background: var(--btn-bg);
-      font-size: inherit;
+      font-size: 1rem;
       color: var(--muted);
       white-space: nowrap;
     }
@@ -62,7 +62,7 @@
     .headline .ago {
       flex-shrink: 0;
       color: var(--muted);
-      font-size: inherit;
+      font-size: 0.88rem;
       font-variant-numeric: tabular-nums;
     }
 
@@ -140,7 +140,7 @@
 
     const CACHE_KEY = "dashboard-widget-news-cache-v2";
     const REFRESH_MS = 15 * 60 * 1000;
-    const MAX_HEADLINES = 8;
+    const MAX_HEADLINES = 9;
 
     // RSS feeds don't send CORS headers, so we fetch through a public proxy
     // that does. Swap this if api.allorigins.win stops working.
