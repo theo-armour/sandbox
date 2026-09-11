@@ -85,6 +85,8 @@
 ### + Reads
 - substack https://substack.com/inbox
 - medium https://medium.com/
+- AI Rundown https://therundownai.beehiiv.com/
+- AlphaSignal https://alphasignal.ai/
 - [g](https://www.amazon.com/sendtokindle) kindle https://read.amazon.com/kindle-library
 - KindSend https://www.amazon.com/sendtokindle
 - kottke https://kottke.org
