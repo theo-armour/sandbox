@@ -128,27 +128,30 @@
 ## AI
 
 ### + AI
-- claude https://claude.ai/
+
+- [g](https://www.anthropic.com/) claude https://claude.ai/
 - [g]( https://openai.com/) chatgpt https://chatgpt.com/
 - [g]( https://deepmind.google/models/gemini-omni/prompt-guide/ ) gemini https://gemini.google.com/
 - aistudio https://aistudio.google.com/apps
+- Google labs https://labs.google/
 - copilotp https://copilot.microsoft.com/
 - grok https://x.ai/grok
 
 ### + AI Creative
-- midjourny https://www.midjourney.com/
+
+- midjourney https://www.midjourney.com/
 - > dd https://discord.com/channels/662267976984297473/@home
 - ideogram https://ideogram.ai/
 - > dd https://discord.com/channels/662267976984297473/@home
 - kaiber https://kaiber.ai
 - suno/chirp https://suno.com
+- Google Vids https://workspace.google.com/products/vids/
 
 ### - OfficeMS
 
 - ms365 https://office.com
 - onedrv https://onedrive.live.com
 - outlook https://outlook.live.com
-
 
 ## Google
 
