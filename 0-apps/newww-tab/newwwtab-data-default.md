@@ -133,7 +133,7 @@
 - [g]( https://openai.com/) chatgpt https://chatgpt.com/
 - [g]( https://deepmind.google/models/gemini-omni/prompt-guide/ ) gemini https://gemini.google.com/
 - aistudio https://aistudio.google.com/apps
-- Google labs https://labs.google/
+- google labs https://labs.google/
 - copilotp https://copilot.microsoft.com/
 - grok https://x.ai/grok
 
