@@ -5,7 +5,8 @@
 * https://lorenzolucchesi.substack.com/
 * https://medium.com/@jaxclay2007
 * https://substack.com/@jasoncarman
-
+* [Douglas](https://substack.com/@dashdotdotdashdotdot)
+  
 ## Substack
 
 * [Agnes Callard](https://substack.com/@agnescallard)
