@@ -2,9 +2,9 @@
 
 ## Friends
 
-* https://lorenzolucchesi.substack.com/
-* https://medium.com/@jaxclay2007
-* https://substack.com/@jasoncarman
+* [lorenzo](https://lorenzolucchesi.substack.com/)
+* [jaxclay2007](https://medium.com/@jaxclay2007)
+* [jasoncarman](https://substack.com/@jasoncarman) 
 * [Douglas](https://substack.com/@dashdotdotdashdotdot)
   
 ## Substack
