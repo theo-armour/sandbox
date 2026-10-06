@@ -240,6 +240,8 @@
 ## Groups
 
 ### + Groups
+
+- MarinPhilo https://www.marinphilosophicalsociety.com/
 - nextvilge https://nextvillagesf.org/
 - sensay https://sensay.io/
 - sacsem https://sacsem.net
@@ -247,7 +249,6 @@
 - groups.io https://groups.io/groups
 - ace-it.gr https://ace-it.groups.io/
 - hertge.gr https://heritage.groups.io/g/residents/messages
-
 
 ### + genealogy
 - geni https://geni.com/family-tree/index/6000000004118029730
