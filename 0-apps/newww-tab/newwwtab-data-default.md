@@ -3,8 +3,8 @@
 ## Theo
 
 ### + Theo
-- [g](https://github.com/pushme-pullyou/tootoo) tootoo https://pushme-pullyou.github.io/tootoo
 - [g](https://github.com/theo-armour/theo-armour.github.io) gT-A https://github.com/theo-armour
+- [g](https://github.com/pushme-pullyou/tootoo) tootoo https://pushme-pullyou.github.io/tootoo
 - [g](https://github.com/theo-armour/2025/) t2025 https://theo-armour.github.io/2025
 - [g](https://github.com/theo-armour/2026/) t2026 https://theo-armour.github.io/2026
 - [g](https://github.com/theo-armour/agenda) agenda https://theo-armour.github.io/agenda/
@@ -12,7 +12,7 @@
 - [g](https://github.com/theo-armour/pages) pages https://theo-armour.github.io/pages/
 - [g](https://github.com/theo-armour/sandbox/) sandbox https://theo-armour.github.io/sandbox/
 - ***
-- [g](https://github.com/theo-armour/aa/) aa https://theo-armour.github.io/aa/
+- [g](https://github.com/sflprs/) sflprs https://sflprs.github.io/
 - [g](https://github.com/theo-armour/genealogy/) genealogy https://theo-armour.github.io/genealogy/
 - [g](https://github.com/theo-armour/wikitheo/) wikitheo https://theo-armour.github.io/wikitheo/
 - [g](https://github.com/heritage-happenings/tech) hh tech https://heritage-happenings.github.io/tech/
