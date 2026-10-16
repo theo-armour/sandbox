@@ -1,6 +1,11 @@
 # Sandbox Journal
 
 
+## 2026-10-15
+
+48 Laws of Claude
+* https://substack.com/home/post/p-219945737
+
 ## 2026-06-20
 
 Boris Cherney Anthropic
