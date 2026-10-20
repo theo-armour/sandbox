@@ -105,6 +105,9 @@
 			sha: "",           // SHA of XGP.githubContent
 
 			isSyncing: false,  // True if a sync operation is in progress
+			documentTitle: "",
+			refreshBackoffMs: 15000,
+			nextRefreshAt: 0,
 
 			notesyURL: "https://theo-armour.github.io/sandbox/0-apps/notesy/notesy.html#",
 			commitMessage: "notesy: file update" // Default commit message
@@ -129,6 +132,7 @@
 			window.addEventListener("focus", requestSync); // Catch up right away when returning to a backgrounded tab/window
 
 			divContent.addEventListener('blur', requestSync);
+			divContent.addEventListener("input", updateDocumentTitle);
 
 			githubAccessToken();
 
@@ -165,6 +169,13 @@
 		function setUpdatedTooltip(date) {
 
 			aTitle.title = `Updated ${date.toLocaleString()}\nClick this menu title to reload the file`;
+
+		};
+
+		function updateDocumentTitle() {
+
+			const isDirty = divContent.innerText !== XGP.editorBaseline;
+			document.title = `${isDirty ? "* " : ""}${XGP.documentTitle || "Notesy"}`;
 
 		};
 
@@ -210,18 +221,35 @@
 
 		function onHashChange() {
 
-			XGP.hash = location.hash ? location.hash.slice(1) : XGP.hash;
+			const hash = location.hash ? location.hash.slice(1) : XGP.hash;
+			XGP.hash = "";
 
-			if (!XGP.hash.includes("/contents/")) {
+			let fileURL;
 
+			try {
+				fileURL = new URL(hash);
+			} catch {
 				divMessage.innerText = "Bad hash ~ expected a GitHub contents API URL";
 				return;
-
 			}
 
-			XGP.base = XGP.hash.split("contents")[0] + "contents/";
-			XGP.path = XGP.hash.split("contents")[1].slice(1);
+			const pathMatch = fileURL.pathname.match(/^(\/repos\/[^/]+\/[^/]+\/contents\/)(.+)$/);
+
+			if (
+				fileURL.origin !== "https://api.github.com" ||
+				fileURL.username ||
+				fileURL.password ||
+				!pathMatch
+			) {
+				divMessage.innerText = "Bad hash ~ expected a GitHub contents API URL";
+				return;
+			}
+
+			XGP.hash = fileURL.href;
+			XGP.base = `${fileURL.origin}${pathMatch[1]}`;
+			XGP.path = pathMatch[2];
 			XGP.fileName = XGP.path.split("/").pop();
+			XGP.branch = fileURL.searchParams.get("ref") || "main";
 
 			getMarkdown();
 
@@ -267,7 +295,7 @@
 
 			}
 
-			if (status !== 200 || !xhr.target.response || !xhr.target.response.content) {
+			if (status !== 200 || !xhr.target.response || typeof xhr.target.response.content !== "string") {
 
 				divMessage.innerText = `Load failed (${status}). Check file path in URL hash`;
 				return;
@@ -288,9 +316,9 @@
 
 			aTitle.href = XGP.notesyURL + XGP.hash;
 
-			spnTitle.innerHTML = XGP.hash.split("/").pop().split(".").shift();
-
-			document.title = spnTitle.innerText;
+			spnTitle.textContent = XGP.hash.split("/").pop().split(".").shift();
+			XGP.documentTitle = spnTitle.textContent;
+			updateDocumentTitle();
 
 			showLastUpdate();
 
@@ -310,6 +338,8 @@
 
 		function refreshIfServerChanged() {
 
+			if (Date.now() < XGP.nextRefreshAt) { return; }
+
 			const xhr = new XMLHttpRequest();
 
 			xhr.open("GET", XGP.hash, true);
@@ -318,7 +348,42 @@
 
 			xhr.onload = () => {
 
-				if (xhr.status !== 200 || !xhr.response || !xhr.response.content) { return; } // Background check ~ stay quiet on errors
+				const retryAfterHeader = xhr.getResponseHeader("Retry-After");
+				const rateLimitMessage = xhr.response?.message?.toLowerCase().includes("rate limit");
+				const isRateLimited = xhr.status === 429 || (
+					xhr.status === 403 &&
+					(retryAfterHeader || xhr.getResponseHeader("X-RateLimit-Remaining") === "0" || rateLimitMessage)
+				);
+
+				if (isRateLimited) {
+					const now = Date.now();
+					let delay = XGP.refreshBackoffMs;
+					const retryAfter = Number(retryAfterHeader);
+					const rateLimitReset = Number(xhr.getResponseHeader("X-RateLimit-Reset"));
+
+					if (retryAfterHeader && Number.isFinite(retryAfter) && retryAfter > 0) {
+						delay = Math.max(delay, retryAfter * 1000);
+					} else if (retryAfterHeader) {
+						const retryAt = Date.parse(retryAfterHeader);
+						if (Number.isFinite(retryAt) && retryAt > now) {
+							delay = Math.max(delay, retryAt - now);
+						}
+					}
+
+					if (Number.isFinite(rateLimitReset) && rateLimitReset * 1000 > now) {
+						delay = Math.max(delay, rateLimitReset * 1000 - now);
+					}
+
+					XGP.nextRefreshAt = now + delay;
+					XGP.refreshBackoffMs = Math.min(XGP.refreshBackoffMs * 2, 15 * 60 * 1000);
+					divMessage.innerText = `GitHub rate limited; background refresh paused until ${new Date(XGP.nextRefreshAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+					return;
+				}
+
+				if (xhr.status !== 200 || !xhr.response || typeof xhr.response.content !== "string") { return; } // Background check ~ stay quiet on errors
+
+				XGP.refreshBackoffMs = 15000;
+				XGP.nextRefreshAt = 0;
 
 				if (xhr.response.sha === XGP.sha) { return; } // No change on GitHub
 
@@ -331,6 +396,7 @@
 				XGP.githubContent = content;
 				XGP.editorBaseline = divContent.innerText;
 				XGP.sha = xhr.response.sha;
+				updateDocumentTitle();
 
 				divMessage.innerText = `Updated from GitHub T:${timeNow()} B:${content.length.toLocaleString()}`;
 
@@ -346,6 +412,10 @@
 		function requestSync() {
 			const editorContent = divContent.innerText;
 
+			if (!XGP.hash) {
+				return;
+			}
+
 			if (XGP.isSyncing) {
 				divMessage.innerText = "Sync in progress... please wait.";
 				return;
@@ -353,10 +423,6 @@
 
 			if (editorContent === XGP.editorBaseline) {
 				refreshIfServerChanged(); // No local edits ~ safe to pull any newer version from GitHub
-				return;
-			}
-
-			if (!XGP.hash) {
 				return;
 			}
 
@@ -439,6 +505,7 @@
 				if (responseStatus === 200 || responseStatus === 201) { // 200 for update, 201 for create
 					XGP.githubContent = contentToSave; // Server now holds exactly what the editor reported
 					XGP.editorBaseline = contentToSave;
+					updateDocumentTitle();
 					try {
 						const jsonResponse = JSON.parse(responseText);
 						XGP.sha = jsonResponse.content.sha; // Update SHA from server response
