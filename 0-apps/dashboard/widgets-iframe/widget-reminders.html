@@ -44,6 +44,10 @@
       { hour: 22, label: "Late evening: 10 pm - midnight", file: "late-evening-22-24.txt" },
     ];
 
+    // The period link opens the reminder in Notesy for editing on GitHub
+    const NOTESY = "../../notesy/notesy.html#";
+    const GITHUB_FOLDER = "https://api.github.com/repos/theo-armour/sandbox/contents/0-apps/dashboard/widgets-iframe/reminders/";
+
     const message = document.getElementById( "message" );
     const messageLink = document.getElementById( "message-link" );
     let currentFile = null;
@@ -56,8 +60,9 @@
       currentFile = period.file;
       message.title = `${ period.label } reminder`;
       messageLink.textContent = period.label;
-      messageLink.href = `reminders/${ period.file }`;
-      message.src = messageLink.href;
+      messageLink.href = NOTESY + GITHUB_FOLDER + period.file;
+      messageLink.title = "Edit this reminder in Notesy";
+      message.src = `reminders/${ period.file }`;
     };
 
     document.getElementById( "reload" ).addEventListener( "click", () => updateReminder( true ) );
