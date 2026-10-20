@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reminders</title>
+  <link rel="stylesheet" href="widget-base.css">
+  <style>
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: var(--text-sm);
+    }
+
+    #message {
+      width: 100%;
+      flex: 1;
+      min-height: 0;
+      border: none;
+      background: #fff;
+      color-scheme: light;
+    }
+  </style>
+</head>
+
+<body class="widget">
+  <header>
+    <a id="message-link" target="_blank" rel="noopener">Reminders</a>
+    <button id="reload">Reload</button>
+  </header>
+  <iframe id="message" title="Current reminder"></iframe>
+
+  <script>
+    const PERIODS = [
+      { hour: 0, label: "Overnight", file: "overnight-00-09.txt" },
+      { hour: 9, label: "Early morning", file: "early-morning-09-11.txt" },
+      { hour: 11, label: "Late morning", file: "late-morning-11-13.txt" },
+      { hour: 13, label: "Early afternoon", file: "early-afternoon-13-16.txt" },
+      { hour: 16, label: "Late afternoon", file: "late-afternoon-16-18.txt" },
+      { hour: 18, label: "Early evening", file: "early-evening-18-22.txt" },
+      { hour: 22, label: "Late evening", file: "late-evening-22-24.txt" },
+    ];
+
+    const message = document.getElementById( "message" );
+    const messageLink = document.getElementById( "message-link" );
+    let currentFile = null;
+
+    const updateReminder = ( force = false ) => {
+      const hour = new Date().getHours();
+      const period = PERIODS.filter( ( entry ) => entry.hour <= hour ).pop();
+      if ( !force && period.file === currentFile ) return;
+
+      currentFile = period.file;
+      message.title = `${ period.label } reminder`;
+      messageLink.textContent = period.label;
+      messageLink.href = `reminders/${ period.file }`;
+      message.src = messageLink.href;
+    };
+
+    document.getElementById( "reload" ).addEventListener( "click", () => updateReminder( true ) );
+    document.addEventListener( "visibilitychange", () => {
+      if ( document.visibilityState === "visible" ) updateReminder();
+    } );
+
+    updateReminder();
+    setInterval( updateReminder, 1000 );
+  </script>
+</body>
+
+</html>
