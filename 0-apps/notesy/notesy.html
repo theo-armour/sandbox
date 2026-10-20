@@ -98,13 +98,14 @@
 			base: "https://api.github.com/repos/theo-armour/agenda/contents/",
 			path: "1-notes.md",
 
-			branch: "main",
+			branch: "", // From ?ref= in the hash ~ empty means the repo's default branch
 
 			githubContent: "", // Raw content as of last successful load/save from GitHub
 			editorBaseline: "", // Same content as the editor reports it (innerText normalizes whitespace)
 			sha: "",           // SHA of XGP.githubContent
 
 			isSyncing: false,  // True if a sync operation is in progress
+			isPaused: false,   // True after a conflict is cancelled ~ no saves or refreshes until the next load
 			documentTitle: "",
 			refreshBackoffMs: 15000,
 			nextRefreshAt: 0,
@@ -184,7 +185,7 @@
 
 		function showLastUpdate() {
 
-			const url = XGP.base.replace("/contents/", "/commits") + `?path=${XGP.path}&sha=${XGP.branch}&per_page=1`;
+			const url = XGP.base.replace("/contents/", "/commits") + `?path=${XGP.path}${XGP.branch ? `&sha=${XGP.branch}` : ""}&per_page=1`;
 
 			const xhr = new XMLHttpRequest();
 
@@ -221,8 +222,18 @@
 
 		function onHashChange() {
 
+			const isDirty = divContent.isContentEditable && divContent.innerText !== XGP.editorBaseline;
+
+			if (isDirty && !confirm("You have unsaved edits that will be lost.\nOK = open the other file. Cancel = stay here.")) {
+
+				history.replaceState(null, "", "#" + XGP.hash); // Put the current file back in the address bar
+				return;
+
+			}
+
 			const hash = location.hash ? location.hash.slice(1) : XGP.hash;
-			XGP.hash = "";
+			XGP.hash = ""; // Pending responses for the old file see this change and are ignored
+			divContent.contentEditable = "false"; // No typing until the new file has loaded
 
 			let fileURL;
 
@@ -249,7 +260,7 @@
 			XGP.base = `${fileURL.origin}${pathMatch[1]}`;
 			XGP.path = pathMatch[2];
 			XGP.fileName = XGP.path.split("/").pop();
-			XGP.branch = fileURL.searchParams.get("ref") || "main";
+			XGP.branch = fileURL.searchParams.get("ref") || "";
 
 			getMarkdown();
 
@@ -258,9 +269,9 @@
 
 		function checkForChange(event) {
 
-			if (divContent.innerText === XGP.editorBaseline) { return; } // No real edits since load/save
+			if (!divContent.isContentEditable) { return; } // Nothing loaded that could be saved
 
-			if (!(/\.(md|txt|ini)$/i.test(XGP.hash))) return;
+			if (divContent.innerText === XGP.editorBaseline) { return; } // No real edits since load/save
 
 			event.preventDefault();
 
@@ -271,13 +282,14 @@
 
 		function getMarkdown() {
 
+			const url = XGP.hash;
 			const xhr = new XMLHttpRequest();
 
-			xhr.open("GET", XGP.hash, true);
+			xhr.open("GET", url, true);
 			xhr.setRequestHeader("Authorization", "token " + XGP.accessToken);
 			xhr.responseType = "json";
-			xhr.onload = onLoad;
-			xhr.onerror = () => { divMessage.innerText = "Load failed (network error)"; };
+			xhr.onload = (event) => { if (url === XGP.hash) { onLoad(event); } }; // Ignore if another file was opened meanwhile
+			xhr.onerror = () => { if (url === XGP.hash) { divMessage.innerText = "Load failed (network error)"; } };
 			xhr.send(null);
 
 		}
@@ -309,6 +321,8 @@
 			XGP.githubContent = content;
 			XGP.editorBaseline = divContent.innerText; // Read back so the no-change checks compare like with like
 			XGP.sha = xhr.target.response.sha;      // Set the SHA for this content
+			XGP.isPaused = false;
+			divContent.contentEditable = "true";
 
 			divMessage.innerText = `T:${timeNow()} B:${content.length.toLocaleString()}`;
 
@@ -340,13 +354,16 @@
 
 			if (Date.now() < XGP.nextRefreshAt) { return; }
 
+			const url = XGP.hash;
 			const xhr = new XMLHttpRequest();
 
-			xhr.open("GET", XGP.hash, true);
+			xhr.open("GET", url, true);
 			xhr.setRequestHeader("Authorization", "token " + XGP.accessToken);
 			xhr.responseType = "json";
 
 			xhr.onload = () => {
+
+				if (url !== XGP.hash) { return; } // Another file was opened meanwhile
 
 				const retryAfterHeader = xhr.getResponseHeader("Retry-After");
 				const rateLimitMessage = xhr.response?.message?.toLowerCase().includes("rate limit");
@@ -412,8 +429,8 @@
 		function requestSync() {
 			const editorContent = divContent.innerText;
 
-			if (!XGP.hash) {
-				return;
+			if (!XGP.hash || !divContent.isContentEditable || XGP.isPaused) {
+				return; // No file loaded, still loading, or paused after a cancelled conflict
 			}
 
 			if (XGP.isSyncing) {
@@ -435,12 +452,18 @@
 			divMessage.innerText = `Syncing ${XGP.fileName}...`;
 
 			// Step 1: Get the latest SHA for the file
+			const url = XGP.hash; // Every step of this save targets this file, even if another is opened meanwhile
 			const getShaXhr = new XMLHttpRequest();
-			getShaXhr.open("GET", XGP.hash, true);
+			getShaXhr.open("GET", url, true);
 			getShaXhr.setRequestHeader("Authorization", "token " + XGP.accessToken);
 			getShaXhr.responseType = "json";
 
 			getShaXhr.onload = () => {
+				if (url !== XGP.hash) { // Another file was opened meanwhile ~ its edits were discarded
+					XGP.isSyncing = false;
+					return;
+				}
+
 				if (getShaXhr.status === 200) {
 
 					// Guard: warn before overwriting changes made on GitHub since last load/save
@@ -451,8 +474,7 @@
 						if (!confirm(`${XGP.fileName} has changed on GitHub since this copy was loaded.\nOK = overwrite GitHub. Cancel = pause autosave so you can copy your edits and reload.`)) {
 
 							XGP.isSyncing = false;
-							clearInterval(XGP.saveInterval);
-							XGP.saveInterval = null;
+							XGP.isPaused = true; // Also stops blur/focus syncs, not just the timer
 							divMessage.innerText = "Save cancelled ~ autosave paused. Reload to get the GitHub version";
 							return;
 
@@ -460,7 +482,7 @@
 					}
 
 					XGP.sha = getShaXhr.response.sha; // Update SHA to the latest
-					doPutContent(editorContent); // Proceed to save with the fresh SHA
+					doPutContent(editorContent, url); // Proceed to save with the fresh SHA
 				} else {
 					// responseText is unavailable when responseType is "json"
 					XGP.isSyncing = false;
@@ -470,22 +492,26 @@
 			};
 
 			getShaXhr.onerror = () => {
+				XGP.isSyncing = false;
+				if (url !== XGP.hash) { return; }
 				alert("Network error while trying to get file version from GitHub. Cannot save.");
 				divMessage.innerText = "Network error (SHA fetch). Sync failed.";
-				XGP.isSyncing = false;
 			};
 
 			getShaXhr.send(null);
 		}
 
-		function doPutContent(contentToSave) {
+		function doPutContent(contentToSave, url) {
 			const codedData = encodeBase64(contentToSave);
 
 			const bodyPayload = {
-				"branch": XGP.branch,
 				"content": codedData,
 				"message": `${XGP.commitMessage} (${XGP.fileName})`
 			};
+
+			if (XGP.branch) {
+				bodyPayload.branch = XGP.branch; // Omitted = repo's default branch
+			}
 
 			if (XGP.sha) {
 				bodyPayload.sha = XGP.sha;
@@ -494,11 +520,16 @@
 			const body = JSON.stringify(bodyPayload);
 
 			const putXhr = new XMLHttpRequest();
-			putXhr.open("PUT", XGP.hash, true);
+			putXhr.open("PUT", url, true);
 			putXhr.setRequestHeader("Authorization", "token " + XGP.accessToken);
 			putXhr.setRequestHeader("Content-Type", "application/json");
 
 			putXhr.onload = () => {
+				if (url !== XGP.hash) { // Another file was opened meanwhile ~ don't touch its state
+					XGP.isSyncing = false;
+					return;
+				}
+
 				const responseStatus = putXhr.status;
 				const responseText = putXhr.responseText;
 
@@ -526,8 +557,9 @@
 			};
 
 			putXhr.onerror = () => {
-				divMessage.innerText = "Save failed (network error)";
 				XGP.isSyncing = false;
+				if (url !== XGP.hash) { return; }
+				divMessage.innerText = "Save failed (network error)";
 			};
 
 			putXhr.send(body);

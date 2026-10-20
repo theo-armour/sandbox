@@ -32,6 +32,15 @@ Canonical home since 2026-06-12. Earlier dated versions remain in <a href="https
 
 ## Change Log
 
+### 2026-10-19
+
+* Fix: switching files with unsaved edits now asks first
+* Fix: editor is read-only while a file loads ~ typing can't be overwritten by the load
+* Fix: responses for a previous file are ignored ~ a save in flight can't land on the newly opened file
+* Fix: unsaved-changes warning now works on `?ref=` branch URLs
+* Fix: cancelling a conflict pauses blur/focus syncs too, not just the timer
+* Fix: no `?ref=` now means the repo's default branch, not `main` ~ saves work on `master` repos
+
 ### 2026-06-12
 
 * Fix: failed save no longer locks up syncing ~ error path threw on `responseText`; `isSyncing` now always resets

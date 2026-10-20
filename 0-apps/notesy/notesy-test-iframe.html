@@ -114,9 +114,15 @@
 			<li>Save: type on the left, wait for “Saved:” ~ the right shows “Updated from GitHub”</li>
 			<li>Conflict: type on both sides within one autosave tick ~ the slower side prompts;
 				Cancel pauses its autosave, OK overwrites</li>
+			<li>Paused: after Cancel, click in and out of that side ~ the conflict prompt does not return</li>
+			<li>Load lock: right after “🔄 reload both”, typing does nothing until the file appears</li>
+			<li>Branch URL: open with <code>#…/test.md?ref=main</code>, edit, close the tab ~ the unsaved-edits warning appears</li>
+			<li>File switch: can't be tested here (a hash change reloads the whole harness) ~ in notesy.html alone,
+				edit, then change the hash ~ it asks before discarding; Cancel keeps the edits and the old hash</li>
 			<li>Bad hash: open with <code>#foo</code> ~ “Bad hash” message, no console error</li>
 			<li>Token: hit “🔑 test token” ~ shows the user, scopes, write access and rate limit, or flags a bad token</li>
-			<li>Rate limit: hit “💥 burst write” ~ one 200, many 409 conflicts; raise the count until a 403 appears</li>
+			<li>Rate limit: hit “💥 burst write” ~ one 200, many 409 conflicts; raise the count until a 403 appears;
+				the file keeps its text with one “burst write” line at the end</li>
 			<li>Bad token: run <code>localStorage.setItem("githubAccessToken","bad")</code>, then “🔑 test token”
 				flags 401; reloading an instance shows “Load failed (401)” and clears it for re-entry</li>
 		</ul>
@@ -244,6 +250,20 @@
 
 			burstResult.innerText = `Firing ${count} writes…`;
 
+			try {
+
+				await runBurst(count, headers);
+
+			} catch (err) {
+
+				burstResult.innerText = "❌ Network error ~ " + err.message;
+
+			}
+
+		}
+
+		async function runBurst(count, headers) {
+
 			const getRes = await fetch(testFile, { headers });
 
 			if (!getRes.ok) {
@@ -253,8 +273,14 @@
 
 			}
 
-			const sha = (await getRes.json()).sha;
+			const file = await getRes.json();
+			const sha = file.sha;
 			const stamp = new Date().toISOString();
+
+			// Keep the file's text ~ only the last "burst write" line is replaced each run
+			const original = decodeURIComponent(escape(atob(file.content)))
+				.replace(/\s*burst write \d+ of \d+ at \S+\s*$/, "")
+				.trimEnd();
 
 			const writes = Array.from({ length: count }, (_, i) =>
 
@@ -263,7 +289,7 @@
 					headers: { ...headers, "Content-Type": "application/json" },
 					body: JSON.stringify({
 						message: `notesy burst test ${i + 1}/${count}`,
-						content: btoa(`burst write ${i + 1} of ${count} at ${stamp}\n`),
+						content: btoa(unescape(encodeURIComponent(`${original}\n\nburst write ${i + 1} of ${count} at ${stamp}\n`))),
 						sha: sha,
 						branch: "main"
 					})
@@ -336,6 +362,13 @@
 			for (const ifr of [ifrLeft, ifrRight]) {
 
 				const win = ifr.contentWindow;
+
+				if (!win.XGP) {
+
+					btnSpeedUp.innerText = "⏩ frames still loading ~ try again";
+					return;
+
+				}
 
 				win.clearInterval(win.XGP.saveInterval);
 				win.XGP.saveInterval = win.setInterval(win.requestSync, 2000);

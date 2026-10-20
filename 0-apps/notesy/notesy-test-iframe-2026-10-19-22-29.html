@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="Notesy test harness ~ two instances side by side sharing one scratch file">
+	<meta name="date" content="2026-06-12">
+
+	<title>Notesy Test Harness</title>
+
+	<style>
+		:root {
+			--border: 1px solid #ccc;
+			--gap: 0.5rem;
+		}
+
+		body {
+			font: 100% monospace;
+			margin: var(--gap);
+		}
+
+		h1 {
+			font-size: 120%;
+			margin: 0;
+		}
+
+		p {
+			margin: 0.25rem 0;
+		}
+
+		main {
+			display: flex;
+			gap: var(--gap);
+		}
+
+		iframe {
+			border: var(--border);
+			flex: 1;
+			height: 70vh;
+			width: 50%;
+		}
+
+		button {
+			cursor: pointer;
+			font: inherit;
+		}
+
+		summary {
+			cursor: pointer;
+		}
+
+		#tokenResult,
+		#burstResult {
+			white-space: pre-wrap;
+		}
+
+		#burstCount {
+			font: inherit;
+			width: 4rem;
+		}
+	</style>
+
+</head>
+
+<body>
+
+	<header>
+
+		<h1>🧪 Notesy Test Harness</h1>
+
+		<p>Two instances of <a href="notesy.html">notesy.html</a> share one scratch file: <b id=spnFile></b></p>
+
+		<p>Edit one side ~ the other shows “Updated from GitHub” within 15 seconds (sooner on click).
+			Edit both sides quickly to trigger the conflict prompt.</p>
+
+		<p>
+			<button id=btnReload>🔄 reload both</button>
+			<button id=btnSpeedUp>⏩ 2-second autosave</button>
+			~ or open another file via the hash:
+			<code>#https://api.github.com/repos/owner/repo/contents/path</code>
+		</p>
+
+		<p>
+			<button id=btnTestToken>🔑 test token</button>
+			<button id=btnClearToken>🗑️ clear token</button>
+			<span id=tokenResult></span>
+		</p>
+
+		<p>
+			<button id=btnBurst>💥 burst write</button>
+			<input id=burstCount type=number value=15 min=2 max=100>
+			rapid concurrent writes to the scratch file ~ tests conflicts (409) and GitHub's rate limit (403).
+			Uses ~that many of your hourly 5,000 and may briefly trip the secondary limit (~1 min).
+			<span id=burstResult></span>
+		</p>
+
+	</header>
+
+	<main>
+
+		<iframe id=ifrLeft src="notesy.html"></iframe>
+		<iframe id=ifrRight src="notesy.html"></iframe>
+
+	</main>
+
+	<details>
+
+		<summary>📋 Test checklist</summary>
+
+		<ul>
+			<li>Load: file title, byte count, tooltip on the title shows the last commit time</li>
+			<li>No phantom saves: touch nothing for a minute ~ no new commits appear on GitHub</li>
+			<li>Save: type on the left, wait for “Saved:” ~ the right shows “Updated from GitHub”</li>
+			<li>Conflict: type on both sides within one autosave tick ~ the slower side prompts;
+				Cancel pauses its autosave, OK overwrites</li>
+			<li>Bad hash: open with <code>#foo</code> ~ “Bad hash” message, no console error</li>
+			<li>Token: hit “🔑 test token” ~ shows the user, scopes, write access and rate limit, or flags a bad token</li>
+			<li>Rate limit: hit “💥 burst write” ~ one 200, many 409 conflicts; raise the count until a 403 appears</li>
+			<li>Bad token: run <code>localStorage.setItem("githubAccessToken","bad")</code>, then “🔑 test token”
+				flags 401; reloading an instance shows “Load failed (401)” and clears it for re-entry</li>
+		</ul>
+
+	</details>
+
+	<script>
+		// copyright 2026 Theo Armour. MIT license.
+
+		// Scratch file ~ safe to scribble on
+		const testFile = "https://api.github.com/repos/theo-armour/sandbox/contents/test.md";
+
+		const fileURL = location.hash ? location.hash.slice(1) : testFile;
+
+		init();
+
+		function init() {
+
+			spnFile.innerText = fileURL.split("/contents/").pop();
+
+			// Notesy instances inside iframes wait for the parent to call init()
+			ifrLeft.onload = () => ifrLeft.contentWindow.init(fileURL);
+			ifrRight.onload = () => ifrRight.contentWindow.init(fileURL);
+
+			// Reload rather than re-init ~ re-calling init() would stack duplicate listeners and timers
+			window.addEventListener("hashchange", () => location.reload());
+
+			btnReload.addEventListener("click", reloadFrames);
+			btnSpeedUp.addEventListener("click", speedUpAutosave);
+			btnTestToken.addEventListener("click", testToken);
+			btnClearToken.addEventListener("click", clearToken);
+			btnBurst.addEventListener("click", burstTest);
+
+		}
+
+		// notesy stores the PAT here ~ same key the editor reads
+		const tokenKey = "githubAccessToken";
+
+		const repo = "theo-armour/sandbox"; // Repo behind the scratch file ~ checked for push access
+
+		async function testToken() {
+
+			const token = localStorage.getItem(tokenKey);
+
+			if (!token || token === "null") {
+
+				tokenResult.innerText = "⚠️ No token stored ~ reload an instance to be prompted";
+				return;
+
+			}
+
+			tokenResult.innerText = "Testing…";
+
+			const headers = { Authorization: "token " + token };
+
+			try {
+
+				// Step 1: is the token valid, and who does it belong to?
+				const userRes = await fetch("https://api.github.com/user", { headers });
+
+				if (userRes.status === 401) {
+
+					tokenResult.innerText = "❌ Token rejected (401) ~ invalid or expired";
+					return;
+
+				}
+
+				if (!userRes.ok) {
+
+					tokenResult.innerText = `❌ /user returned ${userRes.status}`;
+					return;
+
+				}
+
+				const user = await userRes.json();
+				const scopes = userRes.headers.get("x-oauth-scopes") || "(none listed ~ fine-grained token)";
+				const remaining = userRes.headers.get("x-ratelimit-remaining");
+
+				// Step 2: can this token actually write to the scratch repo?
+				const repoRes = await fetch(`https://api.github.com/repos/${repo}`, { headers });
+				const canPush = repoRes.ok ? (await repoRes.json()).permissions?.push : null;
+				const writeLine = repoRes.ok
+					? (canPush ? `✅ can write to ${repo}` : `❌ no write access to ${repo}`)
+					: `⚠️ could not read ${repo} (${repoRes.status})`;
+
+				tokenResult.innerText =
+					`✅ valid ~ user: ${user.login}\n` +
+					`scopes: ${scopes}\n` +
+					writeLine + `\n` +
+					`rate limit remaining: ${remaining}`;
+
+			} catch (err) {
+
+				tokenResult.innerText = "❌ Network error ~ " + err.message;
+
+			}
+
+		}
+
+		function clearToken() {
+
+			localStorage.removeItem(tokenKey);
+			tokenResult.innerText = "🗑️ Token cleared ~ reload an instance to enter a new one";
+
+		}
+
+
+		// Fire many writes at once to see how the scratch file and GitHub's limits respond.
+		// All PUTs share one SHA: exactly one wins (200), the rest conflict (409),
+		// and the rapid concurrency is what can trip a 403 secondary rate limit.
+
+		async function burstTest() {
+
+			const token = localStorage.getItem(tokenKey);
+
+			if (!token || token === "null") {
+
+				burstResult.innerText = "⚠️ No token stored ~ reload an instance to be prompted";
+				return;
+
+			}
+
+			const count = Math.min(Math.max(Number(burstCount.value) || 15, 2), 100);
+			const headers = { Authorization: "token " + token };
+
+			burstResult.innerText = `Firing ${count} writes…`;
+
+			const getRes = await fetch(testFile, { headers });
+
+			if (!getRes.ok) {
+
+				burstResult.innerText = `❌ could not read the scratch file (${getRes.status})`;
+				return;
+
+			}
+
+			const sha = (await getRes.json()).sha;
+			const stamp = new Date().toISOString();
+
+			const writes = Array.from({ length: count }, (_, i) =>
+
+				fetch(testFile, {
+					method: "PUT",
+					headers: { ...headers, "Content-Type": "application/json" },
+					body: JSON.stringify({
+						message: `notesy burst test ${i + 1}/${count}`,
+						content: btoa(`burst write ${i + 1} of ${count} at ${stamp}\n`),
+						sha: sha,
+						branch: "main"
+					})
+				}).then(async res => {
+
+					const out = {
+						status: res.status,
+						retryAfter: res.headers.get("retry-after"),
+						remaining: res.headers.get("x-ratelimit-remaining")
+					};
+
+					if (res.status === 403 || res.status === 429) {
+
+						out.message = (await res.json().catch(() => ({}))).message || "";
+
+					}
+
+					return out;
+
+				})
+
+			);
+
+			const start = performance.now();
+			const results = await Promise.all(writes);
+			const ms = Math.round(performance.now() - start);
+
+			// Tally by status code
+			const tally = {};
+			let limited = null;
+
+			for (const r of results) {
+
+				tally[r.status] = (tally[r.status] || 0) + 1;
+				if (r.status === 403 || r.status === 429) { limited = r; }
+
+			}
+
+			const counts = Object.keys(tally).sort()
+				.map(code => `${code}×${tally[code]}`).join("  ");
+
+			const lines = [`${count} writes in ${ms}ms`, counts];
+
+			if (limited) {
+
+				const wait = limited.retryAfter ? ` (Retry-After ${limited.retryAfter}s)` : "";
+				lines.push(`⚠️ rate limited${wait} ~ "${limited.message}"`);
+
+			} else {
+
+				lines.push("no rate limiting hit ~ raise the count to push harder");
+
+			}
+
+			lines.push(`hourly quota remaining: ${results[0].remaining}`);
+
+			burstResult.innerText = lines.join("\n");
+
+		}
+
+		function reloadFrames() {
+
+			ifrLeft.contentWindow.location.reload();
+			ifrRight.contentWindow.location.reload();
+
+		}
+
+		function speedUpAutosave() {
+
+			for (const ifr of [ifrLeft, ifrRight]) {
+
+				const win = ifr.contentWindow;
+
+				win.clearInterval(win.XGP.saveInterval);
+				win.XGP.saveInterval = win.setInterval(win.requestSync, 2000);
+
+			}
+
+			btnSpeedUp.innerText = "⏩ 2-second autosave ~ on";
+
+		}
+
+	</script>
+
+</body>
+
+</html>
