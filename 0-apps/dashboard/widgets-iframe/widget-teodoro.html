@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-07-09 15:33">
+  <meta name="revised" content="2026-10-20 23:24">
   <title>Teodoro Timer</title>
   <link rel="stylesheet" href="widget-base.css">
   <style>
@@ -70,6 +70,11 @@
       grid-template-columns: repeat(4, 1fr);
       gap: clamp(0.25rem, 2vw, 0.5rem);
       width: 100%;
+    }
+
+    .preset.active {
+      color: var(--accent);
+      box-shadow: inset 0 0 0 2px var(--accent);
     }
 
     #audio-controls {
@@ -171,7 +176,9 @@
     let intervalId = null;
     let isRunning = false;
     let isOvertime = false;
-    let currentPreset = 300;
+    let currentPreset = parseInt( localStorage.getItem( "teodoro-preset" ), 10 ) || 300;
+    let endTime = 0; // Date.now() value when the countdown reaches zero
+    let halfwayPlayed = false;
     let audioCtx = null;
     let isMuted = false;
     let wakeLock = null;
@@ -299,29 +306,32 @@
       });
     };
 
+    // Times are worked out from endTime, so slowed-down background ticks never lose seconds
     const tick = () => {
+      const now = Date.now();
+
       if ( isOvertime ) {
-        overtimeSeconds++;
+        overtimeSeconds = Math.min( 720, Math.floor( ( now - endTime ) / 1000 ) );
         updateDisplay();
         if ( overtimeSeconds >= 720 ) {
           clearInterval( intervalId );
           intervalId = null;
           isRunning = false;
-          btnPause.textContent = "Restart";
+          btnPause.textContent = "Reset";
           stream.pause();
           releaseWakeLock();
         }
         return;
       }
 
-      remainingTime--;
+      remainingTime = Math.ceil( ( endTime - now ) / 1000 );
 
       if ( remainingTime <= 0 ) {
         remainingTime = 0;
         isOvertime = true;
-        overtimeSeconds = 0;
+        overtimeSeconds = Math.floor( ( now - endTime ) / 1000 );
         updateDisplay();
-        btnPause.textContent = "Restart";
+        btnPause.textContent = "Reset";
         playCompletionChime(); // Play reliable Web Audio chime
         notifyCompletion();
         stream.play().catch( ( e ) => console.error( "Audio play failed:", e ) );
@@ -330,7 +340,8 @@
 
       updateDisplay();
 
-      if ( remainingTime === Math.floor( totalTime / 2 ) && totalTime > 1 ) {
+      if ( !halfwayPlayed && totalTime > 1 && remainingTime <= Math.floor( totalTime / 2 ) ) {
+        halfwayPlayed = true;
         playHalfwayChime();
       }
     };
@@ -345,12 +356,14 @@
       overtimeSeconds = 0;
       remainingTime = seconds;
       totalTime = seconds;
+      halfwayPlayed = false;
       updateDisplay();
 
       if ( seconds > 0 ) {
         isRunning = true;
         btnPause.textContent = "Pause";
-        intervalId = setInterval( tick, 1000 );
+        endTime = Date.now() + seconds * 1000;
+        intervalId = setInterval( tick, 250 );
         initAudioCtx();
         acquireWakeLock();
         requestNotifyPermission();
@@ -360,9 +373,31 @@
       }
     };
 
+    // Stop everything and return to the preset, ready to Start
+    const resetTimer = () => {
+      clearInterval( intervalId );
+      intervalId = null;
+      isRunning = false;
+      stream.pause();
+      releaseWakeLock();
+
+      isOvertime = false;
+      overtimeSeconds = 0;
+      remainingTime = currentPreset > 0 ? currentPreset : 300;
+      totalTime = remainingTime;
+      halfwayPlayed = false;
+      updateDisplay();
+      btnPause.textContent = "Start";
+    };
+
     const togglePause = () => {
       initAudioCtx();
       requestNotifyPermission();
+
+      if ( btnPause.textContent === "Reset" ) {
+        resetTimer();
+        return;
+      }
 
       if ( btnPause.textContent === "Restart" || totalTime === 0 ) {
         startTimer( currentPreset > 0 ? currentPreset : 300 );
@@ -373,22 +408,28 @@
         clearInterval( intervalId );
         intervalId = null;
         isRunning = false;
+        remainingTime = Math.ceil( ( endTime - Date.now() ) / 1000 );
+        updateDisplay();
         btnPause.textContent = "Resume";
         stream.pause();
         releaseWakeLock();
       } else {
         isRunning = true;
         btnPause.textContent = "Pause";
-        intervalId = setInterval( tick, 1000 );
+        endTime = Date.now() + remainingTime * 1000;
+        intervalId = setInterval( tick, 250 );
         acquireWakeLock();
       }
     };
 
     const adjustTime = ( deltaSec ) => {
       if ( isOvertime ) return;
+      if ( isRunning ) remainingTime = Math.ceil( ( endTime - Date.now() ) / 1000 );
       remainingTime += deltaSec;
       if ( remainingTime < 0 ) remainingTime = 0;
       totalTime = remainingTime;
+      endTime = Date.now() + remainingTime * 1000;
+      halfwayPlayed = false;
       updateDisplay();
 
       if ( remainingTime > 0 && btnPause.textContent === "Restart" ) {
@@ -403,16 +444,25 @@
       }
     };
 
+    // Highlight the preset that matches currentPreset
+    const markActivePreset = () => {
+      presets.forEach( ( btn ) => {
+        btn.classList.toggle( "active", parseInt( btn.dataset.sec, 10 ) === currentPreset );
+      } );
+    };
+
     // Preset buttons
     presets.forEach( ( btn ) => {
       btn.addEventListener( "click", () => {
         const sec = parseInt( btn.dataset.sec, 10 );
         currentPreset = sec;
+        localStorage.setItem( "teodoro-preset", sec );
+        markActivePreset();
         startTimer( sec );
       } );
     } );
 
-    // Pause / Resume / Restart
+    // Pause / Resume / Restart / Reset
     btnPause.addEventListener( "click", togglePause );
 
     // +/- time adjustment
@@ -455,6 +505,10 @@
         }
       } )
     );
+
+    // Show the remembered preset, ready to Start
+    markActivePreset();
+    resetTimer();
 
   </script>
 
