@@ -18,8 +18,8 @@
 - [g](https://github.com/heritage-happenings/tech) hh tech https://heritage-happenings.github.io/tech/
 
 ### - orgs
-- [g](https://github.com/theo-armour/qdata/tree/master/apps/trayo) trayo https://theo-armour.github.io/qdata/apps/trayo/
-- [g](https://github.com/theo-armour/qdata/tree/master/apps/notesy) days https://theo-armour.github.io/qdata/apps/notesy/days.html
+- [g](https://github.com/theo-armour/qdata/tree/main/apps/trayo) trayo https://theo-armour.github.io/qdata/apps/trayo/
+- [g](https://github.com/theo-armour/qdata/tree/main/apps/notesy) days https://theo-armour.github.io/qdata/apps/notesy/days.html
 - [g](https://github.com/evereverland/) evrevrlnd https://evereverland.github.io/
 - [g](https://github.com/evereverland/2019/) 2019 https://evereverland.github.io/2019
 - [g](https://github.com/pushme-pullyou/) PshPll https://pushme-pullyou.github.io/
@@ -34,15 +34,15 @@
 - >pp Assets https://vscode.dev/github/pushme-pullyou/assets/
 
 ### - ta apps
-- [g](https://github.com/theo-armour/sandbox/0-apps/newww-tab) newTab https://theo-armour.github.io/sandbox/0-apps/newww-tab/
-- [g](https://github.com/theo-armour/sandbox/gemini/cookbook/newww-tab/index.html) old-tab https://theo-armour.github.io/sandbox/gemini/cookbook/newww-tab/index.html
+- [g](https://github.com/theo-armour/sandbox/tree/main/0-apps/newww-tab) newTab https://theo-armour.github.io/sandbox/0-apps/newww-tab/
+- [g](https://github.com/theo-armour/sandbox/tree/main/gemini/cookbook/newww-tab) old-tab https://theo-armour.github.io/sandbox/gemini/cookbook/newww-tab/index.html
 
 - [g](https://github.com/theo-armour/sandbox/tree/main/0-apps/dashboard/widgets-iframe/index.html) dashboard https://theo-armour.github.io/sandbox/0-apps/dashboard/widgets-iframe/index.html
 
-- [g](https://github.com/theo-armour/sandbox/tree/main/0-apps/iframe-stuff) ifrStuff https://theo-armour.github.io/sandbox/0-apps/iframe-stuff/
+- [g](https://github.com/theo-armour/qdata/tree/main/apps/iframe-stuff) ifrStuff https://theo-armour.github.io/qdata/apps/iframe-stuff/
 
-- [g](https://github.com/theo-armour/qdata/tree/master/apps/notesy) notesy https://theo-armour.github.io/qdata/apps/notesy
-- [g](https://github.com/theo-armour/qdata/tree/master/apps/teodori) teodori https://theo-armour.github.io/qdata/apps/teodori
+- [g](https://github.com/theo-armour/qdata/tree/main/apps/notesy) notesy https://theo-armour.github.io/qdata/apps/notesy
+- [g](https://github.com/theo-armour/qdata/tree/main/apps/teodori) teodori https://theo-armour.github.io/qdata/apps/teodori
 
 ### - demos
 - bizcard https://theo-armour.github.io/2024/about/theo-business-card.html
@@ -57,10 +57,9 @@
 - 2025 file:///G:/My%20Drive/2026-theo-github/theo-armour-2025/index.html
 - 2026 file:///G:/My%20Drive/2026-theo-github/theo-armour-2026/index.html
 - agenda file:///G:/My%20Drive/2026-theo-github/theo-armour-agenda/index.html
-- agenda file:///G:/My%20Drive/2026-theo-github/theo-armour-agenda/index.html
 - pages file:///G:/My%20Drive/2026-theo-github/theo-armour-pages/index.html
 - qdata file:///G:/My%20Drive/2026-theo-github/theo-armour-qdata/index.html
-- sandbox file:///g%3A/My%20Drive/2026-theo-github/theo-armour-sandbox/index.html
+- sandbox file:///G:/My%20Drive/2026-theo-github/theo-armour-sandbox/index.html
 - ***
 - aa file:///G:/My%20Drive/2026-theo-github/theo-armour-aa/index.html
 - genealogy file:///G:/My%20Drive/2026-theo-github/theo-armour-genealogy/index.html
@@ -286,7 +285,7 @@
 ## Snippets & Orgs
 
 ### + Snips & Orgs
-- [g](https://github.com/theo-armour/sandbox/tree/master/0-apps/notesy/notesy.html) notesy https://theo-armour.github.io/sandbox/0-apps/notesy/notesy.html
+- [g](https://github.com/theo-armour/sandbox/tree/main/0-apps/notesy/notesy.html) notesy https://theo-armour.github.io/sandbox/0-apps/notesy/notesy.html
 - read me https://theo-armour.github.io/sandbox/0-apps/notesy/notesy.html#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/README.md
 - Art2Write https://theo-armour.github.io/sandbox/0-apps/notesy/notesy.html#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/articles-to-write-video.md
 - Inspiration https://theo-armour.github.io/sandbox/0-apps/notesy/notesy.html#https://api.github.com/repos/theo-armour/pages/contents/00-snippets/inspirations-sources.md
@@ -306,7 +305,7 @@
 - konturno https://konturno.github.io/
 - gh https://github.com/konturno/konturno.github.io/
 - 2023 https://konturno.github.io/2023
-- gh https://github.com/konturno/konturno.github.io/2023
+- gh https://github.com/konturno/2023
 - eel 19 https://evereverland.github.io/2019
 - gh https://github.com/evereverland/2019
 - eel 22 https://evereverland.github.io

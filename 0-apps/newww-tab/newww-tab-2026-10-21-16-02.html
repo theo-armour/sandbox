@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="revised" content="2026-05-30 10:48">
+  <title>NewwwTab</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #222;
+      --muted: #888;
+      --accent: #0366d6;
+      --card-bg: #fff;
+      --card-border: #e1e4e8;
+      --summary-bg: #f3f4f6;
+      --summary-fg: #24292e;
+      --hover-bg: #eef3fb;
+      --gh-bg: #eaecef;
+      --gh-fg: #586069;
+      --col-width: 6.75rem;
+      --gap: 0.3rem;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0d1117;
+        --fg: #c9d1d9;
+        --muted: #8b949e;
+        --accent: #58a6ff;
+        --card-bg: #161b22;
+        --card-border: #30363d;
+        --summary-bg: #21262d;
+        --summary-fg: #c9d1d9;
+        --hover-bg: #1f2a3a;
+        --gh-bg: #30363d;
+        --gh-fg: #8b949e;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 135%;
+    }
+
+    body {
+      margin: 0;
+      padding: 0 0.5rem;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.15;
+    }
+
+    h1 {
+      font-size: 1rem;
+      margin: 0 0 0.25rem;
+      font-weight: 600;
+      color: var(--muted);
+      line-height: 1;
+      display: flex;
+      gap: 0.5rem;
+      align-items: baseline;
+    }
+
+    h1 a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    h1 a:hover {
+      text-decoration: underline;
+    }
+
+    h1 .src {
+      font-weight: 400;
+      font-size: 0.8rem;
+    }
+
+    #board {
+      display: flex;
+      flex-direction: row;
+      gap: var(--gap);
+      align-items: flex-start;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+
+    .column {
+      flex: 0 0 var(--col-width);
+      display: flex;
+      flex-direction: column;
+      gap: 0; /* var(--gap); */
+    }
+
+    .column>h2 {
+      display: none;
+    }
+
+    details.section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    details.section>summary {
+      background: var(--summary-bg);
+      color: var(--summary-fg);
+      padding: 0rem 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+      font-size: 0.75rem;
+
+    }
+
+    details.section>summary::-webkit-details-marker {
+      display: none;
+    }
+
+    details.section>summary::before {
+      content: "▾";
+      display: inline-block;
+      width: 1.2rem;
+      font-size: 1.4rem;
+      line-height: 0.8;
+      vertical-align: -0.25rem;
+      color: var(--muted);
+      transition: transform 0.15s;
+    }
+
+    details.section:not([open])>summary::before {
+      transform: rotate(-90deg);
+    }
+
+    ul.links {
+      list-style: none;
+      margin: 0;
+      padding: 0.25rem 0;
+    }
+
+    ul.links li {
+      padding: 0.15rem 0.6rem;
+      display: flex;
+      align-items: baseline;
+      gap: 0.35rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    ul.links li:hover {
+      background: var(--hover-bg);
+    }
+
+    ul.links a {
+      color: var(--accent);
+      text-decoration: none;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    ul.links a:hover {
+      text-decoration: underline;
+    }
+
+    a.gh {
+      display: inline-block;
+      background: var(--gh-bg);
+      color: var(--gh-fg);
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0 0.3rem;
+      border-radius: 3px;
+      text-decoration: none;
+      line-height: 1.1rem;
+      flex: 0 0 auto;
+    }
+
+    a.gh:hover {
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    #error {
+      color: #c00;
+      padding: 1rem;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>
+    <a class="src" href="https://github.com/theo-armour/sandbox/tree/main/0-apps/newww-tab" target="_blank"
+      rel="noopener" title="View source on GitHub" aria-label="View source on GitHub">
+      <svg viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor" aria-hidden="true">
+        <path
+          d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+      </svg>
+    </a>
+    <a href="" title="Reload">NewwwTab</a>
+  </h1>
+  <div id="board"></div>
+  <div id="error"></div>
+
+  <script>
+    const DATA_URL = 'newwwtab-data-default.md';
+
+    const parseMarkdown = ( text ) => {
+      const lines = text.split( /\r?\n/ );
+      const columns = [];
+      let currentColumn = null;
+      let currentSection = null;
+
+      for ( const raw of lines ) {
+        const line = raw.replace( /\s+$/, '' );
+        if ( !line ) continue;
+
+        const h2 = line.match( /^##\s+(.+)$/ );
+        const h3 = line.match( /^###\s+(.+)$/ );
+        const item = line.match( /^\s*-\s+(.+)$/ );
+
+        if ( h2 && !h3 ) {
+          currentColumn = { title: h2[ 1 ].trim(), sections: [] };
+          columns.push( currentColumn );
+          currentSection = null;
+          continue;
+        }
+        if ( h3 ) {
+          if ( !currentColumn ) {
+            currentColumn = { title: '', sections: [] };
+            columns.push( currentColumn );
+          }
+          const rawTitle = h3[ 1 ].trim();
+          const marker = rawTitle.match( /^([+\-])\s+(.*)$/ );
+          const open = marker ? marker[ 1 ] === '+' : true;
+          const title = marker ? marker[ 2 ].trim() : rawTitle;
+          currentSection = { title, items: [], open };
+          currentColumn.sections.push( currentSection );
+          continue;
+        }
+        if ( item && currentSection ) {
+          currentSection.items.push( parseItem( item[ 1 ] ) );
+        }
+      }
+
+      return columns;
+    };
+
+    const parseItem = ( text ) => {
+      // Match leading [x](url) prefix, where x is any single letter
+      const gh = text.match( /^\[([a-zA-Z])\]\(([^)]+)\)\s+(.+)$/ );
+      let ghUrl = null;
+      let ghLabel = null;
+      let rest = text;
+      if ( gh ) {
+        ghLabel = gh[ 1 ];
+        ghUrl = gh[ 2 ].trim();
+        rest = gh[ 3 ];
+      }
+
+      // Find last whitespace-separated token that looks like a URL
+      const urlMatch = rest.match( /^(.*\S)\s+(\S+:\/\/\S+)\s*$/ );
+      let name, url;
+      if ( urlMatch ) {
+        name = urlMatch[ 1 ].trim();
+        url = urlMatch[ 2 ].trim();
+      } else {
+        // Fallback: maybe the whole rest is a URL, or name with no URL
+        const bare = rest.match( /^(\S+:\/\/\S+)\s*$/ );
+        if ( bare ) {
+          name = bare[ 1 ];
+          url = bare[ 1 ];
+        } else {
+          name = rest.trim();
+          url = null;
+        }
+      }
+
+      return { ghUrl, ghLabel, name, url };
+    };
+
+    const render = ( columns ) => {
+      const board = document.getElementById( 'board' );
+      board.textContent = '';
+
+      for ( const col of columns ) {
+        const colEl = document.createElement( 'div' );
+        colEl.className = 'column';
+
+        if ( col.title ) {
+          const h2 = document.createElement( 'h2' );
+          h2.textContent = col.title;
+          colEl.appendChild( h2 );
+        }
+
+        for ( const sec of col.sections ) {
+          const det = document.createElement( 'details' );
+          det.className = 'section';
+          det.open = sec.open;
+
+          const sum = document.createElement( 'summary' );
+          sum.textContent = sec.title;
+          det.appendChild( sum );
+
+          const ul = document.createElement( 'ul' );
+          ul.className = 'links';
+
+          for ( const it of sec.items ) {
+            const li = document.createElement( 'li' );
+
+            if ( it.ghUrl ) {
+              const gh = document.createElement( 'a' );
+              gh.className = 'gh';
+              gh.href = it.ghUrl;
+              gh.textContent = it.ghLabel;
+              gh.title = it.ghUrl;
+              gh.target = '_blank';
+              gh.rel = 'noopener';
+              li.appendChild( gh );
+            }
+
+            if ( it.url ) {
+              const a = document.createElement( 'a' );
+              a.href = it.url;
+              a.textContent = it.name;
+              a.title = it.url;
+              a.target = '_blank';
+              a.rel = 'noopener';
+              li.appendChild( a );
+            } else {
+              const span = document.createElement( 'span' );
+              span.textContent = it.name;
+              li.appendChild( span );
+            }
+
+            ul.appendChild( li );
+          }
+
+          det.appendChild( ul );
+          colEl.appendChild( det );
+        }
+
+        board.appendChild( colEl );
+      }
+    };
+
+    const showError = ( msg ) => {
+      document.getElementById( 'error' ).textContent = msg;
+    };
+
+    const init = async () => {
+      try {
+        const res = await fetch( DATA_URL );
+        if ( !res.ok ) throw new Error( `Fetch ${ DATA_URL } failed: ${ res.status }` );
+        const text = await res.text();
+        const columns = parseMarkdown( text );
+        render( columns );
+      } catch ( err ) {
+        showError( `Could not load ${ DATA_URL }\n${ err.message }\n\nCheck that ${ DATA_URL } sits next to this file.` );
+      }
+    };
+
+    init();
+  </script>
+
+</body>
+
+</html>

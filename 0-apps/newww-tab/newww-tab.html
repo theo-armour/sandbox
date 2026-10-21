@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-05-30 10:48">
+  <meta name="revised" content="2026-10-21 16:18">
   <title>NewwwTab</title>
   <style>
     :root {
@@ -127,10 +127,10 @@
     details.section>summary::before {
       content: "▾";
       display: inline-block;
-      width: 1.2rem;
-      font-size: 1.4rem;
+      width: 1.4rem;
+      font-size: 1.8rem;
       line-height: 0.8;
-      vertical-align: -0.25rem;
+      vertical-align: -0.35rem;
       color: var(--muted);
       transition: transform 0.15s;
     }
@@ -195,6 +195,38 @@
       font-family: monospace;
       white-space: pre-wrap;
     }
+
+    #edit {
+      background: none;
+      border: 0;
+      border-radius: 3px;
+      padding: 0 0.2rem;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    body.editing #edit {
+      background: var(--accent);
+    }
+
+    #bookmarklet {
+      display: none;
+    }
+
+    body.editing #bookmarklet {
+      display: inline;
+    }
+
+    body.editing ul.links li,
+    body.editing details.section>summary {
+      outline: 1px dashed var(--accent);
+      outline-offset: -2px;
+      cursor: pointer;
+    }
+
+    #error:empty {
+      display: none;
+    }
   </style>
 </head>
 
@@ -209,12 +241,28 @@
       </svg>
     </a>
     <a href="" title="Reload">NewwwTab</a>
+    <button id="edit" type="button" title="Edit mode: click a link or section title to edit it">✏️</button>
+    <a id="bookmarklet" class="src" title="Drag me to your bookmarks bar. Click the bookmark on any page to copy it as a NewwwTab link."
+      href="javascript:(()=>{const t='- '+document.title.split(/ [-|–—] /)[0].trim()+' '+location.href;navigator.clipboard.writeText(t).then(()=>alert('Copied:\n'+t),()=>prompt('Copy this:',t))})()">📌 +NewwwTab</a>
   </h1>
   <div id="board"></div>
   <div id="error"></div>
 
   <script>
     const DATA_URL = 'newwwtab-data-default.md';
+    const GITHUB_DEV_URL = `https://github.dev/theo-armour/sandbox/blob/main/0-apps/newww-tab/${ DATA_URL }`;
+    const isLocal = location.protocol === 'file:';
+    const state = { editing: false };
+
+    // Opens the data file at a line: in VS Code when local, in github.dev on the web
+    const editUrl = ( line = 1 ) => isLocal
+      ? `vscode://file${ location.pathname.replace( /[^/]*$/, DATA_URL ) }:${ line }`
+      : `${ GITHUB_DEV_URL }#L${ line }`;
+
+    const openEditor = ( line ) => {
+      if ( isLocal ) location.href = editUrl( line );
+      else window.open( editUrl( line ), '_blank', 'noopener' );
+    };
 
     const parseMarkdown = ( text ) => {
       const lines = text.split( /\r?\n/ );
@@ -222,7 +270,7 @@
       let currentColumn = null;
       let currentSection = null;
 
-      for ( const raw of lines ) {
+      for ( const [ i, raw ] of lines.entries() ) {
         const line = raw.replace( /\s+$/, '' );
         if ( !line ) continue;
 
@@ -245,12 +293,12 @@
           const marker = rawTitle.match( /^([+\-])\s+(.*)$/ );
           const open = marker ? marker[ 1 ] === '+' : true;
           const title = marker ? marker[ 2 ].trim() : rawTitle;
-          currentSection = { title, items: [], open };
+          currentSection = { title, items: [], open, line: i + 1 };
           currentColumn.sections.push( currentSection );
           continue;
         }
         if ( item && currentSection ) {
-          currentSection.items.push( parseItem( item[ 1 ] ) );
+          currentSection.items.push( { ...parseItem( item[ 1 ] ), line: i + 1 } );
         }
       }
 
@@ -305,12 +353,18 @@
         }
 
         for ( const sec of col.sections ) {
+          // Sections of only file:// links can't open from a web page, so hide them there
+          const links = sec.items.filter( it => it.url );
+          const localOnly = links.length > 0 && links.every( it => it.url.startsWith( 'file:' ) );
+          if ( localOnly && !isLocal ) continue;
+
           const det = document.createElement( 'details' );
           det.className = 'section';
           det.open = sec.open;
 
           const sum = document.createElement( 'summary' );
           sum.textContent = sec.title;
+          sum.dataset.line = sec.line;
           det.appendChild( sum );
 
           const ul = document.createElement( 'ul' );
@@ -318,6 +372,7 @@
 
           for ( const it of sec.items ) {
             const li = document.createElement( 'li' );
+            li.dataset.line = it.line;
 
             if ( it.ghUrl ) {
               const gh = document.createElement( 'a' );
@@ -370,6 +425,30 @@
         showError( `Could not load ${ DATA_URL }\n${ err.message }\n\nCheck that ${ DATA_URL } sits next to this file.` );
       }
     };
+
+    // In edit mode (or with Alt), clicking a link or section title jumps to its line in the data file
+    const onBoardClick = ( event ) => {
+      if ( !state.editing && !event.altKey ) return;
+      const el = event.target.closest( '[data-line]' );
+      if ( !el ) return;
+      event.preventDefault();
+      openEditor( el.dataset.line );
+    };
+
+    const toggleEditing = () => {
+      state.editing = !state.editing;
+      document.body.classList.toggle( 'editing', state.editing );
+    };
+
+    // The bookmarklet is meant to be dragged to the bookmarks bar, not clicked here
+    const onBookmarkletClick = ( event ) => {
+      event.preventDefault();
+      alert( 'Drag 📌 +NewwwTab to your bookmarks bar.\nThen click that bookmark on any page to copy it as a NewwwTab link.' );
+    };
+
+    document.getElementById( 'edit' ).addEventListener( 'click', toggleEditing );
+    document.getElementById( 'bookmarklet' ).addEventListener( 'click', onBookmarkletClick );
+    document.getElementById( 'board' ).addEventListener( 'click', onBoardClick );
 
     init();
   </script>
