@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-10-21 16:18">
+  <meta name="revised" content="2026-10-21 16:49">
   <title>NewwwTab</title>
   <style>
     :root {
@@ -252,7 +252,8 @@
     const DATA_URL = 'newwwtab-data-default.md';
     const GITHUB_DEV_URL = `https://github.dev/theo-armour/sandbox/blob/main/0-apps/newww-tab/${ DATA_URL }`;
     const isLocal = location.protocol === 'file:';
-    const state = { editing: false };
+    const HOVER_DELAY = 300; // ms before a hovered section opens
+    const state = { editing: false, hoverTimer: null };
 
     // Opens the data file at a line: in VS Code when local, in github.dev on the web
     const editUrl = ( line = 1 ) => isLocal
@@ -338,6 +339,26 @@
       return { ghUrl, ghLabel, name, url };
     };
 
+    // Hovering a closed section's title opens it for a peek; leaving the section closes it again
+    const onSummaryEnter = ( event ) => {
+      const det = event.currentTarget.parentElement;
+      if ( det.open ) return;
+      state.hoverTimer = setTimeout( () => {
+        if ( det.open ) return; // already opened by a click
+        det.open = true;
+        det.dataset.peek = '';
+      }, HOVER_DELAY );
+    };
+
+    const onSectionLeave = ( event ) => {
+      clearTimeout( state.hoverTimer );
+      const det = event.currentTarget;
+      if ( 'peek' in det.dataset ) {
+        det.open = false;
+        delete det.dataset.peek;
+      }
+    };
+
     const render = ( columns ) => {
       const board = document.getElementById( 'board' );
       board.textContent = '';
@@ -365,6 +386,8 @@
           const sum = document.createElement( 'summary' );
           sum.textContent = sec.title;
           sum.dataset.line = sec.line;
+          sum.addEventListener( 'mouseenter', onSummaryEnter );
+          det.addEventListener( 'mouseleave', onSectionLeave );
           det.appendChild( sum );
 
           const ul = document.createElement( 'ul' );
@@ -426,13 +449,21 @@
       }
     };
 
-    // In edit mode (or with Alt), clicking a link or section title jumps to its line in the data file
+    // In edit mode (or with Alt), clicking a link or section title jumps to its line in the data file.
+    // Otherwise, clicking a hover-opened section title keeps it open instead of closing it.
     const onBoardClick = ( event ) => {
-      if ( !state.editing && !event.altKey ) return;
       const el = event.target.closest( '[data-line]' );
       if ( !el ) return;
-      event.preventDefault();
-      openEditor( el.dataset.line );
+      if ( state.editing || event.altKey ) {
+        event.preventDefault();
+        openEditor( el.dataset.line );
+        return;
+      }
+      const peeking = el.closest( 'details[data-peek]' );
+      if ( el.tagName === 'SUMMARY' && peeking ) {
+        event.preventDefault();
+        delete peeking.dataset.peek;
+      }
     };
 
     const toggleEditing = () => {
