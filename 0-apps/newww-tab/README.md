@@ -15,6 +15,7 @@ Links live in `newwwtab-data-default.md`.
 
 * Edit mode (✏️): click a link or section title to jump to its line in the data file
 * 📌 +NewwwTab bookmarklet copies the current page as a link line
+* Favicon: `favicon-newww-tab.svg`
 * Hovering a closed section opens it; moving away closes it (click to keep it open)
 * Larger section toggle arrows
 * Sections of only `file://` links are hidden on the web
