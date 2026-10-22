@@ -36,11 +36,12 @@
 - [g](https://github.com/sflprs/) sflprs https://sflprs.github.io/
 - [g](https://github.com/sflprs/board-of-trustees-1906-1999) trst 06-99 https://sflprs.github.io/board-of-trustees-1906-1999/README.md
 - [g](https://github.com/sflprs/board-of-directors-2000-2020) dir 00-20 https://sflprs.github.io/board-of-directors-2000-2020/README.md
-- [g](https://github.com/sflprs/crocker-old-peoples-home-1925-1957) sflprs https://sflprs.github.io/crocker-old-peoples-home-1925-1957/README.md
-- [g](https://github.com/sflprs/board-of-managers-1941-1968/) sflprs https://sflprs.github.io/board-of-managers-1941-1968/README.md
-- [g](https://github.com/sflprs/board-of-managers-1972-1984) sflprs https://sflprs.github.io/board-of-managers-1972-1984/README.md
-- [g](https://github.com/sflprs/board-of-managers-1989-2000) sflprs https://sflprs.github.io/board-of-managers-1989-2000/](https://github.com/sflprs/special-items
-) sflprs https://sflprs.github.io/special-items/README.md
+- [g](https://github.com/sflprs/crocker-old-peoples-home-1925-1957) crocker https://sflprs.github.io/crocker-old-peoples-home-1925-1957/README.md
+- [g](https://github.com/sflprs/board-of-managers-1941-1968/) mgr 41-68 https://sflprs.github.io/board-of-managers-1941-1968/README.md
+- [g](https://github.com/sflprs/board-of-managers-1972-1984) mgr 72-84 https://sflprs.github.io/board-of-managers-1972-1984/README.md
+- [g](https://github.com/sflprs/board-of-managers-1989-2000) mgrs 89-00 https://sflprs.github.io/board-of-managers-1989-2000/README.md
+
+- [g](https://github.com/sflprs/special-items) special https://sflprs.github.io/special-items/README.md
 
 ### - EvrEvrLnd
 - [g](https://github.com/evereverland/) evrevrlnd https://evereverland.github.io/
