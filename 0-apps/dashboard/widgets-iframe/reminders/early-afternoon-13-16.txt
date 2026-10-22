@@ -7,4 +7,5 @@ stair
 lunch 
 walk
 nap
+2x hall?
 
