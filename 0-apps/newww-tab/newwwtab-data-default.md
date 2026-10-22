@@ -3,11 +3,14 @@
 ## Theo
 
 ### - HerHap
+
 - [g](https://github.com/heritage-happenings/) her hap https://heritage-happenings.github.io/
 - [g](https://github.com/heritage-happenings/documents) hh documents https://heritage-happenings.github.io/documents/
 - [g](https://github.com/heritage-happenings/tech) hh tech https://heritage-happenings.github.io/tech/
+- [g](https://github.com/sflprs/) sflprs https://sflprs.github.io/
 
 ### + Theo
+
 - [g](https://github.com/theo-armour/theo-armour.github.io) gT-A https://github.com/theo-armour
 - [g](https://github.com/theo-armour/2025/) t2025 https://theo-armour.github.io/2025
 - [g](https://github.com/theo-armour/2026/) t2026 https://theo-armour.github.io/2026
@@ -19,21 +22,16 @@
 - [g](https://github.com/theo-armour/qdata/) qData https://theo-armour.github.io/qdata/
 - [g](https://github.com/theo-armour/sandbox/) sandbox https://theo-armour.github.io/sandbox/
 - [g](https://github.com/theo-armour/wikitheo) wikitheo https://theo-armour.github.io/wikitheo/
-### - PushPull
-- [g](https://github.com/pushme-pullyou/tootoo) tootoo https://pushme-pullyou.github.io/tootoo
-- [g](https://github.com/sflprs/) sflprs https://sflprs.github.io/
-- [g](https://github.com/theo-armour/genealogy/) genealogy https://theo-armour.github.io/genealogy/
-- [g](https://github.com/theo-armour/wikitheo/) wikitheo https://theo-armour.github.io/wikitheo/
-- [g](https://github.com/heritage-happenings/tech) hh tech https://heritage-happenings.github.io/tech/
 
-### - orgs
-- [g](https://github.com/theo-armour/qdata/tree/main/apps/trayo) trayo https://theo-armour.github.io/qdata/apps/trayo/
-- [g](https://github.com/theo-armour/qdata/tree/main/apps/notesy) days https://theo-armour.github.io/qdata/apps/notesy/days.html
+### - PushPull
+- [g](https://github.com/pushme-pullyou/) PshPll https://pushme-pullyou.github.io/
+- [g](https://github.com/pushme-pullyou/tootoo) tootoo https://pushme-pullyou.github.io/tootoo
+- [g](https://github.com/pushme-pullyou/assets/) ppAssets https://pushme-pullyou.github.io/assets/
+- [g](https://github.com/pushme-pullyou/2024/) 2024 https://pushme-pullyou.github.io/2024/
+
+### - EvrEvrLnd
 - [g](https://github.com/evereverland/) evrevrlnd https://evereverland.github.io/
 - [g](https://github.com/evereverland/2019/) 2019 https://evereverland.github.io/2019
-- [g](https://github.com/pushme-pullyou/) PshPll https://pushme-pullyou.github.io/
-- [g](https://github.com/pushme-pullyou/assets/) ppAssets https://pushme-pullyou.github.io/assets/
-- g https://github.com/pushme-pullyou/2024/
 
 ### - vs dev
 - >ta 2025 https://vscode.dev/github/theo-armour/2025
@@ -43,6 +41,8 @@
 - >pp Assets https://vscode.dev/github/pushme-pullyou/assets/
 
 ### - ta apps
+- [g](https://github.com/theo-armour/qdata/tree/main/apps/trayo) trayo https://theo-armour.github.io/qdata/apps/trayo/
+- [g](https://github.com/theo-armour/qdata/tree/main/apps/notesy) days https://theo-armour.github.io/qdata/apps/notesy/days.html
 - [g](https://github.com/theo-armour/sandbox/tree/main/0-apps/newww-tab) newTab https://theo-armour.github.io/sandbox/0-apps/newww-tab/
 - [g](https://github.com/theo-armour/sandbox/tree/main/gemini/cookbook/newww-tab) old-tab https://theo-armour.github.io/sandbox/gemini/cookbook/newww-tab/index.html
 
