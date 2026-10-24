@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-10-19 17:14">
+  <meta name="revised" content="2026-10-24 21:07">
   <title>TooToo</title>
   <!-- A real favicon.ico is assumed to sit next to index.html in every deployment
        (assemble.ps1 generates a TT-mark placeholder when the dev folder lacks one). -->
@@ -1228,21 +1228,17 @@ body.dark-mode pre {
       text-overflow: ellipsis;
     }
 
-    /* content header: same one-line behavior — the breadcrumb title truncates,
-       the action icons never wrap or stack */
+    /* content header: same one-line behavior — the built-in crumb truncation
+       (path shrinks, filename stays) handles narrow widths; just never wrap */
     .file-header { flex-wrap: nowrap; }
-
-    #breadcrumbs {
-      display: block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
 
     /* the sidebar's files header matches the shelf summary above it */
     #filesPanelHeader { padding: 0.25rem 0.75rem; }
 
-    #filesPanelHeader h3 {
+    /* …and the content header's text matches both sidebar headers
+       (h3#breadcrumbs outranks the base #breadcrumbs font rules) */
+    #filesPanelHeader h3,
+    h3#breadcrumbs {
       color: var(--text-color);
       font-size: 0.85rem;
       font-weight: 600;
@@ -1933,14 +1929,16 @@ const updateHeaderFromConfig = () => {
   // Each segment is a live link: owner → the owner's github.io home, repo → that
   // repo's live GitHub Pages site (the brand icon beside them → github.com).
   if ( state.owner && state.repo ) {
-    const ownerSite = `https://${ state.owner.toLowerCase() }.github.io`;
+    // owner/repo can arrive from the URL (?owner=…), so they are untrusted: URL-encode
+    // them inside the address and HTML-escape every attribute they land in.
+    const ownerSite = `https://${ encodeURIComponent( state.owner.toLowerCase() ) }.github.io`;
     const repoSite = state.repo.toLowerCase() === `${ state.owner.toLowerCase() }.github.io`
       ? ownerSite
       : `${ ownerSite }/${ encodeURIComponent( state.repo ) }`;
     titleEl.innerHTML =
-      `<a class="title-seg" href="${ ownerSite }" target="_blank" rel="noopener" title="${ escapeHTML( ownerSite ) }">${ escapeHTML( state.owner ) }</a>` +
+      `<a class="title-seg" href="${ escapeHTML( ownerSite ) }" target="_blank" rel="noopener" title="${ escapeHTML( ownerSite ) }">${ escapeHTML( state.owner ) }</a>` +
       `<span class="title-sep">/</span>` +
-      `<a class="title-seg" href="${ repoSite }" target="_blank" rel="noopener" title="${ escapeHTML( repoSite ) }">${ escapeHTML( state.repo ) }</a>`;
+      `<a class="title-seg" href="${ escapeHTML( repoSite ) }" target="_blank" rel="noopener" title="${ escapeHTML( repoSite ) }">${ escapeHTML( state.repo ) }</a>`;
   } else {
     titleEl.textContent = CONFIG.appName;
   }

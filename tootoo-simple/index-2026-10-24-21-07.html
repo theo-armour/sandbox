@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-10-19 17:14">
+  <meta name="revised" content="2026-10-24 20:58">
   <title>TooToo</title>
   <!-- A real favicon.ico is assumed to sit next to index.html in every deployment
        (assemble.ps1 generates a TT-mark placeholder when the dev folder lacks one). -->
@@ -975,12 +975,6 @@ body.dark-mode pre {
   .resizer {
     width: 4px;
   }
-
-  .file-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
 }
 
 /* Print: only the current file's content, with its name as a title. */
@@ -1234,10 +1228,17 @@ body.dark-mode pre {
       text-overflow: ellipsis;
     }
 
+    /* content header: same one-line behavior — the built-in crumb truncation
+       (path shrinks, filename stays) handles narrow widths; just never wrap */
+    .file-header { flex-wrap: nowrap; }
+
     /* the sidebar's files header matches the shelf summary above it */
     #filesPanelHeader { padding: 0.25rem 0.75rem; }
 
-    #filesPanelHeader h3 {
+    /* …and the content header's text matches both sidebar headers
+       (h3#breadcrumbs outranks the base #breadcrumbs font rules) */
+    #filesPanelHeader h3,
+    h3#breadcrumbs {
       color: var(--text-color);
       font-size: 0.85rem;
       font-weight: 600;
