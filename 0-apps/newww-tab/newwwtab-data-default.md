@@ -13,7 +13,7 @@
 
 ### + Theo
 
-- [g](https://github.com/theo-armour/theo-armour.github.io) gT-A https://github.com/theo-armour
+- [g](https://github.com/theo-armour/theo-armour.github.io) Theo https://theo-armour.github.io/
 - [g](https://github.com/theo-armour/2025/) t2025 https://theo-armour.github.io/2025
 - [g](https://github.com/theo-armour/2026/) t2026 https://theo-armour.github.io/2026
 - [g](https://github.com/theo-armour/2026-ta-gh-io-refactor/) t2026 Ref https://theo-armour.github.io/2026-ta-gh-io-refactor
