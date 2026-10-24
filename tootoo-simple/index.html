@@ -175,17 +175,8 @@ header {
   font-size: 1.35rem;
   text-decoration: none;
   color: var(--highlight-fg);
-  cursor: pointer;
   white-space: normal;
-  padding: 0.05rem 0.35rem;
-  border-radius: 6px;
-  transition: color 0.15s, background-color 0.15s;
-}
-
-#headerTitle:hover {
-  color: var(--highlight-color);
-  background: color-mix(in srgb, var(--highlight-color), transparent 85%);
-  text-decoration: underline;
+  padding: 0.05rem 0;
 }
 
 .header-subtitle {
@@ -1163,13 +1154,85 @@ body.dark-mode pre {
 
     #shelfResizer:hover { background: var(--highlight-color); }
 
-    /* header title segments are live links, styled like the plain title */
+    /* header title segments are live links; each highlights on its own */
     #headerTitle a {
+      border-radius: 6px;
       color: inherit;
+      padding: 0.05rem 0.35rem;
       text-decoration: none;
+      transition: color 0.15s, background-color 0.15s;
     }
 
-    #headerTitle a:hover { text-decoration: underline; }
+    #headerTitle a:hover {
+      background: color-mix(in srgb, var(--highlight-color), transparent 85%);
+      color: var(--highlight-color);
+      text-decoration: underline;
+    }
+
+    /* a visible break between the two links */
+    .title-sep {
+      margin: 0 0.35rem;
+      opacity: 0.5;
+    }
+
+    /* small back-to-top buttons for the two sidebar panels, matching the content's */
+    .sidebar { position: relative; }
+
+    .panel-to-top {
+      align-items: center;
+      background-color: var(--highlight-color);
+      border: none;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+      color: #ffffff;
+      cursor: pointer;
+      display: none;
+      font-size: 1rem;
+      height: 1.9rem;
+      justify-content: center;
+      width: 1.9rem;
+      z-index: 20;
+    }
+
+    /* shelf button rides inside its own scrolling panel */
+    #btnShelfTop {
+      bottom: 0.4rem;
+      margin: 0 0.5rem 0.4rem auto;
+      position: sticky;
+    }
+
+    /* tree button floats over the lower panel */
+    #btnTreeTop {
+      bottom: 0.75rem;
+      position: absolute;
+      right: 0.9rem;
+    }
+
+    /* keep the top header on ONE line, like the content header: the title shrinks
+       and truncates with an ellipsis; the icon group stays together on the right */
+    header { flex-wrap: nowrap; }
+
+    #headerTitle {
+      flex: 0 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    header > button,
+    header > a,
+    .branch-control,
+    .rate-limit-badge {
+      flex-shrink: 0;
+    }
+
+    .header-subtitle {
+      flex: 0 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
     /* the sidebar's files header matches the shelf summary above it */
     #filesPanelHeader { padding: 0.25rem 0.75rem; }
@@ -1237,11 +1300,7 @@ body.dark-mode pre {
         <button id="btnFilterClear" title="Clear filter" aria-label="Clear filter">✕</button>
       </div>
       <div id="treeList"></div>
-      <div class="sidebar-footer">
-        <button id="btnScrollTreeTop" type="button" title="Scroll sidebar to top" aria-label="Scroll sidebar to top">
-          <img src="theo-logo.ico" alt="" width="20" height="20">
-        </button>
-      </div>
+      <button id="btnTreeTop" class="panel-to-top" title="Scroll files to top" aria-label="Scroll files to top">↑</button>
     </div>
     <div class="resizer" id="resizer" title="Drag to Resize Sidebar"></div>
     <div class="content-area" id="contentArea">
@@ -1875,7 +1934,7 @@ const updateHeaderFromConfig = () => {
       : `${ ownerSite }/${ encodeURIComponent( state.repo ) }`;
     titleEl.innerHTML =
       `<a class="title-seg" href="${ ownerSite }" target="_blank" rel="noopener" title="${ escapeHTML( ownerSite ) }">${ escapeHTML( state.owner ) }</a>` +
-      ` / ` +
+      `<span class="title-sep">/</span>` +
       `<a class="title-seg" href="${ repoSite }" target="_blank" rel="noopener" title="${ escapeHTML( repoSite ) }">${ escapeHTML( state.repo ) }</a>`;
   } else {
     titleEl.textContent = CONFIG.appName;
@@ -2819,9 +2878,6 @@ const initSidebar = () => {
   } );
 
   // Sidebar footer scroll-to-top (its brand mark is static markup → favicon.ico).
-  document.getElementById( 'btnScrollTreeTop' )?.addEventListener( 'click', () =>
-    document.getElementById( 'treeList' ).scrollTo( { top: 0, behavior: 'smooth' } ) );
-
   // Resizer drag (real app does this in setupListeners; minimal version here).
   const resizer = document.getElementById( 'resizer' );
   if ( resizer ) {
@@ -3596,7 +3652,8 @@ const renderRepoShelf = () => {
       <button type="button" class="shelf-row" data-repo="${ SHELF_ORGS_ROW }"
         title="The organizations Theo belongs to — descriptions and links">🏛️ organizations</button>
       ${ rows }
-    </details>`;
+    </details>
+    <button id="btnShelfTop" class="panel-to-top" title="Scroll repos to top" aria-label="Scroll repos to top">↑</button>`;
   shelf.addEventListener( 'click', ( e ) => {
     const row = e.target.closest( '.shelf-row' );
     if ( !row ) return;
@@ -3605,6 +3662,23 @@ const renderRepoShelf = () => {
   } );
   markShelfActive( state.repo || SHELF_HOME );
   initShelfResizer();
+  initPanelTopButtons();
+};
+
+/* ── the two sidebar panels get the same floating ↑ as the content area ── */
+const initPanelTopButtons = () => {
+  const wire = ( scroller, btn ) => {
+    if ( !scroller || !btn ) return;
+    scroller.addEventListener( 'scroll', () => {
+      btn.style.display = scroller.scrollTop > 150 ? 'flex' : 'none';
+    } );
+    btn.addEventListener( 'click', ( e ) => {
+      e.stopPropagation();
+      scroller.scrollTo( { top: 0, behavior: 'smooth' } );
+    } );
+  };
+  wire( document.getElementById( 'repoShelf' ), document.getElementById( 'btnShelfTop' ) );
+  wire( document.getElementById( 'treeList' ), document.getElementById( 'btnTreeTop' ) );
 };
 
 /* ── the horizontal bar under the shelf: drag to resize it, double-click to reset ── */
