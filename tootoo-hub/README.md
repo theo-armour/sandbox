@@ -1,4 +1,4 @@
-# TooToo Simple
+# TooToo Hub
 
 A single-user TooToo: one GitHub repo browser dedicated to **theo-armour**, showing every repository the owner has, with `theo-armour.github.io` opened first.
 
@@ -19,6 +19,8 @@ A single-user TooToo: one GitHub repo browser dedicated to **theo-armour**, show
 ## Changelog
 
 ### 2026-10-25
+
+- Renamed from TooToo Simple to TooToo Hub (folder `tootoo-simple` → `tootoo-hub`)
 
 - `ta-data.js` splits into separate `repos` and `orgs` lists
 - Add `ta-data-refresh.html`; retire `update-ta-data.ps1`
