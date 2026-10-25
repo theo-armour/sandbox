@@ -12,7 +12,7 @@ A single-user TooToo: one GitHub repo browser dedicated to **theo-armour**, show
 ## Files
 
 - `index.html` — the app. Started as a copy of canonical `pushme-pullyou-tootoo/index.html` (2026-10-24) and modified; it is a **sandbox fork**, not synced by the TooToo pipeline.
-- `ta-data.js` — the data, from the GitHub API: `repos` (yours, private ones by name only) and `orgs` (each with its `repoList`). Hand-edit `pick` and `note`; refreshes keep them.
+- `ta-data.js` — the data, from the GitHub API: `repos` (your public ones; the app fetches private repos live when a token is saved) and `orgs` (each with its `repoList`). Hand-edit `pick` and `note`; refreshes keep them.
 - `ta-data-refresh.html` — rebuilds `ta-data.js` in the browser: Fetch, then Save.
 - `organizations.md` — generated from `ta-data.js`, then hand-editable.
 
