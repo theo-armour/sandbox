@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-10-25 02:36">
+  <meta name="revised" content="2026-10-25 02:53">
   <title>TooToo</title>
   <!-- A real favicon.ico is assumed to sit next to index.html in every deployment
        (assemble.ps1 generates a TT-mark placeholder when the dev folder lacks one). -->
@@ -27,6 +27,7 @@
       owner: 'theo-armour',
       repo: 'theo-armour.github.io',
       sourceRepoUrl: 'https://github.com/theo-armour',   // header brand icon → Theo's GitHub account
+      themeColor: '#880000',
       // the hub's own plumbing and page furniture stay out of every file tree
       hiddenFiles: [ 'tootoo.config.js', 'ta-data.js', 'update-ta-data.ps1',
         'theo-logo.ico', 'favicon.ico', 'dingbat.ico', 'CNAME', '404.html', 'LICENSE' ],
@@ -1090,6 +1091,15 @@ body.dark-mode pre {
     /* ── TooToo Simple: repo shelf (single-user build) ── */
     :root {
       --font-family: ui-monospace, "Cascadia Code", Consolas, Menlo, monospace;
+      /* selection + hover follow the baked themeColor instead of the stock blue/grey */
+      --active-bg: var(--highlight-color);
+      --active-fg: #ffffff;
+      --hover-bg: color-mix(in srgb, var(--highlight-color), transparent 88%);
+    }
+
+    body.dark-mode {
+      --active-bg: var(--highlight-color);
+      --hover-bg: color-mix(in srgb, var(--highlight-color), transparent 72%);
     }
 
     #repoShelf {
