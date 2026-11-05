@@ -38,7 +38,7 @@
 ## Publications
 
 * [Drudge Report](https://drudgereport.com/)
-* 
+* [The Intercept](https://theintercept.com/)
 
 ### USA
 
