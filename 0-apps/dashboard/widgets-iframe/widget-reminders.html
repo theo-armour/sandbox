@@ -21,7 +21,13 @@
       min-height: 0;
       border: none;
       background: #fff;
+      color: #000;
       color-scheme: light;
+      padding: 0.5rem;
+      overflow: auto;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font: inherit;
     }
   </style>
 </head>
@@ -31,47 +37,43 @@
     <a id="message-link" target="_blank" rel="noopener">Reminders</a>
     <button id="reload">Reload</button>
   </header>
-  <iframe id="message" title="Current reminder"></iframe>
+  <pre id="message" aria-label="Agenda reminders">Loading reminders...</pre>
 
   <script>
-    const PERIODS = [
-      { hour: 0, label: "Overnight: midnight - 9 am", file: "overnight-00-09.txt" },
-      { hour: 9, label: "Early morning: 9 am - 11 am", file: "early-morning-09-11.txt" },
-      { hour: 11, label: "Late morning: 11 am - 1 pm", file: "late-morning-11-13.txt" },
-      { hour: 13, label: "Early afternoon: 1 pm - 4 pm", file: "early-afternoon-13-16.txt" },
-      { hour: 16, label: "Late afternoon: 4 pm - 6 pm", file: "late-afternoon-16-18.txt" },
-      { hour: 18, label: "Early evening: 6 pm - 10 pm", file: "early-evening-18-22.txt" },
-      { hour: 22, label: "Late evening: 10 pm - midnight", file: "late-evening-22-24.txt" },
-    ];
-
-    // The period link opens the reminder in Notesy for editing on GitHub
+    const REMINDER_FILE = "0-agenda-reminders.md";
+    const REMINDER_URL = `reminders/${ REMINDER_FILE }`;
     const NOTESY = "../../notesy/notesy.html#";
     const GITHUB_FOLDER = "https://api.github.com/repos/theo-armour/sandbox/contents/0-apps/dashboard/widgets-iframe/reminders/";
 
     const message = document.getElementById( "message" );
     const messageLink = document.getElementById( "message-link" );
-    let currentFile = null;
 
-    const updateReminder = ( force = false ) => {
-      const hour = new Date().getHours();
-      const period = PERIODS.filter( ( entry ) => entry.hour <= hour ).pop();
-      if ( !force && period.file === currentFile ) return;
+    message.title = "Agenda reminders";
+    messageLink.textContent = "Agenda reminders";
+    messageLink.href = NOTESY + GITHUB_FOLDER + REMINDER_FILE;
+    messageLink.title = "Edit these reminders in Notesy";
+    const reload = document.getElementById( "reload" );
 
-      currentFile = period.file;
-      message.title = `${ period.label } reminder`;
-      messageLink.textContent = period.label;
-      messageLink.href = NOTESY + GITHUB_FOLDER + period.file;
-      messageLink.title = "Edit this reminder in Notesy";
-      message.src = `reminders/${ period.file }`;
+    const loadReminder = async () => {
+      reload.disabled = true;
+      message.textContent = "Loading reminders...";
+      try {
+        const response = await fetch( REMINDER_URL, { cache: "no-store" } );
+        if ( !response.ok ) throw new Error( `HTTP ${ response.status }` );
+        message.textContent = await response.text();
+      } catch ( error ) {
+        console.error( "Unable to load agenda reminders:", error );
+        message.textContent = `Unable to load ${ REMINDER_FILE }: ${ error.message }`;
+        if ( location.protocol === "file:" ) {
+          message.textContent += "\nOpen this widget through a web server or GitHub Pages; browsers block fetching local files.";
+        }
+      } finally {
+        reload.disabled = false;
+      }
     };
 
-    document.getElementById( "reload" ).addEventListener( "click", () => updateReminder( true ) );
-    document.addEventListener( "visibilitychange", () => {
-      if ( document.visibilityState === "visible" ) updateReminder();
-    } );
-
-    updateReminder();
-    setInterval( updateReminder, 1000 );
+    reload.addEventListener( "click", loadReminder );
+    loadReminder();
   </script>
 </body>
 

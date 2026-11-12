@@ -178,6 +178,7 @@
     let isOvertime = false;
     let currentPreset = parseInt( localStorage.getItem( "teodoro-preset" ), 10 ) || 300;
     let endTime = 0; // Date.now() value when the countdown reaches zero
+    let lastOvertimeChimeMinute = 0;
     let halfwayPlayed = false;
     let audioCtx = null;
     let isMuted = false;
@@ -306,6 +307,28 @@
       });
     };
 
+    const playOvertimeChime = () => {
+      initAudioCtx();
+      if ( audioCtx.state === "suspended" ) audioCtx.resume();
+
+      const now = audioCtx.currentTime;
+      [ 659.25, 783.99 ].forEach( ( freq, i ) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const start = now + i * 0.18;
+
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        osc.connect( gain );
+        gain.connect( audioCtx.destination );
+        gain.gain.setValueAtTime( 0, start );
+        gain.gain.linearRampToValueAtTime( 0.14, start + 0.03 );
+        gain.gain.exponentialRampToValueAtTime( 0.0001, start + 0.8 );
+        osc.start( start );
+        osc.stop( start + 0.85 );
+      } );
+    };
+
     // Times are worked out from endTime, so slowed-down background ticks never lose seconds
     const tick = () => {
       const now = Date.now();
@@ -313,6 +336,11 @@
       if ( isOvertime ) {
         overtimeSeconds = Math.min( 720, Math.floor( ( now - endTime ) / 1000 ) );
         updateDisplay();
+        const overtimeMinute = Math.floor( overtimeSeconds / 60 );
+        if ( overtimeMinute > lastOvertimeChimeMinute && overtimeMinute < 12 ) {
+          lastOvertimeChimeMinute = overtimeMinute;
+          playOvertimeChime();
+        }
         if ( overtimeSeconds >= 720 ) {
           clearInterval( intervalId );
           intervalId = null;
@@ -354,6 +382,7 @@
 
       isOvertime = false;
       overtimeSeconds = 0;
+      lastOvertimeChimeMinute = 0;
       remainingTime = seconds;
       totalTime = seconds;
       halfwayPlayed = false;
@@ -383,6 +412,7 @@
 
       isOvertime = false;
       overtimeSeconds = 0;
+      lastOvertimeChimeMinute = 0;
       remainingTime = currentPreset > 0 ? currentPreset : 300;
       totalTime = remainingTime;
       halfwayPlayed = false;
