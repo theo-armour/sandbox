@@ -14,6 +14,10 @@
     "**/Thumbs.db": true
   },
   "html.format.wrapLineLength": 0,
+  "markdownlint.config": {
+    "MD022": false,
+    "MD032": false
+  },
   "emmet.includeLanguages": {
     "javascript": "javascriptreact"
   },

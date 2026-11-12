@@ -1,11 +1,10 @@
 # Agenda Reminders
 
-## Waking ~ 7:40
-
+## Waking ~ 7:40 am
 * Bed exercises ~ 10 minutes
 * NY Times ~ 40 minutes
 
-## Bathroom 1 ~ 8:25 ~ 10-15 minutes
+## Bathroom 1 ~ 8:25 am ~ 10-15 minutes
 * Self-cath + Exercises + Stretch
 * Weighing
 * Tuesday & Friday: Shower ~ 20 minutes
@@ -20,13 +19,13 @@
 * Dressing: nails, creams
 * Turn on: MidJourney.tv
 
-## Breakfast ~ by 9:15
+## Breakfast ~ 9:15 am
 
 * Downstairs
 * Park walker & Walk with cane
 * Weekend: trash out
 
-### Outdoor Walk 1 ~ ~ 9:45 ~ 20-25 min
+## Outdoor Walk 1 ~ 9:45 am ~ 20-25 min
 
 * After walk: Over 2,300 steps
 
@@ -35,7 +34,7 @@
 * Floss, brush & rinse mouth
 * Wash eyeglasses while mouthwashing
 
-## Desk 1 ~ ~10:15
+## Desk 1 ~ 10:15 am ~
 
 * First desk sit:
 
@@ -48,7 +47,7 @@
 
 * Stairs 2.5 flights
 
-## Bathroom 3 ~ 12:00
+## Bathroom 3 ~ 12:00 pm ~
 
 * walk + 2 hall: ~3,000+ steps
 * Start by 12:00 ~ 11:20 if going out / Perry's
@@ -58,24 +57,24 @@
 * Citrucal + Miralax
 * Replenish Caths & Lube piles?
 
-## Lunch ~ ~ 12:20 ~
+## Lunch ~ 12:20 pm ~
 
 * Mostly by myself
 * Two dishes
 * Three if chocolate
 
-## Outdoor Walk 2 ~ ~1:15
+## Outdoor Walk 2 ~ ~1:15 pm ~
 
 * After walk: Over 5,300 steps
 
-## Nap ~ 1:43 ~ 45++ minutes
+## Nap ~ 1:43 pm ~ 45++ minutes
 
 ### Nap Exercises
 
 * 10 Sit to stand
 * 10 Arm raises
 
-## Desk 2 ~ by 3:00
+## Desk 2 ~ by 3:00 pm ~
 
 ## Break 2 ~ Indoor walks x2
 
@@ -89,35 +88,35 @@
 
 * 5 stairs accomplished
 
-## Dinner ~ by 5:45
+## Dinner ~ 5:45 pm ~
 
 * 6000 steps by dinner?
 * s2s ~ arms & weights
 
 
-## Outdoor walk 3 ~ 7:00 pm
+## Outdoor walk 3 ~ 7:00 pm ~
 * This is after dinner
 * After walk: 8,500 steps
 * Thursday: Marina Cleaners ~ Marina Beach ~ Safeway
 * 5 stairs accomplished
 
-## Desk 3
+## Desk 3 ~ 7:45 pm ~
 
 
 ## walks x 3 ~ 5 minutes each
 
 
-## Undressing ~ 11:15 pm
+## Undressing ~ 11:15 pm ~
 * Cranberry juice
 * Cream on head
 * Should be at 10K before 11pm
 
-## Bathroom ~ 11:39
+## Bathroom ~ 11:39 pm ~
 * Self-cath + stretch
 * Floss, brush teeth and rinse mouth
 * Check water in plant
 
-## Bed ~ 12:00
+## Bed ~ 12:00 am ~
 On hands and knees
 * 100 Push-ups
 * 5 cat & camel + 5 spinal twists
