@@ -2,7 +2,7 @@
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
   "editor.rulers": [
-    100
+    80
   ],
   "editor.renderWhitespace": "boundary",
   "editor.inlineSuggest.enabled": true,
@@ -18,10 +18,7 @@
     "MD022": false,
     "MD032": false
   },
-  "emmet.includeLanguages": {
-    "javascript": "javascriptreact"
-  },
   "[markdown]": {
-    "files.trimTrailingWhitespace": false
+    "files.trimTrailingWhitespace": true
   }
 }
