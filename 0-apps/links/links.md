@@ -4,9 +4,9 @@
 
 * [lorenzo](https://lorenzolucchesi.substack.com/)
 * [jaxclay2007](https://medium.com/@jaxclay2007)
-* [jasoncarman](https://substack.com/@jasoncarman) 
+* [jasoncarman](https://substack.com/@jasoncarman)
 * [Douglas](https://substack.com/@dashdotdotdashdotdot)
-  
+
 ## Substack
 
 * [Agnes Callard](https://substack.com/@agnescallard)
@@ -14,6 +14,8 @@
 * [Ethan Mollick](https://substack.com/@oneusefulthing)
 * [Joan Westenberg](https://substack.com/@jawestenberg)
 * [Kevin Kelly](https://substack.com/@kevinkelly)
+* [Maria Popova](https://substack.com/@brainpicker)
+* [Monica Anderson](https://substack.com/@zerothprinciples)
 * [Nate Jones](https://substack.com/@natesnewsletter)
 * [Nathan Warren](https://substack.com/@worksinprogress "Works in Progress")
 * [Scott Alexander](https://substack.com/@astralcodexten)
