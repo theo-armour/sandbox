@@ -20,17 +20,53 @@
       flex: 1;
       min-height: 0;
       border: none;
-      background: #fff;
-      color: #000;
-      color-scheme: light;
+      background: var(--bg);
+      color: var(--fg);
       padding: 0.5rem;
       overflow: auto;
-      white-space: pre-wrap;
       overflow-wrap: anywhere;
       font-family: var(--font);
       font-size: var(--text-lg);
       font-weight: 400;
       line-height: 1.45;
+    }
+
+    /* Rendered Markdown. widget-base.css hides h2 and zeroes all margins,
+       so headings, lists and paragraphs get their spacing back here. */
+    #message h1,
+    #message h2,
+    #message h3,
+    #message h4 {
+      display: block;
+      font-size: 1em;
+      font-weight: 700;
+      margin-top: 0.6rem;
+    }
+
+    #message h1 {
+      font-size: 1.15em;
+    }
+
+    #message h2 {
+      font-size: 1.08em;
+    }
+
+    #message > :first-child {
+      margin-top: 0;
+    }
+
+    #message ul {
+      padding-left: 1.3rem;
+    }
+
+    #message p {
+      margin-top: 0.3rem;
+    }
+
+    #message code {
+      background: var(--btn-bg);
+      border-radius: 0.2rem;
+      padding: 0 0.25rem;
     }
   </style>
 </head>
@@ -40,7 +76,7 @@
     <a id="message-link" target="_blank" rel="noopener">Reminders</a>
     <button id="reload">Reload</button>
   </header>
-  <pre id="message" aria-label="Agenda reminders">Loading reminders...</pre>
+  <div id="message" aria-label="Agenda reminders">Loading reminders...</div>
 
   <script>
     const REMINDER_FILE = "0-agenda-reminders.md";
@@ -77,21 +113,53 @@
         - message.getBoundingClientRect().top - parseFloat( getComputedStyle( message ).paddingTop );
     };
 
+    const escapeHtml = ( text ) => text
+      .replace( /&/g, "&amp;" )
+      .replace( /</g, "&lt;" )
+      .replace( />/g, "&gt;" )
+      .replace( /"/g, "&quot;" );
+
+    // Markdown inside a line: **bold**, *italic*, `code`, [text](url).
+    const inlineMarkdown = ( text ) => escapeHtml( text )
+      .replace( /`(.+?)`/g, "<code>$1</code>" )
+      .replace( /\*\*(\S.*?)\*\*/g, "<strong>$1</strong>" )
+      .replace( /\*(\S.*?)\*/g, "<em>$1</em>" )
+      .replace( /\[(.+?)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>' );
+
+    // A small Markdown reader: # headings, * or - bullets, and paragraphs.
     const displayReminders = ( text ) => {
       const fragment = document.createDocumentFragment();
-      text.split( "\n" ).forEach( ( line, index ) => {
-        if ( index ) fragment.append( "\n" );
-        const time = line.match( /^##\s+.*?~.*?\b(1[0-2]|0?[1-9]):([0-5]\d)\s*(am|pm)\b/i );
-        if ( !time ) {
-          fragment.append( line );
-          return;
+      let list = null; // the <ul> being filled, if the previous line was a bullet
+
+      text.split( "\n" ).forEach( ( line ) => {
+        const heading = line.match( /^(#{1,6})\s+(.*)/ );
+        const bullet = line.match( /^\s*[*-]\s+(.*)/ );
+        if ( !bullet ) list = null;
+
+        if ( heading ) {
+          const element = document.createElement( `h${ heading[ 1 ].length }` );
+          element.innerHTML = inlineMarkdown( heading[ 2 ] );
+          fragment.append( element );
+          const time = line.match( /^##\s+.*?~.*?\b(1[0-2]|0?[1-9]):([0-5]\d)\s*(am|pm)\b/i );
+          if ( time ) {
+            const hour = Number( time[ 1 ] ) % 12 + ( time[ 3 ].toLowerCase() === "pm" ? 12 : 0 );
+            timedHeadings.push( { element, minutes: hour * 60 + Number( time[ 2 ] ) } );
+          }
+        } else if ( bullet ) {
+          if ( !list ) {
+            list = document.createElement( "ul" );
+            fragment.append( list );
+          }
+          const item = document.createElement( "li" );
+          item.innerHTML = inlineMarkdown( bullet[ 1 ] );
+          list.append( item );
+        } else if ( line.trim() ) {
+          const paragraph = document.createElement( "p" );
+          paragraph.innerHTML = inlineMarkdown( line );
+          fragment.append( paragraph );
         }
-        const element = document.createElement( "span" );
-        element.textContent = line;
-        const hour = Number( time[ 1 ] ) % 12 + ( time[ 3 ].toLowerCase() === "pm" ? 12 : 0 );
-        timedHeadings.push( { element, minutes: hour * 60 + Number( time[ 2 ] ) } );
-        fragment.append( element );
       } );
+
       message.replaceChildren( fragment );
       scrollToNearestReminder();
     };
@@ -108,9 +176,6 @@
       } catch ( error ) {
         console.error( "Unable to load agenda reminders:", error );
         message.textContent = `Unable to load ${ REMINDER_FILE }: ${ error.message }`;
-        if ( location.protocol === "file:" ) {
-          message.textContent += "\nOpen this widget through a web server or GitHub Pages; browsers block fetching local files.";
-        }
       } finally {
         reload.disabled = false;
       }

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reminders</title>
+  <link rel="stylesheet" href="widget-base.css">
+  <style>
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: var(--text-sm);
+    }
+
+    #message {
+      width: 100%;
+      flex: 1;
+      min-height: 0;
+      border: none;
+      background: #fff;
+      color: #000;
+      color-scheme: light;
+      padding: 0.5rem;
+      overflow: auto;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-family: var(--font);
+      font-size: var(--text-lg);
+      font-weight: 400;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+
+<body class="widget">
+  <header>
+    <a id="message-link" target="_blank" rel="noopener">Reminders</a>
+    <button id="reload">Reload</button>
+  </header>
+  <pre id="message" aria-label="Agenda reminders">Loading reminders...</pre>
+
+  <script>
+    const REMINDER_FILE = "0-agenda-reminders.md";
+    const REMINDER_URL = `reminders/${ REMINDER_FILE }`;
+    const NOTESY = "../../notesy/notesy.html#";
+    const GITHUB_FOLDER = "https://api.github.com/repos/theo-armour/sandbox/contents/0-apps/dashboard/widgets-iframe/reminders/";
+
+    const message = document.getElementById( "message" );
+    const messageLink = document.getElementById( "message-link" );
+
+    message.title = "Agenda reminders";
+    messageLink.textContent = "Agenda reminders";
+    messageLink.href = NOTESY + GITHUB_FOLDER + REMINDER_FILE;
+    messageLink.title = "Edit these reminders in Notesy";
+    const reload = document.getElementById( "reload" );
+    let timedHeadings = [];
+    let currentHeading = null;
+
+    // Use circular distance so midnight reminders are near late-evening times.
+    const scrollToNearestReminder = () => {
+      if ( document.visibilityState !== "visible" || !timedHeadings.length ) return;
+      const now = new Date();
+      const minutes = now.getHours() * 60 + now.getMinutes();
+      const distance = ( heading ) => {
+        const difference = Math.abs( heading.minutes - minutes );
+        return Math.min( difference, 1440 - difference );
+      };
+      const nearest = timedHeadings.reduce( ( best, heading ) =>
+        distance( heading ) < distance( best ) ? heading : best
+      );
+      if ( nearest === currentHeading ) return;
+      currentHeading = nearest;
+      message.scrollTop += nearest.element.getBoundingClientRect().top
+        - message.getBoundingClientRect().top - parseFloat( getComputedStyle( message ).paddingTop );
+    };
+
+    const displayReminders = ( text ) => {
+      const fragment = document.createDocumentFragment();
+      text.split( "\n" ).forEach( ( line, index ) => {
+        if ( index ) fragment.append( "\n" );
+        const time = line.match( /^##\s+.*?~.*?\b(1[0-2]|0?[1-9]):([0-5]\d)\s*(am|pm)\b/i );
+        if ( !time ) {
+          fragment.append( line );
+          return;
+        }
+        const element = document.createElement( "span" );
+        element.textContent = line;
+        const hour = Number( time[ 1 ] ) % 12 + ( time[ 3 ].toLowerCase() === "pm" ? 12 : 0 );
+        timedHeadings.push( { element, minutes: hour * 60 + Number( time[ 2 ] ) } );
+        fragment.append( element );
+      } );
+      message.replaceChildren( fragment );
+      scrollToNearestReminder();
+    };
+
+    const loadReminder = async () => {
+      reload.disabled = true;
+      timedHeadings = [];
+      currentHeading = null;
+      message.textContent = "Loading reminders...";
+      try {
+        const response = await fetch( REMINDER_URL, { cache: "no-store" } );
+        if ( !response.ok ) throw new Error( `HTTP ${ response.status }` );
+        displayReminders( await response.text() );
+      } catch ( error ) {
+        console.error( "Unable to load agenda reminders:", error );
+        message.textContent = `Unable to load ${ REMINDER_FILE }: ${ error.message }`;
+        if ( location.protocol === "file:" ) {
+          message.textContent += "\nOpen this widget through a web server or GitHub Pages; browsers block fetching local files.";
+        }
+      } finally {
+        reload.disabled = false;
+      }
+    };
+
+    reload.addEventListener( "click", loadReminder );
+    document.addEventListener( "visibilitychange", scrollToNearestReminder );
+    setInterval( scrollToNearestReminder, 60000 );
+    loadReminder();
+  </script>
+</body>
+
+</html>

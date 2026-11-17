@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-05-31 18:43">
+  <meta name="revised" content="2026-11-16 21:42">
   <title>New York Times ~ Latest News</title>
   <link rel="stylesheet" href="widget-base.css">
   <style>
@@ -275,7 +275,8 @@
     };
 
     refresh();
-    setInterval( refresh, REFRESH_MS );
+    // Force the fetch: the cache is still a few seconds "fresh" when this fires.
+    setInterval( () => refresh( true ), REFRESH_MS );
     refreshBtnEl.addEventListener( "click", refreshNow );
   </script>
 </body>

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-05-31 16:38">
+  <meta name="revised" content="2026-11-16 21:46">
   <title>Service Status</title>
   <link rel="stylesheet" href="widget-base.css">
   <style>
@@ -360,6 +360,7 @@
       return results.map( ( result, index ) => {
         if ( result.status === "fulfilled" ) return result.value;
         return {
+          failed: true,
           label: state.services[ index ].label,
           tone: "warn",
           description: "Status unavailable",
@@ -377,10 +378,22 @@
       const cached = readJson( state.cacheKey );
 
       try {
-        const payload = {
-          services: await loadServices(),
-          fetchedAt: Date.now(),
-        };
+        const loaded = await loadServices();
+        const hasCache = isValidCache( cached );
+
+        // Nothing loaded (offline?) — keep showing the last good results.
+        if ( hasCache && loaded.every( ( service ) => service.failed ) ) {
+          render( cached, true );
+          return;
+        }
+
+        // Keep the last good row for any single service that failed this time.
+        const services = loaded.map( ( service, index ) =>
+          service.failed && hasCache && !cached.services[ index ].failed
+            ? cached.services[ index ] : service
+        );
+
+        const payload = { services, fetchedAt: Date.now() };
 
         localStorage.setItem( state.cacheKey, JSON.stringify( payload ) );
         render( payload, false );

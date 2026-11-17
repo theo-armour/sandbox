@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="revised" content="2026-11-16 22:26">
+  <title>News</title>
+  <link rel="stylesheet" href="widget-base.css">
+  <style>
+    #news {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .headline {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      height: 1.5rem;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--panel-border);
+      font-size: var(--text-lg);
+    }
+
+    .headline:last-child {
+      border-bottom: none;
+    }
+
+    .headline a {
+      flex: 1;
+      min-width: 0;
+      color: var(--fg);
+      text-decoration: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .headline a:hover {
+      text-decoration: underline;
+    }
+
+    .headline .ago {
+      flex-shrink: 0;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .story-popover {
+      position: fixed;
+      right: 0.75rem;
+      z-index: 10;
+      max-width: min(24rem, calc(100vw - 1rem));
+      padding: 0.65rem 0.75rem;
+      background: var(--bg);
+      color: var(--fg);
+      border: 1px solid var(--panel-border);
+      border-radius: 0.35rem;
+      box-shadow: 0 0.35rem 1rem rgb(0 0 0 / 20%);
+      font-size: var(--text-sm);
+      line-height: 1.35;
+      pointer-events: none;
+    }
+
+    .story-popover .popover-title {
+      font-weight: 700;
+    }
+
+    .story-popover .popover-summary {
+      margin-top: 0.3rem;
+    }
+
+    .story-popover .popover-meta {
+      margin-top: 0.3rem;
+      color: var(--muted);
+    }
+
+    .footer {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.3rem 0.5rem;
+    }
+
+    #updated {
+      flex: 1;
+      font-size: var(--text-sm);
+      white-space: nowrap;
+    }
+
+    #sources {
+      display: flex;
+      gap: 0.3rem;
+    }
+
+    .footer button {
+      border: 1px solid var(--panel-border);
+      border-radius: 999px;
+      padding: 0 0.7rem;
+      font-size: 0.86rem;
+    }
+
+    .footer button.active {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    #refreshBtn:disabled {
+      opacity: 0.65;
+      cursor: wait;
+    }
+  </style>
+</head>
+
+<body class="widget">
+  <div id="news"><span class="muted">Loading headlines…</span></div>
+  <div class="footer">
+    <div id="updated" class="muted"></div>
+    <div id="sources"></div>
+    <button id="refreshBtn" type="button" aria-label="Refresh headlines">Refresh</button>
+  </div>
+
+  <div id="story-popover" class="story-popover" role="tooltip" hidden></div>
+
+  <script>
+    // One file, used for every news tile. The dashboard loads it as
+    // widget-news.html?tile=1, ?tile=2, ... so each tile remembers its own source.
+
+    const newsEl = document.getElementById( "news" );
+    const updatedEl = document.getElementById( "updated" );
+    const sourcesEl = document.getElementById( "sources" );
+    const refreshBtnEl = document.getElementById( "refreshBtn" );
+    const storyPopoverEl = document.getElementById( "story-popover" );
+
+    const REFRESH_MS = 15 * 60 * 1000;
+    const MAX_HEADLINES = 8;
+    const CACHE_PREFIX = "dashboard-widget-news-cache-";
+
+    // BBC and NPR do not allow browsers to read their feeds directly, so they
+    // go through a public helper service. RSS2JSON is tried first; if it fails,
+    // the allorigins proxy is tried. Swap these if either stops working.
+    const RSS2JSON = "https://api.rss2json.com/v1/api.json?rss_url=";
+    const CORS_PROXY = "https://api.allorigins.win/raw?url=";
+
+    const readJson = ( key ) => {
+      const raw = localStorage.getItem( key );
+      if ( raw === null ) return null;
+      try {
+        return JSON.parse( raw );
+      } catch ( err ) {
+        return null;
+      }
+    };
+
+    const escapeHtml = ( value ) => String( value )
+      .replace( /&/g, "&amp;" )
+      .replace( /</g, "&lt;" )
+      .replace( />/g, "&gt;" )
+      .replace( /"/g, "&quot;" );
+
+    const textFromHtml = ( html ) => {
+      const doc = new DOMParser().parseFromString( html || "", "text/html" );
+      return ( doc.body.textContent || "" ).replace( /\s+/g, " " ).trim();
+    };
+
+    // ----- Loaders: each returns a list of { title, link, summary, pubDate } -----
+
+    // Handles both RSS 2.0 (<item>) and Atom (<entry>) feeds.
+    // pubDate 0 means "no usable date".
+    const parseFeed = ( xmlText ) => {
+      const doc = new DOMParser().parseFromString( xmlText, "application/xml" );
+      if ( doc.querySelector( "parsererror" ) ) throw new Error( "invalid feed" );
+      const items = [ ...doc.getElementsByTagName( "item" ) ];
+      if ( items.length > 0 ) {
+        return items.map( ( item ) => ( {
+          title: item.querySelector( "title" )?.textContent?.trim() || "",
+          link: item.querySelector( "link" )?.textContent?.trim() || "",
+          summary: textFromHtml( item.querySelector( "description" )?.textContent ),
+          pubDate: Date.parse( item.querySelector( "pubDate" )?.textContent ) || 0,
+        } ) );
+      }
+      return [ ...doc.getElementsByTagName( "entry" ) ].map( ( entry ) => ( {
+        title: entry.querySelector( "title" )?.textContent?.trim() || "",
+        link: entry.querySelector( "link" )?.getAttribute( "href" ) || "",
+        summary: textFromHtml( entry.querySelector( "summary, content" )?.textContent ),
+        pubDate: Date.parse( entry.querySelector( "updated, published" )?.textContent ) || 0,
+      } ) );
+    };
+
+    const loadXmlFeed = async ( url ) => {
+      const res = await fetch( url );
+      if ( !res.ok ) throw new Error( `HTTP ${ res.status }` );
+      return parseFeed( await res.text() );
+    };
+
+    // RSS2JSON reads the feed for us and returns JSON. Its dates are UTC.
+    const loadViaRss2Json = async ( feedUrl ) => {
+      const res = await fetch( RSS2JSON + encodeURIComponent( feedUrl ) );
+      if ( !res.ok ) throw new Error( `HTTP ${ res.status }` );
+      const data = await res.json();
+      if ( data.status !== "ok" ) throw new Error( "feed service error" );
+      return data.items.map( ( item ) => ( {
+        title: textFromHtml( item.title ),
+        link: item.link || "",
+        summary: textFromHtml( item.description ),
+        pubDate: Date.parse( `${ ( item.pubDate || "" ).replace( " ", "T" ) }Z` ) || 0,
+      } ) );
+    };
+
+    const loadProxiedFeed = async ( feedUrl ) => {
+      try {
+        return await loadViaRss2Json( feedUrl );
+      } catch ( err ) {
+        return loadXmlFeed( CORS_PROXY + encodeURIComponent( feedUrl ) );
+      }
+    };
+
+    // Hacker News front page, from the official search API (no proxy needed).
+    const loadHackerNews = async () => {
+      const res = await fetch( "https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=30" );
+      if ( !res.ok ) throw new Error( `HTTP ${ res.status }` );
+      const data = await res.json();
+      return data.hits.map( ( hit ) => ( {
+        title: hit.title || "",
+        link: hit.url || `https://news.ycombinator.com/item?id=${ hit.objectID }`,
+        summary: `${ hit.points || 0 } points · ${ hit.num_comments || 0 } comments`,
+        pubDate: ( hit.created_at_i || 0 ) * 1000,
+      } ) );
+    };
+
+    // Edit this list to change the source buttons.
+    const SOURCES = [
+      { key: "bbc", name: "BBC", load: () => loadProxiedFeed( "https://feeds.bbci.co.uk/news/world/rss.xml" ) },
+      { key: "npr", name: "NPR", load: () => loadProxiedFeed( "https://feeds.npr.org/1001/rss.xml" ) },
+      { key: "nyt", name: "NYT", load: () => loadXmlFeed( "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml" ) },
+      { key: "hn", name: "HN", load: loadHackerNews },
+      { key: "lemonde", name: "Le Monde", load: () => loadProxiedFeed( "https://www.lemonde.fr/rss/une.xml" ) },
+      { key: "guardian", name: "Guardian", load: () => loadProxiedFeed( "https://www.theguardian.com/world/rss" ) },
+    ];
+
+    // Source each tile shows the first time it loads.
+    const DEFAULT_SOURCES = { 1: "bbc", 2: "npr", 3: "nyt" };
+
+    // ----- State -----
+
+    const tile = new URLSearchParams( location.search ).get( "tile" ) || "1";
+    const SOURCE_KEY = `dashboard-widget-news-${ tile }-source`;
+
+    const findSource = ( key ) => SOURCES.find( ( source ) => source.key === key );
+
+    const loadSourceKey = () => {
+      const saved = localStorage.getItem( SOURCE_KEY );
+      if ( findSource( saved ) ) return saved;
+      return DEFAULT_SOURCES[ tile ] || SOURCES[ 0 ].key;
+    };
+
+    const state = { tile, source: loadSourceKey() };
+
+    // ----- Formatting -----
+
+    const formatAgo = ( ts ) => {
+      if ( !ts ) return "";
+      const secs = ( Date.now() - ts ) / 1000;
+      if ( secs < 60 ) return "now";
+      const mins = Math.floor( secs / 60 );
+      if ( mins < 60 ) return `${ mins }m`;
+      const hours = Math.floor( mins / 60 );
+      if ( hours < 24 ) return `${ hours }h`;
+      const days = Math.floor( hours / 24 );
+      if ( days < 7 ) return `${ days }d`;
+      return new Date( ts ).toLocaleDateString( "en-US", { month: "short", day: "numeric" } );
+    };
+
+    const formatTime = ( ts ) => new Date( ts ).toLocaleTimeString( "en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    } );
+
+    const formatStoryDate = ( ts ) => {
+      if ( !ts ) return "";
+      return new Date( ts ).toLocaleString( "en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      } );
+    };
+
+    // ----- Hover popover -----
+
+    const hideStoryPopover = () => {
+      storyPopoverEl.hidden = true;
+    };
+
+    const showStoryPopover = ( story, linkEl ) => {
+      const titleEl = document.createElement( "div" );
+      titleEl.className = "popover-title";
+      titleEl.textContent = story.title;
+
+      const summaryEl = document.createElement( "div" );
+      summaryEl.className = "popover-summary";
+      summaryEl.textContent = story.summary || "Open the headline for the full story.";
+
+      const metaEl = document.createElement( "div" );
+      metaEl.className = "popover-meta";
+      metaEl.textContent = [ findSource( state.source ).name, formatStoryDate( story.pubDate ) ]
+        .filter( Boolean ).join( " · " );
+
+      storyPopoverEl.replaceChildren( titleEl, summaryEl, metaEl );
+      storyPopoverEl.hidden = false;
+
+      // Show below the headline if there is room, otherwise above it.
+      const linkRect = linkEl.getBoundingClientRect();
+      const popoverRect = storyPopoverEl.getBoundingClientRect();
+      const margin = 8;
+      const belowTop = linkRect.bottom + margin;
+      const top = belowTop + popoverRect.height <= window.innerHeight
+        ? belowTop
+        : Math.max( margin, linkRect.top - popoverRect.height - margin );
+      storyPopoverEl.style.top = `${ top }px`;
+    };
+
+    const bindStoryPopovers = ( items ) => {
+      newsEl.querySelectorAll( ".headline a" ).forEach( ( linkEl ) => {
+        const story = items[ +linkEl.dataset.storyIndex ];
+        linkEl.addEventListener( "mouseenter", () => showStoryPopover( story, linkEl ) );
+        linkEl.addEventListener( "mouseleave", hideStoryPopover );
+        linkEl.addEventListener( "focus", () => showStoryPopover( story, linkEl ) );
+        linkEl.addEventListener( "blur", hideStoryPopover );
+      } );
+    };
+
+    // ----- Rendering -----
+
+    const renderSourceButtons = () => {
+      sourcesEl.innerHTML = SOURCES.map( ( source ) => `
+        <button type="button" data-source="${ source.key }"
+          class="${ source.key === state.source ? "active" : "" }"
+          title="Show ${ source.name } headlines">${ source.name }</button>
+      ` ).join( "" );
+    };
+
+    const render = ( items, fetchedAt, stale ) => {
+      hideStoryPopover();
+      newsEl.innerHTML = items.map( ( story, i ) => `
+        <div class="headline">
+          <a data-story-index="${ i }" href="${ escapeHtml( story.link ) }" target="_blank" rel="noopener">${ escapeHtml( story.title ) }</a>
+          <span class="ago">${ formatAgo( story.pubDate ) }</span>
+        </div>
+      ` ).join( "" );
+      bindStoryPopovers( items );
+      updatedEl.textContent = `${ stale ? "Cached" : "Updated" } ${ formatTime( fetchedAt ) }`;
+    };
+
+    const renderMessage = ( text ) => {
+      hideStoryPopover();
+      newsEl.innerHTML = `<span class="muted">${ escapeHtml( text ) }</span>`;
+      updatedEl.textContent = "";
+    };
+
+    // ----- Loading -----
+
+    const refresh = async ( force = false ) => {
+      const source = findSource( state.source );
+      const cacheKey = CACHE_PREFIX + source.key;
+      const cached = readJson( cacheKey );
+      const fresh = cached && ( Date.now() - cached.ts ) < REFRESH_MS;
+
+      if ( fresh && !force ) {
+        render( cached.items, cached.ts, false );
+        return;
+      }
+
+      // Show what we have (marked "Cached") while the new headlines load.
+      if ( cached ) {
+        render( cached.items, cached.ts, true );
+      } else {
+        renderMessage( `Loading ${ source.name } headlines…` );
+      }
+
+      try {
+        const items = ( await source.load() )
+          .filter( ( story ) => story.title && story.link )
+          .slice( 0, MAX_HEADLINES );
+        if ( items.length === 0 ) throw new Error( "no items" );
+        const ts = Date.now();
+        localStorage.setItem( cacheKey, JSON.stringify( { ts, items } ) );
+        // Ignore the result if another source was chosen while this one loaded.
+        if ( state.source === source.key ) render( items, ts, false );
+      } catch ( err ) {
+        if ( state.source === source.key && !cached ) {
+          renderMessage( `Unable to load ${ source.name } headlines` );
+        }
+      }
+    };
+
+    const refreshNow = async () => {
+      refreshBtnEl.disabled = true;
+      try {
+        await refresh( true );
+      } finally {
+        refreshBtnEl.disabled = false;
+      }
+    };
+
+    const selectSource = ( event ) => {
+      const button = event.target.closest( "button[data-source]" );
+      if ( !button ) return;
+      state.source = button.dataset.source;
+      localStorage.setItem( SOURCE_KEY, state.source );
+      renderSourceButtons();
+      refresh();
+    };
+
+    // ----- Init -----
+
+    renderSourceButtons();
+    refresh();
+    // Force the fetch: the cache is still a few seconds "fresh" when this fires.
+    setInterval( () => refresh( true ), REFRESH_MS );
+
+    sourcesEl.addEventListener( "click", selectSource );
+    refreshBtnEl.addEventListener( "click", refreshNow );
+  </script>
+</body>
+
+</html>

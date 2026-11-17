@@ -6,18 +6,6 @@
 * Stocks with sparklines
 * Checkout Wrldmon
 
-## Reminders
-
-### 9am ~ After Breakfast
-
-* Walk: ~ Record a thought ~ take photo
-* Bathroom: Clean teeth ~ clean eyeglasses
-* Desk: Take vitamins ~ tidy workspace
-* Journal: yesterday ~ today
-
-### 11:30 ~ Before Lunch
-
-
 ## Ideas
 
 Here are ideas to consider, grouped by how useful they tend to be at-a-glance in a small iframe pane:

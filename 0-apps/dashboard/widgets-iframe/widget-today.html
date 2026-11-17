@@ -183,9 +183,8 @@
           title: item.querySelector( "title" )?.textContent?.trim() || "",
           link: item.querySelector( "link" )?.textContent?.trim() || "",
           summary: textFromHtml( item.querySelector( "description" )?.textContent ),
-          pubDate: new Date(
-            item.querySelector( "pubDate" )?.textContent || Date.now()
-          ).getTime(),
+          // 0 = no usable date; sorts last instead of pretending to be "now".
+          pubDate: Date.parse( item.querySelector( "pubDate" )?.textContent ) || 0,
         } ) );
       }
       const entries = [ ...doc.getElementsByTagName( "entry" ) ];
@@ -193,9 +192,7 @@
         title: entry.querySelector( "title" )?.textContent?.trim() || "",
         link: entry.querySelector( "link" )?.getAttribute( "href" ) || "",
         summary: textFromHtml( entry.querySelector( "summary, content" )?.textContent ),
-        pubDate: new Date(
-          entry.querySelector( "updated, published" )?.textContent || Date.now()
-        ).getTime(),
+        pubDate: Date.parse( entry.querySelector( "updated, published" )?.textContent ) || 0,
       } ) );
     };
 
@@ -208,6 +205,7 @@
     };
 
     const formatAgo = ( ts ) => {
+      if ( !ts ) return "";
       const secs = ( Date.now() - ts ) / 1000;
       if ( secs < 60 ) return "now";
       const mins = Math.floor( secs / 60 );
@@ -230,7 +228,7 @@
 
     const formatStoryDate = ( ts ) => {
       const date = new Date( ts );
-      if ( Number.isNaN( date.getTime() ) ) return "";
+      if ( !ts || Number.isNaN( date.getTime() ) ) return "";
       return date.toLocaleString( "en-US", {
         month: "short",
         day: "numeric",
@@ -346,7 +344,8 @@
     };
 
     refresh();
-    setInterval( refresh, REFRESH_MS );
+    // Force the fetch: the cache is still a few seconds "fresh" when this fires.
+    setInterval( () => refresh( true ), REFRESH_MS );
     refreshBtnEl.addEventListener( "click", refreshNow );
   </script>
 </body>

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-09-04 20:54">
+  <meta name="revised" content="2026-11-16 22:20">
   <title>Dashboard ~ iframe widgets</title>
   <link rel="icon" href="../favicon-dashboard.svg" type="image/svg+xml">
   <style>
@@ -43,7 +43,8 @@
 
     .dashboard-grid {
       display: grid;
-      gap: clamp(0.1rem, 3vw, 0.75rem);
+      /* row gap (between tiles above/below), then column gap (side by side) */
+      gap: 0.25rem clamp(0.1rem, 3vw, 0.75rem);
       grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
       align-items: start;
     }
@@ -127,14 +128,15 @@
 
     // One config entry per widget. Add, remove, reorder here.
     const WIDGETS = [
-      { id: "teodoro", src: "widget-teodoro.html", height: 220, label: "Teodoro activity timer" },
-      { id: "clock", src: "widget-clock.html", height: 220, label: "Clock and date" },
-      { id: "weather", src: "widget-weather.html", height: 220, label: "Current weather" },
-      { id: "calendar", src: "widget-calendar.html", height: 220, label: "Calendar" },
-      { id: "today", src: "widget-today.html", height: 240, label: "Today's news", wide: true },
-      { id: "reminders", src: "widget-reminders.html", height: 220, label: "Time-of-day reminders", wide: true },
-      { id: "nytimes", src: "widget-nytimes.html", height: 240, label: "New York Times: Latest news", wide: true },
-      { id: "notes", src: "widget-notes.html", height: 220, label: "Notes & spark" },
+      { id: "teodoro", src: "widget-teodoro.html", height: 217, label: "Teodoro activity timer" },
+      { id: "clock", src: "widget-clock.html", height: 217, label: "Clock and date" },
+      { id: "weather", src: "widget-weather.html", height: 217, label: "Current weather" },
+      { id: "calendar", src: "widget-calendar.html", height: 217, label: "Calendar" },
+      { id: "news-1", src: "widget-news.html?tile=1", height: 230, label: "News 1", wide: true },
+      { id: "news-2", src: "widget-news.html?tile=2", height: 230, label: "News 2", wide: true },
+      { id: "news-3", src: "widget-news.html?tile=3", height: 230, label: "News 3", wide: true },
+      { id: "reminders", src: "widget-reminders.html", height: 220, label: "Time-of-day reminders" },
+      //{ id: "notes", src: "widget-notes.html", height: 220, label: "Notes & spark" },
       { id: "github", src: "widget-github.html", height: 220, label: "Service status" },
     ];
 

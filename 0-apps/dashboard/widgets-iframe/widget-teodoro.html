@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-10-20 23:24">
+  <meta name="revised" content="2026-11-16 21:42">
   <title>Teodoro Timer</title>
   <link rel="stylesheet" href="widget-base.css">
   <style>
@@ -156,10 +156,6 @@
   <audio id="stream" src="https://player.streamhosting.ch/lounge128.mp3" preload="none"></audio>
 
   <script>
-
-    if ( location.protocol !== "file:" ) {
-      window.history.replaceState( null, "", "./" );
-    }
 
     const display = document.getElementById( "display" );
     const btnPause = document.getElementById( "btn-pause" );

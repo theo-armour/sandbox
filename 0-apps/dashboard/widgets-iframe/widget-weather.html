@@ -36,6 +36,11 @@
       outline: none;
     }
 
+    /* Tighter row spacing so every row fits the 220px tile. */
+    body.widget {
+      gap: 0.2rem;
+    }
+
     .hidden {
       display: none !important;
     }
@@ -43,7 +48,7 @@
     #current {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0 0.5rem;
       flex-wrap: wrap;
     }
 
@@ -51,6 +56,7 @@
       font-size: clamp(2.1rem, 11vw, 3.3rem);
       font-weight: 700;
       font-variant-numeric: tabular-nums;
+      line-height: 1;
     }
 
     .condition {
@@ -355,12 +361,12 @@
       && cached.coords.lat === c.lat
       && cached.coords.lon === c.lon;
 
-    const refresh = async () => {
+    const refresh = async ( force = false ) => {
       // Weather
       const cached = readJson( CACHE_KEY );
       const fresh = cacheMatches( cached, coords )
         && ( Date.now() - cached.ts ) < REFRESH_MS;
-      if ( fresh ) {
+      if ( fresh && !force ) {
         render( cached.data, cached.ts, false );
       } else {
         try {
@@ -383,7 +389,7 @@
       const aqiCached = readJson( AQI_CACHE_KEY );
       const aqiFresh = cacheMatches( aqiCached, coords )
         && ( Date.now() - aqiCached.ts ) < REFRESH_MS;
-      if ( aqiFresh ) {
+      if ( aqiFresh && !force ) {
         renderAqi( aqiCached.data );
       } else {
         try {
@@ -419,7 +425,8 @@
 
     cityEl.textContent = cityLabel();
     refresh();
-    setInterval( refresh, REFRESH_MS );
+    // Force the fetch: the cache is still a few seconds "fresh" when this fires.
+    setInterval( () => refresh( true ), REFRESH_MS );
 
   </script>
 </body>
