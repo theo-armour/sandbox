@@ -1,4 +1,4 @@
-# Agenda Reminders
+# Agenda Reminders 2026-11-16
 
 ## Waking ~ 7:40
 
@@ -86,9 +86,11 @@
 * Thursday: Marina Cleaners ~ Marina Beach ~ Safeway
 * 5 stairs accomplished
 
-## Desk 3
+## Desk 3 ~ 8:00 pm
 
-## walks x 3 ~ 5 minutes each
+walks x 3 ~ 5 minutes each
+
+## Last Walk ~ 11:00 pm
 
 ## Undressing ~ 11:15 pm
 * Cranberry juice
