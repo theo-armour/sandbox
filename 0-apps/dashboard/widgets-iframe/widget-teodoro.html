@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="revised" content="2026-11-16 21:42">
+  <meta name="revised" content="2026-11-16 22:47">
   <title>Teodoro Timer</title>
   <link rel="stylesheet" href="widget-base.css">
   <style>
@@ -42,6 +42,16 @@
     #display.overtime {
       color: #e03030;
       animation: pulse-overtime 1s infinite alternate ease-in-out;
+    }
+
+    /* In overtime the whole tile pulses red, not just the digits. */
+    body.overtime {
+      animation: pulse-tile 1.5s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulse-tile {
+      from { background: rgba(224, 48, 48, 0.08); }
+      to { background: rgba(224, 48, 48, 0.35); }
     }
 
     @keyframes pulse-overtime {
@@ -166,6 +176,8 @@
     const volInput = document.getElementById( "volume" );
     const btnMute = document.getElementById( "btn-mute" );
 
+    const OVERTIME_RADIO_SECONDS = 720; // radio plays for the first 12 minutes of overtime
+
     let remainingTime = 0;
     let totalTime = 0;
     let overtimeSeconds = 0;
@@ -196,6 +208,7 @@
     };
 
     const updateDisplay = () => {
+      document.body.classList.toggle( "overtime", isOvertime );
       if ( isOvertime ) {
         display.textContent = formatTime( overtimeSeconds );
         display.classList.add( "overtime" );
@@ -229,6 +242,7 @@
 
     // Wake locks auto-release when the tab is hidden; re-acquire on return
     document.addEventListener( "visibilitychange", () => {
+      if ( overtimeSeconds >= OVERTIME_RADIO_SECONDS ) return;
       if ( document.visibilityState === "visible" && isRunning ) acquireWakeLock();
     } );
 
@@ -239,11 +253,27 @@
       }
     };
 
-    const notifyCompletion = () => {
-      if ( "Notification" in window && Notification.permission === "granted" ) {
-        new Notification( "⏰ Time's up!", { body: "Your Teodoro session is complete." } );
+    // The notice stays on screen until dismissed. Using one tag means a repeat
+    // replaces the earlier notice instead of stacking up.
+    let notice = null;
+
+    const showNotice = ( body ) => {
+      if ( !( "Notification" in window ) || Notification.permission !== "granted" ) return;
+      try {
+        notice = new Notification( "⏰ Teodoro: time's up", {
+          body, tag: "teodoro", renotify: true, requireInteraction: true,
+        } );
+      } catch ( e ) { /* notifications unavailable here — ignore */ }
+    };
+
+    const clearNotice = () => {
+      if ( notice ) {
+        notice.close();
+        notice = null;
       }
     };
+
+    const notifyCompletion = () => showNotice( "Your session is complete. Press Reset." );
 
     const playHalfwayChime = () => {
       initAudioCtx();
@@ -330,18 +360,21 @@
       const now = Date.now();
 
       if ( isOvertime ) {
-        overtimeSeconds = Math.min( 720, Math.floor( ( now - endTime ) / 1000 ) );
+        overtimeSeconds = Math.floor( ( now - endTime ) / 1000 );
         updateDisplay();
+        // Chime once a minute, for as long as it takes, until Reset is pressed.
         const overtimeMinute = Math.floor( overtimeSeconds / 60 );
-        if ( overtimeMinute > lastOvertimeChimeMinute && overtimeMinute < 12 ) {
+        if ( overtimeMinute > lastOvertimeChimeMinute ) {
           lastOvertimeChimeMinute = overtimeMinute;
           playOvertimeChime();
+          // Repeat the desktop notice every 5 minutes.
+          if ( overtimeMinute % 5 === 0 ) {
+            showNotice( `${ overtimeMinute } minutes over. Press Reset.` );
+          }
         }
-        if ( overtimeSeconds >= 720 ) {
-          clearInterval( intervalId );
-          intervalId = null;
-          isRunning = false;
-          btnPause.textContent = "Reset";
+        // After 12 minutes the radio stops and the screen may sleep again,
+        // but the count and the minute chime carry on.
+        if ( overtimeSeconds >= OVERTIME_RADIO_SECONDS ) {
           stream.pause();
           releaseWakeLock();
         }
@@ -375,6 +408,7 @@
       intervalId = null;
       stream.pause();
       releaseWakeLock();
+      clearNotice();
 
       isOvertime = false;
       overtimeSeconds = 0;
@@ -405,6 +439,7 @@
       isRunning = false;
       stream.pause();
       releaseWakeLock();
+      clearNotice();
 
       isOvertime = false;
       overtimeSeconds = 0;
@@ -525,7 +560,7 @@
     // Auto-reconnect if the live stream drops during overtime
     [ "stalled", "error", "ended" ].forEach( ( evt ) =>
       stream.addEventListener( evt, () => {
-        if ( isOvertime && !isMuted ) {
+        if ( isOvertime && !isMuted && overtimeSeconds < OVERTIME_RADIO_SECONDS ) {
           stream.load();
           stream.play().catch( () => {} );
         }

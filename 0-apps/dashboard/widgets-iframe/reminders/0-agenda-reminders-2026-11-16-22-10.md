@@ -1,4 +1,4 @@
-# Agenda Reminders 2026-11-16
+# Reminders 2026-11-16
 
 ## Waking ~ 7:40
 

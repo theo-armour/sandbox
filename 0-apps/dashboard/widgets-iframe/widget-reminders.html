@@ -7,7 +7,7 @@
   <title>Reminders</title>
   <link rel="stylesheet" href="widget-base.css">
   <style>
-    header {
+    footer {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -72,11 +72,11 @@
 </head>
 
 <body class="widget">
-  <header>
+  <div id="message" aria-label="Agenda reminders">Loading reminders...</div>
+  <footer>
     <a id="message-link" target="_blank" rel="noopener">Reminders</a>
     <button id="reload">Reload</button>
-  </header>
-  <div id="message" aria-label="Agenda reminders">Loading reminders...</div>
+  </footer>
 
   <script>
     const REMINDER_FILE = "0-agenda-reminders.md";
