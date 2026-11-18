@@ -2,7 +2,7 @@
 
 ## Friends
 
-* [lorenzo](https://lorenzolucchesi.substack.com/)
+* [lorenzo](https://substack.com/@lorenzolucchesi)
 * [jaxclay2007](https://medium.com/@jaxclay2007)
 * [jasoncarman](https://substack.com/@jasoncarman)
 * [Douglas](https://substack.com/@dashdotdotdashdotdot)
