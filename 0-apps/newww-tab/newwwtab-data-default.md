@@ -15,25 +15,35 @@
 ### + Theo
 
 - [g](https://github.com/theo-armour/theo-armour.github.io) Theo https://theo-armour.github.io/
-- [g](https://github.com/theo-armour/2025/) t2025 https://theo-armour.github.io/2025
-- [g](https://github.com/theo-armour/2026/) t2026 https://theo-armour.github.io/2026
-- [g](https://github.com/theo-armour/2026-ta-gh-io-refactor/) t2026 Ref https://theo-armour.github.io/2026-ta-gh-io-refactor
 - [g](https://github.com/theo-armour/agenda) agenda https://theo-armour.github.io/agenda/
 - [g](https://github.com/theo-armour/collection) collection https://theo-armour.github.io/collection/
 - [g](https://github.com/theo-armour/genealogy/) genealogy https://theo-armour.github.io/genealogy/
 - [g](https://github.com/theo-armour/pages) pages https://theo-armour.github.io/pages/
 - [g](https://github.com/theo-armour/qdata/) qData https://theo-armour.github.io/qdata/
 - [g](https://github.com/theo-armour/sandbox/) sandbox https://theo-armour.github.io/sandbox/
+- [g](https://github.com/theo-armour/2025/) t2025 https://theo-armour.github.io/2025
+- [g](https://github.com/theo-armour/2026/) t2026 https://theo-armour.github.io/2026
+- [g](https://github.com/theo-armour/2026-ta-gh-io-refactor/) t2026 Ref https://theo-armour.github.io/2026-ta-gh-io-refactor
 - [g](https://github.com/theo-armour/wikitheo) wikitheo https://theo-armour.github.io/wikitheo/
 - [g]( https://github.com/Julia-Morgan-Building/) jmb https://julia-morgan-building.github.io/
+
+### - ta apps
+- [g](https://github.com/theo-armour/sandbox/tree/main/0-apps/newww-tab) newTab https://theo-armour.github.io/sandbox/0-apps/newww-tab/
+- [g](https://github.com/theo-armour/sandbox/tree/main/0-apps/dashboard/widgets-iframe/index.html) dashboard https://theo-armour.github.io/sandbox/0-apps/dashboard/widgets-iframe/index.html
+- [g](https://github.com/theo-armour/sandbox/blob/main/0-apps/links/links.md) links https://theo-armour.github.io/sandbox/#0-apps/links/links.md
+***
+- [g](https://github.com/theo-armour/qdata/tree/main/apps/trayo) trayo https://theo-armour.github.io/qdata/apps/trayo/
+- [g](https://github.com/theo-armour/qdata/tree/main/apps/notesy) days https://theo-armour.github.io/qdata/apps/notesy/days.html
+- [g](https://github.com/theo-armour/sandbox/tree/main/gemini/cookbook/newww-tab) old-tab https://theo-armour.github.io/sandbox/gemini/cookbook/newww-tab/index.html
+- [g](https://github.com/theo-armour/qdata/tree/main/apps/iframe-stuff) ifrStuff https://theo-armour.github.io/qdata/apps/iframe-stuff/
+- [g](https://github.com/theo-armour/qdata/tree/main/apps/notesy) notesy https://theo-armour.github.io/qdata/apps/notesy
+- [g](https://github.com/theo-armour/qdata/tree/main/apps/teodori) teodori https://theo-armour.github.io/qdata/apps/teodori
 
 ### - HerHap
 
 - [g](https://github.com/heritage-happenings/) her hap https://heritage-happenings.github.io/
 - [g](https://github.com/heritage-happenings/documents) hh documents https://heritage-happenings.github.io/documents/
 - [g](https://github.com/heritage-happenings/tech) hh tech https://heritage-happenings.github.io/tech/
-
-
 
 ### - sflprs
 
@@ -58,18 +68,6 @@
 - >ta qdata https://vscode.dev/github/theo-armour/qdata
 - >pp Assets https://vscode.dev/github/pushme-pullyou/assets/
 
-### - ta apps
-- [g](https://github.com/theo-armour/qdata/tree/main/apps/trayo) trayo https://theo-armour.github.io/qdata/apps/trayo/
-- [g](https://github.com/theo-armour/qdata/tree/main/apps/notesy) days https://theo-armour.github.io/qdata/apps/notesy/days.html
-- [g](https://github.com/theo-armour/sandbox/tree/main/0-apps/newww-tab) newTab https://theo-armour.github.io/sandbox/0-apps/newww-tab/
-- [g](https://github.com/theo-armour/sandbox/tree/main/gemini/cookbook/newww-tab) old-tab https://theo-armour.github.io/sandbox/gemini/cookbook/newww-tab/index.html
-
-- [g](https://github.com/theo-armour/sandbox/tree/main/0-apps/dashboard/widgets-iframe/index.html) dashboard https://theo-armour.github.io/sandbox/0-apps/dashboard/widgets-iframe/index.html
-
-- [g](https://github.com/theo-armour/qdata/tree/main/apps/iframe-stuff) ifrStuff https://theo-armour.github.io/qdata/apps/iframe-stuff/
-
-- [g](https://github.com/theo-armour/qdata/tree/main/apps/notesy) notesy https://theo-armour.github.io/qdata/apps/notesy
-- [g](https://github.com/theo-armour/qdata/tree/main/apps/teodori) teodori https://theo-armour.github.io/qdata/apps/teodori
 
 ### - demos
 - bizcard https://theo-armour.github.io/2024/about/theo-business-card.html
