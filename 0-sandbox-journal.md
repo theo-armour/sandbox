@@ -1,6 +1,17 @@
 # Sandbox Journal
 
 
+## 2026-11-18
+
+Agent instructions review with Claude Code
+
+* **TooToo pointers** — global `CLAUDE.md` and the Copilot mirror `general-instructions.md` now name the Dolittle workshop (`pushme-pullyou-dolittle/src/`) as the TooToo source. They were still pointing at the old `tootoo-dev/src/` layout from before the 2026-10-31 repo split.
+* **Writing section** — added "Writing (prose, not code)" to both global files, because most of my recent work is prose and the rules lived in one repo only: voice, parallel meditations, simple Markdown, private stays private, and fix typos freely but propose wording changes.
+* **New AGENTS.md files** — collection, genealogy and pages each have one now. All three are public repos, so each says so. People's names in file and folder names are capitalized (`Jacques-Lacan.md`).
+* **Skills** — two personal skills in `~/.claude/skills/`: `/journal` (adds a dated entry like this one) and `/sync-instructions` (keeps the two global files identical).
+* **Cleanup** — Claude settings now include the dolittle folder; stale lines fixed in the agenda `AGENTS.md` and sandbox `CLAUDE.md`.
+* **Skipped** — skills for the TooToo release (`PIPELINE.md` already covers it) and for board prep (try it in plain words first); Copilot commit-message instructions.
+
 ## 2026-10-15
 
 48 Laws of Claude
