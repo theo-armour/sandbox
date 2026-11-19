@@ -5,7 +5,7 @@ Hosted on GitHub Pages at theo-armour.github.io/sandbox/
 
 Repo-specific guidance lives in [`AGENTS.md`](AGENTS.md) — read that first.
 
-> Global defaults (no-Python, file:// workflow, vanilla-JS style, code patterns, PR workflow) live in `~/.claude/CLAUDE.md`. This file only adds sandbox-specific context.
+> Global defaults (no-Python, file:// workflow, vanilla-JS style, code patterns, git workflow) live in `~/.claude/CLAUDE.md`. This file only adds sandbox-specific context.
 
 ## What I'm Working On
 
@@ -20,4 +20,4 @@ Repo-specific guidance lives in [`AGENTS.md`](AGENTS.md) — read that first.
 
 ---
 
-**Last Updated**: 2026-05-05
+**Last Updated**: 2026-11-18
