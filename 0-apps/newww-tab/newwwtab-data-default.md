@@ -18,6 +18,7 @@
 - [g](https://github.com/theo-armour/agenda) agenda https://theo-armour.github.io/agenda/
 - [g](https://github.com/theo-armour/collection) collection https://theo-armour.github.io/collection/
 - [g](https://github.com/theo-armour/genealogy/) genealogy https://theo-armour.github.io/genealogy/
+- [g](https://github.com/theo-armour/gedcom-viewer/) gedcom https://theo-armour.github.io/gedcom-viewer/
 - [g](https://github.com/theo-armour/pages) pages https://theo-armour.github.io/pages/
 - [g](https://github.com/theo-armour/qdata/) qData https://theo-armour.github.io/qdata/
 - [g](https://github.com/theo-armour/sandbox/) sandbox https://theo-armour.github.io/sandbox/
